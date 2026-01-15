@@ -1,328 +1,1354 @@
-<template>
-    <div class="earn-page">
-      <transition name="nav-slide">
-        <div v-if="betSuccess" class="top-notification">
-          <div class="notif-glow"></div>
-          <van-icon name="checked" color="#FCD535" size="18" />
-          <span>{{ lastSide }} Trade Placed Successfully</span>
+﻿<template>
+  <div class="earn-page">
+
+    <!-- 顶部资产卡片 -->
+    <div class="header-card">
+      <div class="card-background"></div>
+      <div class="card-content">
+        <div class="asset-header">
+          <span class="asset-label">{{ $t('miner.total_assets') }}</span>
+          <van-icon 
+            :name="showBalance ? 'eye-o' : 'closed-eye'" 
+            class="eye-icon" 
+            @click="showBalance = !showBalance"
+          />
         </div>
-      </transition>
-  
-      <div class="nav-header">
-        <div class="top-nav-tabs">
-          <div class="nav-item" :class="{ active: currentTab === 'mining' }" @click="changeTab('mining')">
-            <van-icon name="cluster" /> Cloud Mining
-          </div>
-          <div class="nav-item" :class="{ active: currentTab === 'battle' }" @click="changeTab('battle')">
-            <van-icon name="fire" /> Price Battle
+        <div class="asset-value">
+          {{ showBalance ? formatAssetValue(totalAssets) : '****' }} USDT
+        </div>
+        <div class="earnings-row">
+          <span class="earnings-label">{{ $t('miner.total_profit') }}</span>
+          <span class="earnings-value">
+            {{ showBalance ? formatAssetValue(totalProfit) : '****' }} USDT
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 金刚区导航 -->
+    <div class="nav-grid">
+      <div 
+        v-for="nav in navItems" 
+        :key="nav.key"
+        class="nav-item"
+        @click="handleNavClick(nav.key)"
+      >
+        <div class="nav-icon" :style="{ background: nav.bgColor }">
+          <van-icon :name="nav.icon" />
+        </div>
+        <span class="nav-label">{{ nav.label }}</span>
+      </div>
+    </div>
+
+    <!-- Tab 切换 -->
+    <div class="nav-header">
+      <div class="top-nav-tabs">
+        <div class="nav-item" :class="{ active: currentTab === 'mining' }" @click="changeTab('mining')">
+          <van-icon name="cluster" /> {{ $t('mining') }}
+        </div>
+        <div class="nav-item" :class="{ active: currentTab === 'battle' }" @click="changeTab('battle')">
+          <van-icon name="fire" /> {{ $t('battle') }}
+        </div>
+      </div>
+    </div>
+
+    <!-- 预测市场 Tab -->
+    <div v-if="currentTab === 'battle'" class="tab-view prediction-main">
+      <!-- 分类筛选胶囊 -->
+      <div class="category-pills-container">
+        <div class="category-pills">
+          <div
+            v-for="category in categoryOptions"
+            :key="category.value"
+            class="category-pill"
+            :class="{ active: activeCategory === category.value }"
+            @click="activeCategory = category.value"
+          >
+            {{ category.label }}
           </div>
         </div>
       </div>
-  
-      <div v-if="currentTab === 'battle'" class="tab-view battle-main">
-        
-        <div class="battle-info-bar">
-          <div class="round-id">Round #{{ currentRound }}</div>
-          <div class="timer-box">
-            <span class="t-val">{{ countdown }}s</span>
-            <span class="t-lab">&nbsp;LEFT</span>
-          </div>
-        </div>
-  
-        <div class="price-hero">
-          <div class="market-selector" @click.stop="isMenuOpen = true">
-            <span class="m-name">{{ selectedCoin.name }}/USDT</span>
-            <van-icon name="arrow-down" class="m-arrow" />
-            <div class="m-index-tag">INDEX</div>
-          </div>
-  
-          <div class="price-val-wrap" :class="priceChange >= 0 ? 'text-green' : 'text-red'">
-            <span class="p-symbol">$</span>
-            <span class="p-integer">{{ currentPrice.split('.')[0] }}</span>
-            <span class="p-decimal">.{{ currentPrice.split('.')[1] }}</span>
-            <span class="p-trend">{{ priceChange >= 0 ? '▲' : '▼' }}</span>
-          </div>
-          <div class="feed-note">Real-time Feed: Binance & Coinbase Weighted</div>
-        </div>
-  
-        <div class="sentiment-section">
-          <div class="s-bar">
-            <div class="s-fill bull" :style="{ width: selectedCoin.sentiment + '%' }">
-              {{ selectedCoin.sentiment }}% Bull
+
+      <!-- 事件流 -->
+      <div class="prediction-feed">
+        <div
+          v-for="market in filteredMarkets"
+          :key="market.id"
+          class="prediction-card"
+        >
+          <!-- Header: 事件元数据 -->
+          <div class="prediction-header">
+            <div class="prediction-category">
+              <img
+                v-if="market.image && market.category === 'Crypto'"
+                :src="market.image"
+                :alt="market.category"
+                class="category-icon-small"
+                @error="handleImageError"
+              />
+              <span class="category-text">{{ getCategoryLabel(market.category) }}</span>
             </div>
-            <div class="s-fill bear" :style="{ width: (100 - selectedCoin.sentiment) + '%' }">
-              {{ 100 - selectedCoin.sentiment }}% Bear
+            <div class="prediction-deadline">{{ market.endDate }}</div>
+          </div>
+
+          <!-- Body: 核心问题 -->
+          <div class="prediction-body">
+            <img
+              :src="market.image"
+              :alt="market.title"
+              class="prediction-image"
+              @error="handleImageError"
+            />
+            <div class="prediction-title">{{ market.title }}</div>
+          </div>
+
+          <!-- Action Row: YES/NO 按钮 -->
+          <div class="prediction-actions">
+            <div
+              class="prediction-btn btn-yes"
+              @click="openBetSheet(market, 'YES')"
+            >
+              <span class="btn-label">YES</span>
+              <span class="btn-price">{{ Math.round(market.outcomes[0].price * 100) }}¢</span>
             </div>
-          </div>
-        </div>
-  
-        <div class="action-grid">
-          <button class="btn-battle bullish" @click.stop="handleBet('UP')">BULLISH</button>
-          <button class="btn-battle bearish" @click.stop="handleBet('DOWN')">BEARISH</button>
-        </div>
-  
-        <div class="results-container">
-          <div class="res-head">
-            <span class="res-title">Recent Battle Results</span>
-            <span class="res-market">{{ selectedCoin.name }} Market</span>
-          </div>
-  
-          <div class="res-table-header">
-            <div class="cell-l">PAIR / ROUND</div>
-            <div class="cell-c">CLOSE PRICE</div>
-            <div class="cell-r">STATUS / PNL</div>
-          </div>
-  
-          <div class="res-list">
-            <div v-if="filteredHistory.length > 0">
-              <div class="res-row" v-for="h in filteredHistory" :key="h.id">
-                <div class="cell-l">
-                  <span class="pair">{{ h.coin }}</span>
-                  <span class="id">#{{ h.id }}</span>
-                </div>
-                <div class="cell-c price">${{ h.close }}</div>
-                <div class="cell-r">
-                  <span class="badge" :class="h.type">{{ h.type }}</span>
-                  <span class="pnl" :class="h.type === 'WIN' ? 'text-green' : 'text-red'">{{ h.profit }}</span>
-                </div>
-              </div>
-            </div>
-            <div v-else class="res-empty">
-              <p>No Records for {{ selectedCoin.name }}</p>
-              <span>Waiting for next settlement...</span>
+            <div
+              class="prediction-btn btn-no"
+              @click="openBetSheet(market, 'NO')"
+            >
+              <span class="btn-label">NO</span>
+              <span class="btn-price">{{ Math.round(market.outcomes[1].price * 100) }}¢</span>
             </div>
           </div>
-        </div>
-      </div>
-  
-      <div v-else class="tab-view mining-view">
-        <div class="mining-header-text">Institutional Mining Power</div>
-        <div v-if="loading" class="loading-box">
-          <van-loading color="#FCD535" vertical>Updating Database...</van-loading>
-        </div>
-        <div v-else class="miner-list">
-          <div class="miner-card" v-for="m in minersFromDB" :key="m.id">
-            <div class="m-top">
-              <div class="m-icon-box">{{ m.name[0] }}</div>
-              <div class="m-title"><h3>{{ m.name }}</h3><span class="m-badge">Safe & SLA Guaranteed</span></div>
-            </div>
-            <div class="m-stats">
-              <div class="s-item"><span class="l">Daily Rate</span><span class="v text-gold">{{ m.rate }}%</span></div>
-              <div class="s-item"><span class="l">Cycle</span><span class="v">{{ m.days }}D</span></div>
-              <div class="s-item"><span class="l">Min Price</span><span class="v">${{ m.price }}</span></div>
-            </div>
-            <button class="m-buy-btn">Rent Machine Now</button>
-          </div>
-        </div>
-      </div>
-  
-      <div v-if="isMenuOpen" class="menu-overlay" @click="isMenuOpen = false">
-        <div class="menu-sheet" @click.stop>
-          <div class="menu-indicator"></div>
-          <div class="menu-title-row">
-            <span>Select Market Pair</span>
-            <van-icon name="cross" @click="isMenuOpen = false" />
-          </div>
-          <div class="coin-list">
-            <div v-for="coin in coinList" :key="coin.name" 
-                 class="coin-item" :class="{ active: selectedCoin.name === coin.name }"
-                 @click="selectCoin(coin.name)">
-              <div class="ci-left">
-                <div class="ci-icon" :style="{ background: coin.color }">{{ coin.name[0] }}</div>
-                <div class="ci-info">
-                  <span class="name">{{ coin.name }}/USDT</span>
-                  <span class="full">{{ coin.fullName }}</span>
-                </div>
-              </div>
-              <van-icon v-if="selectedCoin.name === coin.name" name="success" color="#FCD535" size="20" />
+
+          <!-- Footer: 市场数据 -->
+          <div class="prediction-footer">
+            <div class="prediction-stats">
+              <span>Vol. {{ market.volume }}</span>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </template>
-  
-  <script setup>
-  import { ref, onMounted, onUnmounted, computed } from 'vue';
-  import axios from 'axios';
-  
-  const currentTab = ref('battle');
-  const isMenuOpen = ref(false);
-  const betSuccess = ref(false);
-  const lastSide = ref('');
-  const loading = ref(false);
-  
-  const currentRound = ref(8297);
-  const countdown = ref(54);
-  
-  // 资产配置：包含独立情绪数值
-  const coinAssets = {
-    BTC: { name: 'BTC', fullName: 'Bitcoin Index', price: 92436.40, sentiment: 69 },
-    ETH: { name: 'ETH', fullName: 'Ethereum Index', price: 3109.04, sentiment: 52 },
-    SOL: { name: 'SOL', fullName: 'Solana Index', price: 142.08, sentiment: 41 },
-    BNB: { name: 'BNB', fullName: 'Binance Coin', price: 709.20, sentiment: 65 }
-  };
-  
-  const selectedCoin = ref(coinAssets.BNB); 
-  const currentPrice = ref(selectedCoin.value.price.toFixed(2));
-  const priceChange = ref(-1);
-  
-  const coinList = [
-    { name: 'BTC', fullName: 'Bitcoin', color: '#F7931A' },
-    { name: 'ETH', fullName: 'Ethereum', color: '#627EEA' },
-    { name: 'SOL', fullName: 'Solana', color: '#14F195' },
-    { name: 'BNB', fullName: 'Binance Coin', color: '#F3BA2F' }
-  ];
-  
-  let pTimer, cTimer;
-  const stopAllTimers = () => {
-    if (pTimer) clearInterval(pTimer);
-    if (cTimer) clearInterval(cTimer);
-  };
-  
-  const startTimers = () => {
-    stopAllTimers();
-    pTimer = setInterval(() => {
-      const delta = (Math.random() - 0.5) * 4;
-      currentPrice.value = (parseFloat(currentPrice.value) + delta).toFixed(2);
-      priceChange.value = delta >= 0 ? 1 : -1;
-    }, 1000);
-    cTimer = setInterval(() => {
-      if (countdown.value > 0) countdown.value--;
-      else { countdown.value = 60; currentRound.value++; }
-    }, 1000);
-  };
-  
-  const changeTab = (tab) => { 
-    currentTab.value = tab; 
-    if (tab === 'mining') {
-      stopAllTimers();
-      fetchMiners();
-    } else {
-      startTimers();
-    }
-  };
-  
-  const selectCoin = (name) => {
-    selectedCoin.value = coinAssets[name];
-    currentPrice.value = selectedCoin.value.price.toFixed(2);
-    isMenuOpen.value = false;
-  };
-  
-  const handleBet = (side) => {
-    lastSide.value = side;
-    betSuccess.value = true;
-    setTimeout(() => { betSuccess.value = false; }, 3000);
-  };
-  
-  const minersFromDB = ref([]);
-  const fetchMiners = async () => {
-    loading.value = true;
-    try {
-      const res = await axios.get('http://localhost:3000/api/miners');
-      minersFromDB.value = res.data;
-    } catch (err) {
-      minersFromDB.value = [{ id: 1, name: 'Antminer S21 Pro', rate: 2.5, days: 30, price: 1000 }];
-    } finally { loading.value = false; }
-  };
-  
-  const allHistory = ref([
-    { id: 8293, coin: 'BTC', close: '92434.32', type: 'WIN', profit: '+$185.00' },
-    { id: 991, coin: 'BNB', close: '685.12', type: 'LOSS', profit: '-$50.00' }
-  ]);
-  const filteredHistory = computed(() => allHistory.value.filter(h => h.coin === selectedCoin.value.name));
-  
-  onMounted(startTimers);
-  onUnmounted(stopAllTimers);
-  </script>
-  
-  <style scoped>
-  .earn-page { background: #0E0E0E; min-height: 100vh; padding: 16px; color: #fff; font-family: sans-serif; overflow-x: hidden; }
-  
-  /* 顶部通知条 */
-  .top-notification {
-    position: fixed; top: 15px; left: 15px; right: 15px; z-index: 12000;
-    background: rgba(28, 28, 30, 0.95); border: 1px solid rgba(252, 213, 53, 0.4);
-    backdrop-filter: blur(10px); padding: 12px 18px; border-radius: 12px;
-    display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 13px;
+
+    <!-- 云挖矿 Tab -->
+    <div v-else class="tab-view mining-view">
+      <div class="mining-header-text">{{ $t('inst_power') }}</div>
+      
+      <div v-if="loading" class="loading-box">
+        <van-loading color="#FCD535" vertical>{{ $t('update_db') }}</van-loading>
+      </div>
+      
+      <div v-else class="miner-list">
+        <div class="miner-card" v-for="m in minersFromDB" :key="m.id">
+          <div class="m-top">
+            <div class="m-icon-box">{{ m.name[0] }}</div>
+            <div class="m-title">
+              <h3>{{ m.name }}</h3>
+              <span class="m-badge">{{ $t('safe_sla') }}</span>
+            </div>
+          </div>
+          <div class="m-stats">
+            <div class="s-item">
+              <span class="l">{{ $t('daily_rate') }}</span>
+              <span class="v text-gold">{{ m.rate }}%</span>
+            </div>
+            <div class="s-item">
+              <span class="l">{{ $t('cycle') }}</span>
+              <span class="v">{{ m.days }}D</span>
+            </div>
+            <div class="s-item">
+              <span class="l">{{ $t('min_price') }}</span>
+              <span class="v">${{ m.price }}</span>
+            </div>
+          </div>
+          <button class="m-buy-btn" @click="confirmRent(m)">{{ $t('rent_btn') }}</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 下单抽屉 -->
+    <van-popup
+      v-model:show="showBetSheet"
+      position="bottom"
+      round
+      :style="{ height: '60%' }"
+      class="bet-sheet-popup"
+    >
+      <div class="bet-sheet-content" v-if="selectedMarket">
+        <div class="bet-sheet-header">
+          <div class="bet-sheet-title">
+            Buy {{ selectedSide }} - {{ selectedMarket.title }}
+          </div>
+          <van-icon name="cross" @click="showBetSheet = false" class="close-icon" />
+        </div>
+
+        <div class="bet-sheet-body">
+          <div class="bet-input-section">
+            <div class="bet-input-label">Amount (USDT)</div>
+            <van-field
+              v-model="betAmount"
+              type="number"
+              placeholder="Enter amount"
+              class="bet-amount-input"
+            />
+            <div class="bet-quick-amounts">
+              <span
+                v-for="quick in quickAmounts"
+                :key="quick"
+                class="quick-amount-btn"
+                @click="betAmount = quick.toString()"
+              >
+                {{ quick }}
+              </span>
+            </div>
+          </div>
+
+          <div class="bet-info-section">
+            <div class="bet-info-row">
+              <span class="bet-info-label">Avg Price</span>
+              <span class="bet-info-value">{{ getSelectedPrice() }}¢</span>
+            </div>
+            <div class="bet-info-row" v-if="betAmount && parseFloat(betAmount) > 0">
+              <span class="bet-info-label">Est. Return</span>
+              <span class="bet-info-value text-green">
+                ${{ calculateEstReturn().toFixed(2) }} 
+                <span class="return-percent">({{ calculateEstReturnPercent().toFixed(1) }}%)</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bet-sheet-footer">
+          <van-button
+            class="buy-now-btn"
+            type="primary"
+            block
+            :loading="isPlacingBet"
+            @click="handlePlaceBet"
+          >
+            Buy Now
+          </van-button>
+        </div>
+      </div>
+    </van-popup>
+
+    <!-- 规则中心弹窗 -->
+    <van-popup 
+      v-model:show="showRulesPopup" 
+      position="bottom" 
+      round
+      closeable
+      class="dark-rules-popup"
+      :close-on-click-overlay="true"
+    >
+      <div class="rules-content">
+        <h3 class="rules-title">{{ $t('miner.rules_center') }}</h3>
+        <div class="rules-body">
+          <div class="rule-section">
+            <h4 class="rule-section-title">{{ $t('miner.mining_rules') }}</h4>
+            <p class="rule-section-text">{{ $t('miner.mining_rules_desc') }}</p>
+          </div>
+          <div class="rule-section">
+            <h4 class="rule-section-title">{{ $t('miner.battle_rules') }}</h4>
+            <p class="rule-section-text">{{ $t('miner.battle_rules_desc') }}</p>
+          </div>
+        </div>
+      </div>
+    </van-popup>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { showToast, showConfirmDialog } from 'vant';
+import { useAssetStore } from '@/stores/assets';
+import * as predictionApi from '@/api/prediction';
+
+// --- Router ---
+const router = useRouter();
+
+// --- i18n ---
+const { t } = useI18n();
+
+// --- Pinia Store ---
+const assetStore = useAssetStore();
+
+// --- 状态变量 ---
+const currentTab = ref('battle');
+const loading = ref(false);
+const showBalance = ref(true);
+const showRulesPopup = ref(false);
+
+// --- 预测市场相关状态 ---
+const activeCategory = ref('All');
+const markets = ref([]);
+const showBetSheet = ref(false);
+const selectedMarket = ref(null);
+const selectedSide = ref('YES');
+const betAmount = ref('');
+const isPlacingBet = ref(false);
+
+// 分类选项
+const categoryOptions = [
+  { label: '全部', value: 'All' },
+  { label: '加密', value: 'Crypto' },
+  { label: '宏观', value: 'Macro' },
+  { label: '体育', value: 'Sports' }
+];
+
+// 快速金额选项
+const quickAmounts = [10, 50, 100, 500];
+
+// --- 资产数据 ---
+// 使用 Store 中的预估总资产价值，确保与"我的"页面一致
+const totalAssets = computed(() => assetStore.estimatedTotalValue);
+const totalProfit = ref(342.80);
+
+// --- 下注相关状态 ---
+const pendingBet = ref(null);
+
+// --- 金刚区导航 ---
+const navItems = computed(() => [
+  { 
+    key: 'savings', 
+    label: t('miner.stable_earn'), 
+    icon: 'gem-o', 
+    bgColor: 'linear-gradient(135deg, #FCD535 0%, #F0B90B 100%)' 
+  },
+  { 
+    key: 'history', 
+    label: t('miner.revenue_record'), 
+    icon: 'bill-o', 
+    bgColor: 'linear-gradient(135deg, #F6465D 0%, #FF6B7A 100%)' 
+  },
+  { 
+    key: 'rules', 
+    label: t('miner.rules_center'), 
+    icon: 'info-o', 
+    bgColor: 'linear-gradient(135deg, #627EEA 0%, #8B5CF6 100%)' 
   }
-  .notif-glow { position: absolute; left: 0; width: 4px; height: 60%; background: #FCD535; border-radius: 2px; }
+]);
+
+// --- 筛选后的市场列表 ---
+const filteredMarkets = computed(() => {
+  if (activeCategory.value === 'All') {
+    return markets.value;
+  }
+  return markets.value.filter(m => m.category === activeCategory.value);
+});
+
+// --- 矿机数据 ---
+const minersFromDB = ref([
+  { id: 1, name: 'Antminer S21', rate: 2.5, days: 30, price: 1000 },
+  { id: 2, name: 'Avalon A14', rate: 3.2, days: 60, price: 2500 }
+]);
+
+// --- 格式化资产值 ---
+const formatAssetValue = (value) => {
+  if (value >= 10000) {
+    return (value / 10000).toFixed(2) + '万';
+  }
+  return value.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};
+
+// --- 金刚区导航点击处理 ---
+const handleNavClick = (key) => {
+  switch (key) {
+    case 'savings':
+      router.push('/earn');
+      break;
+    case 'history':
+      router.push('/history');
+      break;
+    case 'rules':
+      showRulesPopup.value = true;
+      break;
+  }
+};
+
+// --- 预测市场相关方法 ---
+const loadMarkets = async () => {
+  try {
+    const res = await predictionApi.getMarkets(activeCategory.value);
+    if (res.code === 200) {
+      markets.value = res.data || [];
+    }
+  } catch (error) {
+    console.error('Failed to load markets:', error);
+    markets.value = [];
+  }
+};
+
+const getCategoryLabel = (category) => {
+  const labelMap = {
+    'Crypto': '加密',
+    'Politics': '政治',
+    'Sports': '体育',
+    'Macro': '宏观'
+  };
+  return labelMap[category] || category;
+};
+
+const openBetSheet = (market, side) => {
+  selectedMarket.value = market;
+  selectedSide.value = side;
+  betAmount.value = '';
+  showBetSheet.value = true;
+};
+
+const getSelectedPrice = () => {
+  if (!selectedMarket.value) return '0';
+  const outcome = selectedMarket.value.outcomes.find(o => o.side === selectedSide.value);
+  return outcome ? Math.round(outcome.price * 100) : '0';
+};
+
+const calculateEstReturn = () => {
+  if (!selectedMarket.value || !betAmount.value || parseFloat(betAmount.value) <= 0) {
+    return 0;
+  }
+  const amount = parseFloat(betAmount.value);
+  const outcome = selectedMarket.value.outcomes.find(o => o.side === selectedSide.value);
+  if (!outcome) return 0;
   
-  /* 导航 */
-  .nav-header { margin-bottom: 24px; }
-  .top-nav-tabs { display: flex; background: #1C1C1E; padding: 4px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
-  .nav-item { flex: 1; text-align: center; padding: 12px 0; font-size: 14px; color: #8E8E93; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-  .nav-item.active { background: #2B3139; color: #FCD535; }
+  // 计算：投入 amount USDT，以 price 的价格买入，可以获得 amount / price 份代币
+  // 如果预测正确，每份代币价值 $1，总收益为 amount / price
+  const shares = amount / outcome.price;
+  const maxReturn = shares * 1.0;
+  return maxReturn;
+};
+
+const calculateEstReturnPercent = () => {
+  if (!betAmount.value || parseFloat(betAmount.value) <= 0) {
+    return 0;
+  }
+  const amount = parseFloat(betAmount.value);
+  const estReturn = calculateEstReturn();
+  const profit = estReturn - amount;
+  return (profit / amount) * 100;
+};
+
+const handlePlaceBet = async () => {
+  if (!betAmount.value || parseFloat(betAmount.value) <= 0) {
+    showToast({
+      message: '请输入有效金额',
+      icon: 'fail'
+    });
+    return;
+  }
+
+  const amount = parseFloat(betAmount.value);
   
-  /* 头部状态行 */
-  .battle-info-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-  .round-id { background: #2B3139; padding: 4px 10px; border-radius: 6px; font-size: 11px; color: #8E8E93; font-weight: 800; }
-  .timer-box { font-weight: 900; color: #FCD535; font-size: 18px; }
-  .t-lab { font-size: 10px; opacity: 0.5; font-weight: 400; } /* 修正间距由 &nbsp; 实现 */
-  
-  /* 价格区药丸 */
-  .price-hero { text-align: center; padding: 10px 0; margin-bottom: 15px; }
-  .market-selector { display: inline-flex; align-items: center; gap: 8px; background: #1C1C1E; padding: 8px 18px; border-radius: 20px; border: 1px solid #2B3139; cursor: pointer; }
-  .m-name { font-weight: 800; font-size: 16px; }
-  .m-index-tag { background: #FCD535; color: #000; font-size: 9px; font-weight: 900; padding: 1px 4px; border-radius: 3px; }
-  .price-val-wrap { display: flex; align-items: baseline; justify-content: center; margin: 10px 0; }
-  .p-integer { font-size: 56px; font-weight: 900; letter-spacing: -2px; }
-  .p-decimal { font-size: 24px; font-weight: 700; opacity: 0.8; }
-  .feed-note { font-size: 10px; color: #5E5E5E; }
-  
-  /* 情绪条 */
-  .sentiment-section { margin-bottom: 24px; padding: 0 5px; }
-  .s-bar { display: flex; height: 16px; border-radius: 8px; overflow: hidden; font-size: 9px; font-weight: 900; border: 1px solid rgba(255,255,255,0.03); }
-  .s-fill { transition: width 0.6s ease-in-out; }
-  .bull { background: #0ECB81; padding-left: 10px; display: flex; align-items: center; }
-  .bear { background: #F6465D; padding-right: 10px; display: flex; align-items: center; justify-content: flex-end; }
-  
-  /* 按钮组 */
-  .action-grid { display: flex; gap: 12px; margin-bottom: 30px; }
-  .btn-battle { flex: 1; border: none; padding: 18px; border-radius: 12px; font-size: 20px; font-weight: 900; color: #fff; cursor: pointer; }
-  .bullish { background: #0ECB81; }
-  .bearish { background: #F6465D; }
-  
-  /* 战绩列表 */
-  .results-container { background: #1C1C1E; border-radius: 20px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); }
-  .res-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; }
-  .res-title { font-size: 14px; font-weight: 800; color: #FCD535; }
-  .res-market { font-size: 11px; color: #5E5E5E; font-weight: 600; }
-  .res-table-header { display: flex; font-size: 10px; color: #5E5E5E; font-weight: 900; padding-bottom: 10px; border-bottom: 1px solid #2B3139; }
-  .res-row { display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #2B3139; }
-  .cell-l { flex: 1.5; display: flex; flex-direction: column; gap: 2px; }
-  .cell-c { flex: 2; text-align: center; font-family: monospace; font-size: 14px; font-weight: 700; }
-  .cell-r { flex: 1.5; text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
-  .badge { font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 4px; }
-  .WIN { background: rgba(14,203,129,0.15); color: #0ECB81; }
-  .LOSS { background: rgba(246,70,93,0.15); color: #F6465D; }
-  .res-empty { text-align: center; padding: 40px 0; color: #444; }
-  
-  /* 矿机卡片 */
-  .miner-card { background: #1C1C1E; border-radius: 20px; padding: 20px; border: 1px solid #2B3139; margin-bottom: 16px; }
-  .m-top { display: flex; align-items: center; gap: 15px; margin-bottom: 18px; }
-  .m-icon-box { width: 46px; height: 46px; background: #FCD535; color: #000; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 20px; }
-  .m-title h3 { margin: 0; font-size: 18px; }
-  .m-stats { display: flex; justify-content: space-between; background: #0E0E0E; padding: 14px; border-radius: 10px; margin-bottom: 18px; }
-  .v { font-size: 15px; font-weight: 800; }
-  .m-buy-btn { width: 100%; background: #FCD535; border: none; padding: 14px; border-radius: 12px; font-weight: 900; font-size: 15px; color: #000; cursor: pointer; }
-  
-  /* 币种选单 */
-  .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 20000; display: flex; align-items: flex-end; }
-  .menu-sheet { width: 100%; background: #1C1C1E; border-radius: 24px 24px 0 0; padding: 12px 20px 40px 20px; animation: slideUp 0.3s ease-out; }
-  .menu-indicator { width: 40px; height: 4px; background: #2B3139; border-radius: 2px; margin: 0 auto 20px; }
-  .menu-title-row { display: flex; justify-content: space-between; font-weight: 800; font-size: 18px; color: #FCD535; margin-bottom: 20px; align-items: center; }
-  .coin-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #2B3139; border-radius: 16px; margin-bottom: 10px; border: 1px solid transparent; }
-  .coin-item.active { border-color: rgba(252,213,53,0.3); background: rgba(252,213,53,0.05); }
-  .ci-left { display: flex; align-items: center; gap: 12px; }
-  .ci-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-  
-  /* 动画 */
-  .nav-slide-enter-active, .nav-slide-leave-active { transition: all 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
-  .nav-slide-enter-from { transform: translateY(-100px); opacity: 0; }
-  .nav-slide-leave-to { transform: translateY(-50px); opacity: 0; }
-  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-  
-  .text-green { color: #0ECB81; } .text-red { color: #F6465D; } .text-gold { color: #FCD535; }
-  .center { text-align: center; } .right { text-align: right; }
-  </style>
+  if (assetStore.usdtBalance < amount) {
+    showToast({
+      message: '余额不足',
+      icon: 'fail'
+    });
+    return;
+  }
+
+  isPlacingBet.value = true;
+  try {
+    const res = await predictionApi.placePredictionBet(
+      selectedMarket.value.id,
+      selectedSide.value,
+      amount
+    );
+
+    if (res.code === 200) {
+      showBetSheet.value = false;
+      showToast({
+        message: '下注成功',
+        icon: 'success'
+      });
+      
+      // 刷新资产数据
+      await assetStore.initData();
+      
+      // 刷新市场列表（可选，因为价格可能会变化）
+      await loadMarkets();
+    } else {
+      throw new Error(res.msg || '下注失败');
+    }
+  } catch (error) {
+    console.error('Place bet error:', error);
+    showToast({
+      message: error.message || '下注失败，请重试',
+      icon: 'fail'
+    });
+  } finally {
+    isPlacingBet.value = false;
+  }
+};
+
+const handleImageError = (event) => {
+  event.target.style.display = 'none';
+};
+
+// --- Tab 切换 ---
+const changeTab = (tab) => { 
+  currentTab.value = tab; 
+  if (tab === 'battle') {
+    loadMarkets();
+  } else {
+    // 模拟加载矿机数据
+    loading.value = true;
+    setTimeout(() => { loading.value = false; }, 800);
+  }
+};
+
+// 监听分类变化，重新加载市场
+watch(activeCategory, () => {
+  if (currentTab.value === 'battle') {
+    loadMarkets();
+  }
+});
+
+const confirmRent = (miner) => {
+  showConfirmDialog({ 
+    title: 'Confirm', 
+    message: `Rent ${miner.name} for $${miner.price}?`, 
+    confirmButtonColor: '#FCD535' 
+  })
+  .then(() => showToast('Mining Plan Activated!'))
+  .catch(() => {});
+};
+
+onMounted(() => {
+  if (currentTab.value === 'battle') {
+    loadMarkets();
+  }
+});
+</script>
+
+<style scoped>
+/* 全局样式 */
+.earn-page { 
+  background: #0E0E0E; 
+  min-height: 100vh; 
+  padding: 16px; 
+  color: #fff; 
+  font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif !important; 
+  padding-bottom: 80px; 
+}
+
+.earn-page * {
+  font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif !important;
+}
+
+/* 顶部资产卡片 */
+.header-card {
+  position: relative;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  overflow: hidden;
+  min-height: 120px;
+}
+
+.card-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #1C1C1E 0%, #2B3139 50%, #1C1C1E 100%);
+  opacity: 0.9;
+}
+
+.card-background::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(252, 213, 53, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.card-content {
+  position: relative;
+  z-index: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.asset-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.asset-label {
+  font-size: 12px;
+  color: #848E9C;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.eye-icon {
+  font-size: 18px;
+  color: #FCD535;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.eye-icon:active {
+  opacity: 0.7;
+}
+
+.asset-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #FFFFFF;
+  font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', monospace !important;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.earnings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.earnings-label {
+  font-size: 12px;
+  color: #848E9C;
+}
+
+.earnings-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #FCD535;
+  font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', monospace !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 金刚区导航 */
+.nav-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.nav-item:active {
+  transform: scale(0.95);
+}
+
+.nav-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.nav-label {
+  font-size: 11px;
+  color: #EAECEF;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* 顶部通知 */
+.top-notification { 
+  position: fixed; 
+  top: 60px; 
+  left: 50%; 
+  transform: translateX(-50%); 
+  background: #1C1C1E; 
+  padding: 10px 20px; 
+  border-radius: 30px; 
+  border: 1px solid #FCD535; 
+  z-index: 9999; 
+  display: flex; 
+  align-items: center; 
+  gap: 8px; 
+  box-shadow: 0 4px 20px rgba(252, 213, 53, 0.15); 
+}
+.notif-glow { 
+  position: absolute; 
+  inset: 0; 
+  border-radius: 30px; 
+  box-shadow: 0 0 15px rgba(252, 213, 53, 0.2); 
+  pointer-events: none; 
+}
+.nav-slide-enter-active, .nav-slide-leave-active { 
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+}
+.nav-slide-enter-from, .nav-slide-leave-to { 
+  opacity: 0; 
+  transform: translate(-50%, -20px); 
+}
+
+/* 导航头 */
+.nav-header { 
+  margin-bottom: 20px; 
+}
+.top-nav-tabs { 
+  display: flex; 
+  background: #1C1C1E; 
+  padding: 4px; 
+  border-radius: 12px; 
+}
+.nav-item { 
+  flex: 1; 
+  text-align: center; 
+  padding: 12px 0; 
+  font-size: 14px; 
+  color: #8E8E93; 
+  border-radius: 8px; 
+  font-weight: 700; 
+  cursor: pointer; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 8px; 
+  transition: all 0.2s; 
+}
+.top-nav-tabs .nav-item.active { 
+  background: #2B3139; 
+  color: #FCD535; 
+}
+
+/* 预测市场样式 */
+.prediction-main {
+  padding: 0;
+}
+
+/* 分类筛选胶囊 */
+.category-pills-container {
+  padding: 12px 0;
+  margin-bottom: 16px;
+  background: #0E0E0E;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.category-pills {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 0 16px;
+}
+
+.category-pills::-webkit-scrollbar {
+  display: none;
+}
+
+.category-pill {
+  padding: 8px 16px;
+  background: #1C1C1E;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #FFFFFF;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+.category-pill:active {
+  transform: scale(0.95);
+}
+
+.category-pill.active {
+  background: #FCD535;
+  color: #000000;
+  font-weight: 600;
+}
+
+/* 事件流 */
+.prediction-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 16px 20px;
+}
+
+.prediction-card {
+  background: #1C1C1E;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
+}
+
+.prediction-card:active {
+  background: #252A32;
+  transform: scale(0.99);
+}
+
+/* Header: 事件元数据 */
+.prediction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.prediction-category {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.category-icon-small {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.category-text {
+  font-size: 11px;
+  color: #848E9C;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.prediction-deadline {
+  font-size: 11px;
+  color: #848E9C;
+  font-weight: 400;
+}
+
+/* Body: 核心问题 */
+.prediction-body {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.prediction-image {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.prediction-title {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 700;
+  color: #FFFFFF;
+  line-height: 1.4;
+  letter-spacing: -0.3px;
+  font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+/* Action Row: YES/NO 按钮 */
+.prediction-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.prediction-btn {
+  flex: 1;
+  height: 44px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  font-weight: 700;
+  font-family: 'Roboto Mono', 'Courier New', monospace;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-yes {
+  background: rgba(14, 203, 129, 0.15);
+  color: #0ECB81;
+}
+
+.btn-no {
+  background: rgba(246, 70, 93, 0.15);
+  color: #F6465D;
+}
+
+.prediction-btn:active {
+  transform: scale(0.98);
+}
+
+.btn-label {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.btn-price {
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Footer: 市场数据 */
+.prediction-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.prediction-stats {
+  font-size: 12px;
+  color: #848E9C;
+  font-variant-numeric: tabular-nums;
+}
+
+.prediction-comments {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #848E9C;
+}
+
+/* 下单抽屉样式 */
+.bet-sheet-popup {
+  background: #1C1C1E;
+}
+
+:deep(.bet-sheet-popup .van-popup) {
+  background: #1C1C1E;
+}
+
+.bet-sheet-content {
+  padding: 20px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.bet-sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.bet-sheet-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #FFFFFF;
+  flex: 1;
+  font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+.close-icon {
+  font-size: 20px;
+  color: #848E9C;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.close-icon:active {
+  color: #FFFFFF;
+}
+
+.bet-sheet-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.bet-input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bet-input-label {
+  font-size: 13px;
+  color: #848E9C;
+  font-weight: 500;
+}
+
+.bet-amount-input {
+  background: #141414;
+  border-radius: 8px;
+}
+
+:deep(.bet-amount-input .van-field__control) {
+  color: #FFFFFF;
+  font-size: 18px;
+  font-weight: 600;
+  font-family: 'Roboto Mono', 'Courier New', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+:deep(.bet-amount-input .van-field__body) {
+  background: #141414;
+}
+
+.bet-quick-amounts {
+  display: flex;
+  gap: 8px;
+}
+
+.quick-amount-btn {
+  padding: 6px 12px;
+  background: #141414;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #848E9C;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Roboto Mono', 'Courier New', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.quick-amount-btn:active {
+  background: #252A32;
+  color: #FCD535;
+}
+
+.bet-info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: #141414;
+  border-radius: 8px;
+}
+
+.bet-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bet-info-label {
+  font-size: 13px;
+  color: #848E9C;
+}
+
+.bet-info-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #FFFFFF;
+  font-family: 'Roboto Mono', 'Courier New', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.text-green {
+  color: #0ECB81;
+}
+
+.return-percent {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.bet-sheet-footer {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.buy-now-btn {
+  height: 48px;
+  background: #FCD535;
+  color: #000000;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 16px;
+  font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+:deep(.buy-now-btn .van-button__content) {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.buy-now-btn:active {
+  opacity: 0.85;
+  transform: scale(0.98);
+}
+
+/* Mining Styles */
+.mining-header-text { 
+  font-size: 20px; 
+  font-weight: 900; 
+  margin-bottom: 20px; 
+  color: #FCD535; 
+  text-transform: uppercase; 
+  letter-spacing: -0.5px; 
+}
+.loading-box { 
+  display: flex; 
+  justify-content: center; 
+  padding: 40px; 
+}
+.miner-card { 
+  background: #1C1C1E; 
+  border-radius: 20px; 
+  padding: 20px; 
+  border: 1px solid #2B3139; 
+  margin-bottom: 16px; 
+  position: relative; 
+  overflow: hidden; 
+}
+.m-top { 
+  display: flex; 
+  align-items: center; 
+  gap: 15px; 
+  margin-bottom: 18px; 
+}
+.m-icon-box { 
+  width: 46px; 
+  height: 46px; 
+  background: #FCD535; 
+  color: #000; 
+  border-radius: 12px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-weight: 900; 
+  font-size: 20px; 
+  box-shadow: 0 4px 10px rgba(252, 213, 53, 0.2); 
+}
+.m-title h3 { 
+  margin: 0; 
+  font-size: 16px; 
+  font-weight: 800; 
+  color: #fff; 
+  margin-bottom: 4px; 
+}
+.m-badge { 
+  font-size: 10px; 
+  background: rgba(142, 142, 147, 0.2); 
+  color: #8E8E93; 
+  padding: 2px 6px; 
+  border-radius: 4px; 
+  font-weight: 600; 
+}
+.m-stats { 
+  display: flex; 
+  justify-content: space-between; 
+  background: #0E0E0E; 
+  padding: 14px; 
+  border-radius: 10px; 
+  margin-bottom: 18px; 
+}
+.s-item { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 4px; 
+}
+.s-item .l { 
+  font-size: 10px; 
+  color: #5E5E5E; 
+  font-weight: 700; 
+  text-transform: uppercase; 
+}
+.s-item .v { 
+  font-size: 15px; 
+  font-weight: 800; 
+  color: #EAECEF; 
+}
+.m-buy-btn { 
+  width: 100%; 
+  background: #FCD535; 
+  border: none; 
+  padding: 14px; 
+  border-radius: 12px; 
+  font-weight: 900; 
+  font-size: 15px; 
+  color: #000; 
+  cursor: pointer; 
+  transition: opacity 0.2s; 
+}
+.m-buy-btn:active { 
+  opacity: 0.8; 
+}
+
+/* Menu Overlay */
+.menu-overlay { 
+  position: fixed; 
+  inset: 0; 
+  background: rgba(0,0,0,0.85); 
+  backdrop-filter: blur(8px); 
+  z-index: 20000; 
+  display: flex; 
+  align-items: flex-end; 
+}
+.menu-sheet { 
+  width: 100%; 
+  background: #1C1C1E; 
+  border-radius: 24px 24px 0 0; 
+  padding: 12px 20px 40px 20px; 
+  box-sizing: border-box; 
+  border-top: 1px solid #2B3139; 
+  animation: sheetUp 0.3s cubic-bezier(0.2, 0.9, 0.3, 1); 
+}
+@keyframes sheetUp { 
+  from { transform: translateY(100%); } 
+  to { transform: translateY(0); } 
+}
+.menu-indicator { 
+  width: 40px; 
+  height: 4px; 
+  background: #2B3139; 
+  border-radius: 2px; 
+  margin: 0 auto 20px auto; 
+}
+.menu-title-row { 
+  display: flex; 
+  justify-content: space-between; 
+  font-weight: 800; 
+  font-size: 18px; 
+  color: #FCD535; 
+  margin-bottom: 20px; 
+  align-items: center; 
+}
+.coin-list { 
+  max-height: 60vh; 
+  overflow-y: auto; 
+}
+.coin-item { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  padding: 16px; 
+  background: #2B3139; 
+  border-radius: 16px; 
+  margin-bottom: 10px; 
+  transition: background 0.2s; 
+  border: 1px solid transparent; 
+}
+.coin-item.active { 
+  border-color: #FCD535; 
+  background: rgba(252, 213, 53, 0.05); 
+}
+.ci-left { 
+  display: flex; 
+  align-items: center; 
+  gap: 12px; 
+}
+.ci-icon { 
+  width: 32px; 
+  height: 32px; 
+  border-radius: 50%; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  color: #fff; 
+  font-weight: bold; 
+  font-size: 14px; 
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3); 
+}
+.ci-info { 
+  display: flex; 
+  flex-direction: column; 
+}
+.ci-info .name { 
+  font-weight: 800; 
+  font-size: 14px; 
+  color: #fff; 
+}
+.ci-info .full { 
+  font-size: 11px; 
+  color: #8E8E93; 
+  font-weight: 600; 
+}
+
+/* 规则中心弹窗 - 暗黑风格 */
+.dark-rules-popup {
+  background-color: #1E2329 !important;
+  color: #EAECEF !important;
+  max-height: 60% !important;
+}
+
+/* 关闭按钮颜色 */
+:deep(.dark-rules-popup .van-popup__close-icon) {
+  color: #FFFFFF !important;
+}
+
+.rules-content {
+  padding: 0;
+}
+
+.rules-title {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: #FCD535;
+  margin: 20px 0;
+  padding: 0 20px;
+}
+
+.rules-body {
+  padding: 0 20px 40px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #848E9C;
+}
+
+.rule-section {
+  margin-bottom: 24px;
+}
+
+.rule-section:last-child {
+  margin-bottom: 0;
+}
+
+.rule-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 12px;
+}
+
+.rule-section-text {
+  font-size: 14px;
+  color: #848E9C;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.text-green { color: #0ECB81 !important; } 
+.text-red { color: #F6465D !important; } 
+.text-gold { color: #FCD535 !important; }
+</style>
+
