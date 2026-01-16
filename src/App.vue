@@ -39,7 +39,7 @@
 
     <div class="main-content" :class="{ 'fullscreen-mode': isFullScreen, 'no-app-header': !showAppHeader }">
       <router-view v-slot="{ Component }">
-        <keep-alive :include="['MarketDetail']">
+        <keep-alive :include="['Home', 'MarketDetail', 'Miner', 'Trade', 'IDO', 'Me']">
           <component :is="Component" />
         </keep-alive>
       </router-view>
@@ -70,6 +70,19 @@
     </van-tabbar>
 
     <LanguageSelect ref="langRef" />
+    
+    <!-- 全局通知组件 (高端黑金风格) -->
+    <transition name="notif-slide">
+      <div v-if="notification.show" class="global-notification" @click="handleNotifClick">
+        <div class="notif-glow"></div>
+        <van-icon :name="notification.icon" class="notif-icon" />
+        <div class="notif-body">
+          <div class="notif-title">{{ notification.title }}</div>
+          <div class="notif-message">{{ notification.message }}</div>
+        </div>
+        <van-icon name="arrow" class="notif-arrow" />
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -79,6 +92,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { Tabbar, TabbarItem, Icon, showConfirmDialog, showToast } from 'vant';
 import LanguageSelect from './components/LanguageSelect.vue';
 import { useAssetStore } from '@/stores/assets';
+import { useMarketStore } from '@/stores/market';
 
 // 注册组件
 const VanTabbar = Tabbar;
@@ -91,7 +105,87 @@ const langRef = ref(null);
 const active = ref('/');
 const routerReady = ref(false);
 const assetStore = useAssetStore();
+const marketStore = useMarketStore();
 const isConnecting = ref(false);
+
+// --- 全局通知状态 ---
+const notification = ref({
+  show: false,
+  title: '',
+  message: '',
+  icon: 'bell-o',
+  path: '',
+  timer: null
+});
+
+// 存储上一次的价格，用于检测波动
+const previousPrices = ref({});
+
+// 显示通知函数
+const triggerNotification = (title, message, icon = 'bullhorn-o', path = '') => {
+  // 检查设置中的推送开关
+  const pushEnabled = localStorage.getItem('user_push_enabled') !== 'false';
+  if (!pushEnabled) return;
+
+  // 清除之前的定时器
+  if (notification.value.timer) {
+    clearTimeout(notification.value.timer);
+  }
+
+  notification.value = {
+    show: true,
+    title,
+    message,
+    icon,
+    path,
+    timer: setTimeout(() => {
+      notification.value.show = false;
+    }, 5000) // 5秒后自动消失
+  };
+};
+
+const handleNotifClick = () => {
+  if (notification.value.path) {
+    router.push(notification.value.path);
+  }
+  notification.value.show = false;
+};
+
+// 监听行情变化，触发波动通知
+watch(() => marketStore.tickers, (newTickers) => {
+  const coinSymbols = ['BTC', 'ETH', 'BNB', 'SOL', 'DOGE', 'TRX'];
+  
+  coinSymbols.forEach(symbol => {
+    const ticker = newTickers[symbol];
+    if (ticker && ticker.price > 0) {
+      const currentPrice = Number(ticker.price);
+      const oldPrice = previousPrices.value[symbol];
+      
+      if (oldPrice) {
+        const priceChange = Math.abs((currentPrice - oldPrice) / oldPrice);
+        
+        // 如果价格波动超过 2%，触发通知
+        if (priceChange >= 0.02) {
+          const changePercent = ((currentPrice - oldPrice) / oldPrice * 100).toFixed(2);
+          const isUp = currentPrice > oldPrice;
+          
+          triggerNotification(
+            t(isUp ? 'settings.notif_market_up' : 'settings.notif_market_down', { symbol }),
+            t('settings.notif_market_current', { 
+              price: currentPrice.toFixed(2), 
+              change: (isUp ? '+' : '') + changePercent 
+            }),
+            isUp ? 'trending-up' : 'trending-down',
+            `/market?symbol=${symbol}`
+          );
+        }
+      }
+      
+      // 更新历史价格
+      previousPrices.value[symbol] = currentPrice;
+    }
+  });
+}, { deep: true });
 
 // 判断是否全屏
 const isFullScreen = computed(() => {
@@ -110,12 +204,12 @@ const isFullScreen = computed(() => {
     'support',
     'security-center',
     'fund-password',
-    'phone-verify',
     'google-auth',
     'futures',
     'treasury',        // 新增：国库资产页面
     'chain-explorer', // 新增：链上交易页面
-    'earn'            // 新增：理财页面
+    'earn',           // 新增：理财页面
+    'referral'        // 新增：邀请返佣页面
   ];
   
   // 只要当前路径包含以上任何一个关键词，就返回 true
@@ -462,5 +556,90 @@ body, html, #app {
   color: #FCD535;
   font-size: 12px;
   margin-top: 4px;
+}
+
+/* ========== 全局通知组件样式 (Pro Max 黑金风格) ========== */
+.global-notification {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  background: rgba(28, 28, 30, 0.9);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(252, 213, 53, 0.3);
+  border-radius: 16px;
+  padding: 12px 16px;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(252, 213, 53, 0.1);
+  animation: notif-bounce 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.notif-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 20% 50%, rgba(252, 213, 53, 0.1), transparent 70%);
+  pointer-events: none;
+}
+
+.notif-icon {
+  font-size: 24px;
+  color: #FCD535;
+  background: rgba(252, 213, 53, 0.1);
+  padding: 8px;
+  border-radius: 12px;
+}
+
+.notif-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.notif-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #FCD535;
+  letter-spacing: 0.5px;
+}
+
+.notif-message {
+  font-size: 12px;
+  color: #EAECEF;
+  opacity: 0.9;
+}
+
+.notif-arrow {
+  font-size: 14px;
+  color: #8E8E93;
+}
+
+/* 通知进场离场动画 */
+.notif-slide-enter-active {
+  transition: all 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+.notif-slide-leave-active {
+  transition: all 0.3s ease;
+}
+.notif-slide-enter-from {
+  opacity: 0;
+  transform: translateY(-100%) scale(0.9);
+}
+.notif-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-20px) scale(0.95);
+}
+
+@keyframes notif-bounce {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
 }
 </style>

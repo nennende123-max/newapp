@@ -20,14 +20,6 @@
 
       <!-- 功能列表：合并为一个卡片 -->
       <van-cell-group inset class="section-group">
-        <van-cell :title="$t('security.phone_verification')" is-link center @click="handlePhoneClick">
-          <template #icon>
-            <van-icon name="phone-o" color="#FCD535" size="18" style="margin-right: 10px" />
-          </template>
-          <template #value>
-            <span class="security-status-bound">{{ phoneStatus }}</span>
-          </template>
-        </van-cell>
         <van-cell :title="$t('security.google_authenticator')" is-link center @click="handleGoogleAuthClick">
           <template #icon>
             <van-icon name="shield-o" color="#FCD535" size="18" style="margin-right: 10px" />
@@ -61,20 +53,8 @@ const router = useRouter();
 const { t } = useI18n();
 
 // 数据
-const phoneStatus = ref('');
 const googleAuthStatus = ref('');
 const fundPasswordStatus = ref('');
-
-// 加载手机验证状态
-const loadPhoneStatus = () => {
-  const phoneVerified = localStorage.getItem('phoneVerified');
-  const phoneNumber = localStorage.getItem('phoneNumber');
-  if (phoneVerified === 'true' && phoneNumber) {
-    phoneStatus.value = phoneNumber;
-  } else {
-    phoneStatus.value = t('security.phone_unbound');
-  }
-};
 
 // 加载谷歌验证状态
 const loadGoogleAuthStatus = () => {
@@ -91,7 +71,8 @@ const loadGoogleAuthStatus = () => {
 // 加载资金密码状态
 const loadFundPasswordStatus = () => {
   const fundPasswordSet = localStorage.getItem('fundPasswordSet');
-  if (fundPasswordSet === 'true') {
+  const fundPassword = localStorage.getItem('fundPassword');
+  if (fundPasswordSet === 'true' || fundPassword) {
     fundPasswordStatus.value = t('security.fund_password_set');
   } else {
     fundPasswordStatus.value = t('security.fund_password_unset');
@@ -100,23 +81,17 @@ const loadFundPasswordStatus = () => {
 
 // 页面加载时读取状态
 onMounted(() => {
-  loadPhoneStatus();
   loadGoogleAuthStatus();
   loadFundPasswordStatus();
 });
 
 // 页面激活时重新加载状态（从其他页面返回时）
 onActivated(() => {
-  loadPhoneStatus();
   loadGoogleAuthStatus();
   loadFundPasswordStatus();
 });
 
 // 方法
-const handlePhoneClick = () => {
-  router.push('/phone-verify');
-};
-
 const handleGoogleAuthClick = () => {
   // 如果已开启，显示提示
   if (googleAuthStatus.value === t('security.google_enabled')) {

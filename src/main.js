@@ -27,10 +27,11 @@ const messages = {
       withdraw: 'Withdraw',
       earn: 'Earn',
       service: 'Service',
-      team: 'My Team'
+      team: 'My Team',
+      security_center: 'Security Center'
     },
     home: {
-      slogan: 'The World\'s First Transparent Asset Platform',
+      slogan: 'Institutional Transparent Asset Platform',
       platform_transparency: 'Platform Transparency',
       audited_by_certik: 'Audited by CertiK',
       redirecting_certik: 'Redirecting to CertiK Scan...',
@@ -147,6 +148,69 @@ const messages = {
       referral_rebate: 'rebate',
       referral_earned: 'Earned'
     },
+    // 邀请返佣页面
+    referral: {
+      title: 'Invite & Earn',
+      total_earned: 'Total Earned',
+      total_referrals: 'Total Referrals',
+      people: 'People',
+      invite_code: 'Invite Code',
+      invite_code_desc: 'Share your invite code to earn commissions',
+      copy: 'Copy',
+      copy_success: 'Copied!',
+      copy_failed: 'Copy failed',
+      share_link: 'Link',
+      share_qr: 'QR Code',
+      share_image: 'Image',
+      qr_coming_soon: 'QR code feature coming soon',
+      image_coming_soon: 'Share image feature coming soon',
+      commission_rules: 'Commission Rules',
+      rule_spot: 'Spot Trading',
+      rule_spot_desc: 'Friends trade spot',
+      rule_futures: 'Futures Trading',
+      rule_futures_desc: 'Friends trade futures',
+      rule_earn: 'Earn Products',
+      rule_earn_desc: 'Friends subscribe earn products',
+      recent_earnings: 'Recent Earnings',
+      traded: 'traded',
+      subscribed: 'subscribed',
+      leaderboard: 'Leaderboard',
+      referrals: 'referrals',
+      go_withdraw: 'Withdraw',
+      commission_setting: 'Commission Setting',
+      total_commission: 'Total Commission',
+      my_share: 'My Share',
+      friend_share: 'Friend Share',
+      invite_link: 'Invite Link',
+      invite_now: 'Invite Friends Now',
+      invite_count: 'Invite Count',
+      trading_volume: 'Trading Volume',
+      yesterday_earnings: 'Yesterday Earnings',
+      current_level: 'Current Level',
+      need_more: 'Need {count} more to upgrade',
+      invite_records: 'Invite Records',
+      commission_details: 'Commission Details',
+      no_invite_records: 'No invite records yet',
+      no_commission_records: 'No commission records yet',
+      status_active: 'Active',
+      status_inactive: 'Inactive',
+      minutes_ago: ' min ago',
+      hours_ago: ' hours ago',
+      days_ago: ' days ago',
+      commission_spot: 'Spot Trading Commission',
+      commission_earn: 'Earn Product Commission',
+      commission_futures: 'Futures Trading Commission',
+      invite_feature_coming_soon: 'Invite feature coming soon',
+      announcement_withdraw: 'User {user} just withdrew {amount} USDT',
+      announcement_invite: '{user} successfully invited {count} people',
+      announcement_earn: '{user} earned {amount} USDT commission',
+      scan_to_invite: 'Scan QR code to invite friends',
+      scan_to_join: 'Scan QR code to join TruthFi',
+      save_poster: 'Save Poster',
+      poster_saved: 'Poster saved successfully',
+      poster_generate_failed: 'Failed to generate poster',
+      qr_generate_failed: 'Failed to generate QR code'
+    },
     // 资产页面
     assets: {
       title: 'Assets',
@@ -229,7 +293,25 @@ const messages = {
       mining_rules: '云挖矿规则',
       mining_rules_desc: 'After renting a miner, you will earn daily returns at a fixed rate. Returns will be automatically credited after the cycle ends.',
       battle_rules: 'Price Battle Rules',
-      battle_rules_desc: 'Predict the price direction, place a bet and wait for the countdown to end. If correct, you get 1.8x payout; if wrong, you lose the bet amount.'
+      battle_rules_desc: 'Predict the price direction, place a bet and wait for the countdown to end. If correct, you get 1.8x payout; if wrong, you lose the bet amount.',
+      category_all: 'All',
+      category_crypto: 'Crypto',
+      category_macro: 'Macro',
+      category_sports: 'Sports',
+      category_politics: 'Politics',
+      volume: 'Vol.',
+      ten_thousand: '万'
+    },
+    // Prediction Market
+    prediction: {
+      btc_100k: 'Will Bitcoin break $100,000 before the end of January?',
+      trump_crypto: 'Will Trump mention "Crypto" in next speech?',
+      eth_5k: 'Will Ethereum reach $5,000 in Q1 2026?',
+      fed_rates: 'Will the Fed cut rates by 50bps in Q1 2026?',
+      lakers_championship: 'Will the Lakers win the 2026 NBA Championship?',
+      eth_flip_btc: 'Will ETH flip BTC in market cap by end of 2026?',
+      inflation_2pct: 'Will US inflation drop below 2% in 2026?',
+      solana_200: 'Will Solana reach $200 before Bitcoin hits $150k?'
     },
     // Launchpad
     launchpad: {
@@ -286,6 +368,7 @@ const messages = {
       select_leverage: 'Select Leverage',
       full_position: 'Full Position',
       isolated_position: 'Isolated Position',
+      funding_rate: 'Funding Rate',
       open_long: 'Open Long',
       open_short: 'Open Short',
       long: 'Long',
@@ -372,6 +455,25 @@ const messages = {
       copy_failed: 'Copy Failed'
     },
 
+    // 链上交易监控页面
+    chain_explorer: {
+      title: 'On-Chain Transaction Monitor',
+      network_status: 'Network Normal',
+      current_gas: 'Current Gas',
+      block_height: 'Block Height',
+      net_flow_24h: '24H Net Flow',
+      table_time: 'Time',
+      table_type: 'Type',
+      table_hash: 'Transaction Hash',
+      table_amount: 'Amount',
+      table_status: 'Status',
+      type_deposit: 'Deposit',
+      type_withdraw: 'Withdraw',
+      status_success: 'Success',
+      status_pending: 'Pending',
+      status_confirming: 'Confirming'
+    },
+
     // 安全中心相关
     security: {
       title: 'Security Center',
@@ -429,6 +531,7 @@ const messages = {
       google_auth_enable_success: 'Google Authenticator enabled successfully',
       google_auth_description: 'Scan the QR code with Google Authenticator app, then enter the verification code to enable',
       google_auth_qr_refreshed: 'QR code refreshed',
+      google_auth_qr_generate_failed: 'Failed to generate QR code',
       google_auth_code_required: 'Please enter 6-digit verification code',
       google_auth_code_invalid: 'Invalid verification code format',
       google_auth_code_hint: 'Verification code updates every 30 seconds, please ensure time synchronization'
@@ -463,7 +566,7 @@ const messages = {
       // 关于我们弹窗
       about_us_title: 'About TruthFi',
       about_us_version: 'Version v1.0.0',
-      about_us_content: 'TruthFi is the world\'s first asset management platform based on transparency protocol, dedicated to providing users with secure, transparent, and efficient cryptocurrency trading and wealth management services.',
+      about_us_content: 'TruthFi is an institutional asset management platform based on transparency protocol, dedicated to providing users with secure, transparent, and efficient cryptocurrency trading and wealth management services.',
       about_us_content2: 'We use blockchain technology to ensure the transparency of all transaction data, allowing users to track asset flows in real-time and enjoy professional-level financial services.',
       about_us_confirm: 'Got it',
       security_center: 'Security Center',
@@ -475,7 +578,10 @@ const messages = {
       logout_success: 'Logged out successfully',
       // 通知设置
       notification_enabled: 'Push notifications enabled',
-      notification_disabled: 'Notifications disabled'
+      notification_disabled: 'Notifications disabled',
+      notif_market_up: '{symbol}/USDT Market Up',
+      notif_market_down: '{symbol}/USDT Market Down',
+      notif_market_current: 'Current Price: ${price} ({change}%)'
     },
 
     // 个人资料
@@ -544,10 +650,11 @@ const messages = {
       withdraw: '提现',
       earn: '理财',
       service: '客服',
-      team: '团队'
+      team: '团队',
+      security_center: '安全中心'
     },
     home: {
-      slogan: '全球首个透明资产平台',
+      slogan: '机构级透明资产平台',
       platform_transparency: '平台透明度',
       audited_by_certik: 'Audited by CertiK',
       redirecting_certik: '正在跳转到 CertiK 扫描...',
@@ -665,6 +772,69 @@ const messages = {
       referral_rebate: '返佣',
       referral_earned: '已赚'
     },
+    // 邀请返佣页面
+    referral: {
+      title: '邀请返佣',
+      total_earned: '累计收益',
+      total_referrals: '邀请人数',
+      people: '人',
+      invite_code: '邀请码',
+      invite_code_desc: '分享您的邀请码，赚取佣金',
+      copy: '复制',
+      copy_success: '邀请码已复制！',
+      copy_failed: '复制失败',
+      share_link: '链接',
+      share_qr: '二维码',
+      share_image: '图片',
+      qr_coming_soon: '二维码功能即将推出',
+      image_coming_soon: '分享图片功能即将推出',
+      commission_rules: '返佣规则',
+      rule_spot: '现货交易',
+      rule_spot_desc: '好友进行现货交易',
+      rule_futures: '合约交易',
+      rule_futures_desc: '好友进行合约交易',
+      rule_earn: '理财产品',
+      rule_earn_desc: '好友申购理财产品',
+      recent_earnings: '最近收益',
+      traded: '交易',
+      subscribed: '申购',
+      leaderboard: '排行榜',
+      referrals: '邀请',
+      go_withdraw: '去提现',
+      commission_setting: '返佣设置',
+      total_commission: '总返佣',
+      my_share: '我的',
+      friend_share: '好友',
+      invite_link: '邀请链接',
+      invite_now: '立即邀请好友',
+      invite_count: '邀请人数',
+      trading_volume: '交易额',
+      yesterday_earnings: '昨日收益',
+      current_level: '当前等级',
+      need_more: '差 {count} 人升级',
+      invite_records: '邀请记录',
+      commission_details: '返佣明细',
+      no_invite_records: '暂无邀请记录',
+      no_commission_records: '暂无返佣明细',
+      status_active: '已激活',
+      status_inactive: '未激活',
+      minutes_ago: '分钟前',
+      hours_ago: '小时前',
+      days_ago: '天前',
+      commission_spot: '现货交易返佣',
+      commission_earn: '理财产品返佣',
+      commission_futures: '合约交易返佣',
+      invite_feature_coming_soon: '邀请功能即将推出',
+      announcement_withdraw: '用户 {user} 刚刚提现 {amount} USDT',
+      announcement_invite: '{user} 成功邀请 {count} 人',
+      announcement_earn: '{user} 获得 {amount} USDT 返佣',
+      scan_to_invite: '扫描二维码邀请好友',
+      scan_to_join: '扫描二维码加入 TruthFi',
+      save_poster: '保存海报',
+      poster_saved: '海报已保存',
+      poster_generate_failed: '海报生成失败',
+      qr_generate_failed: '二维码生成失败'
+    },
     // 资产页面
     assets: {
       title: '资产',
@@ -747,7 +917,25 @@ const messages = {
       mining_rules: '云挖矿规则',
       mining_rules_desc: '租用矿机后，每日按固定收益率获得收益。收益将在周期结束后自动到账。',
       battle_rules: '价格对决规则',
-      battle_rules_desc: '预测价格涨跌方向，下注后等待倒计时结束。若预测正确，将获得1.8倍赔付；若预测错误，将损失下注金额。'
+      battle_rules_desc: '预测价格涨跌方向，下注后等待倒计时结束。若预测正确，将获得1.8倍赔付；若预测错误，将损失下注金额。',
+      category_all: '全部',
+      category_crypto: '加密',
+      category_macro: '宏观',
+      category_sports: '体育',
+      category_politics: '政治',
+      volume: '成交量',
+      ten_thousand: '万'
+    },
+    // Prediction Market
+    prediction: {
+      btc_100k: 'Bitcoin 会在 1 月底前突破 $100,000 吗？',
+      trump_crypto: '特朗普会在下次演讲中提及"加密货币"吗？',
+      eth_5k: 'Ethereum 会在 2026 年 Q1 达到 $5,000 吗？',
+      fed_rates: '美联储会在 2026 年 Q1 降息 50 个基点吗？',
+      lakers_championship: '湖人队会赢得 2026 年 NBA 总冠军吗？',
+      eth_flip_btc: 'ETH 会在 2026 年底前市值超越 BTC 吗？',
+      inflation_2pct: '美国通胀率会在 2026 年降至 2% 以下吗？',
+      solana_200: 'Solana 会在 Bitcoin 达到 $150k 之前达到 $200 吗？'
     },
     // Launchpad
     launchpad: {
@@ -805,6 +993,7 @@ const messages = {
       select_leverage: '选择杠杆倍数',
       full_position: '全仓',
       isolated_position: '逐仓',
+      funding_rate: '资金费率',
       open_long: '开多',
       open_short: '开空',
       long: '做多',
@@ -891,6 +1080,25 @@ const messages = {
       copy_failed: '复制失败'
     },
 
+    // 链上交易监控页面
+    chain_explorer: {
+      title: '链上交易监控',
+      network_status: '网络正常',
+      current_gas: '当前 Gas',
+      block_height: '区块高度',
+      net_flow_24h: '24H 净流入',
+      table_time: '时间',
+      table_type: '类型',
+      table_hash: '交易哈希',
+      table_amount: '金额',
+      table_status: '状态',
+      type_deposit: '充值',
+      type_withdraw: '提现',
+      status_success: '成功',
+      status_pending: '确认中',
+      status_confirming: '确认中'
+    },
+
     // 安全中心相关
     security: {
       title: '安全中心',
@@ -948,6 +1156,7 @@ const messages = {
       google_auth_enable_success: '谷歌验证器开启成功',
       google_auth_description: '使用谷歌验证器 App 扫描二维码，然后输入验证码以开启',
       google_auth_qr_refreshed: '二维码已刷新',
+      google_auth_qr_generate_failed: '二维码生成失败',
       google_auth_code_required: '请输入6位验证码',
       google_auth_code_invalid: '验证码格式不正确',
       google_auth_code_hint: '验证码每30秒更新一次，请确保时间同步'
@@ -982,7 +1191,7 @@ const messages = {
       // 关于我们弹窗
       about_us_title: '关于 TruthFi',
       about_us_version: '版本 v1.0.0',
-      about_us_content: 'TruthFi 是全球首个基于透明度协议的资产管理平台，致力于为用户提供安全、透明、高效的加密资产交易与理财服务。',
+      about_us_content: 'TruthFi 是机构级透明资产平台，致力于为用户提供安全、透明、高效的加密资产交易与理财服务。',
       about_us_content2: '我们通过区块链技术确保所有交易数据的公开透明，让用户能够实时追踪资产流向，享受专业级的金融服务体验。',
       about_us_confirm: '我知道了',
       security_center: '安全中心',
@@ -994,7 +1203,10 @@ const messages = {
       logout_success: '退出成功',
       // 通知设置
       notification_enabled: '推送通知已开启',
-      notification_disabled: '通知已停用'
+      notification_disabled: '通知已停用',
+      notif_market_up: '{symbol}/USDT 行情上涨',
+      notif_market_down: '{symbol}/USDT 行情下跌',
+      notif_market_current: '当前价格: ${price} ({change}%)'
     },
 
     // 个人资料

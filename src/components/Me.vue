@@ -82,10 +82,6 @@
         <div class="action-btn secondary" @click="handleWithdraw">
           <span class="btn-text">{{ $t('wallet.withdraw') }}</span>
         </div>
-        <div class="action-btn secondary" @click="handleFuturesClick">
-          <van-icon name="chart-trending-o" size="16" />
-          <span class="btn-text">{{ $t('assets.futures') }}</span>
-        </div>
       </div>
   
       <!-- 邀请返佣 Banner -->
@@ -118,7 +114,7 @@
           <div class="allocation-item">
             <div class="allocation-left">
               <div class="allocation-icon spot-icon">
-                <van-icon name="wallet-o" color="#FFFFFF" size="22" />
+                <van-icon name="balance-o" color="#000000" size="22" />
               </div>
               <div class="allocation-info">
                 <span class="allocation-name">{{ $t('wallet.spot_account') }}</span>
@@ -232,12 +228,16 @@
   </template>
   
   <script setup>
-import { ref, computed, onMounted, watch, onActivated } from 'vue';
+import { ref, computed, onMounted, watch, onActivated, onDeactivated } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { showToast } from 'vant';
 import { useAssetStore } from '@/stores/assets';
 import EarnList from './EarnList.vue';
+
+defineOptions({
+  name: 'Me'
+});
 
 /**
  * Asset 接口定义
@@ -489,18 +489,6 @@ const handleTransfer = () => {
   showToast({ message: '转账功能即将上线', icon: 'smile-o' });
 };
 
-// 跳转到合约交易页面
-const handleFuturesClick = () => {
-  if (!assetStore.isWalletConnected) {
-    showToast({ 
-      message: t('wallet.wallet_not_connected'), 
-      icon: 'fail',
-      duration: 2000
-    });
-    return;
-  }
-  router.push({ path: '/futures' });
-};
 
 // Reset test data
 const handleResetTestData = () => {
@@ -529,9 +517,7 @@ const goToIDO = () => {
 
 // 跳转到邀请返佣页面
 const toReferral = () => {
-  // 可以跳转到邀请返佣页面
-  // router.push('/referral');
-  showToast({ message: '邀请返佣功能即将推出', icon: 'info' });
+  router.push('/referral');
 };
 
 // 处理 PnL 卡片点击（可扩展为跳转到详细页面）
@@ -1128,6 +1114,16 @@ onActivated(() => {
   box-shadow: 0 2px 8px rgba(252, 213, 53, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
 }
 
+/* 确保 Vant 图标字体正确加载 */
+.allocation-icon :deep(.van-icon),
+.allocation-icon :deep([class*="van-icon"]) {
+  font-family: 'vant-icon', 'vant-iconfont', 'vant-icons', 'iconfont', 'vant', sans-serif !important;
+  font-style: normal !important;
+  font-weight: normal !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
 .allocation-icon.earn-icon {
   background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
   box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
@@ -1183,6 +1179,7 @@ onActivated(() => {
 /* Earn 内容区域 */
 .earn-content {
   padding: 0;
+  margin-top: 0;
   width: 100%;
   display: block;
 }

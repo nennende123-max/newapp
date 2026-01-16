@@ -22,10 +22,10 @@
       </div>
       <div 
         class="tab-item" 
-        :class="{ active: activeTradeTab === 'leverage' }"
-        @click="activeTradeTab = 'leverage'"
+        :class="{ active: activeTradeTab === 'futures' }"
+        @click="activeTradeTab = 'futures'"
       >
-        {{ t('assets.leverage') }}
+        {{ t('assets.futures') }}
       </div>
     </div>
 
@@ -39,7 +39,8 @@
       </div>
     </div>
 
-    <div class="trade-main">
+    <!-- 现货交易界面 -->
+    <div v-if="activeTradeTab === 'spot'" class="trade-main">
       <div class="orderbook-side">
         <div class="orderbook-header">
           <span class="header-price">{{ t('trade.price') }} (USDT)</span>
@@ -96,14 +97,6 @@
           >
             {{ t('trade.sell') }}
           </div>
-        </div>
-
-        <div v-if="activeTradeTab === 'leverage'" class="leverage-control-bar">
-          <button class="leverage-btn" @click="showLeveragePopup = true">
-            <span>{{ t('trade.full_position') }}</span>
-            <span class="leverage-value">{{ currentLeverage }}x</span>
-            <van-icon name="arrow-down" size="12" color="#848E9C" />
-          </button>
         </div>
 
         <div class="order-type-selector" @click="showOrderTypeSheet = true">
@@ -200,7 +193,249 @@
       </div>
     </div>
 
-    <div class="bottom-section">
+    <!-- 合约交易界面 -->
+    <div v-else-if="activeTradeTab === 'futures'" class="futures-trade-container">
+      <!-- 合约控制栏：全仓文本 + 杠杆倍数（左边），资金费率（右边） -->
+      <div class="futures-control-bar">
+        <div class="control-left">
+          <div class="margin-mode-text">
+            {{ t('trade.full_position') }}
+          </div>
+          <button class="leverage-btn" @click="showLeveragePopup = true">
+            <span>{{ currentLeverage }}x</span>
+            <van-icon name="arrow-down" size="12" color="#848E9C" />
+          </button>
+        </div>
+        <div class="control-right">
+          <div class="funding-rate-info">
+            <span class="funding-rate-label">{{ t('trade.funding_rate') }}</span>
+            <span class="funding-rate-value" :class="{ positive: fundingRate >= 0, negative: fundingRate < 0 }">
+              {{ fundingRate >= 0 ? '+' : '' }}{{ (fundingRate * 100).toFixed(4) }}%
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 核心交易区 - 左右布局 -->
+      <div class="futures-trade-main">
+        <!-- 左侧：盘口区 (42%) -->
+        <div class="futures-orderbook-side">
+          <div class="orderbook-header">
+            <span class="header-price">{{ t('trade.price') }} (USDT)</span>
+            <span class="header-quantity">{{ t('trade.amount') }} ({{ currentCoinConfig.baseCoin }})</span>
+          </div>
+
+          <div class="asks-list">
+            <div 
+              v-for="(ask, index) in asks" 
+              :key="`ask-${index}`"
+              class="order-row ask-row"
+              :style="{ '--depth-width': getDepthWidth(ask.quantity, asks, 'asks') + '%' }"
+              @click="selectFuturesPrice(ask.price)"
+            >
+              <div class="depth-bar ask-depth"></div>
+              <span class="price ask-price">{{ formatPrice(ask.price) }}</span>
+              <span class="quantity">{{ formatQuantity(ask.quantity) }}</span>
+            </div>
+          </div>
+
+          <div class="last-price" :class="{ up: priceChange >= 0, down: priceChange < 0 }">
+            <div class="price-main">{{ formatPrice(markPrice) }}</div>
+            <div class="price-fiat">${{ formatPrice(markPrice) }}</div>
+          </div>
+
+          <div class="bids-list">
+            <div 
+              v-for="(bid, index) in bids" 
+              :key="`bid-${index}`"
+              class="order-row bid-row"
+              :style="{ '--depth-width': getDepthWidth(bid.quantity, bids, 'bids') + '%' }"
+              @click="selectFuturesPrice(bid.price)"
+            >
+              <div class="depth-bar bid-depth"></div>
+              <span class="price bid-price">{{ formatPrice(bid.price) }}</span>
+              <span class="quantity">{{ formatQuantity(bid.quantity) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧：交易表单 (58%) -->
+        <div class="futures-form-side">
+          <div class="order-type-selector" @click="showOrderTypeSheet = true">
+            <span>{{ orderType === 'limit' ? t('trade.limit_order') : t('trade.market_order') }}</span>
+            <van-icon name="arrow-down" size="12" color="#848E9C" />
+          </div>
+
+          <div class="input-row">
+            <input
+              v-if="orderType === 'limit'"
+              v-model="futuresPrice"
+              type="number"
+              :placeholder="markPrice.toFixed(currentCoinConfig.priceFixed)"
+              class="input-field no-spinner"
+            />
+            <input
+              v-else
+              type="text"
+              :value="t('trade.market_price_hint')"
+              disabled
+              class="input-field market-price-input"
+            />
+          </div>
+
+          <div class="input-row">
+            <input
+              v-model="futuresAmount"
+              type="number"
+              :placeholder="t('trade.amount_placeholder')"
+              class="input-field no-spinner"
+            />
+          </div>
+
+          <div class="percent-row">
+            <div 
+              v-for="percent in [25, 50, 75, 100]"
+              :key="percent"
+              class="percent-btn"
+              :class="{ active: selectedFuturesPercent === percent }"
+              @click="setFuturesAmountPercent(percent)"
+            >
+              {{ percent }}%
+            </div>
+          </div>
+
+          <div class="fee-estimate-row">
+            <span class="fee-estimate-label">{{ t('trade.estimated_fee') }}(USDT)</span>
+            <span class="fee-estimate-value">{{ formatFuturesEstimatedFee }}</span>
+          </div>
+
+          <div class="total-row">
+            <span class="total-label">{{ t('trade.total') }}(USDT)</span>
+            <span class="total-value">{{ formatFuturesTotalAmount }}</span>
+          </div>
+
+          <div class="available-row">
+            <div class="avail-item">
+              <span class="avail-label">{{ t('trade.avail') }}：</span>
+              <span class="avail-value">{{ formatNumber(availableBalance) }} USDT</span>
+            </div>
+          </div>
+
+          <div class="futures-action-buttons">
+            <button 
+              class="long-btn"
+              :disabled="!isFuturesFormValid"
+              @click="handleLong"
+            >
+              {{ t('trade.open_long') }}
+            </button>
+            <button 
+              class="short-btn"
+              :disabled="!isFuturesFormValid"
+              @click="handleShort"
+            >
+              {{ t('trade.open_short') }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 底部：持仓看板 -->
+      <div class="futures-bottom-section">
+        <van-tabs 
+          v-model:active="activePositionTab" 
+          background="transparent" 
+          title-active-color="#FCD535" 
+          title-inactive-color="#8E8E93" 
+          line-width="30px" 
+          line-height="3px" 
+          color="#FCD535" 
+          :border="false"
+          class="position-tabs"
+        >
+          <van-tab :title="t('trade.positions_tab', { count: positions.length })">
+            <div class="positions-list">
+              <div v-if="positions.length === 0" class="empty-state">
+                {{ t('trade.no_positions') }}
+              </div>
+              <div 
+                v-for="(position, index) in positions" 
+                :key="index"
+                class="position-card"
+              >
+                <div class="position-card-main">
+                  <div class="position-left">
+                    <div class="position-symbol-row">
+                      <span class="position-symbol">{{ position.symbol }}USDT</span>
+                      <span class="position-perpetual">{{ t('trade.perpetual') }}</span>
+                    </div>
+                    <div class="position-leverage">
+                      {{ position.leverage || currentLeverage }}x
+                    </div>
+                  </div>
+
+                  <div class="position-center">
+                    <div class="unrealized-pnl-label">{{ t('trade.unrealized_pnl') }}</div>
+                    <div 
+                      class="unrealized-pnl-value" 
+                      :class="{ positive: position.unrealizedPnl >= 0, negative: position.unrealizedPnl < 0 }"
+                    >
+                      {{ position.unrealizedPnl >= 0 ? '+' : '-' }}{{ formatUnrealizedPnl(position.unrealizedPnl) }}
+                    </div>
+                    <div 
+                      class="unrealized-pnl-percent" 
+                      :class="{ positive: position.unrealizedPnlPercent >= 0, negative: position.unrealizedPnlPercent < 0 }"
+                    >
+                      {{ position.unrealizedPnlPercent >= 0 ? '+' : '' }}{{ position.unrealizedPnlPercent.toFixed(2) }}%
+                    </div>
+                  </div>
+
+                  <div class="position-right">
+                    <div class="position-info-row">
+                      <span class="info-label">{{ t('trade.liquidation_price') }}:</span>
+                      <span class="info-value liquidation-price">{{ formatPrice(position.liquidationPrice) }}</span>
+                    </div>
+                    <div class="position-info-row">
+                      <span class="info-label">{{ t('trade.margin_amount') }}:</span>
+                      <span class="info-value">{{ formatPrice(position.margin) }} USDT</span>
+                    </div>
+                    <div class="position-info-row">
+                      <span class="info-label">{{ t('trade.position_size') }}:</span>
+                      <span class="info-value">{{ formatQuantity(position.quantity) }} {{ position.symbol }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="position-actions">
+                  <button class="action-btn tp-sl-btn" @click="handleTakeProfitStopLoss(position, index)">
+                    {{ t('trade.take_profit_stop_loss') }}
+                  </button>
+                  <button class="action-btn close-btn" @click="handleClosePosition(position, index)">
+                    {{ t('trade.close_position') }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </van-tab>
+          <van-tab :title="t('trade.open_orders_tab')">
+            <div class="orders-list">
+              <div class="empty-state">
+                {{ t('trade.no_orders') }}
+              </div>
+            </div>
+          </van-tab>
+          <van-tab :title="t('trade.trade_history_tab')">
+            <div class="history-list">
+              <div class="empty-state">
+                {{ t('trade.no_orders') }}
+              </div>
+            </div>
+          </van-tab>
+        </van-tabs>
+      </div>
+    </div>
+
+    <div v-if="activeTradeTab === 'spot'" class="bottom-section">
       <div class="bottom-tabs">
         <div 
           class="tab-item"
@@ -335,15 +570,45 @@
         </div>
       </div>
     </van-popup>
+
+    <!-- 止盈止损弹窗 -->
+    <van-popup
+      v-model:show="showTPSLPopup"
+      position="bottom"
+      :style="{ height: '50%' }"
+      round
+      class="tp-sl-popup"
+    >
+      <div class="tp-sl-popup-content">
+        <div class="tp-sl-popup-header">
+          <h3>{{ t('trade.take_profit_stop_loss') }}</h3>
+          <van-icon name="cross" @click="showTPSLPopup = false" class="close-icon" />
+        </div>
+        <div class="tp-sl-form">
+          <div class="form-item">
+            <label>{{ t('trade.take_profit_price') }}</label>
+            <input v-model="tpSlForm.takeProfitPrice" type="number" :placeholder="markPrice.toFixed(2)" />
+          </div>
+          <div class="form-item">
+            <label>{{ t('trade.stop_loss_price') }}</label>
+            <input v-model="tpSlForm.stopLossPrice" type="number" :placeholder="markPrice.toFixed(2)" />
+          </div>
+          <button class="submit-btn" @click="confirmTPSL">
+            {{ t('common.confirm') }}
+          </button>
+        </div>
+      </div>
+    </van-popup>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, onActivated, onDeactivated } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { showToast, Icon, Popup, Empty, ActionSheet } from 'vant';
+import { showToast, Icon, Popup, Empty, ActionSheet, Tabs, Tab, showConfirmDialog } from 'vant';
 import { useAssetStore } from '@/stores/assets';
+import { useMarketStore } from '@/stores/market';
 
 defineOptions({
   name: 'Trade'
@@ -353,6 +618,7 @@ const route = useRoute();
 const router = useRouter();
 const { t } = useI18n(); 
 const assetStore = useAssetStore();
+const marketStore = useMarketStore();
 
 // 修复1：计算属性绑定 pageTitle，解决语言切换问题
 const pageTitle = computed(() => t('trade.title'));
@@ -390,8 +656,25 @@ const activeOrderTab = ref('orders');
 const selectedPercent = ref(null);
 const ordersList = ref([]);
 const showOrderTypeSheet = ref(false);
-const currentLeverage = ref(20); 
-const showLeveragePopup = ref(false); 
+const currentLeverage = ref(20); // 默认杠杆20x 
+const showLeveragePopup = ref(false);
+
+// 合约交易相关变量
+const marginMode = ref('cross'); // 'cross' 全仓, 'isolated' 逐仓
+const markPrice = ref(92255.50);
+const futuresPrice = ref('');
+const futuresAmount = ref('');
+const selectedFuturesPercent = ref(null);
+const activePositionTab = ref(0);
+const positions = ref([]);
+const showTPSLPopup = ref(false);
+const currentTPSLPosition = ref(null);
+const tpSlForm = ref({
+  takeProfitPrice: '',
+  stopLossPrice: ''
+});
+// 资金费率（每8小时更新一次，通常范围在 -0.01% 到 0.01% 之间）
+const fundingRate = ref(0.0001); // 0.01% = 0.0001 
 
 // 模拟币种价格数据
 const coinPrices = {
@@ -464,7 +747,10 @@ const availableBalance = computed(() => {
     if (orderSide.value === 'buy') realBalance = assetStore?.usdtBalance || 0;
     else realBalance = assetStore?.getHolding(symbol.value) || 0;
     
-    if (activeTradeTab.value === 'leverage') return realBalance * currentLeverage.value;
+    // 合约交易使用合约账户余额
+    if (activeTradeTab.value === 'futures') {
+      return assetStore?.usdtBalance || 0;
+    }
     return realBalance;
   } catch (error) {
     console.error('Error getting available balance:', error);
@@ -589,7 +875,7 @@ const onOrderTypeSelect = (action) => {
   if (action.type === 'limit' && !price.value) price.value = lastPrice.value.toFixed(currentCoinConfig.value.priceFixed);
 };
 
-const leverageOptions = [1, 2, 3, 5, 10, 20, 50, 100];
+const leverageOptions = [20, 50, 100, 125];
 const selectLeverage = (leverage) => { currentLeverage.value = leverage; showLeveragePopup.value = false; };
 
 const isOrderValid = computed(() => {
@@ -597,6 +883,195 @@ const isOrderValid = computed(() => {
   if (orderType.value === 'market') return a > 0;
   else { const p = parseFloat(price.value); return p > 0 && a > 0; }
 });
+
+// 合约交易相关方法
+const selectFuturesPrice = (priceValue) => {
+  if (orderType.value === 'limit') {
+    futuresPrice.value = priceValue.toString();
+  }
+};
+
+const setFuturesAmountPercent = (percent) => {
+  selectedFuturesPercent.value = percent;
+  const balance = assetStore?.usdtBalance || 0;
+  const maxAmount = balance / (orderType.value === 'market' ? markPrice.value : parseFloat(futuresPrice.value || markPrice.value));
+  futuresAmount.value = (maxAmount * (percent / 100)).toFixed(currentCoinConfig.value.amountFixed);
+};
+
+const formatFuturesEstimatedFee = computed(() => {
+  if (!futuresPrice.value || !futuresAmount.value) return '0.00';
+  const total = parseFloat(futuresPrice.value) * parseFloat(futuresAmount.value);
+  const feeRate = assetStore.currentFuturesFeeRate || 0.0004;
+  const fee = total * feeRate;
+  return fee > 0 ? fee.toFixed(4) : '0.00';
+});
+
+const formatFuturesTotalAmount = computed(() => {
+  if (!futuresAmount.value) return '0.00';
+  if (orderType.value === 'market') {
+    return (markPrice.value * parseFloat(futuresAmount.value)).toFixed(2);
+  }
+  if (!futuresPrice.value) return '0.00';
+  return (parseFloat(futuresPrice.value) * parseFloat(futuresAmount.value)).toFixed(2);
+});
+
+const isFuturesFormValid = computed(() => {
+  if (orderType.value === 'limit') {
+    return futuresPrice.value && futuresAmount.value && parseFloat(futuresPrice.value) > 0 && parseFloat(futuresAmount.value) > 0;
+  }
+  return futuresAmount.value && parseFloat(futuresAmount.value) > 0;
+});
+
+const calculateLiquidationPrice = (entryPrice, leverage, side) => {
+  if (side === 'long') {
+    return entryPrice * (1 - 1 / leverage * 0.9);
+  } else {
+    return entryPrice * (1 + 1 / leverage * 0.9);
+  }
+};
+
+const calculateUnrealizedPnl = (position) => {
+  const currentPrice = markPrice.value;
+  const priceDiff = currentPrice - position.entryPrice;
+  if (position.side === 'long') {
+    return priceDiff * position.quantity;
+  } else {
+    return -priceDiff * position.quantity;
+  }
+};
+
+const calculateUnrealizedPnlPercent = (position) => {
+  const pnl = calculateUnrealizedPnl(position);
+  const margin = position.margin || (position.entryPrice * position.quantity / position.leverage);
+  return margin > 0 ? (pnl / margin) * 100 : 0;
+};
+
+const formatUnrealizedPnl = (pnl) => {
+  if (!pnl && pnl !== 0) return '0.00';
+  return Math.abs(pnl).toFixed(2);
+};
+
+const updatePositionsPnl = () => {
+  positions.value.forEach(position => {
+    position.unrealizedPnl = calculateUnrealizedPnl(position);
+    position.unrealizedPnlPercent = calculateUnrealizedPnlPercent(position);
+  });
+};
+
+const handleLong = () => {
+  if (!isFuturesFormValid.value) {
+    showToast({ message: t('trade.fill_all_fields'), duration: 2000 });
+    return;
+  }
+  const orderPrice = orderType.value === 'market' ? markPrice.value : parseFloat(futuresPrice.value);
+  showToast({
+    message: orderType.value === 'market' 
+      ? t('trade.market_order_submitted') 
+      : t('trade.limit_order_submitted'),
+    duration: 2000
+  });
+  const positionValue = orderPrice * parseFloat(futuresAmount.value);
+  const margin = positionValue / currentLeverage.value;
+  const liquidationPrice = calculateLiquidationPrice(orderPrice, currentLeverage.value, 'long');
+  positions.value.push({
+    symbol: symbol.value,
+    side: 'long',
+    quantity: parseFloat(futuresAmount.value),
+    entryPrice: orderPrice,
+    leverage: currentLeverage.value,
+    margin: margin,
+    liquidationPrice: liquidationPrice,
+    unrealizedPnl: 0,
+    unrealizedPnlPercent: 0
+  });
+  futuresAmount.value = '';
+  futuresPrice.value = '';
+  selectedFuturesPercent.value = null;
+};
+
+const handleShort = () => {
+  if (!isFuturesFormValid.value) {
+    showToast({ message: t('trade.fill_all_fields'), duration: 2000 });
+    return;
+  }
+  const orderPrice = orderType.value === 'market' ? markPrice.value : parseFloat(futuresPrice.value);
+  showToast({
+    message: orderType.value === 'market' 
+      ? t('trade.market_order_submitted') 
+      : t('trade.limit_order_submitted'),
+    duration: 2000
+  });
+  const positionValue = orderPrice * parseFloat(futuresAmount.value);
+  const margin = positionValue / currentLeverage.value;
+  const liquidationPrice = calculateLiquidationPrice(orderPrice, currentLeverage.value, 'short');
+  positions.value.push({
+    symbol: symbol.value,
+    side: 'short',
+    quantity: parseFloat(futuresAmount.value),
+    entryPrice: orderPrice,
+    leverage: currentLeverage.value,
+    margin: margin,
+    liquidationPrice: liquidationPrice,
+    unrealizedPnl: 0,
+    unrealizedPnlPercent: 0
+  });
+  futuresAmount.value = '';
+  futuresPrice.value = '';
+  selectedFuturesPercent.value = null;
+};
+
+const handleTakeProfitStopLoss = (position, index) => {
+  currentTPSLPosition.value = { position, index };
+  tpSlForm.value.takeProfitPrice = '';
+  tpSlForm.value.stopLossPrice = '';
+  showTPSLPopup.value = true;
+};
+
+const confirmTPSL = () => {
+  if (!tpSlForm.value.takeProfitPrice && !tpSlForm.value.stopLossPrice) {
+    showToast({ message: t('trade.fill_all_fields'), duration: 2000 });
+    return;
+  }
+  showToast({
+    message: t('trade.take_profit_stop_loss') + ' ' + t('trade.order_submitted'),
+    duration: 2000
+  });
+  showTPSLPopup.value = false;
+  currentTPSLPosition.value = null;
+};
+
+const handleClosePosition = async (position, index) => {
+  try {
+    await showConfirmDialog({
+      title: t('trade.close_position_confirm'),
+      message: t('trade.close_position_message'),
+      confirmButtonText: t('trade.close_position_confirm_btn'),
+      cancelButtonText: t('trade.close_position_cancel_btn'),
+      confirmButtonColor: '#F6465D'
+    });
+    positions.value.splice(index, 1);
+    showToast({
+      message: t('trade.position_closed'),
+      icon: 'success',
+      duration: 2000
+    });
+  } catch {
+    // 用户取消
+  }
+};
+
+// 监听标记价格变化
+watch(markPrice, () => {
+  updatePositionsPnl();
+}, { immediate: true });
+
+// 从 marketStore 获取标记价格
+watch(() => marketStore.getTicker(symbol.value), (ticker) => {
+  if (ticker) {
+    markPrice.value = ticker.price || markPrice.value;
+    priceChange.value = ticker.change || priceChange.value;
+  }
+}, { immediate: true });
 
 const formatOrderTime = (timestamp) => {
   if (!timestamp) return '';
@@ -634,10 +1109,14 @@ const switchCoin = (newSymbol) => {
   showToast({ message: t('trade.switched_to', { symbol: `${newSymbol}/USDT` }), duration: 1500 });
 };
 
-onMounted(() => {
+// 初始化函数
+const initializeTrade = () => {
   generateOrderBook();
   // 首次进入也初始化价格
   updatePriceForSymbol(symbol.value);
+  
+  // 确保 WebSocket 连接（用于合约交易的标记价格）
+  marketStore.ensureConnection();
   
   if (ordersList.value.length === 0) {
     const now = Date.now();
@@ -646,6 +1125,20 @@ onMounted(() => {
     const sellPrice = lastPrice.value * 1.002;
     ordersList.value.push({ side: 'sell', type: 'limit', price: sellPrice, quantity: 0.002, symbol: symbol.value, timestamp: now - 180000 });
   }
+};
+
+onMounted(() => {
+  initializeTrade();
+});
+
+// Keep-alive 激活时
+onActivated(() => {
+  initializeTrade();
+});
+
+// Keep-alive 停用时
+onDeactivated(() => {
+  // 可以在这里清理资源
 });
 </script>
 
@@ -994,12 +1487,13 @@ onMounted(() => {
 }
 
 .bottom-content {
-  padding: 16px;
+  padding: 12px 16px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  background-color: #1E2329;
-  min-height: 320px; 
+  background-color: #0E0E0E; /* 改为纯黑背景，更符合黑金风格 */
+  height: 320px; /* 设置固定高度，确保列表高度一致 */
+  overflow: hidden;
 }
 
 .panel-full {
@@ -1007,54 +1501,83 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   height: 100%;
+  overflow-y: auto; /* 内部滚动 */
+  scrollbar-width: none; /* 隐藏滚动条 (Firefox) */
+  -ms-overflow-style: none; /* 隐藏滚动条 (IE/Edge) */
 }
 
-.orders-panel, .assets-panel { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.panel-full::-webkit-scrollbar {
+  display: none; /* 隐藏滚动条 (Chrome/Safari) */
+}
 
-.orders-list { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.orders-panel, .assets-panel { 
+  flex: 1; 
+  display: flex; 
+  flex-direction: column; 
+  min-height: 0; 
+}
+
+.orders-list { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 10px; 
+  padding-bottom: 20px;
+}
+
 .orders-empty {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  height: 200px; padding: 20px; flex: 1;
+  height: 100%; padding: 20px; flex: 1;
 }
+
 .empty-icon { margin-bottom: 12px; opacity: 0.6; }
-.empty-text { font-size: 14px; color: #848E9C; margin-bottom: 16px; }
+.empty-text { font-size: 14px; color: #8E8E93; margin-bottom: 16px; }
 .empty-action-btn {
-  padding: 8px 20px; background-color: #2B3139; color: #FCD535; border: 1px solid rgba(252, 213, 53, 0.3);
-  border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer;
+  padding: 8px 24px; background-color: #1C1C1E; color: #FCD535; border: 1px solid rgba(252, 213, 53, 0.3);
+  border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s ease;
 }
+.empty-action-btn:active { background-color: #252A32; transform: scale(0.98); }
 
 .order-item {
-  display: flex; align-items: center; padding: 12px; background-color: #1C1C1E;
-  border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); transition: background-color 0.2s ease;
+  display: flex; align-items: center; padding: 14px 12px; background-color: #141414;
+  border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.03); transition: all 0.2s ease;
 }
-.order-left { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; min-width: 120px; }
-.order-side-badge { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; white-space: nowrap; }
-.order-side-badge.buy { background-color: rgba(14, 203, 129, 0.15); color: #0ECB81; }
-.order-side-badge.sell { background-color: rgba(246, 70, 93, 0.15); color: #F6465D; }
-.order-symbol-time { display: flex; flex-direction: column; gap: 2px; }
-.order-symbol { font-size: 13px; font-weight: 600; color: #FFFFFF; }
-.order-time { font-size: 11px; color: #848E9C; font-family: 'Roboto Mono', monospace; }
-.order-center { flex: 1; display: flex; flex-direction: column; gap: 4px; padding: 0 12px; min-width: 0; }
-.order-price { font-size: 14px; font-weight: 600; color: #FFFFFF; font-family: 'Roboto Mono', monospace; }
-.order-quantity { font-size: 12px; color: #848E9C; font-family: 'Roboto Mono', monospace; }
-.order-right { flex: 0 0 auto; }
-.cancel-btn { padding: 6px 14px; background-color: #2B3139; color: #848E9C; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 4px; font-size: 12px; font-weight: 500; }
+.order-item:active { background-color: #1C1C1E; }
 
-.assets-list { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.order-left { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; min-width: 110px; }
+.order-side-badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.order-side-badge.buy { background-color: rgba(14, 203, 129, 0.12); color: #0ECB81; }
+.order-side-badge.sell { background-color: rgba(246, 70, 93, 0.12); color: #F6465D; }
+.order-symbol-time { display: flex; flex-direction: column; gap: 4px; }
+.order-symbol { font-size: 14px; font-weight: 700; color: #FFFFFF; }
+.order-time { font-size: 11px; color: #8E8E93; font-family: 'DIN Alternate', monospace; }
+.order-center { flex: 1; display: flex; flex-direction: column; gap: 4px; padding: 0 12px; min-width: 0; }
+.order-price { font-size: 15px; font-weight: 700; color: #FFFFFF; font-family: 'DIN Alternate', monospace; }
+.order-quantity { font-size: 12px; color: #8E8E93; font-family: 'DIN Alternate', monospace; }
+.order-right { flex: 0 0 auto; }
+.cancel-btn { 
+  padding: 6px 16px; background-color: #1C1C1E; color: #8E8E93; 
+  border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px; 
+  font-size: 12px; font-weight: 600; transition: all 0.2s ease;
+}
+.cancel-btn:active { background-color: #252A32; color: #FFFFFF; border-color: rgba(255, 255, 255, 0.15); }
+
+.assets-list { display: flex; flex-direction: column; gap: 10px; padding-bottom: 20px; }
 
 .asset-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 12px; 
-  background-color: #1C1C1E;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  min-height: 48px;
+  padding: 18px 16px; 
+  background-color: #141414;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  transition: all 0.2s ease;
 }
+.asset-item:active { background-color: #1C1C1E; }
 
-.asset-label { font-size: 13px; color: #848E9C; }
-.asset-value { font-size: 14px; font-weight: 600; color: #FFFFFF; font-variant-numeric: tabular-nums; }
+.asset-label { font-size: 14px; color: #8E8E93; font-weight: 500; }
+.asset-value { font-size: 15px; font-weight: 700; color: #FFFFFF; font-family: 'DIN Alternate', sans-serif; }
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
@@ -1099,5 +1622,406 @@ onMounted(() => {
   background-color: #1C1C1E;
   color: #FFFFFF;
   font-weight: 700;
+}
+
+/* ========== 合约交易样式 ========== */
+.futures-trade-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.futures-control-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background-color: #0E0E0E;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  gap: 12px;
+}
+
+.control-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.margin-mode-text {
+  font-size: 13px;
+  color: #8E8E93;
+  font-weight: 500;
+}
+
+.control-right {
+  display: flex;
+  align-items: center;
+}
+
+.funding-rate-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.funding-rate-label {
+  font-size: 11px;
+  color: #8E8E93;
+  font-weight: 400;
+}
+
+.funding-rate-value {
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.funding-rate-value.positive {
+  color: #0ECB81;
+}
+
+.funding-rate-value.negative {
+  color: #F6465D;
+}
+
+.futures-trade-main {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+  padding: 8px 8px 8px 0;
+}
+
+.futures-orderbook-side {
+  width: 42%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  background-color: #0E0E0E;
+  border-radius: 4px;
+  overflow: hidden;
+  padding: 0;
+}
+
+.futures-form-side {
+  width: 58%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.futures-action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.long-btn, .short-btn {
+  width: 100%;
+  height: 44px;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-variant-numeric: tabular-nums;
+}
+
+.long-btn {
+  background-color: #0ECB81;
+  color: #000000;
+}
+
+.short-btn {
+  background-color: #F6465D;
+  color: #FFFFFF;
+}
+
+.long-btn:disabled, .short-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.futures-bottom-section {
+  background-color: #1E2329;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  min-height: 320px;
+  max-height: 45vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.position-tabs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+:deep(.position-tabs .van-tabs__wrap) {
+  background-color: #1E2329;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+:deep(.position-tabs .van-tabs__content) {
+  flex: 1;
+  overflow-y: auto;
+}
+
+:deep(.position-tabs .van-tab__panel) {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.positions-list, .orders-list, .history-list {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 100%;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 0;
+  color: #8E8E93;
+  font-size: 14px;
+}
+
+.position-card {
+  background-color: #1C1C1E;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.position-card-main {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.position-left {
+  flex: 0 0 auto;
+  min-width: 120px;
+}
+
+.position-symbol-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.position-symbol {
+  font-size: 16px;
+  font-weight: 700;
+  color: #FFFFFF;
+  font-variant-numeric: tabular-nums;
+}
+
+.position-perpetual {
+  font-size: 11px;
+  color: #8E8E93;
+  padding: 2px 6px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.position-leverage {
+  font-size: 13px;
+  color: #FCD535;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.position-center {
+  flex: 1;
+  text-align: center;
+  padding: 0 16px;
+}
+
+.unrealized-pnl-label {
+  font-size: 12px;
+  color: #8E8E93;
+  margin-bottom: 8px;
+}
+
+.unrealized-pnl-value {
+  font-size: 24px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+
+.unrealized-pnl-value.positive {
+  color: #0ECB81;
+}
+
+.unrealized-pnl-value.negative {
+  color: #F6465D;
+}
+
+.unrealized-pnl-percent {
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.unrealized-pnl-percent.positive {
+  color: #0ECB81;
+}
+
+.unrealized-pnl-percent.negative {
+  color: #F6465D;
+}
+
+.position-right {
+  flex: 0 0 auto;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.position-info-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  font-size: 12px;
+}
+
+.info-label {
+  color: #8E8E93;
+  font-size: 11px;
+}
+
+.liquidation-price {
+  color: #F6465D;
+  font-weight: 700;
+}
+
+.position-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.action-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tp-sl-btn {
+  background-color: rgba(252, 213, 53, 0.1);
+  color: #FCD535;
+  border: 1px solid rgba(252, 213, 53, 0.3);
+}
+
+.tp-sl-btn:active {
+  background-color: rgba(252, 213, 53, 0.2);
+}
+
+.close-btn {
+  background-color: rgba(246, 70, 93, 0.1);
+  color: #F6465D;
+  border: 1px solid rgba(246, 70, 93, 0.3);
+}
+
+.close-btn:active {
+  background-color: rgba(246, 70, 93, 0.2);
+}
+
+.tp-sl-popup-content {
+  padding: 20px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tp-sl-popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.tp-sl-popup-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.tp-sl-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.tp-sl-form .form-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tp-sl-form .form-item label {
+  font-size: 14px;
+  color: #8E8E93;
+}
+
+.tp-sl-form .form-item input {
+  padding: 14px 16px;
+  background-color: #1C1C1E;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #FFFFFF;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tp-sl-form .form-item input:focus {
+  outline: none;
+  border-color: #FCD535;
+}
+
+.tp-sl-form .submit-btn {
+  margin-top: 8px;
+  padding: 16px;
+  background-color: #FCD535;
+  color: #000000;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tp-sl-form .submit-btn:active {
+  background-color: #e6c42f;
+}
+
+:deep(.tp-sl-popup .van-popup) {
+  background: #1C1C1E !important;
 }
 </style>

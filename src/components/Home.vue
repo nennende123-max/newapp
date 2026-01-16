@@ -104,7 +104,7 @@
           <div class="icon-circle">
             <van-icon name="shield-o" />
           </div>
-          <span>安全中心</span>
+          <span>{{ $t('home_btn.security_center') }}</span>
         </div>
       </div>
   
@@ -145,7 +145,7 @@
 </template>
   
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch, nextTick, onActivated } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch, nextTick, onActivated, onDeactivated } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { showToast, Icon } from 'vant';
@@ -163,9 +163,6 @@ const router = useRouter();
 const { t } = useI18n();
 const marketStore = useMarketStore();
 const assetStore = useAssetStore();
-  
-// 存储上一次的价格，用于检测波动
-const previousPrices = ref({});
   
 const showAuditToast = () => {
   showToast({ message: t('home.redirecting_certik') });
@@ -350,60 +347,6 @@ const marketList = computed(() => {
   });
 });
   
-// 模拟推送通知函数（检查推送开关状态）
-const triggerPushNotification = (message, icon = 'bell-o') => {
-  // 检查推送通知是否开启
-  const pushEnabled = localStorage.getItem('user_push_enabled') !== 'false';
-  
-  if (pushEnabled) {
-    showToast({
-      message: message,
-      icon: icon,
-      duration: 3000,
-      position: 'top'
-    });
-  }
-};
-  
-// 监听价格变化，检测波动并触发推送
-watch(marketList, (newList, oldList) => {
-  // 只在有旧数据时进行比较（避免初始化时触发）
-  if (!oldList || oldList.length === 0) {
-    // 初始化 previousPrices
-    newList.forEach(coin => {
-      if (coin.rawPrice > 0) {
-        previousPrices.value[coin.name] = coin.rawPrice;
-      }
-    });
-    return;
-  }
-  
-  // 检测价格波动（变化超过 2%）
-  newList.forEach(coin => {
-    if (coin.rawPrice > 0 && previousPrices.value[coin.name]) {
-      const oldPrice = previousPrices.value[coin.name];
-      const priceChange = Math.abs((coin.rawPrice - oldPrice) / oldPrice);
-      
-      // 如果价格变化超过 2%，触发推送通知
-      if (priceChange >= 0.02) {
-        const changePercent = ((coin.rawPrice - oldPrice) / oldPrice * 100).toFixed(2);
-        const direction = coin.rawPrice > oldPrice ? '上涨' : '下跌';
-        
-        triggerPushNotification(
-          `${coin.name}/USDT ${direction} ${Math.abs(changePercent)}%`,
-          coin.rawPrice > oldPrice ? 'arrow-up' : 'arrow-down'
-        );
-      }
-      
-      // 更新上一次的价格
-      previousPrices.value[coin.name] = coin.rawPrice;
-    } else if (coin.rawPrice > 0) {
-      // 首次记录价格
-      previousPrices.value[coin.name] = coin.rawPrice;
-    }
-  });
-}, { deep: true });
-  
 // 格式化价格（统一保留2位小数）- 增强防御性编程
 const formatPrice = (price) => {
   // 类型检查：如果传入的不是有效数字，直接返回 '---'
@@ -496,6 +439,32 @@ const handleButtonClick = (btnType, path) => {
   }, 300);
 };
   
+// 清理定时器的辅助函数
+const clearAllIntervals = () => {
+  if (heartbeatInterval) {
+    clearInterval(heartbeatInterval);
+    heartbeatInterval = null;
+  }
+  if (treasuryInterval) {
+    clearInterval(treasuryInterval);
+    treasuryInterval = null;
+  }
+};
+
+// 初始化数据的辅助函数
+const initializeData = () => {
+  // 直接显示最终值，不再从0开始滚动
+  displayTVL.value = targetTVL;
+  displayPayout.value = targetPayout;
+  displayTxns.value = targetTxns;
+  
+  // 启动心跳模拟（真实交易所风格）
+  startHeartbeat();
+  
+  // 启动国库资产增长模拟
+  startTreasuryGrowth();
+};
+
 // 初始化 WebSocket 连接和心跳模拟 - 异步初始化优化
 onMounted(async () => {
   // 等待 Vue 完成首屏 DOM 挂载后再启动 WebSocket 通讯
@@ -510,35 +479,32 @@ onMounted(async () => {
       console.error('Failed to initialize WebSocket:', error);
     }
     
-    // 直接显示最终值，不再从0开始滚动
-    displayTVL.value = targetTVL;
-    displayPayout.value = targetPayout;
-    displayTxns.value = targetTxns;
-    
-    // 立即启动心跳模拟（真实交易所风格）
-    startHeartbeat();
-    
-    // 启动国库资产增长模拟
-    startTreasuryGrowth();
+    // 初始化数据
+    initializeData();
   }, 0);
 });
 
 // 页面被激活时（Keep-Alive）
 onActivated(() => {
   // 确保 WebSocket 连接是活跃的
-  if (!marketStore.isConnected) {
+  if (!marketStore.isConnected || !marketStore.ws || marketStore.ws.readyState !== WebSocket.OPEN) {
     marketStore.initWebSocket();
   }
+  
+  // 如果定时器未运行，重新启动
+  if (!heartbeatInterval || !treasuryInterval) {
+    initializeData();
+  }
+});
+
+// 页面被停用时（Keep-Alive）- 清理定时器但保留组件状态
+onDeactivated(() => {
+  clearAllIntervals();
 });
 
 // 页面卸载时清理定时器
 onUnmounted(() => {
-  if (heartbeatInterval) {
-    clearInterval(heartbeatInterval);
-  }
-  if (treasuryInterval) {
-    clearInterval(treasuryInterval);
-  }
+  clearAllIntervals();
 });
 </script>
   

@@ -6,7 +6,7 @@
       fixed
       placeholder
       :border="false"
-      @click-left="router.back()"
+      @click-left="handleBack"
       style="--van-nav-bar-background: #000000; --van-nav-bar-title-text-color: #FCD535; --van-nav-bar-icon-color: #FCD535;"
     />
     
@@ -17,11 +17,7 @@
 
       <div class="qr-container">
         <div class="qr-placeholder">
-          <div class="qr-grid">
-            <div class="qr-grid-row" v-for="i in 25" :key="i">
-              <div class="qr-grid-cell" v-for="j in 25" :key="j" :class="{ filled: (i + j) % 3 === 0 }"></div>
-            </div>
-          </div>
+          <canvas ref="qrCanvas" class="qr-canvas"></canvas>
         </div>
         <div class="qr-hint">
           <span>{{ $t('security.google_auth_qr_hint') }}</span>
@@ -51,15 +47,21 @@
           <van-icon name="shield-o" color="#FCD535" size="18" style="margin-right: 8px" />
           {{ $t('security.google_auth_code_placeholder') }}
         </div>
-        <div class="code-input-container" ref="codeInputRef" @click.stop="handleCodeInputClick">
-          <van-password-input
-            :value="verifyCode"
-            :length="6"
-            :mask="false"
-            :gutter="10"
-            :focused="showCodeKeyboard"
-            class="code-password-input"
-          />
+        <div class="code-input-container" @click.stop="handleCodeInputClick">
+          <!-- 自定义 6 位验证码输入框，替代 van-password-input 以解决 Vue 渲染冲突 -->
+          <div class="custom-code-input">
+            <div 
+              v-for="i in 6" 
+              :key="i" 
+              class="code-item"
+              :class="{ 
+                'is-filled': verifyCode.length >= i,
+                'is-focused': showCodeKeyboard && verifyCode.length === i - 1
+              }"
+            >
+              {{ verifyCode[i-1] || '' }}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -79,27 +81,31 @@
       </div>
 
       <van-number-keyboard
+        ref="keyboardRef"
+        v-model="verifyCode"
         v-model:show="showCodeKeyboard"
         :show-delete-key="true"
         theme="custom"
         extra-key=""
         :close-button-text="$t('common.complete')"
-        teleport="body"
         :z-index="5000"
         class="custom-keyboard"
-        @input="onCodeInput"
         @delete="onCodeDelete"
-        @blur="showCodeKeyboard = false"
+        @blur="closeKeyboard"
+        @input="onCodeInput"
+        @update:model-value="onCodeInput"
+        @close="closeKeyboard"
       />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, nextTick, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { showToast } from 'vant';
+import QRCode from 'qrcode';
 
 const router = useRouter();
 const { t } = useI18n();
@@ -109,6 +115,8 @@ const verifyCode = ref('');
 // 修复：默认不弹出键盘
 const showCodeKeyboard = ref(false);
 const codeInputRef = ref(null);
+const qrCanvas = ref(null);
+const keyboardRef = ref(null);
 
 // 生成16位随机密钥
 const generateSecretKey = () => {
@@ -128,15 +136,80 @@ const formattedSecretKey = computed(() => {
   return `${key.slice(0, 4)} ${key.slice(4, 8)} ${key.slice(8, 12)} ${key.slice(12, 16)}`;
 });
 
-// 刷新二维码
-const refreshQRCode = () => {
+// 生成二维码
+const generateQRCode = async () => {
+  if (!qrCanvas.value) return;
+  
+  try {
+    // 生成 Google Authenticator 格式的 otpauth URL
+    const issuer = 'TruthFi';
+    const accountName = 'user@truthfi.app';
+    const otpauthUrl = `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(accountName)}?secret=${secretKey.value}&issuer=${encodeURIComponent(issuer)}`;
+    
+    await QRCode.toCanvas(qrCanvas.value, otpauthUrl, {
+      width: 240,
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      },
+      errorCorrectionLevel: 'M'
+    });
+  } catch (error) {
+    console.error('生成二维码失败:', error);
+    showToast({
+      message: t('security.google_auth_qr_generate_failed') || '二维码生成失败',
+      icon: 'fail',
+      duration: 2000
+    });
+  }
+};
+
+// 切换二维码
+const refreshQRCode = async () => {
   secretKey.value = generateSecretKey();
+  await nextTick();
+  await generateQRCode();
   showToast({
     message: t('security.google_auth_qr_refreshed'),
     duration: 1500,
     position: 'middle'
   });
 };
+
+// 统一更新验证码显示函数
+const updateCodeDisplay = () => {
+  // 自定义实现后不再需要手动 DOM 操作，Vue 会自动处理模板中的渲染
+};
+
+// 监听键盘显示
+watch(showCodeKeyboard, (show) => {
+  // 不再需要手动逻辑
+});
+
+// 关闭键盘
+const closeKeyboard = () => {
+  showCodeKeyboard.value = false;
+  if (document.activeElement) {
+    document.activeElement.blur();
+  }
+};
+
+// 返回处理
+const handleBack = () => {
+  closeKeyboard();
+  router.back();
+};
+
+// 监听验证码输入
+watch(verifyCode, (newVal) => {
+  updateCodeDisplay();
+  if (newVal.length === 6) {
+    setTimeout(() => {
+      closeKeyboard();
+    }, 100);
+  }
+});
 
 // 复制密钥
 const handleCopySecretKey = async () => {
@@ -159,22 +232,50 @@ const handleCopySecretKey = async () => {
 
 // 修复：点击输入框时，先失焦其他元素，再显示键盘
 const handleCodeInputClick = () => {
+  console.log('🟡 Input container clicked, showing keyboard');
   if (document.activeElement) {
     document.activeElement.blur();
   }
   showCodeKeyboard.value = true;
+  
+  // 延迟后添加 PC 端点击支持
+  setTimeout(() => {
+    const keyboardEl = document.querySelector('.van-number-keyboard');
+    if (keyboardEl) {
+      const keys = keyboardEl.querySelectorAll('.van-key');
+      keys.forEach((key) => {
+        // 不要使用 replaceChild，直接添加事件监听器
+        // 先移除旧的（如果存在）以防重复
+        key.onclick = (e) => {
+          e.stopPropagation();
+          const keyText = key.textContent.trim();
+          
+          if (keyText === '删除' || keyText === 'Delete' || key.classList.contains('van-key--delete')) {
+            onCodeDelete();
+          } else if (keyText === '完成' || keyText === 'Done' || key.classList.contains('van-key--close')) {
+            closeKeyboard();
+          } else if (/^\d$/.test(keyText)) {
+            const currentValue = verifyCode.value || '';
+            if (currentValue.length < 6) {
+              verifyCode.value = currentValue + keyText;
+            }
+          }
+        };
+      });
+    }
+  }, 300);
 };
 
 // 验证码键盘输入处理
 const onCodeInput = (value) => {
-  // 确保只接受数字
-  if (!/^\d$/.test(value)) {
-    return;
-  }
-  // 优化输入逻辑：确保不超过6位
-  if (verifyCode.value.length < 6) {
-    verifyCode.value += value;
-    if (window.navigator?.vibrate) window.navigator.vibrate(10);
+  const newValue = String(value || '').replace(/\D/g, '');
+  if (newValue.length <= 6) {
+    verifyCode.value = newValue;
+    if (window.navigator?.vibrate) {
+      window.navigator.vibrate(10);
+    }
+  } else {
+    verifyCode.value = newValue.slice(0, 6);
   }
 };
 
@@ -226,6 +327,18 @@ const handleSubmit = () => {
     router.push('/security-center');
   }, 1500);
 };
+
+// 监听密钥变化，重新生成二维码
+watch(secretKey, async () => {
+  await nextTick();
+  await generateQRCode();
+});
+
+// 页面加载时生成二维码
+onMounted(async () => {
+  await nextTick();
+  await generateQRCode();
+});
 </script>
 
 <style scoped>
@@ -279,37 +392,21 @@ const handleSubmit = () => {
 .qr-placeholder {
   width: 240px;
   height: 240px;
-  background-color: #1C1C1E; /* 深灰卡片色，作为白色二维码的托盘 */
-  border: 1px solid rgba(255, 255, 255, 0.08); /* 增加边框 */
+  background-color: #FFFFFF; /* 白色背景，确保二维码可见 */
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px; /* 增加内边距 */
+  padding: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* 修复：白色背景，确保二维码可见 */
-.qr-grid {
-  display: grid;
-  grid-template-columns: repeat(25, 1fr);
-  grid-template-rows: repeat(25, 1fr);
-  gap: 1px;
+.qr-canvas {
   width: 100%;
   height: 100%;
-  background-color: #FFFFFF !important;
-  border-radius: 8px; /* 增加圆角 */
-  padding: 12px; /* 增加内边距 */
-  box-sizing: border-box;
-}
-
-.qr-grid-cell {
-  background-color: transparent;
-  transition: background-color 0.1s;
-}
-
-/* 修复：黑色点阵 */
-.qr-grid-cell.filled {
-  background-color: #000000 !important;
+  display: block;
+  border-radius: 8px;
 }
 
 .qr-hint {
@@ -412,14 +509,15 @@ const handleSubmit = () => {
   align-items: center;
 }
 
-/* 验证码密码输入框样式 */
-:deep(.code-password-input) {
+/* 自定义验证码输入框样式 */
+.custom-code-input {
   display: flex;
+  gap: 10px;
   justify-content: center;
   width: 100%;
 }
 
-:deep(.code-password-input .van-password-input__item) {
+.code-item {
   width: 48px;
   height: 48px;
   background-color: #1C1C1E;
@@ -428,17 +526,21 @@ const handleSubmit = () => {
   color: #FFFFFF;
   font-size: 20px;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-family: 'DIN Alternate', 'Roboto', sans-serif;
-  font-variant-numeric: tabular-nums;
+  transition: all 0.2s ease;
 }
 
-:deep(.code-password-input .van-password-input__item--focus) {
+.code-item.is-filled {
+  border-color: #FCD535;
+}
+
+.code-item.is-focused {
   border-color: #FCD535;
   background-color: rgba(252, 213, 53, 0.1);
-}
-
-:deep(.code-password-input .van-password-input__item--filled) {
-  border-color: #FCD535;
+  box-shadow: 0 0 8px rgba(252, 213, 53, 0.3);
 }
 
 /* 提示文字 */
@@ -522,6 +624,8 @@ const handleSubmit = () => {
   font-family: 'DIN Alternate', sans-serif !important;
   font-size: 24px !important;
   height: 54px !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
 }
 
 .custom-keyboard .van-key:active {

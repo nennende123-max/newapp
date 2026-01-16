@@ -1,7 +1,8 @@
 ﻿<template>
-  <div class="earn-list-page">
-    <!-- 顶部导航栏 -->
+  <div class="earn-list-page" :class="{ 'embedded-mode': isEmbedded }">
+    <!-- 顶部导航栏（仅在独立页面显示） -->
     <van-nav-bar
+      v-if="!isEmbedded"
       :title="t('earn.title')"
       left-arrow
       @click-left="router.back()"
@@ -12,17 +13,20 @@
       class="custom-nav-bar"
     />
 
-    <div class="tools-section">
-      <van-field
-        v-model="searchQuery"
-        :placeholder="t('earn.search_placeholder')"
-        class="search-field"
-        left-icon="search"
-        clearable
-      />
-      <div class="search-actions">
-        <van-icon name="sort" class="action-icon" @click="handleSort" />
-        <van-icon name="clock" class="action-icon" @click="handleHistory" />
+    <div class="tools-section-wrapper">
+      <div class="divider-line"></div>
+      <div class="tools-section" :class="{ 'embedded-tools': isEmbedded }">
+        <van-field
+          v-model="searchQuery"
+          :placeholder="t('earn.search_placeholder')"
+          class="search-field"
+          left-icon="search"
+          clearable
+        />
+        <div class="search-actions">
+          <van-icon name="sort" class="action-icon" @click="handleSort" />
+          <van-icon name="clock" class="action-icon" @click="handleHistory" />
+        </div>
       </div>
     </div>
 
@@ -103,6 +107,9 @@ import { useI18n } from 'vue-i18n';
 const router = useRouter();
 const route = useRoute();
 const { t, locale } = useI18n();
+
+// 检测是否在 Me.vue 中嵌入显示（通过路由路径判断）
+const isEmbedded = computed(() => route.path === '/me' || route.query.from === 'me');
 
 // 强制更新 key，用于强制重新渲染 Tab 组件
 const tabsKey = ref(0);
@@ -278,6 +285,20 @@ onMounted(() => {
   box-sizing: border-box;
 }
 
+/* 嵌入模式（在 Me.vue 中显示时） */
+.earn-list-page.embedded-mode {
+  min-height: auto;
+  padding-bottom: 0;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+/* 嵌入模式下移除导航栏占位符 */
+.embedded-mode :deep(.van-nav-bar__placeholder) {
+  display: none !important;
+  height: 0 !important;
+}
+
 /* 自定义导航栏 */
 .custom-nav-bar {
   --van-nav-bar-background: #000000;
@@ -306,6 +327,49 @@ onMounted(() => {
   font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif !important;
 }
 
+/* 工具栏容器包装器 */
+.tools-section-wrapper {
+  background-color: #000000;
+  position: sticky;
+  top: 46px;
+  z-index: 99;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 金色分割线 */
+.divider-line {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(212, 175, 55, 0.3) 20%, 
+    rgba(212, 175, 55, 0.6) 50%, 
+    rgba(212, 175, 55, 0.3) 80%, 
+    transparent 100%
+  );
+  margin: 0 auto;
+  position: relative;
+}
+
+.divider-line::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    #D4AF37 20%, 
+    #FCD535 50%, 
+    #D4AF37 80%, 
+    transparent 100%
+  );
+  box-shadow: 0 0 4px rgba(212, 175, 55, 0.4);
+}
+
 /* 工具栏容器 */
 .tools-section {
   display: flex;
@@ -313,11 +377,26 @@ onMounted(() => {
   gap: 12px;
   padding: 4px 16px 8px;
   background-color: #000000;
-  position: sticky;
-  top: 46px;
-  z-index: 99;
   width: 100%;
   box-sizing: border-box;
+}
+
+/* 嵌入模式下的工具栏（在 Me.vue 中显示时） */
+.embedded-mode .tools-section-wrapper {
+  position: relative;
+  top: 0;
+}
+
+.embedded-mode .tools-section.embedded-tools {
+  position: relative;
+  top: 0;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+/* 嵌入模式下移除导航栏占位 */
+.embedded-mode {
+  padding-top: 0;
 }
 
 .search-field {
@@ -570,6 +649,28 @@ onMounted(() => {
 
 :deep(.empty-state .van-empty__description) {
   color: #848E9C;
+}
+
+/* 确保 Vant 图标字体不被全局字体覆盖 */
+:deep(.van-icon),
+:deep([class*="van-icon"]),
+.van-icon,
+[class*="van-icon"] {
+  font-family: 'vant-icon', 'vant-iconfont', 'vant-icons', 'iconfont', 'vant', sans-serif !important;
+  font-style: normal !important;
+  font-weight: normal !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* 导航栏图标 */
+:deep(.custom-nav-bar .van-nav-bar__arrow) {
+  font-family: 'vant-icon', 'vant-iconfont', 'vant-icons', 'iconfont', 'vant', sans-serif !important;
+}
+
+/* 搜索框图标 */
+:deep(.search-field .van-field__left-icon) {
+  font-family: 'vant-icon', 'vant-iconfont', 'vant-icons', 'iconfont', 'vant', sans-serif !important;
 }
 </style>
 

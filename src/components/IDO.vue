@@ -163,10 +163,14 @@
   </template>
   
   <script setup>
-  import { computed, ref, onMounted, onUnmounted } from 'vue';
+  import { computed, ref, onMounted, onUnmounted, onActivated, onDeactivated } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { showConfirmDialog, showToast } from 'vant';
   import { useAssetStore } from '@/stores/assets';
+
+  defineOptions({
+    name: 'IDO'
+  });
 
   const { t } = useI18n();
   const assetStore = useAssetStore();
@@ -624,10 +628,25 @@
     }
   };
 
-  // 生命周期钩子
-  onMounted(() => {
+  // 初始化函数
+  const initializePage = () => {
     startSimulation();
     startCountdown();
+  };
+
+  // 生命周期钩子
+  onMounted(() => {
+    initializePage();
+  });
+
+  onActivated(() => {
+    // Keep-alive 激活时重新初始化
+    initializePage();
+  });
+
+  onDeactivated(() => {
+    // Keep-alive 停用时停止模拟
+    stopSimulation();
   });
 
   onUnmounted(() => {

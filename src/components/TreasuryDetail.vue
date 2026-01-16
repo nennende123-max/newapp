@@ -2,8 +2,10 @@
   <div class="treasury-detail-page">
     <!-- 顶部导航栏 -->
     <div class="app-header">
-      <div class="header-left" @click="router.go(-1)">
-        <van-icon name="arrow-left" size="22" color="#FFFFFF" />
+      <div class="header-left">
+        <div class="back-button" @click="router.go(-1)">
+          <van-icon name="arrow-left" size="18" />
+        </div>
       </div>
       <div class="header-title">
         <span>{{ $t('treasury.title') }}</span>
@@ -343,12 +345,34 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   min-width: 40px;
-  cursor: pointer;
-  transition: opacity 0.2s ease;
 }
 
-.header-left:active {
-  opacity: 0.7;
+.back-button {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.back-button :deep(.van-icon) {
+  color: #D4AF37;
+  transition: color 0.3s ease;
+}
+
+.back-button:active {
+  background-color: rgba(212, 175, 55, 0.1);
+  border-color: rgba(212, 175, 55, 0.3);
+  transform: scale(0.95);
+}
+
+.back-button:active :deep(.van-icon) {
+  color: #FCD535;
 }
 
 .header-title {

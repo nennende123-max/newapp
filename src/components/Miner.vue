@@ -6,7 +6,7 @@
       <div class="card-background"></div>
       <div class="card-content">
         <div class="asset-header">
-          <span class="asset-label">{{ $t('miner.total_assets') }}</span>
+          <span class="asset-label">{{ totalAssetsLabel }}</span>
           <van-icon 
             :name="showBalance ? 'eye-o' : 'closed-eye'" 
             class="eye-icon" 
@@ -17,7 +17,7 @@
           {{ showBalance ? formatAssetValue(totalAssets) : '****' }} USDT
         </div>
         <div class="earnings-row">
-          <span class="earnings-label">{{ $t('miner.total_profit') }}</span>
+          <span class="earnings-label">{{ totalProfitLabel }}</span>
           <span class="earnings-value">
             {{ showBalance ? formatAssetValue(totalProfit) : '****' }} USDT
           </span>
@@ -99,7 +99,7 @@
               class="prediction-image"
               @error="handleImageError"
             />
-            <div class="prediction-title">{{ market.title }}</div>
+            <div class="prediction-title">{{ t(market.titleKey) }}</div>
           </div>
 
           <!-- Action Row: YES/NO 按钮 -->
@@ -123,7 +123,7 @@
           <!-- Footer: 市场数据 -->
           <div class="prediction-footer">
             <div class="prediction-stats">
-              <span>Vol. {{ market.volume }}</span>
+              <span>{{ volumeLabel }} {{ market.volume }}</span>
             </div>
           </div>
         </div>
@@ -259,18 +259,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch, onActivated, onDeactivated } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { showToast, showConfirmDialog } from 'vant';
 import { useAssetStore } from '@/stores/assets';
 import * as predictionApi from '@/api/prediction';
 
+defineOptions({
+  name: 'Miner'
+});
+
 // --- Router ---
 const router = useRouter();
 
 // --- i18n ---
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 // --- Pinia Store ---
 const assetStore = useAssetStore();
@@ -290,13 +294,13 @@ const selectedSide = ref('YES');
 const betAmount = ref('');
 const isPlacingBet = ref(false);
 
-// 分类选项
-const categoryOptions = [
-  { label: '全部', value: 'All' },
-  { label: '加密', value: 'Crypto' },
-  { label: '宏观', value: 'Macro' },
-  { label: '体育', value: 'Sports' }
-];
+// 分类选项（使用国际化）
+const categoryOptions = computed(() => [
+  { label: t('miner.category_all'), value: 'All' },
+  { label: t('miner.category_crypto'), value: 'Crypto' },
+  { label: t('miner.category_macro'), value: 'Macro' },
+  { label: t('miner.category_sports'), value: 'Sports' }
+]);
 
 // 快速金额选项
 const quickAmounts = [10, 50, 100, 500];
@@ -305,6 +309,11 @@ const quickAmounts = [10, 50, 100, 500];
 // 使用 Store 中的预估总资产价值，确保与"我的"页面一致
 const totalAssets = computed(() => assetStore.estimatedTotalValue);
 const totalProfit = ref(342.80);
+
+// --- 国际化标签（确保响应式更新） ---
+const totalAssetsLabel = computed(() => t('miner.total_assets'));
+const totalProfitLabel = computed(() => t('miner.total_profit'));
+const volumeLabel = computed(() => t('miner.volume'));
 
 // --- 下注相关状态 ---
 const pendingBet = ref(null);
@@ -345,10 +354,10 @@ const minersFromDB = ref([
   { id: 2, name: 'Avalon A14', rate: 3.2, days: 60, price: 2500 }
 ]);
 
-// --- 格式化资产值 ---
+// --- 格式化资产值（支持国际化） ---
 const formatAssetValue = (value) => {
   if (value >= 10000) {
-    return (value / 10000).toFixed(2) + '万';
+    return (value / 10000).toFixed(2) + t('miner.ten_thousand');
   }
   return value.toLocaleString('en-US', {
     minimumFractionDigits: 2,
@@ -386,10 +395,10 @@ const loadMarkets = async () => {
 
 const getCategoryLabel = (category) => {
   const labelMap = {
-    'Crypto': '加密',
-    'Politics': '政治',
-    'Sports': '体育',
-    'Macro': '宏观'
+    'Crypto': t('miner.category_crypto'),
+    'Politics': t('miner.category_politics'),
+    'Sports': t('miner.category_sports'),
+    'Macro': t('miner.category_macro')
   };
   return labelMap[category] || category;
 };
@@ -508,6 +517,17 @@ watch(activeCategory, () => {
   }
 });
 
+// 监听语言变化，确保分类标签和格式化函数响应式更新
+watch(locale, () => {
+  // 语言切换时，Vue 会自动重新渲染模板中的 t() 调用
+  // 由于 markets 数据中的 titleKey 不会改变，只需要确保响应式更新即可
+  // 如果需要，可以强制重新加载市场数据以确保一致性
+  if (currentTab.value === 'battle') {
+    // 重新加载市场数据以确保翻译键正确应用
+    loadMarkets();
+  }
+});
+
 const confirmRent = (miner) => {
   showConfirmDialog({ 
     title: 'Confirm', 
@@ -518,10 +538,25 @@ const confirmRent = (miner) => {
   .catch(() => {});
 };
 
-onMounted(() => {
+// 初始化函数
+const initializePage = () => {
   if (currentTab.value === 'battle') {
     loadMarkets();
   }
+};
+
+onMounted(() => {
+  initializePage();
+});
+
+// Keep-alive 激活时
+onActivated(() => {
+  initializePage();
+});
+
+// Keep-alive 停用时清理
+onDeactivated(() => {
+  // 可以在这里清理定时器等资源
 });
 </script>
 
@@ -1350,5 +1385,37 @@ onMounted(() => {
 .text-green { color: #0ECB81 !important; } 
 .text-red { color: #F6465D !important; } 
 .text-gold { color: #FCD535 !important; }
+
+/* 确保 Vant 图标字体不被全局字体覆盖 */
+:deep(.van-icon),
+:deep([class*="van-icon"]),
+.van-icon,
+[class*="van-icon"] {
+  font-family: 'vant-icon', 'vant-iconfont', 'vant-icons', 'iconfont', 'vant', sans-serif !important;
+  font-style: normal !important;
+  font-weight: normal !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* 金刚区图标 */
+.nav-icon :deep(.van-icon) {
+  font-family: 'vant-icon', 'vant-iconfont', 'vant-icons', 'iconfont', 'vant', sans-serif !important;
+}
+
+/* Tab 切换图标 */
+.top-nav-tabs .nav-item :deep(.van-icon) {
+  font-family: 'vant-icon', 'vant-iconfont', 'vant-icons', 'iconfont', 'vant', sans-serif !important;
+}
+
+/* 眼睛图标 */
+.eye-icon {
+  font-family: 'vant-icon', 'vant-iconfont', 'vant-icons', 'iconfont', 'vant', sans-serif !important;
+}
+
+/* 关闭图标 */
+.close-icon {
+  font-family: 'vant-icon', 'vant-iconfont', 'vant-icons', 'iconfont', 'vant', sans-serif !important;
+}
 </style>
 

@@ -6,7 +6,7 @@
       fixed
       placeholder
       :border="false"
-      @click-left="router.back()"
+      @click-left="handleBack"
       style="--van-nav-bar-background: #000000; --van-nav-bar-title-text-color: #FCD535; --van-nav-bar-icon-color: #FCD535;"
     />
     
@@ -23,15 +23,23 @@
         </div>
       </div>
 
-      <div class="password-container" @click.stop="showKeyboard = true">
-        <van-password-input
-          :value="password"
-          :length="6"
-          :mask="!showPassword"
-          :gutter="10"
-          :focused="showKeyboard"
-          class="password-input"
-        />
+      <div class="password-container" @click.stop="handlePasswordContainerClick">
+        <!-- 自定义密码输入框，替代 van-password-input 以解决渲染冲突 -->
+        <div class="custom-password-input">
+          <div 
+            v-for="i in 6" 
+            :key="i" 
+            class="password-item"
+            :class="{ 
+              'is-filled': password.length >= i,
+              'is-focused': showKeyboard && password.length === i - 1
+            }"
+          >
+            <template v-if="password.length >= i">
+              {{ showPassword ? password[i-1] : '●' }}
+            </template>
+          </div>
+        </div>
         <div class="eye-toggle" @click.stop="togglePasswordVisibility">
           <van-icon :name="showPassword ? 'eye' : 'eye-o'" size="20" color="#8E8E93" />
         </div>
@@ -42,24 +50,27 @@
       </div>
 
       <van-number-keyboard
+        ref="keyboardRef"
+        v-model="password"
         v-model:show="showKeyboard"
         :show-delete-key="true"
         theme="custom"
         extra-key=""
         :close-button-text="$t('common.complete')"
-        teleport="body"
         :z-index="3000"
         class="custom-keyboard"
-        @input="onInput"
         @delete="onDelete"
-        @blur="showKeyboard = false"
+        @blur="closeKeyboard"
+        @input="onInput"
+        @update:model-value="onInput"
+        @close="closeKeyboard"
       />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from 'vue';
+import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { showToast } from 'vant';
@@ -74,10 +85,81 @@ const firstPassword = ref(''); // 第一次输入的密码
 // 修复：默认不显示键盘
 const showKeyboard = ref(false);
 const showPassword = ref(false); // 控制密码显示/隐藏
+const keyboardRef = ref(null);
 
 // 切换密码显示/隐藏
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value;
+  // watch 会自动调用 updatePasswordInputDisplay
+};
+
+// 关闭键盘
+const closeKeyboard = () => {
+  showKeyboard.value = false;
+  if (document.activeElement) {
+    document.activeElement.blur();
+  }
+};
+
+// 返回处理
+const handleBack = () => {
+  closeKeyboard();
+  router.back();
+};
+
+// 点击密码输入容器时显示键盘
+const handlePasswordContainerClick = () => {
+  console.log('🟡 Password container clicked, showing keyboard');
+  if (document.activeElement) {
+    document.activeElement.blur();
+  }
+  showKeyboard.value = true;
+  console.log('🟡 showKeyboard set to:', showKeyboard.value);
+  // 延迟检查键盘是否真的显示了，并添加点击事件监听
+  setTimeout(() => {
+    console.log('🟡 After 100ms, showKeyboard:', showKeyboard.value);
+    const keyboardEl = document.querySelector('.van-number-keyboard');
+    console.log('🟡 Keyboard element found:', !!keyboardEl);
+    if (keyboardEl) {
+      console.log('🟡 Keyboard element:', keyboardEl);
+      console.log('🟡 Keyboard display style:', window.getComputedStyle(keyboardEl).display);
+      
+      // 为 PC 端添加点击事件监听
+      const keys = keyboardEl.querySelectorAll('.van-key');
+      console.log('🟡 Found keyboard keys:', keys.length);
+      keys.forEach((key, index) => {
+        // 移除之前的事件监听器（如果有）
+        const newKey = key.cloneNode(true);
+        key.parentNode.replaceChild(newKey, key);
+        
+        // 添加点击事件
+        newKey.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const keyText = newKey.textContent.trim();
+          console.log('🟢 Key clicked:', keyText, 'index:', index);
+          
+          if (keyText === '删除' || keyText === 'Delete' || newKey.classList.contains('van-key--delete')) {
+            onDelete();
+          } else if (keyText === '完成' || keyText === 'Done' || newKey.classList.contains('van-key--close')) {
+            closeKeyboard();
+          } else if (/^\d$/.test(keyText)) {
+            // 数字键
+            const currentValue = password.value || '';
+            if (currentValue.length < 6) {
+              password.value = currentValue + keyText;
+              console.log('✅ Added digit, password:', password.value);
+              // watch 会自动调用 updatePasswordInputDisplay
+            }
+          }
+        });
+      });
+    }
+  }, 200);
+};
+
+// 统一的更新输入框显示函数
+const updatePasswordInputDisplay = () => {
+  // 使用自定义实现后不再需要手动操作 DOM
 };
 
 // 监听步骤变化，确保键盘显示和状态重置
@@ -86,6 +168,7 @@ watch(currentStep, async (newStep, oldStep) => {
     // 进入第二步时，重置密码并确保键盘显示
     password.value = '';
     await nextTick();
+    updatePasswordInputDisplay(); // 清空后更新显示
     // 增加小延时以保证状态同步
     setTimeout(() => {
       showKeyboard.value = true;
@@ -95,46 +178,77 @@ watch(currentStep, async (newStep, oldStep) => {
 
 // 监听密码输入
 watch(password, (newVal) => {
+  // 更新显示
+  updatePasswordInputDisplay();
+  
   // 当输入满6位时，自动进入下一步
   if (newVal.length === 6 && currentStep.value === 1) {
     firstPassword.value = newVal; // 保存第一次输入的密码
+    // 关闭键盘
+    closeKeyboard();
     setTimeout(() => {
       currentStep.value = 2;
       password.value = ''; // 清空输入框，准备确认输入
+      updatePasswordInputDisplay(); // 清空后更新显示
+      // 延迟后重新打开键盘让用户输入确认密码
+      setTimeout(() => {
+        showKeyboard.value = true;
+      }, 500);
     }, 300);
   }
   
   // 确认密码时，输入满6位后自动验证
   if (newVal.length === 6 && currentStep.value === 2) {
+    // 关闭键盘
+    closeKeyboard();
     setTimeout(() => {
       handleConfirm();
     }, 300);
   }
 });
 
+// 监听显示/隐藏状态变化
+watch(showPassword, () => {
+  updatePasswordInputDisplay();
+});
+
 // 键盘输入处理（优化后的逻辑）
 const onInput = (value) => {
-  // 提前拦截，防止数组溢出
-  if (password.value.length >= 6) {
-    return;
-  }
-  // 确保只接受数字
-  if (!/^\d$/.test(value)) {
-    return;
-  }
-  // 限制长度为6位
-  password.value += value;
+  console.log('🟢🟢🟢 onInput EVENT TRIGGERED! 🟢🟢🟢');
+  console.log('=== onInput START ===');
+  console.log('Received value:', value, 'type:', typeof value);
   
-  // 添加轻微的震动反馈（如果设备支持）
-  if (window.navigator && window.navigator.vibrate) {
-    window.navigator.vibrate(10);
+  // Vant 4 的 van-number-keyboard 通过 v-model 传递完整值字符串
+  const newValue = String(value || '').replace(/\D/g, ''); // 只保留数字
+  console.log('Cleaned value:', newValue);
+  
+  // 限制长度为6位
+  if (newValue.length <= 6) {
+    password.value = newValue;
+    console.log('✅ Updated password to:', password.value);
+    
+    // watch 会自动调用 updatePasswordInputDisplay
+    
+    // 添加轻微的震动反馈（如果设备支持）
+    if (window.navigator && window.navigator.vibrate) {
+      window.navigator.vibrate(10);
+    }
+  } else {
+    console.log('⚠️ Value too long, truncating to 6 digits');
+    password.value = newValue.slice(0, 6);
+    // watch 会自动调用 updatePasswordInputDisplay
   }
+  
+  console.log('=== onInput END ===');
 };
 
 // 删除处理
 const onDelete = () => {
+  console.log('🔴 Delete button clicked');
   if (password.value.length > 0) {
     password.value = password.value.slice(0, -1);
+    console.log('After delete, password:', password.value);
+    // watch 会自动调用 updatePasswordInputDisplay
   }
 };
 
@@ -146,7 +260,8 @@ const handleConfirm = () => {
       message: t('security.fund_password_mismatch'),
       duration: 2000,
       position: 'middle',
-      forbidClick: true
+      forbidClick: true,
+      className: 'custom-toast'
     });
     // 重置到第一步
     currentStep.value = 1;
@@ -159,13 +274,15 @@ const handleConfirm = () => {
   
   // 密码一致，保存到 localStorage
   localStorage.setItem('fundPassword', password.value);
+  localStorage.setItem('fundPasswordSet', 'true');
   
   showToast({
     message: t('security.fund_password_success'),
     icon: 'success',
     duration: 1500,
     position: 'middle',
-    forbidClick: true
+    forbidClick: true,
+    className: 'custom-toast'
   });
   
   // 延迟跳转回安全中心
@@ -258,6 +375,40 @@ const handleConfirm = () => {
   padding-right: 50px; /* 为眼睛图标留出空间 */
 }
 
+/* 自定义密码输入框样式 */
+.custom-password-input {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  width: 100%;
+}
+
+.password-item {
+  width: 48px;
+  height: 48px;
+  background-color: #1C1C1E;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #FFFFFF;
+  font-size: 20px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DIN Alternate', 'Roboto', sans-serif;
+  transition: all 0.2s ease;
+}
+
+.password-item.is-filled {
+  border-color: #FCD535;
+}
+
+.password-item.is-focused {
+  border-color: #FCD535;
+  background-color: rgba(252, 213, 53, 0.1);
+  box-shadow: 0 0 8px rgba(252, 213, 53, 0.3);
+}
+
 /* 眼睛图标切换按钮 */
 .eye-toggle {
   position: absolute;
@@ -274,30 +425,6 @@ const handleConfirm = () => {
 .eye-toggle:active {
   opacity: 0.6;
   transform: scale(0.9);
-}
-
-/* 密码输入框样式覆盖 */
-:deep(.password-input .van-password-input__item) {
-  width: 48px;
-  height: 48px;
-  background-color: #1C1C1E;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: #FFFFFF;
-  font-size: 20px;
-  font-weight: 600;
-  font-family: 'DIN Alternate', 'Roboto', sans-serif;
-  font-variant-numeric: tabular-nums;
-}
-
-:deep(.password-input .van-password-input__item--focus) {
-  border-color: #FCD535;
-  background-color: rgba(252, 213, 53, 0.1);
-  box-shadow: 0 0 8px rgba(252, 213, 53, 0.4); /* 输入框呼吸灯：黄色阴影 */
-}
-
-:deep(.password-input .van-password-input__item--filled) {
-  border-color: #FCD535;
 }
 
 /* 提示文字 */
@@ -331,6 +458,8 @@ const handleConfirm = () => {
   font-family: 'DIN Alternate', sans-serif !important;
   font-size: 24px !important;
   height: 54px !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
 }
 
 .custom-keyboard .van-key:active {
@@ -355,5 +484,40 @@ const handleConfirm = () => {
 .custom-keyboard .van-key--delete .van-key__icon {
   font-size: 22px !important;
   color: #FFFFFF !important;
+}
+
+</style>
+
+<style>
+/* Toast 黑金风格 - 全局样式（Toast 是动态添加到 body 的） */
+.custom-toast.van-toast {
+  background-color: #1C1C1E !important;
+  border: 1px solid rgba(252, 213, 53, 0.3) !important;
+  box-shadow: 0 4px 20px rgba(252, 213, 53, 0.2), 0 0 0 1px rgba(252, 213, 53, 0.1) inset !important;
+  border-radius: 12px !important;
+  padding: 20px 24px !important;
+  min-width: 200px !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.custom-toast .van-toast__text {
+  color: #FFFFFF !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  font-family: 'DIN Alternate', 'Roboto', sans-serif !important;
+  letter-spacing: 0.5px !important;
+}
+
+.custom-toast .van-toast__icon {
+  color: #FCD535 !important;
+  font-size: 48px !important;
+}
+
+.custom-toast.van-toast--success .van-toast__icon {
+  color: #FCD535 !important;
+}
+
+.custom-toast.van-toast--fail .van-toast__icon {
+  color: #FF453A !important;
 }
 </style>

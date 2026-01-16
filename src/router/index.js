@@ -18,9 +18,9 @@ import Support from '../components/Support.vue'
 import Settings from '../components/Settings.vue'
 import SecurityCenter from '../components/SecurityCenter.vue'
 import FundPassword from '../components/FundPassword.vue'
-import PhoneVerify from '../components/PhoneVerify.vue'
 import GoogleAuth from '../components/GoogleAuth.vue'
 import FuturesTrade from '../components/FuturesTrade.vue'
+import ReferralIndex from '../views/referral/ReferralIndex.vue'
 
 const routes = [
   { path: '/', component: Home },
@@ -43,8 +43,8 @@ const routes = [
   { path: '/settings', name: 'Settings', component: Settings },
   { path: '/security-center', name: 'SecurityCenter', component: SecurityCenter },
   { path: '/fund-password', name: 'FundPassword', component: FundPassword },
-  { path: '/phone-verify', name: 'PhoneVerify', component: PhoneVerify },
-  { path: '/google-auth', name: 'GoogleAuth', component: GoogleAuth }
+  { path: '/google-auth', name: 'GoogleAuth', component: GoogleAuth },
+  { path: '/referral', name: 'ReferralIndex', component: ReferralIndex, meta: { hideTabbar: true } }
 ]
 
 const router = createRouter({

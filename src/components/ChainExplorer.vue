@@ -3,13 +3,15 @@
     <!-- 顶部导航 -->
     <div class="explorer-header">
       <div class="header-left">
-        <van-icon name="arrow-left" class="back-icon" @click="handleBack" />
-        <span class="header-title">链上交易监控</span>
+        <div class="back-button" @click="handleBack">
+          <van-icon name="arrow-left" size="18" />
+        </div>
+        <span class="header-title">{{ $t('chain_explorer.title') }}</span>
       </div>
       <div class="header-right">
         <div class="status-indicator">
           <div class="status-dot"></div>
-          <span class="status-text">网络正常</span>
+          <span class="status-text">{{ $t('chain_explorer.network_status') }}</span>
         </div>
       </div>
     </div>
@@ -17,15 +19,15 @@
     <!-- 仪表盘 -->
     <div class="dashboard">
       <div class="dashboard-card">
-        <div class="card-label">当前 Gas</div>
+        <div class="card-label">{{ $t('chain_explorer.current_gas') }}</div>
         <div class="card-value">{{ currentGas }} Gwei</div>
       </div>
       <div class="dashboard-card">
-        <div class="card-label">区块高度</div>
+        <div class="card-label">{{ $t('chain_explorer.block_height') }}</div>
         <div class="card-value">{{ blockHeight }}</div>
       </div>
       <div class="dashboard-card">
-        <div class="card-label">24H 净流入</div>
+        <div class="card-label">{{ $t('chain_explorer.net_flow_24h') }}</div>
         <div class="card-value">{{ formatNetFlow(netFlow24h) }}</div>
       </div>
     </div>
@@ -34,11 +36,11 @@
     <div class="terminal-container">
       <!-- 表头 -->
       <div class="table-header">
-        <div class="th-cell th-time">时间</div>
-        <div class="th-cell th-type">类型</div>
-        <div class="th-cell th-hash">交易哈希</div>
-        <div class="th-cell th-amount">金额</div>
-        <div class="th-cell th-status">状态</div>
+        <div class="th-cell th-time">{{ $t('chain_explorer.table_time') }}</div>
+        <div class="th-cell th-type">{{ $t('chain_explorer.table_type') }}</div>
+        <div class="th-cell th-hash">{{ $t('chain_explorer.table_hash') }}</div>
+        <div class="th-cell th-amount">{{ $t('chain_explorer.table_amount') }}</div>
+        <div class="th-cell th-status">{{ $t('chain_explorer.table_status') }}</div>
       </div>
 
       <!-- 数据行 -->
@@ -51,9 +53,9 @@
             :class="{ 'is-whale': tx.isWhale, 'even-row': tx.index % 2 === 0 }"
           >
             <div class="td-cell td-time">{{ tx.time }}</div>
-            <div class="td-cell td-type" :class="tx.type === '充值' ? 'type-deposit' : 'type-withdraw'">
+            <div class="td-cell td-type" :class="tx.isDeposit ? 'type-deposit' : 'type-withdraw'">
               <van-icon 
-                :name="tx.type === '充值' ? 'arrow-down' : 'arrow-up'" 
+                :name="tx.isDeposit ? 'arrow-down' : 'arrow-up'" 
                 class="type-icon"
               />
               <span>{{ tx.type }}</span>
@@ -62,7 +64,7 @@
             <div class="td-cell td-amount" :class="{ 'whale-amount': tx.isWhale }">
               {{ formatAmount(tx.amount, tx.coin) }}
             </div>
-            <div class="td-cell td-status" :class="tx.status === '成功' ? 'status-success' : 'status-pending'">
+            <div class="td-cell td-status" :class="tx.isSuccess ? 'status-success' : 'status-pending'">
               {{ tx.status }}
             </div>
           </div>
@@ -73,18 +75,37 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { Icon } from 'vant';
 
 const VanIcon = Icon;
 
 const router = useRouter();
+const { t, locale } = useI18n();
+
+// 监听语言变化，更新所有交易记录的类型和状态文本
+watch(locale, () => {
+  transactions.value.forEach(tx => {
+    // 更新类型文本
+    if (tx.isDeposit) {
+      tx.type = t('chain_explorer.type_deposit');
+    } else {
+      tx.type = t('chain_explorer.type_withdraw');
+    }
+    // 更新状态文本
+    if (tx.isSuccess) {
+      tx.status = t('chain_explorer.status_success');
+    } else {
+      tx.status = t('chain_explorer.status_confirming');
+    }
+  });
+});
 
 // --- 核心变量定义 ---
 const transactions = ref([]);
 const coins = ['USDT', 'ETH', 'BTC', 'SOL'];
-const types = ['充值', '提现'];
 
 // 仪表盘数据
 const currentGas = ref(24);
@@ -161,19 +182,27 @@ const generateTransaction = () => {
   const amount = generateAmount(coin);
   const isWhale = amount > (coin === 'USDT' ? 50000 : coin === 'ETH' ? 50 : coin === 'BTC' ? 0.5 : 500);
   
+  // 根据当前语言设置时间格式
+  const timeLocale = locale.value === 'zh' ? 'zh-CN' : 'en-US';
+  
+  // 判断是充值还是提现
+  const isDeposit = Math.random() > 0.4; // 充值稍多一点
+  
   const transaction = {
     id: Date.now() + Math.random(),
-    time: new Date().toLocaleTimeString('zh-CN', { 
+    time: new Date().toLocaleTimeString(timeLocale, { 
       hour12: false,
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit'
     }),
-    type: Math.random() > 0.4 ? '充值' : '提现', // 充值稍多一点
+    type: isDeposit ? t('chain_explorer.type_deposit') : t('chain_explorer.type_withdraw'),
     coin: coin,
     amount: amount,
     hash: generateHash(),
-    status: '确认中',
+    status: t('chain_explorer.status_confirming'),
+    isDeposit: isDeposit,
+    isSuccess: false,
     isWhale: isWhale,
     index: transactionIndex++
   };
@@ -188,14 +217,15 @@ const generateTransaction = () => {
 
   // 3秒后自动将状态改为"成功"
   setTimeout(() => {
-    const tx = transactions.value.find(t => t.id === transaction.id);
+    const tx = transactions.value.find(txItem => txItem.id === transaction.id);
     if (tx) {
-      tx.status = '成功';
+      tx.status = t('chain_explorer.status_success');
+      tx.isSuccess = true;
     }
   }, 3000);
 
   // 更新24H净流入（简化计算：充值增加，提现减少）
-  if (transaction.type === '充值') {
+  if (transaction.isDeposit) {
     netFlow24h.value += transaction.amount * (coin === 'USDT' ? 1 : getCoinPrice(coin));
   } else {
     netFlow24h.value -= transaction.amount * (coin === 'USDT' ? 1 : getCoinPrice(coin));
@@ -331,15 +361,33 @@ const handleBack = () => {
   gap: 12px;
 }
 
-.back-icon {
-  font-size: 20px;
-  color: #FFFFFF;
+.back-button {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
   cursor: pointer;
-  transition: opacity 0.2s ease;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
-.back-icon:active {
-  opacity: 0.7;
+.back-button :deep(.van-icon) {
+  color: #D4AF37;
+  transition: color 0.3s ease;
+}
+
+.back-button:active {
+  background-color: rgba(212, 175, 55, 0.1);
+  border-color: rgba(212, 175, 55, 0.3);
+  transform: scale(0.95);
+}
+
+.back-button:active :deep(.van-icon) {
+  color: #FCD535;
 }
 
 .header-title {

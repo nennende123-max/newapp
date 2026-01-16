@@ -11,7 +11,7 @@
       <template #left>
         <div class="force-custom-back" @click="$router.back()">
           <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" class="back-svg-icon">
-            <path d="M669.6 849.6c8.8 8 22.4 7.2 30.4-1.6s7.2-22.4-1.6-30.4l-304-277.6 304-277.6c8.8-8 9.6-21.6 1.6-30.4s-21.6-9.6-30.4-1.6l-320 292.8c-4.4 4-6.4 9.6-6.4 15.2s2 11.2 6.4 15.2l320 292.8z" fill="#FFFFFF"></path>
+            <path d="M669.6 849.6c8.8 8 22.4 7.2 30.4-1.6s7.2-22.4-1.6-30.4l-304-277.6 304-277.6c8.8-8 9.6-21.6 1.6-30.4s-21.6-9.6-30.4-1.6l-320 292.8c-4.4 4-6.4 9.6-6.4 15.2s2 11.2 6.4 15.2l320 292.8z" fill="#FCD535"></path>
           </svg>
         </div>
       </template>
@@ -19,12 +19,8 @@
       <template #title>
         <div class="header-title" @click="showCoinDrawer = true">
           <span>{{ symbol }}/USDT</span>
-          <van-icon name="arrow-down" size="12" style="margin-left: 4px" />
+          <van-icon name="arrow-down" size="12" class="coin-select-arrow" />
         </div>
-      </template>
-
-      <template #right>
-        <van-icon name="chart-trending-o" size="22" color="#FFFFFF" @click="$router.push({ path: '/market', query: { symbol: symbol } })" />
       </template>
     </van-nav-bar>
 
@@ -640,7 +636,7 @@ onMounted(() => {
 .back-svg-icon {
   width: 24px !important;
   height: 24px !important;
-  fill: #FFFFFF !important; /* 强制纯白，对齐黑金风格 */
+  fill: #FCD535 !important; /* 金色返回键 */
 }
 
 /* 3. 确保导航栏整体背景为 App 纯黑 */
@@ -671,6 +667,12 @@ onMounted(() => {
 .header-title:active {
   opacity: 0.7;
   background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* 选择币种的箭头设为灰色 */
+.coin-select-arrow {
+  margin-left: 4px;
+  color: #8E8E93 !important; /* 灰色 */
 }
 
 /* 当前价格区 - 币安风格 */

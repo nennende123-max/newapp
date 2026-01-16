@@ -6,9 +6,7 @@
       <div class="header-center">
         <span class="header-title">{{ symbol }} {{ t('earn.subscribe') }}</span>
       </div>
-      <div class="header-actions">
-        <van-icon name="question-o" class="action-icon" @click="showHelp" />
-      </div>
+      <div class="header-actions-placeholder"></div>
     </div>
 
     <!-- 期限选择 -->
@@ -115,7 +113,7 @@
         v-model="agreedToTerms" 
         shape="square" 
         class="agreement-checkbox"
-        active-color="#F0B90B"
+        active-color="#FCD535"
         icon-size="16px"
       >
         <span class="agreement-text">{{ t('earn.agreement_text') }}</span>
@@ -278,18 +276,14 @@ const handleBack = () => {
     // 如果来自"我"页面，则带参数跳回，确保 Me 页面知道该打开哪个 Tab
     router.push({ path: '/me', query: { tab: activeTab || 'earn' } });
   } else {
-    // 否则返回默认的理财独立页面
-    router.push('/earn');
+    // 修复：使用 router.back() 而不是 push，防止产生历史记录循环
+    // 如果没有历史记录，则降级 push 到 /earn
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/earn');
+    }
   }
-};
-
-// 显示帮助信息
-const showHelp = () => {
-  showToast({
-    message: t('earn.help_tooltip') || '帮助信息',
-    icon: 'info',
-    duration: 2000
-  });
 };
 
 // 确认申购
@@ -336,11 +330,10 @@ const handleConfirm = () => {
   setTimeout(() => {
     const { from, activeTab } = route.query;
     if (from === 'me') {
-      // 如果来自"我"页面，则带参数跳回，确保 Me 页面知道该打开哪个 Tab
       router.push({ path: '/me', query: { tab: activeTab || 'earn' } });
     } else {
-      // 否则返回默认的理财独立页面
-      router.push('/earn');
+      // 修复：使用 back() 返回，避免历史栈堆积
+      router.back();
     }
   }, 2000);
 };
@@ -366,18 +359,55 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 全局强制无衬线字体 */
+/* ---------------------------------------------------------
+   极致 UI 修复：字体保护与黑金勾选框
+   --------------------------------------------------------- */
+
+/* 1. 基础页面字体 */
 .earn-subscribe-page {
   background-color: #0B0E11;
   min-height: 100vh;
   padding-bottom: 100px;
   color: #FFFFFF;
-  font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif !important;
+  font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', 'PingFang SC', sans-serif;
 }
 
-.earn-subscribe-page,
-.earn-subscribe-page * {
-  font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif !important;
+/* 2. 核心图标修复：利用高特异性选择器强制生效 */
+:deep(.van-icon),
+:deep([class*="van-icon"]),
+:deep(.van-checkbox__icon),
+:deep(.van-checkbox__icon .van-icon),
+.van-icon,
+[class*="van-icon"] {
+  font-family: 'vant-icon' !important;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 3. 勾选框黑金化：彻底覆盖默认蓝色 */
+:deep(.agreement-checkbox) {
+  --van-checkbox-checked-icon-color: #FCD535 !important; /* 勾号金色 */
+  --van-checkbox-active-color: #1C1C1E !important;      /* 背景深灰 */
+  --van-checkbox-border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+:deep(.agreement-checkbox .van-checkbox__icon--checked) {
+  background-color: #1C1C1E !important;
+  border-color: #FCD535 !important;
+}
+
+:deep(.agreement-checkbox .van-checkbox__icon--checked .van-icon) {
+  color: #FCD535 !important; /* 强制勾号为金色 */
+  font-weight: bold !important;
+}
+
+:deep(.agreement-checkbox .van-checkbox__icon:not(.van-checkbox__icon--checked) .van-icon) {
+  color: transparent !important;
+}
+
+/* 4. 其它文本字体补丁 */
+.header-title, .section-label, .term-btn, .amount-input-field, .limit-value, .overview-value, .agreement-text, .confirm-btn, .disclaimer, .available-balance, .coin-symbol, .limit-label, .overview-label {
+  font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', 'PingFang SC', sans-serif !important;
 }
 
 /* 顶部导航栏 */
@@ -388,13 +418,18 @@ onMounted(() => {
   padding: 12px 16px;
   background-color: #111111;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  height: 46px;
+  box-sizing: border-box;
 }
 
 .header-icon {
-  font-size: 22px;
-  color: #FFFFFF !important;
+  font-size: 22px !important;
+  color: #FCD535 !important;
   cursor: pointer;
   transition: opacity 0.2s ease;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
 }
 
 .header-icon:active {
@@ -408,25 +443,12 @@ onMounted(() => {
 
 .header-title {
   font-size: 18px;
-  font-weight: 600;
-  color: #FFFFFF;
+  font-weight: 700;
+  color: #FCD535;
 }
 
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.action-icon {
-  font-size: 16px;
-  color: #848E9C;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.action-icon:active {
-  color: #FFFFFF;
+.header-actions-placeholder {
+  width: 22px;
 }
 
 /* 通用区块样式 */
@@ -443,7 +465,6 @@ onMounted(() => {
   color: #848E9C;
   margin-bottom: 12px;
   font-weight: 500;
-  font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif !important;
 }
 
 /* 期限选择 */
@@ -464,7 +485,6 @@ onMounted(() => {
   color: #848E9C;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif !important;
 }
 
 .term-btn.active {
@@ -506,7 +526,6 @@ onMounted(() => {
   font-size: 32px;
   font-weight: 700;
   color: #FFFFFF;
-  font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif !important;
   font-variant-numeric: tabular-nums;
   padding: 0;
   margin: 0;
@@ -536,7 +555,6 @@ onMounted(() => {
   background-color: rgba(240, 185, 11, 0.15);
   border-radius: 4px;
   transition: all 0.2s ease;
-  font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif !important;
   min-height: 28px;
   display: flex;
   align-items: center;
@@ -579,14 +597,12 @@ onMounted(() => {
   font-size: 14px;
   font-weight: 600;
   color: #FFFFFF;
-  font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif !important;
 }
 
 .available-balance {
   font-size: 12px;
   color: #848E9C;
   margin-top: 8px;
-  font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif !important;
 }
 
 /* 数量限制 */
@@ -607,18 +623,20 @@ onMounted(() => {
 .limit-label {
   color: #848E9C;
   font-size: 13px;
-  font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif !important;
 }
 
 .limit-value {
   color: #EAECEF;
   font-size: 14px;
   font-weight: 700;
-  font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif !important;
   font-variant-numeric: tabular-nums;
 }
 
 /* 概览 */
+.overview-section {
+  padding: 20px 16px;
+}
+
 .overview-content {
   display: flex;
   flex-direction: column;
@@ -636,14 +654,12 @@ onMounted(() => {
 .overview-label {
   font-size: 12px;
   color: #848E9C;
-  font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif !important;
 }
 
 .overview-value {
   font-size: 16px;
   font-weight: 600;
   color: #FFFFFF;
-  font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif !important;
   font-variant-numeric: tabular-nums;
 }
 
@@ -664,7 +680,6 @@ onMounted(() => {
   color: #848E9C;
   line-height: 1.4;
   margin-top: 8px;
-  font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif !important;
 }
 
 /* 协议确认 */
@@ -683,28 +698,13 @@ onMounted(() => {
   border-color: rgba(255, 255, 255, 0.3);
   background-color: transparent;
   font-size: 16px;
-}
-
-:deep(.agreement-checkbox .van-checkbox__icon--checked) {
-  background-color: #F0B90B !important;
-  border-color: #F0B90B !important;
-}
-
-:deep(.agreement-checkbox .van-checkbox__icon--checked .van-icon) {
-  color: #000000 !important;
-  font-size: 16px;
-}
-
-:deep(.agreement-checkbox .van-checkbox__icon:not(.van-checkbox__icon--checked) .van-icon) {
-  color: rgba(255, 255, 255, 0.3);
-  font-size: 16px;
+  border-radius: 4px; /* 确保是方块风格 */
 }
 
 .agreement-text {
   font-size: 13px;
   color: #848E9C;
   line-height: 1.5;
-  font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif !important;
 }
 
 /* 确认按钮 */
@@ -727,7 +727,6 @@ onMounted(() => {
   font-weight: 700;
   border: none;
   transition: all 0.2s ease;
-  font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif !important;
 }
 
 .confirm-btn:not(.enabled) {
@@ -746,4 +745,3 @@ onMounted(() => {
   transform: scale(0.98);
 }
 </style>
-

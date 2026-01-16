@@ -803,5 +803,28 @@ onUnmounted(() => {
   justify-content: center;
   gap: 8px;
 }
+
+/* 确保 Vant 图标字体不被全局字体覆盖 */
+:deep(.van-icon),
+:deep([class*="van-icon"]),
+.van-icon,
+[class*="van-icon"] {
+  font-family: 'vant-icon', 'vant-iconfont', 'vant-icons', 'iconfont', 'vant', sans-serif !important;
+  font-style: normal !important;
+  font-weight: normal !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* 返回按钮图标 */
+.header-back {
+  font-family: 'vant-icon', 'vant-iconfont', 'vant-icons', 'iconfont', 'vant', sans-serif !important;
+}
+
+/* 搜索图标 */
+.search-icon,
+.clear-icon {
+  font-family: 'vant-icon', 'vant-iconfont', 'vant-icons', 'iconfont', 'vant', sans-serif !important;
+}
 </style>
 

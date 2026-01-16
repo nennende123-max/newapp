@@ -48,7 +48,7 @@ const generateMockMarkets = () => {
     {
       id: 1,
       category: 'Crypto',
-      title: 'Bitcoin 会在 1 月底前突破 $100,000 吗？',
+      titleKey: 'prediction.btc_100k',
       volume: '$2.4m',
       endDate: 'Jan 31, 2026',
       image: cryptoIcons[0],
@@ -61,7 +61,7 @@ const generateMockMarkets = () => {
     {
       id: 2,
       category: 'Politics',
-      title: 'Will Trump mention "Crypto" in next speech?',
+      titleKey: 'prediction.trump_crypto',
       volume: '$1.8m',
       endDate: 'Feb 15, 2026',
       image: 'https://via.placeholder.com/48x48/1C1C1E/FFFFFF?text=P',
@@ -74,7 +74,7 @@ const generateMockMarkets = () => {
     {
       id: 3,
       category: 'Crypto',
-      title: 'Ethereum 会在 2026 年 Q1 达到 $5,000 吗？',
+      titleKey: 'prediction.eth_5k',
       volume: '$1.2m',
       endDate: 'Mar 31, 2026',
       image: cryptoIcons[1],
@@ -87,7 +87,7 @@ const generateMockMarkets = () => {
     {
       id: 4,
       category: 'Macro',
-      title: 'Will the Fed cut rates by 50bps in Q1 2026?',
+      titleKey: 'prediction.fed_rates',
       volume: '$950k',
       endDate: 'Mar 1, 2026',
       image: 'https://via.placeholder.com/48x48/1C1C1E/FFFFFF?text=M',
@@ -100,7 +100,7 @@ const generateMockMarkets = () => {
     {
       id: 5,
       category: 'Sports',
-      title: 'Will the Lakers win the 2026 NBA Championship?',
+      titleKey: 'prediction.lakers_championship',
       volume: '$680k',
       endDate: 'Jun 30, 2026',
       image: 'https://via.placeholder.com/48x48/1C1C1E/FFFFFF?text=L',
@@ -113,7 +113,7 @@ const generateMockMarkets = () => {
     {
       id: 6,
       category: 'Crypto',
-      title: 'Will ETH flip BTC in market cap by end of 2026?',
+      titleKey: 'prediction.eth_flip_btc',
       volume: '$1.5m',
       endDate: 'Dec 31, 2026',
       image: cryptoIcons[1],
@@ -126,7 +126,7 @@ const generateMockMarkets = () => {
     {
       id: 7,
       category: 'Macro',
-      title: 'Will US inflation drop below 2% in 2026?',
+      titleKey: 'prediction.inflation_2pct',
       volume: '$820k',
       endDate: 'Dec 31, 2026',
       image: 'https://via.placeholder.com/48x48/1C1C1E/FFFFFF?text=I',
@@ -139,7 +139,7 @@ const generateMockMarkets = () => {
     {
       id: 8,
       category: 'Crypto',
-      title: 'Will Solana reach $200 before Bitcoin hits $150k?',
+      titleKey: 'prediction.solana_200',
       volume: '$1.1m',
       endDate: 'Jun 30, 2026',
       image: cryptoIcons[3],
@@ -224,7 +224,7 @@ export function placePredictionBet(eventId, side, amount) {
     const order = {
       id: Date.now() + Math.random(),
       eventId,
-      eventTitle: market.title,
+      eventTitleKey: market.titleKey, // 保存翻译键而不是硬编码文本
       side,
       amount,
       price: outcome.price,
