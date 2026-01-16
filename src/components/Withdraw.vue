@@ -50,7 +50,7 @@
     </div>
     <!-- 网络提示信息 -->
     <div class="network-tip-section">
-      <span class="network-tip">预计到账: {{ currentNetworkTime }}</span>
+      <span class="network-tip">{{ currentNetworkTime }}</span>
     </div>
 
     <!-- 地址输入卡片 -->
@@ -142,8 +142,8 @@
       @select="handleCoinSelect"
       cancel-text="取消"
       title="选择币种"
+      class="coin-sheet"  
     />
-
     <!-- 密码验证弹窗 -->
     <van-dialog
       v-model:show="showPasswordDialog"
@@ -180,9 +180,9 @@ const assetStore = useAssetStore();
 
 // 网络配置数据
 const networkConfig = {
-  TRC20: { fee: 1, min: 10, time: '约 3 分钟', color: '#FCD535' },
-  ERC20: { fee: 5, min: 20, time: '约 10 分钟', color: '#EAECEF' }, // 以太坊贵且慢
-  BSC:   { fee: 0.5, min: 10, time: '约 2 分钟', color: '#F0B90B' }
+  TRC20: { fee: 1, min: 10, time: ' 3 分钟', color: '#FCD535' },
+  ERC20: { fee: 5, min: 20, time: ' 10 分钟', color: '#EAECEF' }, // 以太坊贵且慢
+  BSC:   { fee: 0.5, min: 10, time: ' 2 分钟', color: '#F0B90B' }
 };
 
 // 数据
@@ -202,7 +202,8 @@ const networkFee = computed(() => {
 
 // 当前网络预计到账时间
 const currentNetworkTime = computed(() => {
-  return networkConfig[selectedNetwork.value].time;
+  const time = networkConfig[selectedNetwork.value].time;  // 如 '3 分钟'
+  return t('withdraw.estimated_time_prefix') + ' ' + time;  // 拼接 + 空格
 });
 
 // 最小提现金额
@@ -212,7 +213,10 @@ const minWithdrawAmount = computed(() => {
 
 // 金额输入框 placeholder
 const amountPlaceholder = computed(() => {
-  return `最小提现 ${minWithdrawAmount.value} ${selectedCoin.value}`;
+  return t('withdraw.min_withdraw', { 
+    min: minWithdrawAmount.value, 
+    coin: selectedCoin.value 
+  });  // 修改：用 t() 模板格式化
 });
 
 // Computed properties
@@ -230,14 +234,20 @@ const coinOptions = computed(() => {
   
   // 添加 USDT（如果有余额）
   if (assetStore.usdtBalance > 0) {
-    coins.push({ name: 'USDT', value: 'USDT' });
+    coins.push({ 
+      name: t(`withdraw.coins.usdt`),  // 修改：使用 t() 翻译
+      value: 'USDT' 
+    });
   }
   
   // 添加其他有余额的币种
   Object.keys(assetStore.holdings).forEach(symbol => {
     const balance = assetStore.getHolding(symbol);
     if (balance > 0) {
-      coins.push({ name: symbol, value: symbol });
+      coins.push({ 
+        name: t(`withdraw.coins.${symbol.toLowerCase()}`),  // 修改：动态翻译
+        value: symbol 
+      });
     }
   });
   
@@ -858,6 +868,54 @@ const formatBalance = (value) => {
 :deep(.password-dialog .van-button--default) {
   background: rgba(255,255,255,0.05);
   color: #FFFFFF;
+}
+/* 下拉列表黑金风格 - 增强版，消除白条 */
+:deep(.coin-sheet .van-action-sheet) {
+  background: #000000 !important; /* 整体背景黑色 */
+}
+
+:deep(.coin-sheet .van-action-sheet__content) {
+  background: #000000 !important; /* 内容区黑色 */
+}
+
+:deep(.coin-sheet .van-action-sheet__item) {
+  background: #1C1C1E !important; /* 项背景 */
+  color: #FFFFFF !important; /* 白色文字 */
+  border: none !important; /* 移除项边框，避免白线 */
+  font-family: sans-serif;
+}
+
+:deep(.coin-sheet .van-action-sheet__item:active) {
+  background: #252A32 !important; /* 按下变暗 */
+}
+
+:deep(.coin-sheet .van-action-sheet__header) {
+  background: #000000 !important;
+  color: #FCD535 !important; /* 金色标题 */
+  font-weight: 700;
+  border-bottom: none !important; /* 移除标题下白线 */
+}
+
+:deep(.coin-sheet .van-action-sheet__gap) {
+  background: transparent !important; /* 关键：分隔线透明，消除白条 */
+  height: 0 !important; /* 或设为 1px 但颜色透明 */
+}
+
+:deep(.coin-sheet .van-action-sheet__cancel) {
+  background: #1C1C1E !important;
+  color: #F6465D !important; /* 红色取消 */
+  font-weight: 600;
+  border-top: none !important; /* 移除取消上白线 */
+}
+
+:deep(.coin-sheet .van-action-sheet__cancel:active) {
+  background: #252A32 !important;
+}
+
+/* 滚动条和边缘（防止滚动时白条） */
+:deep(.coin-sheet .van-action-sheet__content::-webkit-scrollbar) {
+  width: 0 !important; /* 隐藏滚动条，避免白边 */
+  background: transparent !important;
 }
 </style>
 

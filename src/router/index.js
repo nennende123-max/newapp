@@ -16,6 +16,11 @@ import ChainExplorer from '../components/ChainExplorer.vue'
 import UserProfile from '../components/UserProfile.vue'
 import Support from '../components/Support.vue'
 import Settings from '../components/Settings.vue'
+import SecurityCenter from '../components/SecurityCenter.vue'
+import FundPassword from '../components/FundPassword.vue'
+import PhoneVerify from '../components/PhoneVerify.vue'
+import GoogleAuth from '../components/GoogleAuth.vue'
+import FuturesTrade from '../components/FuturesTrade.vue'
 
 const routes = [
   { path: '/', component: Home },
@@ -25,16 +30,21 @@ const routes = [
   { path: '/deposit', name: 'Deposit', component: Deposit },
   { path: '/withdraw', name: 'Withdraw', component: Withdraw },
   { path: '/trade', name: 'Trade', component: Trade },
+  { path: '/futures', name: 'FuturesTrade', component: FuturesTrade },
   { path: '/market', name: 'MarketDetail', component: MarketDetail },
   { path: '/history', name: 'History', component: History },
-  { path: '/earn', name: 'EarnList', component: EarnList },
+  { path: '/earn', name: 'EarnList', component: EarnList,meta: { hideTabbar: true } },
   { path: '/earn/subscribe', name: 'EarnSubscribe', component: EarnSubscribe },
   { path: '/all-markets', name: 'AllMarkets', component: AllMarkets },
-  { path: '/treasury', name: 'Treasury', component: TreasuryDetail, meta: { title: 'Treasury Audit' } },
-  { path: '/chain-explorer', name: 'ChainExplorer', component: ChainExplorer },
+  { path: '/treasury', name: 'Treasury', component: TreasuryDetail, meta: { hideTabbar: true } },
+  { path: '/chain-explorer', name: 'ChainExplorer', component: ChainExplorer ,meta: { hideTabbar: true }},
   { path: '/profile', name: 'UserProfile', component: UserProfile },
   { path: '/support', name: 'Support', component: Support },
-  { path: '/settings', name: 'Settings', component: Settings }
+  { path: '/settings', name: 'Settings', component: Settings },
+  { path: '/security-center', name: 'SecurityCenter', component: SecurityCenter },
+  { path: '/fund-password', name: 'FundPassword', component: FundPassword },
+  { path: '/phone-verify', name: 'PhoneVerify', component: PhoneVerify },
+  { path: '/google-auth', name: 'GoogleAuth', component: GoogleAuth }
 ]
 
 const router = createRouter({

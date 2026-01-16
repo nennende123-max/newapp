@@ -1,6 +1,6 @@
 ﻿<template>
   <van-nav-bar
-    title="帮助中心"
+    :title="$t('support.title')"
     left-arrow
     fixed
     placeholder
@@ -15,86 +15,55 @@
   />
 
   <div class="support-page">
-    <!-- Search -->
-    <div class="search-section">
-      <van-field
-        v-model="searchQuery"
-        :placeholder="uiText.searchPlaceholder"
-        class="search-field"
-        left-icon="search"
-        autocomplete="off"
-      />
-    </div>
+    <!-- 径向渐变背景 -->
+    <div class="gradient-bg"></div>
 
-    <!-- Self Service -->
-    <div class="self-service-section">
-      <div class="section-title">{{ uiText.selfService }}</div>
-      <div class="service-grid">
-        <div
-          v-for="service in services"
-          :key="service.id"
-          class="service-item"
-          @click="handleServiceClick(service)"
-        >
-          <div class="service-icon">
-            <van-icon :name="service.icon" size="24" color="#FCD535" />
+    <!-- 中心引导区 -->
+    <div class="center-guide">
+      <div class="guide-icon">
+        <van-icon name="service-o" size="64" color="#FCD535" />
+      </div>
+      <div class="guide-title">{{ $t('support.official_service') }}</div>
+      <div class="guide-subtitle">{{ $t('support.service_subtitle') }}</div>
+
+      <!-- 服务承诺 -->
+      <div class="service-promise">
+        <div class="promise-item">
+          <div class="promise-icon">
+            <van-icon name="shield-o" size="24" color="#FCD535" />
           </div>
-          <div class="service-label">{{ service.label }}</div>
+          <div class="promise-label">{{ $t('support.privacy_encryption') }}</div>
+        </div>
+        <div class="promise-item">
+          <div class="promise-icon">
+            <van-icon name="clock-o" size="24" color="#FCD535" />
+          </div>
+          <div class="promise-label">{{ $t('support.fast_response') }}</div>
+        </div>
+        <div class="promise-item">
+          <div class="promise-icon">
+            <van-icon name="user-o" size="24" color="#FCD535" />
+          </div>
+          <div class="promise-label">{{ $t('support.human_service') }}</div>
         </div>
       </div>
-    </div>
 
-    <!-- FAQ -->
-    <div class="faq-section">
-      <div class="section-title">{{ uiText.faqTitle }}</div>
-      <div class="faq-list">
-        <div
-          v-for="(faq, index) in faqs"
-          :key="index"
-          class="faq-item"
-          :class="{ 'expanded': expandedIndex === index }"
+      <!-- Telegram 社区入口 -->
+      <div class="community-section">
+        <van-cell
+          :title="$t('support.telegram_community')"
+          is-link
+          @click="handleCommunityClick"
+          class="telegram-cell"
         >
-          <div class="faq-question" @click="toggleFaq(index)">
-            <span>{{ faq.question }}</span>
-            <van-icon
-              name="arrow-down"
-              size="14"
-              color="#848E9C"
-              :class="{ 'rotated': expandedIndex === index }"
-            />
-          </div>
-          <div v-if="expandedIndex === index" class="faq-answer">
-            {{ faq.answer }}
-          </div>
-        </div>
+          <template #icon>
+            <van-icon name="guide-o" size="18" color="#FCD535" style="margin-right: 10px" />
+          </template>
+        </van-cell>
       </div>
     </div>
 
-    <!-- Topics -->
-    <div class="topics-section">
-      <div class="section-title">{{ uiText.topicsTitle }}</div>
-      <van-grid :column-num="3" :gutter="12" :border="false">
-        <van-grid-item
-          v-for="(topic, index) in helpTopics"
-          :key="index"
-          class="topic-item"
-          @click="handleTopicClick(topic)"
-        >
-          <div class="topic-label">{{ topic }}</div>
-        </van-grid-item>
-      </van-grid>
-    </div>
-
-    <!-- Community -->
-    <div class="community-section">
-      <div class="telegram-card" @click="handleCommunityClick">
-        <van-icon name="guide-o" size="20" class="telegram-icon" />
-        <span class="telegram-text">{{ uiText.telegramText }}</span>
-        <van-icon name="arrow" size="16" color="#848E9C" />
-      </div>
-    </div>
-
-    <!-- Bottom Button -->
+    <!-- 底部按钮 -->
     <div class="bottom-button-container">
       <van-button
         block
@@ -102,352 +71,211 @@
         @click="handleContactService"
       >
         <van-icon name="service-o" size="18" style="margin-right: 8px;" />
-        {{ uiText.contactService }}
+        {{ $t('support.contact_service') }}
       </van-button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { showToast } from 'vant';
+import { useI18n } from 'vue-i18n';
+import { showToast, showLoadingToast } from 'vant';
 
 const router = useRouter();
+const { t } = useI18n();
 
-const uiText = {
-  title: '\u5e2e\u52a9\u4e2d\u5fc3',
-  searchPlaceholder: '\u641c\u7d22\u60a8\u9047\u5230\u7684\u95ee\u9898...',
-  selfService: '\u81ea\u52a9\u670d\u52a1',
-  faqTitle: '\u5e38\u89c1\u95ee\u9898',
-  topicsTitle: '\u95ee\u9898\u5206\u7c7b',
-  telegramText: '\u52a0\u5165\u5b98\u65b9 Telegram \u793e\u533a',
-  contactService: '\u8054\u7cfb\u5728\u7ebf\u5ba2\u670d'
-};
-
-// Data
-const searchQuery = ref('');
-const expandedIndex = ref(null);
-
-const services = [
-  { id: 1, icon: 'gold-coin-o', label: '\u5145\u503c' },
-  { id: 2, icon: 'balance-list-o', label: '\u63d0\u73b0' },
-  { id: 3, icon: 'user-o', label: '\u8d26\u53f7' },
-  { id: 4, icon: 'shield-o', label: '\u5b89\u5168' }
-];
-
-const helpTopics = [
-  '\u65b0\u624b\u5fc5\u8bfb',
-  '\u4e70\u5e01\u6307\u5357',
-  '\u5408\u7ea6\u4ea4\u6613',
-  '\u8d39\u7387\u6807\u51c6',
-  '\u5b89\u5168\u9a8c\u8bc1',
-  'API\u63a5\u5165'
-];
-
-const faqs = [
-  {
-    question: '\u5145\u503c\u5df2\u786e\u8ba4\u4f46\u672a\u5230\u8d26\uff1f',
-    answer: '\u8bf7\u68c0\u67e5\u533a\u5757\u786e\u8ba4\u6570\u662f\u5426\u5145\u8db3\uff0c\u6216\u8054\u7cfb\u5ba2\u670d\u5e76\u63d0\u4f9b\u4ea4\u6613 Hash \u4ee5\u4fbf\u6838\u67e5\u3002'
-  },
-  {
-    question: '\u5982\u4f55\u8fde\u63a5/\u66f4\u6362\u94b1\u5305\uff1f',
-    answer: '\u70b9\u51fb\u53f3\u4e0a\u89d2\u94b1\u5305\u6309\u94ae\u8fdb\u884c\u8fde\u63a5\uff0c\u5df2\u8fde\u63a5\u72b6\u6001\u4e0b\u53ef\u65ad\u5f00\u540e\u91cd\u65b0\u8fde\u63a5\u65b0\u7684\u94b1\u5305\u3002'
-  },
-  {
-    question: '\u63d0\u73b0\u624b\u7eed\u8d39\uff08Gas\uff09\u8bf4\u660e',
-    answer: '\u624b\u7eed\u8d39\u7531\u94fe\u4e0a Gas \u51b3\u5b9a\uff0c\u7f51\u7edc\u62e5\u5835\u65f6\u8d39\u7528\u4f1a\u4e0a\u5347\uff0c\u5efa\u8bae\u9009\u62e9\u5408\u9002\u7f51\u7edc\u3002'
-  },
-  {
-    question: '\u5408\u7ea6\u5730\u5740\u5728\u54ea\u91cc\u67e5\u770b\uff1f',
-    answer: '\u5728\u5145\u503c/\u63d0\u73b0\u9875\u9762\u6216\u8d44\u4ea7\u8be6\u60c5\u4e2d\u53ef\u67e5\u770b\u5b98\u65b9\u5408\u7ea6\u5730\u5740\uff0c\u8c28\u9632\u4eff\u5192\u3002'
-  }
-];
-
-// Methods
-const handleServiceClick = (service) => {
-  showToast({ message: `${service.label}\u529f\u80fd\u5f00\u53d1\u4e2d`, duration: 2000 });
-};
-
-const toggleFaq = (index) => {
-  if (expandedIndex.value === index) {
-    expandedIndex.value = null;
-  } else {
-    expandedIndex.value = index;
-  }
-};
-
+// 联系客服
 const handleContactService = () => {
-  showToast({ message: '\u6b63\u5728\u4e3a\u60a8\u8fde\u63a5\u5ba2\u670d...', duration: 2000 });
-  // Navigate to support chat if needed
+  // 显示加载提示 - 纯净样式
+  const toast = showLoadingToast({
+    message: t('support.connecting'),
+    forbidClick: true,
+    loadingType: 'spinner',
+    duration: 1500,
+    position: 'middle'
+  });
+
+  // 1.5秒后显示结果提示
+  setTimeout(() => {
+    showToast({
+      message: t('support.service_busy'),
+      duration: 3000,
+      position: 'middle'
+    });
+  }, 1500);
 };
 
-const handleTopicClick = (topic) => {
-  showToast({ message: `${topic}\u529f\u80fd\u5f00\u53d1\u4e2d`, duration: 2000 });
-  // Navigate to topic details if needed
-};
-
+// Telegram 社区
 const handleCommunityClick = () => {
-  showToast({ message: '\u6b63\u5728\u8df3\u8f6c\u5230 Telegram \u793e\u533a...', duration: 2000 });
-  // Open Telegram community link
+  showToast({
+    message: t('support.telegram_redirect'),
+    duration: 2000,
+    position: 'middle'
+  });
 };
 </script>
 
 <style scoped>
 .support-page {
   background: #0E0E0E;
+  background-image: linear-gradient(
+    to bottom,
+    rgba(212, 175, 55, 0.03) 0%,
+    rgba(212, 175, 55, 0.01) 30%,
+    transparent 50%,
+    rgba(212, 175, 55, 0.01) 70%,
+    rgba(212, 175, 55, 0.03) 100%
+  );
   min-height: 100vh;
   padding: 16px;
   padding-bottom: 120px;
   color: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  position: relative;
+  overflow: hidden;
 }
 
-/* Search */
-.search-section {
-  margin-bottom: 24px;
+/* 径向渐变背景 */
+.gradient-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    circle at 50% 35%,
+    rgba(212, 175, 55, 0.08) 0%,
+    rgba(212, 175, 55, 0.03) 30%,
+    transparent 60%
+  );
+  pointer-events: none;
+  z-index: 0;
 }
 
-.search-field {
-  background: #1C1C1E;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.08);
+/* 中心引导区 */
+.center-guide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin-top: calc(25vh - 80px);
+  gap: 32px;
+  position: relative;
+  z-index: 1;
 }
 
-::deep(.search-field .van-field__control) {
+.guide-icon {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+.guide-title {
+  font-size: 18px;
+  font-weight: 700;
   color: #FFFFFF;
-  font-size: 14px;
+  font-family: 'DIN Alternate', 'Roboto', sans-serif;
 }
 
-::deep(.search-field .van-field__control::placeholder) {
-  color: #8E8E93;
-}
-
-::deep(.search-field .van-field__left-icon) {
-  color: #848E9C;
-}
-
-/* 1. 强制搜索框内部容器透明 */
-:deep(.van-search__content) {
-  background-color: #1C1C1E !important;
-}
-
-/* 2. 强制输入文字颜色为白色 */
-:deep(.van-field__control) {
-  color: #FFFFFF !important;
-}
-
-/* 3. 去除浏览器自动填充白色背景 */
-:deep(input:-webkit-autofill),
-:deep(input:-webkit-autofill:hover),
-:deep(input:-webkit-autofill:focus),
-:deep(input:-webkit-autofill:active) {
-  -webkit-box-shadow: 0 0 0 1000px #1C1C1E inset !important;
-  -webkit-text-fill-color: #FFFFFF !important;
-  transition: background-color 5000s ease-in-out 0s;
-}
-
-/* Section Title */
-.section-title {
+.guide-subtitle {
   font-size: 14px;
   color: #8E8E93;
-  font-weight: 600;
-  margin-bottom: 16px;
-  font-family: sans-serif;
+  font-weight: 400;
+  font-family: 'DIN Alternate', 'Roboto', sans-serif;
 }
 
-/* Self Service */
-.self-service-section {
-  margin-bottom: 32px;
-}
-
-.service-grid {
+/* 服务承诺 */
+.service-promise {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
+  width: 100%;
+  max-width: 320px;
+  margin-top: 8px;
 }
 
-.service-item {
+.promise-item {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding: 16px;
-  background: #1C1C1E;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.08);
-  cursor: pointer;
-  transition: all 0.2s ease;
 }
 
-.service-item:active {
-  background-color: #252A32;
-  transform: scale(0.95);
-}
-
-.service-icon {
+.promise-icon {
   width: 48px;
   height: 48px;
-  border-radius: 50%;
-  background: #0E0E0E;
-  border: 1px solid #FCD535;
+  border-radius: 12px;
+  background: rgba(252, 213, 53, 0.1);
+  border: 1px solid rgba(252, 213, 53, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.3s ease;
 }
 
-.service-icon .van-icon {
-  color: #FCD535 !important;
+.promise-item:hover .promise-icon {
+  background: rgba(252, 213, 53, 0.15);
+  border-color: rgba(252, 213, 53, 0.3);
+  transform: scale(1.05);
 }
 
-.service-label {
+.promise-label {
   font-size: 12px;
-  color: #EAECEF;
+  color: #8E8E93;
   font-weight: 500;
-  font-family: sans-serif;
+  font-family: 'DIN Alternate', 'Roboto', sans-serif;
 }
 
-/* FAQ */
-.faq-section {
-  margin-bottom: 32px;
+/* Telegram 社区入口 */
+.community-section {
+  width: 100%;
+  max-width: 600px;
+  margin-top: 40px;
+  position: relative;
+  z-index: 1;
 }
 
-.faq-list {
+.telegram-cell {
   background: #1C1C1E;
-  border-radius: 16px;
-  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   overflow: hidden;
 }
 
-.faq-item {
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+:deep(.telegram-cell .van-cell) {
+  background: transparent !important;
+  padding: 16px 20px !important;
 }
 
-.faq-item:last-child {
-  border-bottom: none;
+:deep(.telegram-cell .van-cell__title) {
+  color: #FFFFFF !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  font-family: 'DIN Alternate', 'Roboto', sans-serif;
 }
 
-.faq-question {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  font-size: 14px;
-  color: #FFFFFF;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  font-family: sans-serif;
+:deep(.telegram-cell .van-cell:active) {
+  background-color: rgba(255, 255, 255, 0.03) !important;
 }
 
-.faq-question:active {
-  background-color: rgba(255,255,255,0.05);
+:deep(.telegram-cell .van-cell__right-icon) {
+  color: #8E8E93 !important;
 }
 
-.faq-question .van-icon {
-  transition: transform 0.3s ease;
-}
-
-.faq-question .van-icon.rotated {
-  transform: rotate(180deg);
-}
-
-.faq-answer {
-  padding: 0 20px 16px 20px;
-  font-size: 13px;
-  color: #FFFFFF;
-  line-height: 1.6;
-  font-family: sans-serif;
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Topics */
-.topics-section {
-  margin-bottom: 32px;
-}
-
-/* 修复 1: 修正语法为 :deep() */
-:deep(.van-grid-item__content) {
-  background-color: #1C1C1E !important; /* 强制背景变黑 */
-  color: #FFFFFF !important;             /* 强制文字变白 */
-}
-
-/* 修复 2: 去除默认边框 */
-:deep(.van-grid-item::after) {
-  border: none !important;
-}
-
-/* 修复 3: 针对 topic-item 的具体样式 */
-:deep(.topic-item .van-grid-item__content) {
-  background: #1C1C1E;
-  border-radius: 8px;
-  border: none;
-  padding: 12px 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: #FFFFFF;
-}
-
-/* 修复 4: 点击时的反馈效果 */
-:deep(.topic-item .van-grid-item__content:active) {
-  background-color: #252A32;
-  transform: scale(0.95);
-}
-
-.topic-label {
-  font-size: 13px;
-  color: #FFFFFF;
-  font-weight: 500;
-  text-align: center;
-  font-family: sans-serif;
-}
-
-/* Community */
-.community-section {
-  margin-bottom: 24px;
-}
-
-.telegram-card {
-  background: #1C1C1E;
-  border-radius: 16px;
-  border: 1px solid rgba(255,255,255,0.08);
-  padding: 14px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.telegram-card:active {
-  transform: scale(0.98);
-  opacity: 0.85;
-}
-
-.telegram-icon {
-  color: #2AABEE;
-}
-
-.telegram-text {
-  flex: 1;
-  font-size: 14px;
-  color: #FFFFFF;
-  font-weight: 600;
-  font-family: sans-serif;
-}
-
-/* Bottom Button */
+/* 底部按钮 */
 .bottom-button-container {
   position: fixed;
   bottom: 0;
@@ -455,7 +283,7 @@ const handleCommunityClick = () => {
   right: 0;
   padding: 16px;
   background: #0E0E0E;
-  border-top: 1px solid rgba(255,255,255,0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   z-index: 100;
 }
 
@@ -471,12 +299,63 @@ const handleCommunityClick = () => {
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
-  font-family: sans-serif;
+  font-family: 'DIN Alternate', 'Roboto', sans-serif;
+  box-shadow: 0 4px 15px rgba(252, 213, 53, 0.3);
 }
 
 .contact-button:active {
   opacity: 0.8;
   transform: scale(0.98);
+  box-shadow: 0 2px 8px rgba(252, 213, 53, 0.2);
 }
+
+/* Toast 样式优化 - 全局覆盖 */
 </style>
 
+<style>
+/* 1. 核心修复：强制切除 Toast 容器底部可能溢出的系统 UI */
+.van-toast--loading {
+  overflow: hidden !important; /* 彻底防止内部元素溢出产生灰色背景 */
+  padding-bottom: 20px !important; /* 统一内边距，确保底部与顶部对称 */
+}
+
+/* 2. 移除 Vant 默认在 Loading 模式下可能产生的伪元素进度背景 */
+.van-toast--loading::before,
+.van-toast--loading::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* 3. 针对截图中的灰色条（可能是 van-toast__text 的背景或边距）：强制透明 */
+.van-toast__text {
+  background-color: transparent !important;
+  margin-bottom: 0 !important;
+}
+
+/* 4. 保持黄色 Spinner 质感 */
+.van-loading__spinner--spinner {
+  color: #FCD535 !important;
+}
+
+.van-loading__spinner {
+  color: #FCD535 !important;
+}
+
+/* 确保 Toast 整体样式 */
+.van-toast--loading {
+  background: rgba(28, 28, 30, 0.9) !important;
+  backdrop-filter: blur(15px) !important;
+  border-radius: 12px !important;
+  padding: 20px 24px !important;
+}
+
+.van-toast--loading .van-toast__message {
+  color: #FFFFFF !important;
+  font-size: 14px !important;
+  margin-top: 12px !important;
+}
+
+.van-toast--loading .van-loading {
+  margin: 0 auto !important;
+}
+</style>

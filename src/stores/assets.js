@@ -2,11 +2,15 @@
 import * as walletApi from '@/api/wallet'
 import * as tradeApi from '@/api/trade'
 
-// Helper function to load from localStorage (仅用于钱包连接状态)
+// Helper function to load from localStorage (用于钱包连接状态和 BNB 开关状态)
 const loadFromStorage = (key, defaultValue) => {
   try {
     const item = localStorage.getItem(key)
     if (item !== null) {
+      // 对于布尔值，直接比较字符串
+      if (typeof defaultValue === 'boolean') {
+        return item === 'true'
+      }
       return JSON.parse(item)
     }
   } catch (error) {
@@ -52,6 +56,10 @@ export const useAssetStore = defineStore('assets', {
       // 钱包连接状态 - 保留从 localStorage 读取
       isWalletConnected: loadFromStorage('isWalletConnected', false),
       walletAddress: loadFromStorage('walletAddress', ''),
+      
+      // BNB 支付开关状态 - 从 localStorage 读取，默认 true
+      useBNBForFees: loadFromStorage('useBNBForFees', true),
+      useBNBForInterest: loadFromStorage('useBNBForInterest', true),
       
       // 币种价格映射（全局公用）
       priceMap: priceMap,
@@ -146,6 +154,23 @@ export const useAssetStore = defineStore('assets', {
       const idoPending = 500.00 // 模拟待解锁金额
       
       return spotValue + earnValue + idoPending
+    },
+
+    // 当前现货费率（根据 useBNBForFees 状态动态计算）
+    currentSpotFeeRate: (state) => {
+      // 如果开启 BNB 支付手续费，享受 25% 折扣：0.001 * 0.75 = 0.00075
+      // 如果关闭，返回标准费率 0.001 (0.1%)
+      return state.useBNBForFees ? 0.00075 : 0.001
+    },
+
+    // U 本位费率（根据 useBNBForFees 状态动态计算）
+    currentFuturesFeeRate: (state) => {
+      // 挂单费率：如果开启 BNB，享受 25% 折扣：0.0002 * 0.75 = 0.00015
+      // 吃单费率：如果开启 BNB，享受 25% 折扣：0.0004 * 0.75 = 0.0003
+      return {
+        maker: state.useBNBForFees ? 0.00015 : 0.0002,  // 挂单费率 (0.015% 或 0.02%)
+        taker: state.useBNBForFees ? 0.0003 : 0.0004    // 吃单费率 (0.03% 或 0.04%)
+      }
     }
   },
 
@@ -481,6 +506,34 @@ export const useAssetStore = defineStore('assets', {
       }
       
       return false
+    },
+
+    /**
+     * 切换 BNB 支付交易手续费开关
+     * @param {boolean} value - 开关状态
+     */
+    toggleBNBForFees(value) {
+      this.useBNBForFees = value
+      // 同步写入 localStorage
+      try {
+        localStorage.setItem('useBNBForFees', value.toString())
+      } catch (error) {
+        console.error('Error saving useBNBForFees to localStorage:', error)
+      }
+    },
+
+    /**
+     * 切换 BNB 支付杠杆利息开关
+     * @param {boolean} value - 开关状态
+     */
+    toggleBNBForInterest(value) {
+      this.useBNBForInterest = value
+      // 同步写入 localStorage
+      try {
+        localStorage.setItem('useBNBForInterest', value.toString())
+      } catch (error) {
+        console.error('Error saving useBNBForInterest to localStorage:', error)
+      }
     }
   }
 })

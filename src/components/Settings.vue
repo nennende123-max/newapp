@@ -18,7 +18,7 @@
         </van-cell>
       </van-cell-group>
       <van-cell-group inset class="section-group">
-        <van-cell :title="uiText.currency" is-link :value="uiText.currencyValue" center>
+        <van-cell :title="uiText.currency" :value="uiText.currencyValue" center>
           <template #icon>
             <van-icon name="balance-o" color="#FCD535" size="18" style="margin-right: 10px" />
           </template>
@@ -31,70 +31,129 @@
             <van-switch v-model="pushEnabled" size="20" active-color="#FCD535" inactive-color="#333" />
           </template>
         </van-cell>
-        <van-cell :title="uiText.clearCache" is-link :value="uiText.cacheSize" center @click="handleClearCache">
+        <van-cell :title="uiText.clearCache" is-link :value="cacheSizeDisplay" center @click="handleClearCache">
           <template #icon>
             <van-icon name="delete-o" color="#FCD535" size="18" style="margin-right: 10px" />
           </template>
         </van-cell>
-        <van-cell :title="uiText.privacy" is-link center>
+        <van-cell :title="uiText.privacy" is-link center @click="handlePrivacyClick">
           <template #icon>
             <van-icon name="description" color="#FCD535" size="18" style="margin-right: 10px" />
           </template>
         </van-cell>
-        <van-cell :title="uiText.about" is-link :value="uiText.version" center>
+        <van-cell :title="uiText.about" is-link :value="uiText.version" center @click="handleAboutClick">
           <template #icon>
             <van-icon name="info-o" color="#FCD535" size="18" style="margin-right: 10px" />
           </template>
         </van-cell>
       </van-cell-group>
-      <div class="logout-btn" @click="handleLogout">{{ uiText.logout }}</div>
     </div>
+
+    <!-- 隐私政策对话框 -->
+    <van-dialog
+      v-model:show="showPrivacyDialog"
+      :title="$t('settings.privacy_policy_title')"
+      class-name="dark-dialog"
+      :show-cancel-button="false"
+      :confirm-button-text="$t('settings.privacy_policy_confirm')"
+      @confirm="showPrivacyDialog = false"
+    >
+      <div class="privacy-content">
+        <p><strong>{{ $t('settings.privacy_section1_title') }}</strong></p>
+        <p>{{ $t('settings.privacy_section1_content') }}</p>
+        
+        <p><strong>{{ $t('settings.privacy_section2_title') }}</strong></p>
+        <p>{{ $t('settings.privacy_section2_content') }}</p>
+        
+        <p><strong>{{ $t('settings.privacy_section3_title') }}</strong></p>
+        <p>{{ $t('settings.privacy_section3_content') }}</p>
+        
+        <p><strong>{{ $t('settings.privacy_section4_title') }}</strong></p>
+        <p>{{ $t('settings.privacy_section4_content') }}</p>
+        
+        <p><strong>{{ $t('settings.privacy_section5_title') }}</strong></p>
+        <p>{{ $t('settings.privacy_section5_content') }}</p>
+      </div>
+    </van-dialog>
+
+    <!-- 关于我们对话框 -->
+    <van-dialog
+      v-model:show="showAboutDialog"
+      :title="$t('settings.about_us_title')"
+      class-name="dark-dialog"
+      :show-cancel-button="false"
+      :confirm-button-text="$t('settings.about_us_confirm')"
+      @confirm="showAboutDialog = false"
+    >
+      <div class="about-content">
+        <div class="about-logo">
+          <div class="logo-placeholder">TF</div>
+        </div>
+        <div class="about-version">{{ $t('settings.about_us_version') }}</div>
+        <div class="about-description">
+          <p>{{ $t('settings.about_us_content') }}</p>
+          <p>{{ $t('settings.about_us_content2') }}</p>
+        </div>
+      </div>
+    </van-dialog>
+
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { showToast, showConfirmDialog } from 'vant';
+import { useI18n } from 'vue-i18n';
+import { showToast } from 'vant';
 
 const router = useRouter();
+const { t } = useI18n();
 
-const uiText = {
-  title: '\u901a\u7528\u8bbe\u7f6e',
-  securityCenter: '\u5b89\u5168\u4e2d\u5fc3',
-  currency: '\u6c47\u7387\u5355\u4f4d',
-  currencyValue: 'USD',
-  notifications: '\u901a\u77e5\u8bbe\u7f6e',
-  clearCache: '\u6e05\u9664\u7f13\u5b58',
-  cacheSize: '24.5MB',
-  privacy: '\u9690\u79c1\u653f\u7b56',
-  about: '\u5173\u4e8e\u6211\u4eec',
-  version: 'v1.0.0',
-  logout: '\u9000\u51fa\u767b\u5f55',
-  cacheCleared: '\u7f13\u5b58\u5df2\u6e05\u9664',
-  logoutTitle: '\u63d0\u793a',
-  logoutMessage: '\u786e\u5b9a\u8981\u9000\u51fa\u767b\u5f55\u5417\uff1f',
-  logoutSuccess: '\u5df2\u9000\u51fa'
-};
+const uiText = computed(() => ({
+  title: t('settings.title'),
+  securityCenter: t('settings.security_center'),
+  currency: t('settings.currency_unit'),
+  currencyValue: t('settings.currency_unit_value'),
+  notifications: t('settings.notification'),
+  clearCache: t('settings.clear_cache'),
+  privacy: t('settings.privacy_policy'),
+  about: t('settings.about_us'),
+  version: t('settings.about_us_version')
+}));
 
-const pushEnabled = ref(true);
+// 缓存大小显示
+const cacheSizeDisplay = ref('24.5MB');
+
+// 从 localStorage 读取推送通知状态，默认 true
+const pushEnabled = ref(localStorage.getItem('user_push_enabled') !== 'false');
+const showPrivacyDialog = ref(false);
+const showAboutDialog = ref(false);
+
+// 监听推送通知开关变化
+watch(pushEnabled, (newVal) => {
+  localStorage.setItem('user_push_enabled', newVal.toString());
+  showToast({
+    message: newVal ? t('settings.notification_enabled') : t('settings.notification_disabled'),
+    duration: 1500,
+    position: 'bottom'
+  });
+});
 
 const handleClearCache = () => {
-  showToast({ message: uiText.cacheCleared, duration: 1500 });
+  cacheSizeDisplay.value = '0KB';
+  showToast({ 
+    message: t('settings.cache_cleared'), 
+    duration: 1500,
+    position: 'middle'
+  });
 };
 
-const handleLogout = () => {
-  showConfirmDialog({
-    title: uiText.logoutTitle,
-    message: uiText.logoutMessage,
-    className: 'dark-dialog'
-  })
-    .then(() => {
-      localStorage.clear();
-      showToast({ message: uiText.logoutSuccess, duration: 1500 });
-      router.push('/login');
-    })
-    .catch(() => {});
+const handlePrivacyClick = () => {
+  showPrivacyDialog.value = true;
+};
+
+const handleAboutClick = () => {
+  showAboutDialog.value = true;
 };
 </script>
 
@@ -103,30 +162,166 @@ const handleLogout = () => {
   min-height: 100vh;
   background-color: #0E0E0E;
   padding-top: 12px;
+  font-family: 'DIN Alternate', 'Roboto', sans-serif;
 }
 
 .content-wrapper {
   padding: 12px 0 24px;
 }
 
-.logout-btn {
-  margin: 32px 16px;
-  background: #1C1C1E;
-  height: 50px;
+/* Section Group 样式 */
+.section-group {
+  background: #1C1C1E !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-radius: 12px !important;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+/* Cell 样式深度覆盖 */
+:deep(.van-cell) {
+  background: transparent !important;
+  padding: 16px 20px !important;
+  align-items: center;
+  transition: background-color 0.15s ease;
+}
+
+:deep(.van-cell:active) {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+:deep(.van-cell__title) {
+  font-size: 15px !important;
+  color: #FFFFFF !important;
+  font-weight: 500 !important;
+  font-family: 'DIN Alternate', 'Roboto', sans-serif;
+}
+
+:deep(.van-cell__value) {
+  font-size: 14px !important;
+  color: #8E8E93 !important;
+  font-family: 'DIN Alternate', 'Roboto', sans-serif;
+}
+
+:deep(.van-cell::after) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  left: 20px;
+  right: 20px;
+}
+
+:deep(.van-cell:last-child::after) {
+  display: none;
+}
+
+/* Switch 样式 */
+:deep(.van-switch) {
+  background-color: #333 !important;
+}
+
+:deep(.van-switch--on) {
+  background-color: #FCD535 !important;
+}
+
+:deep(.van-switch__node) {
+  background-color: #FFFFFF !important;
+}
+
+/* 隐私政策内容样式 */
+.privacy-content {
+  padding: 20px;
+  color: #FFFFFF;
+  font-size: 14px;
+  line-height: 1.6;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.privacy-content p {
+  margin-bottom: 16px;
+}
+
+.privacy-content strong {
+  color: #FCD535;
+  font-weight: 600;
+}
+
+/* 关于我们内容样式 */
+.about-content {
+  padding: 20px;
+  color: #FFFFFF;
+  text-align: center;
+}
+
+.about-logo {
+  margin-bottom: 16px;
+}
+
+.logo-placeholder {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, #FCD535 0%, #D4AF37 100%);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
-  color: #FF4D4F;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  font-size: 32px;
+  font-weight: 700;
+  color: #0E0E0E;
+  font-family: 'DIN Alternate', 'Roboto', sans-serif;
 }
 
-.logout-btn:active {
-  opacity: 0.8;
-  transform: scale(0.98);
+.about-version {
+  font-size: 16px;
+  color: #FCD535;
+  font-weight: 600;
+  margin-bottom: 20px;
+  font-family: 'DIN Alternate', 'Roboto', sans-serif;
+}
+
+.about-description {
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #FFFFFF;
+}
+
+.about-description p {
+  margin-bottom: 16px;
 }
 </style>
 
+<!-- 全局样式：Dialog 暗黑主题 -->
+<style>
+.dark-dialog.van-dialog,
+.dark-dialog.van-dialog .van-dialog__content {
+  background-color: #1C1C1E !important;
+  border-radius: 12px;
+}
+
+.dark-dialog .van-dialog__header {
+  color: #FFFFFF !important;
+  padding-top: 24px;
+  padding-bottom: 16px;
+}
+
+.dark-dialog .van-dialog__footer {
+  background-color: #1C1C1E !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.dark-dialog .van-dialog__confirm,
+.dark-dialog .van-dialog__confirm .van-button__text {
+  background: transparent !important;
+  border: none !important;
+  color: #FCD535 !important;
+  font-weight: 600 !important;
+}
+
+.dark-dialog .van-dialog__footer .van-button {
+  background: transparent !important;
+  border: none !important;
+  height: 50px;
+  font-size: 16px;
+}
+</style>

@@ -82,8 +82,9 @@
         <div class="action-btn secondary" @click="handleWithdraw">
           <span class="btn-text">{{ $t('wallet.withdraw') }}</span>
         </div>
-        <div class="action-btn secondary" @click="handleTransfer">
-          <span class="btn-text">{{ $t('wallet.transfer') }}</span>
+        <div class="action-btn secondary" @click="handleFuturesClick">
+          <van-icon name="chart-trending-o" size="16" />
+          <span class="btn-text">{{ $t('assets.futures') }}</span>
         </div>
       </div>
   
@@ -488,6 +489,19 @@ const handleTransfer = () => {
   showToast({ message: '转账功能即将上线', icon: 'smile-o' });
 };
 
+// 跳转到合约交易页面
+const handleFuturesClick = () => {
+  if (!assetStore.isWalletConnected) {
+    showToast({ 
+      message: t('wallet.wallet_not_connected'), 
+      icon: 'fail',
+      duration: 2000
+    });
+    return;
+  }
+  router.push({ path: '/futures' });
+};
+
 // Reset test data
 const handleResetTestData = () => {
   assetStore.resetTestData();
@@ -849,6 +863,7 @@ onActivated(() => {
     display: flex;
     justify-content: center;
     align-items: center;
+    gap: 4px;
   border-radius: 8px;
     font-weight: 600;
     font-size: 15px;

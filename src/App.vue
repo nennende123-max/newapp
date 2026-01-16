@@ -64,7 +64,7 @@
     >
       <van-tabbar-item icon="wap-home-o" name="/">{{ $t('tab.home') }}</van-tabbar-item>
       <van-tabbar-item icon="cluster-o" name="/miner">{{ $t('tab.miner') }}</van-tabbar-item>
-      <van-tabbar-item icon="balance-list-o" name="/trade">交易</van-tabbar-item>
+      <van-tabbar-item icon="balance-list-o" name="/trade">{{ $t('tab.trade') }}</van-tabbar-item>
       <van-tabbar-item icon="gem-o" name="/ido">{{ $t('tab.ido') }}</van-tabbar-item>
       <van-tabbar-item icon="manager-o" name="/me">{{ $t('tab.me') }}</van-tabbar-item>
     </van-tabbar>
@@ -96,14 +96,35 @@ const isConnecting = ref(false);
 // 判断是否全屏
 const isFullScreen = computed(() => {
   if (!route || !route.path) return false;
-  // /earn (理财列表页) 不在全屏列表中，会显示底部 TabBar，让用户感觉仍在 App 内
-  const fullScreenPaths = ['/deposit', '/withdraw', '/market', '/history', '/earn/subscribe', '/all-markets']; 
-  return fullScreenPaths.includes(route.path);
+  
+  // 定义需要全屏展示（隐藏底部导航和AppHeader）的路径关键词
+  const fullScreenKeywords = [
+    'deposit',
+    'withdraw',
+    'market',
+    'history',
+    'subscribe',
+    'all-markets',
+    'profile',
+    'settings',
+    'support',
+    'security-center',
+    'fund-password',
+    'phone-verify',
+    'google-auth',
+    'futures',
+    'treasury',        // 新增：国库资产页面
+    'chain-explorer', // 新增：链上交易页面
+    'earn'            // 新增：理财页面
+  ];
+  
+  // 只要当前路径包含以上任何一个关键词，就返回 true
+  return fullScreenKeywords.some(key => route.path.includes(key));
 });
 
 const showAppHeader = computed(() => {
   if (!route || !route.path) return false;
-  const headerHiddenPaths = ['/profile', '/support', '/settings'];
+  const headerHiddenPaths = ['/profile', '/settings', '/support'];
   return !isFullScreen.value && route.path !== '/earn' && !headerHiddenPaths.includes(route.path);
 });
 
@@ -371,6 +392,10 @@ body, html, #app {
   position: relative !important;
 }
 
+/* 平滑过渡效果 */
+:deep(.van-tabbar-item) {
+  transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) !important;
+}
 
 /* 确保 Vant 图标字体不被全局字体覆盖 */
 .van-icon,
@@ -439,4 +464,3 @@ body, html, #app {
   margin-top: 4px;
 }
 </style>
-

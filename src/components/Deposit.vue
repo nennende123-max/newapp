@@ -41,8 +41,8 @@
         >
           <div class="qr-placeholder">
             <van-icon name="qr" size="80" color="#8E8E93" />
-            <span class="qr-tip">扫码充值</span>
-            <span class="qr-hint">(Long press to simulate +1000 USDT)</span>
+            <span class="qr-tip">{{ t('deposit.qr_tip') }}</span>  <!-- 修改这里 -->
+            <span class="qr-hint">{{ t('deposit.qr_hint') }}</span>  <!-- 修改这里 -->
           </div>
         </div>
       </div>

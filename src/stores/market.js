@@ -7,8 +7,8 @@ export const useMarketStore = defineStore('market', {
     // WebSocket connection state
     ws: null,
     isConnected: false,
-    reconnectAttempts: 0,
-    maxReconnectAttempts: 5
+    reconnectTimer: null, // 重连定时器
+    reconnectInterval: 5000 // 固定 5 秒重连间隔
   }),
 
   getters: {
@@ -34,16 +34,23 @@ export const useMarketStore = defineStore('market', {
         return
       }
 
+      // 清除之前的重连定时器
+      if (this.reconnectTimer) {
+        clearTimeout(this.reconnectTimer)
+        this.reconnectTimer = null
+      }
+
       try {
         // Binance WebSocket endpoint for combined streams
-        // Format: stream1@miniTicker/stream2@miniTicker/...
+        // 使用 ticker 流替代 miniTicker，获取完整的 24h 涨跌幅数据
+        // Format: stream1@ticker/stream2@ticker/...
         const streams = [
-          'btcusdt@miniTicker',
-          'ethusdt@miniTicker',
-          'bnbusdt@miniTicker',
-          'solusdt@miniTicker',
-          'dogeusdt@miniTicker',
-          'trxusdt@miniTicker'
+          'btcusdt@ticker',
+          'ethusdt@ticker',
+          'bnbusdt@ticker',
+          'solusdt@ticker',
+          'dogeusdt@ticker',
+          'trxusdt@ticker'
         ].join('/')
 
         const wsUrl = `wss://stream.binance.com:9443/stream?streams=${streams}`
@@ -54,14 +61,19 @@ export const useMarketStore = defineStore('market', {
         this.ws.onopen = () => {
           console.log('Binance WebSocket connected')
           this.isConnected = true
-          this.reconnectAttempts = 0
+          
+          // 连接成功后清除重连定时器
+          if (this.reconnectTimer) {
+            clearTimeout(this.reconnectTimer)
+            this.reconnectTimer = null
+          }
         }
 
         this.ws.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data)
             
-            // Binance combined stream format: { stream: 'btcusdt@miniTicker', data: {...} }
+            // Binance combined stream format: { stream: 'btcusdt@ticker', data: {...} }
             if (data.stream && data.data) {
               this.updateTicker(data.stream, data.data)
             }
@@ -79,51 +91,63 @@ export const useMarketStore = defineStore('market', {
           console.log('WebSocket closed')
           this.isConnected = false
           
-          // Attempt to reconnect
-          if (this.reconnectAttempts < this.maxReconnectAttempts) {
-            this.reconnectAttempts++
-            const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000) // Exponential backoff, max 30s
-            console.log(`Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`)
-            
-            setTimeout(() => {
-              this.initWebSocket()
-            }, delay)
-          } else {
-            console.error('Max reconnection attempts reached')
-          }
+          // 自动重连机制：固定 5 秒间隔
+          this.scheduleReconnect()
         }
       } catch (error) {
         console.error('Failed to initialize WebSocket:', error)
         this.isConnected = false
+        
+        // 如果初始化失败，也尝试重连
+        this.scheduleReconnect()
       }
     },
 
     /**
+     * 安排重连（固定 5 秒间隔）
+     */
+    scheduleReconnect() {
+      // 如果已经有重连定时器，先清除
+      if (this.reconnectTimer) {
+        clearTimeout(this.reconnectTimer)
+      }
+
+      console.log(`Scheduling reconnect in ${this.reconnectInterval}ms...`)
+      
+      this.reconnectTimer = setTimeout(() => {
+        console.log('Attempting to reconnect WebSocket...')
+        this.initWebSocket()
+      }, this.reconnectInterval)
+    },
+
+    /**
      * Update ticker data from WebSocket message
-     * @param {string} stream - Stream name (e.g., 'btcusdt@miniTicker')
+     * @param {string} stream - Stream name (e.g., 'btcusdt@ticker')
      * @param {Object} data - Binance ticker data
      */
     updateTicker(stream, data) {
-      // Extract symbol from stream name (e.g., 'btcusdt@miniTicker' -> 'BTC')
+      // Extract symbol from stream name (e.g., 'btcusdt@ticker' -> 'BTC')
       const symbol = stream.split('@')[0].replace('usdt', '').toUpperCase()
       
-      // Map Binance fields to our format
-      // Binance miniTicker fields:
-      // - c: Close price (last price)
-      // - P: Price change percent (24h)
-      // - h: High price (24h)
-      // - l: Low price (24h)
-      // - v: Base asset volume (24h)
-      // - q: Quote asset volume (24h) - USDT volume
+      // Map Binance ticker fields to our format
+      // Binance ticker 流字段：
+      // - c: 最新成交价 (Latest price)
+      // - P: 24h 价格变动百分比 (Price change percent)
+      // - p: 24h 价格变动值 (Price change)
+      // - h: 24h 最高价 (High price)
+      // - l: 24h 最低价 (Low price)
+      // - v: 24h 成交量（基础资产）(Base asset volume)
+      // - q: 24h 成交量（计价资产，USDT）(Quote asset volume)
       
       this.tickers[symbol] = {
         symbol: symbol,
-        price: parseFloat(data.c) || 0,           // Close price (current price)
-        change: parseFloat(data.P) || 0,           // Price change percent (24h)
-        high: parseFloat(data.h) || 0,             // High price (24h)
-        low: parseFloat(data.l) || 0,              // Low price (24h)
-        volume: parseFloat(data.v) || 0,           // Base asset volume (24h)
-        quoteVolume: parseFloat(data.q) || 0,      // Quote asset volume (USDT, 24h)
+        price: parseFloat(data.c) || 0,           // c: 最新成交价 -> price
+        change: parseFloat(data.P) || 0,          // P: 24h涨跌幅百分比 -> change
+        priceChange: parseFloat(data.p) || 0,     // p: 24h价格变动值（可选）
+        high: parseFloat(data.h) || 0,            // h: 24h最高价
+        low: parseFloat(data.l) || 0,             // l: 24h最低价
+        volume: parseFloat(data.v) || 0,          // v: 24h成交量（基础资产）
+        quoteVolume: parseFloat(data.q) || 0,     // q: 24h成交量（USDT）
         lastUpdate: Date.now()
       }
     },
@@ -132,10 +156,27 @@ export const useMarketStore = defineStore('market', {
      * Close WebSocket connection
      */
     closeWebSocket() {
+      // 清除重连定时器
+      if (this.reconnectTimer) {
+        clearTimeout(this.reconnectTimer)
+        this.reconnectTimer = null
+      }
+      
       if (this.ws) {
         this.ws.close()
         this.ws = null
         this.isConnected = false
+      }
+    },
+
+    /**
+     * 检查并确保 WebSocket 连接（用于组件挂载时调用）
+     */
+    ensureConnection() {
+      // 如果未连接或连接已断开，则初始化连接
+      if (!this.isConnected || !this.ws || this.ws.readyState !== WebSocket.OPEN) {
+        console.log('WebSocket not connected, initializing...')
+        this.initWebSocket()
       }
     }
   }

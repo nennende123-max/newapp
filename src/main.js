@@ -11,11 +11,16 @@ import './style.css'
 
 const messages = {
   en: {
+   
     common: {
       loading: 'Loading...',
       no_data: 'No Data',
       live_on_chain: '🚀 Live On-Chain:',
-      left: 'Left'
+      left: 'Left',
+      cancel: 'Cancel',
+      error: 'Error occurred',
+      complete: 'Done',
+      copy_failed: 'Copy failed'
     },
     home_btn: {
       deposit: 'Deposit',
@@ -47,6 +52,7 @@ const messages = {
     tab: {
       home: 'Home',
       miner: 'Miner',
+      trade: 'Trade',
       ido: 'IDO',
       me: 'Me'
     },
@@ -60,7 +66,9 @@ const messages = {
       addr: 'Deposit Address',
       copy: 'Copy Address',
       tips: 'Send only USDT to this address. Sending any other coins may result in permanent loss.',
-      copy_success: 'Address Copied!'
+      copy_success: 'Address Copied!',
+      qr_tip: 'Scan to Deposit', // 新增
+      qr_hint: '(Long press to simulate +1000 USDT)'  // 新增
     },
 
     // 提现页面（新增 subtitle）
@@ -86,7 +94,21 @@ const messages = {
       history_coming_soon: 'History feature coming soon',
       network_trc20: 'TRC20',
       network_erc20: 'ERC20',
-      network_bsc: 'BSC'
+      network_bsc: 'BSC',
+      estimated_time_prefix: ' Estimated Arrival: about',  // 前缀 + 空格
+      min_withdraw: 'Min Withdraw 10 USDT' ,  // 新增：最小提现模板
+      coins: {  // 新增 coins 对象
+        usdt: 'USDT',  // 英文下显示 'USDT'
+        btc: 'BTC',
+        eth: 'ETH',
+        bnb: 'BNB',
+        sol: 'SOL',
+        doge: 'DOGE',
+        trx: 'TRX',
+        beat: 'BEAT',
+        zec: 'ZEC',
+        aic: 'AIC'
+      }
     },
 
     mining: 'Cloud Mining',
@@ -110,6 +132,7 @@ const messages = {
     wallet: {
       est_total_value: 'Est. Total Value',
       wallet_connected: 'Wallet Connected',
+      wallet_not_connected: 'Please connect wallet first',
       wallet_address: 'Wallet Address',
       deposit: 'Deposit',
       withdraw: 'Withdraw',
@@ -129,6 +152,8 @@ const messages = {
       title: 'Assets',
       overview: 'Overview',
       spot: 'Spot',
+      leverage: 'Leverage',
+      futures: 'Futures',
       earn: 'Earn',
       est_total_value: 'Est. Total Value',
       deposit: 'Deposit',
@@ -224,6 +249,7 @@ const messages = {
 
     // 交易页面
     trade: {
+      title: 'Trade',
       buy: 'Buy',
       sell: 'Sell',
       limit_order: 'Limit Order',
@@ -242,7 +268,51 @@ const messages = {
       order_submitted: 'Order submitted',
       order_cancelled: 'Order cancelled',
       fill_all_fields: 'Please fill all fields',
-      chart_coming_soon: 'Chart feature coming soon'
+      chart_coming_soon: 'Chart feature coming soon',
+      assets: 'Assets',
+      cancel_order_confirm: 'Cancel Order',
+      cancel_order_message: 'Are you sure you want to cancel this order?',
+      cancel_order_confirm_btn: 'Confirm Cancel',
+      cancel_order_cancel_btn: 'Keep Order',
+      estimated_fee: 'Estimated Fee',
+      discount_applied: '(25% discount applied)',
+      estimated_value: 'Estimated Value',
+      market_price_hint: 'Execute at best market price',
+      sellable: 'Sellable',
+      frozen: 'Frozen',
+      go_trade: 'Go Trade',
+      switch_coin: 'Switch Coin',
+      select_order_type: 'Select Order Type',
+      select_leverage: 'Select Leverage',
+      full_position: 'Full Position',
+      isolated_position: 'Isolated Position',
+      open_long: 'Open Long',
+      open_short: 'Open Short',
+      long: 'Long',
+      short: 'Short',
+      current_positions: 'Current Positions',
+      no_positions: 'No positions',
+      positions_tab: 'Positions ({count})',
+      open_orders_tab: 'Open Orders',
+      trade_history_tab: 'Trade History',
+      perpetual: 'Perpetual',
+      unrealized_pnl: 'Unrealized P&L',
+      liquidation_price: 'Liquidation Price',
+      margin_amount: 'Margin',
+      position_size: 'Position Size',
+      take_profit_stop_loss: 'Take Profit / Stop Loss',
+      take_profit_price: 'Take Profit Price',
+      stop_loss_price: 'Stop Loss Price',
+      close_position: 'Close Position',
+      close_position_confirm: 'Close Position',
+      close_position_message: 'Are you sure you want to close this position?',
+      close_position_confirm_btn: 'Confirm Close',
+      close_position_cancel_btn: 'Cancel',
+      position_closed: 'Position closed successfully',
+      amount_invalid: 'Amount must be greater than 0',
+      market_order_submitted: 'Market order submitted',
+      limit_order_submitted: 'Limit order submitted',
+      switched_to: 'Switched to {symbol}'
     },
 
     // 市场详情页面
@@ -300,14 +370,174 @@ const messages = {
       margin_trading_fee: 'Margin Trading Fee',
       txid_copied: 'TxID Copied',
       copy_failed: 'Copy Failed'
+    },
+
+    // 安全中心相关
+    security: {
+      title: 'Security Center',
+      security_level: 'Your Account Security Level',
+      security_level_medium: 'Medium',
+      security_level_high: 'High',
+      security_tip: 'Enable more protection to secure your assets',
+      phone_verification: 'Phone Verification',
+      phone_bound: 'Bound',
+      phone_unbound: 'Unbound',
+      google_authenticator: 'Google Authenticator (2FA)',
+      google_enabled: 'Enabled',
+      google_disabled: 'Not Enabled',
+      google_auth_status_enabled: 'Google Authenticator is already enabled',
+      fund_password: 'Fund Password',
+      fund_password_setting: 'Fund Password Setting',
+      fund_password_set: 'Set',
+      fund_password_unset: 'Not Set',
+      // 资金密码设置页面
+      fund_password_title: 'Set Fund Password',
+      fund_password_step1: 'Enter Password',
+      fund_password_step2: 'Confirm Password',
+      fund_password_hint: 'Please enter a 6-digit fund password',
+      fund_password_confirm_hint: 'Please confirm your fund password',
+      fund_password_mismatch: 'Passwords do not match, please re-enter',
+      fund_password_success: 'Fund password set successfully',
+      fund_password_placeholder: 'Enter 6-digit password',
+      // 手机验证页面
+      phone_verify_title: 'Phone Verification',
+      phone_verify_phone_label: 'Phone Number',
+      phone_verify_phone_placeholder: 'Enter phone number',
+      phone_verify_code_label: 'Verification Code',
+      phone_verify_code_placeholder: 'Enter 6-digit code',
+      phone_verify_get_code: 'Get Code',
+      phone_verify_countdown: '{seconds}s',
+      phone_verify_submit: 'Submit',
+      phone_verify_binding_success: 'Binding Successful',
+      phone_verify_description: 'Please enter your phone number and verification code to complete binding',
+      phone_verify_invalid_phone: 'Please enter a valid phone number',
+      phone_verify_code_sent: 'Verification code sent',
+      phone_verify_fill_all: 'Please fill in all information',
+      phone_verify_code_required: 'Please enter 6-digit verification code',
+      phone_verify_invalid_code: 'Invalid verification code format',
+      // 谷歌验证页面
+      google_auth_title: 'Google Authenticator',
+      google_auth_qr_title: 'Scan QR Code',
+      google_auth_qr_hint: 'Use Google Authenticator app to scan this QR code',
+      google_auth_secret_title: 'Secret Key',
+      google_auth_secret_copy: 'Copy',
+      google_auth_secret_copied: 'Secret key copied',
+      google_auth_refresh_qr: 'Refresh QR Code',
+      google_auth_code_label: 'Verification Code',
+      google_auth_code_placeholder: 'Enter 6-digit code',
+      google_auth_enable_btn: 'Enable Verification',
+      google_auth_enable_success: 'Google Authenticator enabled successfully',
+      google_auth_description: 'Scan the QR code with Google Authenticator app, then enter the verification code to enable',
+      google_auth_qr_refreshed: 'QR code refreshed',
+      google_auth_code_required: 'Please enter 6-digit verification code',
+      google_auth_code_invalid: 'Invalid verification code format',
+      google_auth_code_hint: 'Verification code updates every 30 seconds, please ensure time synchronization'
+    },
+
+    // 设置与资料
+    settings: {
+      title: 'Settings',
+      language: 'Language',
+      currency_unit: 'Currency Unit',
+      currency_unit_value: 'USD',
+      notification: 'Notification',
+      privacy_policy: 'Privacy Policy',
+      about_us: 'About Us',
+      clear_cache: 'Clear Cache',
+      cache_size: 'Cache Size',
+      cache_cleared: 'Cache cleared',
+      // 隐私政策弹窗
+      privacy_policy_title: 'Privacy Policy',
+      privacy_policy_content: 'TruthFi is committed to protecting your privacy and personal information. We collect and use your data in accordance with applicable laws and regulations. Your data is encrypted and stored securely. We do not share your personal information with third parties without your consent. For more details, please refer to our complete Privacy Policy.',
+      privacy_policy_confirm: 'Got it',
+      privacy_section1_title: '1. Data Collection',
+      privacy_section1_content: 'We only collect user information necessary to provide services, including account information, transaction records, etc. All data is encrypted to ensure your information security.',
+      privacy_section2_title: '2. Information Security',
+      privacy_section2_content: 'We use industry-leading security technologies to protect your personal information, including but not limited to SSL encrypted transmission, multi-factor authentication and other measures.',
+      privacy_section3_title: '3. User Rights',
+      privacy_section3_content: 'You have the right to view, modify or delete your personal information at any time. If you need help, please contact our customer service team.',
+      privacy_section4_title: '4. Third-Party Services',
+      privacy_section4_content: 'We may share some data with third-party service providers to provide a better service experience, but we will not sell your personal information.',
+      privacy_section5_title: '5. Policy Updates',
+      privacy_section5_content: 'We may update this privacy policy from time to time. Major changes will be notified through in-app notifications or email.',
+      // 关于我们弹窗
+      about_us_title: 'About TruthFi',
+      about_us_version: 'Version v1.0.0',
+      about_us_content: 'TruthFi is the world\'s first asset management platform based on transparency protocol, dedicated to providing users with secure, transparent, and efficient cryptocurrency trading and wealth management services.',
+      about_us_content2: 'We use blockchain technology to ensure the transparency of all transaction data, allowing users to track asset flows in real-time and enjoy professional-level financial services.',
+      about_us_confirm: 'Got it',
+      security_center: 'Security Center',
+      // 退出登录确认弹窗
+      logout_confirm_title: 'Confirm Logout',
+      logout_confirm_message: 'Are you sure you want to logout? You will need to reconnect your wallet after logging out.',
+      logout_confirm_btn: 'Confirm',
+      logout_cancel_btn: 'Cancel',
+      logout_success: 'Logged out successfully',
+      // 通知设置
+      notification_enabled: 'Push notifications enabled',
+      notification_disabled: 'Notifications disabled'
+    },
+
+    // 个人资料
+    profile: {
+      title: 'Profile',
+      nickname: 'Nickname',
+      nickname_placeholder: 'Enter nickname',
+      nickname_rule: 'Nickname must be 2-12 characters, only letters, numbers, and Chinese characters allowed',
+      nickname_success: 'Nickname updated successfully',
+      avatar: 'Avatar',
+      avatar_take_photo: 'Take Photo',
+      avatar_choose_album: 'Choose from Album',
+      avatar_upload_demo: 'Demo environment does not support actual upload',
+      uid: 'UID',
+      register_time: 'Registration Time',
+      bnb_fee_discount: 'Use BNB to Pay Trading Fees',
+      bnb_fee_discount_desc: 'Enjoy 25% discount',
+      bnb_interest_discount: 'Use BNB to Pay Leverage Interest',
+      bnb_interest_discount_desc: 'Enjoy 5% discount',
+      spot_fee_rate: 'Spot Fee Rate',
+      spot_fee_maker: 'Maker',
+      spot_fee_taker: 'Taker',
+      futures_fee_rate: 'Futures Fee Rate',
+      futures_fee_maker: 'Maker',
+      futures_fee_taker: 'Taker',
+      google_auth: 'Google Authenticator',
+      logout: 'Logout',
+      id_copied: 'ID copied',
+      bnb_fee_enabled: 'BNB fee discount enabled',
+      bnb_fee_disabled: 'BNB fee discount disabled',
+      bnb_interest_enabled: 'BNB interest discount enabled',
+      bnb_interest_disabled: 'BNB interest discount disabled',
+      google_auth_disabled: 'Google Authenticator disabled'
+    },
+
+    // 客服支持
+    support: {
+      title: 'Help & Support',
+      official_service: 'TruthFi Official Customer Service',
+      service_subtitle: 'Professional customer service team available 24/7',
+      service_promise: 'Service Promise',
+      privacy_encryption: 'Privacy Encryption',
+      fast_response: 'Fast Response',
+      human_service: 'Human Service',
+      contact_service: 'Contact Online Service',
+      connecting: 'Connecting to secure line...',
+      service_busy: 'Currently there are many inquiries, please try again later or contact Telegram community',
+      telegram_community: 'Join Official Telegram Community',
+      telegram_redirect: 'Redirecting to Telegram community...'
     }
   },
   zh: {
+    
     common: {
       loading: '加载中...',
       no_data: '暂无数据',
       live_on_chain: '🚀 链上实况:',
-      left: '剩余'
+      left: '剩余',
+      cancel: '取消',
+      error: '操作失败',
+      complete: '完成',
+      copy_failed: '复制失败'
     },
     home_btn: {
       deposit: '充值',
@@ -339,6 +569,7 @@ const messages = {
     tab: {
       home: '首页',
       miner: '赚币',
+      trade: '交易',
       ido: '认购',
       me: '我的'
     },
@@ -352,7 +583,10 @@ const messages = {
       addr: '充值地址',
       copy: '复制地址',
       tips: '请仅向该地址转入 USDT，转入其他币种可能无法找回。',
-      copy_success: '地址已复制！'
+      copy_success: '地址已复制！',
+      qr_tip: '扫码充值',  // 新增
+      qr_hint: '(长按模拟 +1000 USDT)'  // 新增
+
     },
 
     // 提现页面（新增 subtitle）
@@ -378,7 +612,21 @@ const messages = {
       history_coming_soon: '历史记录功能即将推出',
       network_trc20: 'TRC20',
       network_erc20: 'ERC20',
-      network_bsc: 'BSC'
+      network_bsc: 'BSC',
+      estimated_time_prefix: ' 预计到账: 约', // 新增
+      min_withdraw: '最小提现10 USDT' , // 新增
+      coins: {// 新增 coins 对象
+        usdt: '泰达币',  // 中文下显示 '泰达币'
+        btc: '比特币',
+        eth: '以太坊',
+        bnb: '币安币',
+        sol: 'Solana',
+        doge: '狗狗币',
+        trx: '波场币',
+        beat: 'BEAT 代币',
+        aic: 'AIC 代币',
+        zec: 'Zcash',
+      }
     },
 
     mining: '云挖矿',
@@ -402,6 +650,7 @@ const messages = {
     wallet: {
       est_total_value: '预估总资产',
       wallet_connected: '钱包已连接',
+      wallet_not_connected: '请先连接钱包',
       wallet_address: '钱包地址',
       deposit: '充值',
       withdraw: '提现',
@@ -421,6 +670,8 @@ const messages = {
       title: '资产',
       overview: '概览',
       spot: '现货',
+      leverage: '杠杆',
+      futures: '合约',
       earn: '理财',
       est_total_value: '预估总资产',
       deposit: '充值',
@@ -515,7 +766,9 @@ const messages = {
     },
 
     // 交易页面
+    
     trade: {
+      title: '交易',
       buy: '买入',
       sell: '卖出',
       limit_order: '限价单',
@@ -534,7 +787,51 @@ const messages = {
       order_submitted: '订单已提交',
       order_cancelled: '订单已取消',
       fill_all_fields: '请填写所有字段',
-      chart_coming_soon: '图表功能即将推出'
+      chart_coming_soon: '图表功能即将推出',
+      assets: '资产',
+      cancel_order_confirm: '确认撤单',
+      cancel_order_message: '确定要撤销此订单吗？',
+      cancel_order_confirm_btn: '确认撤单',
+      cancel_order_cancel_btn: '保留订单',
+      estimated_fee: '预估手续费',
+      discount_applied: '（已享25%折扣）',
+      estimated_value: '估值',
+      market_price_hint: '以当前最优价格成交',
+      sellable: '可卖',
+      frozen: '冻结',
+      go_trade: '去交易',
+      switch_coin: '切换币种',
+      select_order_type: '选择订单类型',
+      select_leverage: '选择杠杆倍数',
+      full_position: '全仓',
+      isolated_position: '逐仓',
+      open_long: '开多',
+      open_short: '开空',
+      long: '做多',
+      short: '做空',
+      current_positions: '当前持仓',
+      no_positions: '暂无持仓',
+      positions_tab: '持有仓位 ({count})',
+      open_orders_tab: '当前委托',
+      trade_history_tab: '历史成交',
+      perpetual: '永续',
+      unrealized_pnl: '未实现盈亏',
+      liquidation_price: '强平价格',
+      margin_amount: '保证金',
+      position_size: '仓位数量',
+      take_profit_stop_loss: '止盈止损',
+      take_profit_price: '止盈价格',
+      stop_loss_price: '止损价格',
+      close_position: '平仓',
+      close_position_confirm: '确认平仓',
+      close_position_message: '确定要平仓此持仓吗？',
+      close_position_confirm_btn: '确认平仓',
+      close_position_cancel_btn: '取消',
+      position_closed: '平仓成功',
+      amount_invalid: '数量必须大于 0',
+      market_order_submitted: '市价单提交成功',
+      limit_order_submitted: '限价单提交成功',
+      switched_to: '已切换到 {symbol}'
     },
 
     // 市场详情页面
@@ -592,13 +889,171 @@ const messages = {
       margin_trading_fee: '杠杆交易手续费',
       txid_copied: 'TxID 已复制',
       copy_failed: '复制失败'
+    },
+
+    // 安全中心相关
+    security: {
+      title: '安全中心',
+      security_level: '您的账户安全等级',
+      security_level_medium: '中',
+      security_level_high: '高',
+      security_tip: '开启更多保护，保障资产安全',
+      phone_verification: '手机验证',
+      phone_bound: '已绑定',
+      phone_unbound: '去绑定',
+      google_authenticator: '谷歌验证器 (2FA)',
+      google_enabled: '已开启',
+      google_disabled: '未开启',
+      google_auth_status_enabled: '谷歌验证器已开启',
+      fund_password: '资金密码',
+      fund_password_setting: '资金密码设置',
+      fund_password_set: '已设置',
+      fund_password_unset: '未设置',
+      // 资金密码设置页面
+      fund_password_title: '设置资金密码',
+      fund_password_step1: '输入密码',
+      fund_password_step2: '确认密码',
+      fund_password_hint: '请输入6位数字资金密码',
+      fund_password_confirm_hint: '请再次输入密码确认',
+      fund_password_mismatch: '两次输入的密码不一致，请重新输入',
+      fund_password_success: '资金密码设置成功',
+      fund_password_placeholder: '请输入6位数字',
+      // 手机验证页面
+      phone_verify_title: '手机验证',
+      phone_verify_phone_label: '手机号码',
+      phone_verify_phone_placeholder: '请输入手机号码',
+      phone_verify_code_label: '验证码',
+      phone_verify_code_placeholder: '请输入6位验证码',
+      phone_verify_get_code: '获取验证码',
+      phone_verify_countdown: '{seconds}秒',
+      phone_verify_submit: '提交',
+      phone_verify_binding_success: '绑定成功',
+      phone_verify_description: '绑定手机号后，可用于登录验证和找回密码',
+      phone_verify_invalid_phone: '请输入正确的手机号',
+      phone_verify_code_sent: '验证码已发送',
+      phone_verify_fill_all: '请填写完整信息',
+      phone_verify_code_required: '请输入6位验证码',
+      phone_verify_invalid_code: '验证码格式不正确',
+      // 谷歌验证页面
+      google_auth_title: '谷歌验证器',
+      google_auth_qr_title: '扫描二维码',
+      google_auth_qr_hint: '使用谷歌验证器 App 扫描此二维码',
+      google_auth_secret_title: '密钥',
+      google_auth_secret_copy: '复制',
+      google_auth_secret_copied: '密钥已复制',
+      google_auth_refresh_qr: '刷新二维码',
+      google_auth_code_label: '验证码',
+      google_auth_code_placeholder: '请输入6位验证码',
+      google_auth_enable_btn: '开启验证',
+      google_auth_enable_success: '谷歌验证器开启成功',
+      google_auth_description: '使用谷歌验证器 App 扫描二维码，然后输入验证码以开启',
+      google_auth_qr_refreshed: '二维码已刷新',
+      google_auth_code_required: '请输入6位验证码',
+      google_auth_code_invalid: '验证码格式不正确',
+      google_auth_code_hint: '验证码每30秒更新一次，请确保时间同步'
+    },
+
+    // 设置与资料
+    settings: {
+      title: '通用设置',
+      language: '语言',
+      currency_unit: '汇率单位',
+      currency_unit_value: 'USD',
+      notification: '通知设置',
+      privacy_policy: '隐私政策',
+      about_us: '关于我们',
+      clear_cache: '清除缓存',
+      cache_size: '缓存大小',
+      cache_cleared: '缓存已清除',
+      // 隐私政策弹窗
+      privacy_policy_title: '隐私政策',
+      privacy_policy_content: 'TruthFi 致力于保护您的隐私和个人信息。我们根据适用的法律法规收集和使用您的数据。您的数据经过加密并安全存储。未经您同意，我们不会与第三方分享您的个人信息。更多详情，请参阅我们的完整隐私政策。',
+      privacy_policy_confirm: '我知道了',
+      privacy_section1_title: '1. 数据收集',
+      privacy_section1_content: '我们仅收集提供服务所必需的用户信息，包括账户信息、交易记录等。所有数据均经过加密处理，确保您的信息安全。',
+      privacy_section2_title: '2. 信息安全',
+      privacy_section2_content: '我们采用行业领先的安全技术保护您的个人信息，包括但不限于SSL加密传输、多重身份验证等措施。',
+      privacy_section3_title: '3. 用户权利',
+      privacy_section3_content: '您有权随时查看、修改或删除您的个人信息。如需帮助，请联系我们的客服团队。',
+      privacy_section4_title: '4. 第三方服务',
+      privacy_section4_content: '我们可能与第三方服务提供商共享部分数据以提供更好的服务体验，但不会出售您的个人信息。',
+      privacy_section5_title: '5. 政策更新',
+      privacy_section5_content: '我们可能会不定期更新本隐私政策。重大变更将通过站内通知或邮件方式告知您。',
+      // 关于我们弹窗
+      about_us_title: '关于 TruthFi',
+      about_us_version: '版本 v1.0.0',
+      about_us_content: 'TruthFi 是全球首个基于透明度协议的资产管理平台，致力于为用户提供安全、透明、高效的加密资产交易与理财服务。',
+      about_us_content2: '我们通过区块链技术确保所有交易数据的公开透明，让用户能够实时追踪资产流向，享受专业级的金融服务体验。',
+      about_us_confirm: '我知道了',
+      security_center: '安全中心',
+      // 退出登录确认弹窗
+      logout_confirm_title: '确认退出',
+      logout_confirm_message: '确定要退出登录吗？退出后需要重新连接钱包。',
+      logout_confirm_btn: '确认',
+      logout_cancel_btn: '取消',
+      logout_success: '退出成功',
+      // 通知设置
+      notification_enabled: '推送通知已开启',
+      notification_disabled: '通知已停用'
+    },
+
+    // 个人资料
+    profile: {
+      title: '个人资料',
+      nickname: '昵称',
+      nickname_placeholder: '请输入昵称',
+      nickname_rule: '昵称长度必须在 2-12 位之间，仅允许输入中英文和数字',
+      nickname_success: '昵称修改成功',
+      avatar: '头像',
+      avatar_take_photo: '拍照',
+      avatar_choose_album: '相册',
+      avatar_upload_demo: '演示环境暂不支持实际上传',
+      uid: 'UID',
+      register_time: '注册时间',
+      bnb_fee_discount: '使用BNB支付交易手续费',
+      bnb_fee_discount_desc: '享受 25%折扣',
+      bnb_interest_discount: '使用BNB支付杠杆利息',
+      bnb_interest_discount_desc: '享受 5%折扣',
+      spot_fee_rate: '现货费率',
+      spot_fee_maker: '挂单',
+      spot_fee_taker: '吃单',
+      futures_fee_rate: 'U本位费率',
+      futures_fee_maker: '挂单',
+      futures_fee_taker: '吃单',
+      google_auth: '谷歌验证',
+      logout: '退出登录',
+      id_copied: 'ID 已复制',
+      bnb_fee_enabled: '已开启BNB手续费折抵',
+      bnb_fee_disabled: '已关闭BNB手续费折抵',
+      bnb_interest_enabled: '已开启BNB利息折抵',
+      bnb_interest_disabled: '已关闭BNB利息折抵',
+      google_auth_disabled: '已关闭谷歌验证'
+    },
+
+    // 客服支持
+    support: {
+      title: '帮助与支持',
+      official_service: 'TruthFi 官方客服',
+      service_subtitle: '专业客服团队 7×24h 在线',
+      service_promise: '服务承诺',
+      privacy_encryption: '隐私加密',
+      fast_response: '极速响应',
+      human_service: '真人服务',
+      contact_service: '联系在线客服',
+      connecting: '正在为您接入安全线路...',
+      service_busy: '当前咨询人数较多，请稍后再试或联系 Telegram 社区',
+      telegram_community: '加入官方 Telegram 社区',
+      telegram_redirect: '正在跳转到 Telegram 社区...'
     }
   }
 }
 
+// 在 createI18n 之前添加这行代码，从 localStorage 获取保存的语言，如果没有则默认 'en'（或 'zh'，根据您的偏好）
+const savedLanguage = localStorage.getItem('language') || 'en';  // 默认英文，您可以改为 'zh' 如果想默认中文
+
 const i18n = createI18n({
   legacy: false,
-  locale: 'zh',
+  locale: savedLanguage,  // 修改为动态从 localStorage 获取
   globalInjection: true,
   messages
 })
