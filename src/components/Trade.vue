@@ -86,14 +86,14 @@
           <div 
             class="toggle-btn buy-btn" 
             :class="{ active: orderSide === 'buy' }"
-            @click="orderSide = 'buy'"
+            @click="() => { orderSide = 'buy'; spotSliderValue = 0; amount.value = ''; }"
           >
             {{ t('trade.buy') }}
           </div>
           <div 
             class="toggle-btn sell-btn" 
             :class="{ active: orderSide === 'sell' }"
-            @click="orderSide = 'sell'"
+            @click="() => { orderSide = 'sell'; spotSliderValue = 0; amount.value = ''; }"
           >
             {{ t('trade.sell') }}
           </div>
@@ -139,29 +139,50 @@
           />
         </div>
 
-        <div class="percent-row">
-          <div 
-            v-for="percent in [25, 50, 75, 100]"
-            :key="percent"
-            class="percent-btn"
-            :class="{ active: selectedPercent === percent }"
-            @click="setAmountPercent(percent)"
+        <div class="slider-wrapper">
+          <van-slider
+            v-model="spotSliderValue"
+            :min="0"
+            :max="100"
+            :step="1"
+            bar-height="4px"
+            button-size="16px"
+            active-color="#FCD535"
+            inactive-color="#2A2D35"
+            @update:model-value="onSpotSliderChange"
           >
-            {{ percent }}%
+            <template #button>
+              <div class="custom-slider-button">{{ spotSliderValue }}%</div>
+            </template>
+          </van-slider>
+          <div class="slider-marks">
+            <span 
+              v-for="val in [0, 25, 50, 75, 100]" 
+              :key="val" 
+              class="mark-item"
+              @click="spotSliderValue = val; onSpotSliderChange(val)"
+            >
+              {{ val }}%
+            </span>
           </div>
         </div>
 
         <div class="fee-estimate-row">
-          <span class="fee-estimate-label">{{ t('trade.estimated_fee') }}(USDT)</span>
+          <span class="fee-estimate-label">{{ t('trade.estimated_fee') }}({{ orderSide === 'buy' ? currentCoinConfig.baseCoin : 'USDT' }})</span>
           <span class="fee-estimate-value">
             {{ formatEstimatedFee }}
-            <span v-if="assetStore.useBNBForFees" class="discount-badge">{{ t('trade.discount_applied') }}</span>
+            <span v-if="orderSide === 'buy' && formatEstimatedFeeUSDT" class="fee-usdt-note">(≈ {{ formatEstimatedFeeUSDT }} USDT)</span>
           </span>
         </div>
 
         <div class="total-row">
           <span class="total-label">{{ t('trade.total') }}(USDT)</span>
           <span class="total-value">{{ formatTotalAmount }}</span>
+        </div>
+
+        <div class="estimated-received-row">
+          <span class="received-label">{{ t('trade.estimated_received') }}</span>
+          <span class="received-value">{{ formatEstimatedReceived }}</span>
         </div>
 
         <div class="available-row">
@@ -185,7 +206,8 @@
         <button 
           class="submit-btn"
           :class="orderSide"
-          :disabled="!isOrderValid"
+          :disabled="!isOrderValid || isLoading"
+          :loading="isLoading"
           @click="handleSubmitOrder"
         >
           {{ orderSide === 'buy' ? t('trade.buy_btc').replace('BTC', symbol) : t('trade.sell_btc').replace('BTC', symbol) }}
@@ -289,18 +311,35 @@
               type="number"
               :placeholder="t('trade.amount_placeholder')"
               class="input-field no-spinner"
+              @input="handleFuturesAmountInput"
             />
           </div>
 
-          <div class="percent-row">
-            <div 
-              v-for="percent in [25, 50, 75, 100]"
-              :key="percent"
-              class="percent-btn"
-              :class="{ active: selectedFuturesPercent === percent }"
-              @click="setFuturesAmountPercent(percent)"
+          <div class="slider-wrapper">
+            <van-slider
+              v-model="futuresSliderValue"
+              :min="0"
+              :max="100"
+              :step="1"
+              bar-height="4px"
+              button-size="16px"
+              active-color="#FCD535"
+              inactive-color="#2A2D35"
+              @update:model-value="onFuturesSliderChange"
             >
-              {{ percent }}%
+              <template #button>
+                <div class="custom-slider-button">{{ futuresSliderValue }}%</div>
+              </template>
+            </van-slider>
+            <div class="slider-marks">
+              <span 
+                v-for="val in [0, 25, 50, 75, 100]" 
+                :key="val" 
+                class="mark-item"
+                @click="futuresSliderValue = val; onFuturesSliderChange(val)"
+              >
+                {{ val }}%
+              </span>
             </div>
           </div>
 
@@ -317,7 +356,7 @@
           <div class="available-row">
             <div class="avail-item">
               <span class="avail-label">{{ t('trade.avail') }}：</span>
-              <span class="avail-value">{{ formatNumber(availableBalance) }} USDT</span>
+              <span class="avail-value">{{ formatAssetBalance(availableBalance, 'USDT') }} USDT</span>
             </div>
           </div>
 
@@ -497,11 +536,11 @@
             <div class="assets-list">
               <div class="asset-item">
                 <span class="asset-label">{{ t('trade.avail') }}</span>
-                <span class="asset-value">{{ formatNumber(availableBalance) }} {{ symbol }}</span>
+                <span class="asset-value">{{ formatAssetBalance(assetStore.getHolding(symbol), symbol) }} {{ symbol }}</span>
               </div>
               <div class="asset-item">
                 <span class="asset-label">{{ t('trade.frozen') }}</span>
-                <span class="asset-value">{{ formatNumber(frozenBalance) }} {{ symbol }}</span>
+                <span class="asset-value">{{ formatAssetBalance(assetStore.userAssets?.[`${symbol}_frozen`] || 0, symbol) }} {{ symbol }}</span>
               </div>
             </div>
           </div>
@@ -606,9 +645,12 @@
 import { ref, computed, watch, onMounted, onActivated, onDeactivated } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { showToast, Icon, Popup, Empty, ActionSheet, Tabs, Tab, showConfirmDialog } from 'vant';
+import { showToast, Icon, Popup, Empty, ActionSheet, Tabs, Tab, showConfirmDialog, Slider } from 'vant';
 import { useAssetStore } from '@/stores/assets';
 import { useMarketStore } from '@/stores/market';
+import { createOrder, getOrders, cancelOrder as cancelOrderApi } from '@/api/trade';
+import { createFuturesOrder, getPositions as getFuturesPositionsApi, closePosition as closeFuturesPositionApi } from '@/api/futures';
+import { formatAssetAmount } from '@/utils/format';
 
 defineOptions({
   name: 'Trade'
@@ -626,10 +668,12 @@ const pageTitle = computed(() => t('trade.title'));
 const symbol = ref(route.query.symbol || 'BTC');
 
 const coinConfigs = {
-  'ETH/USDT': { priceFixed: 2, amountFixed: 4, step: 0.1, baseCoin: 'ETH' },
+  // 主流高价币：价格保留2位，数量保留4-6位
   'BTC/USDT': { priceFixed: 2, amountFixed: 6, step: 0.01, baseCoin: 'BTC' },
-  'BNB/USDT': { priceFixed: 2, amountFixed: 4, step: 0.1, baseCoin: 'BNB' },
-  'SOL/USDT': { priceFixed: 2, amountFixed: 4, step: 0.1, baseCoin: 'SOL' },
+  'ETH/USDT': { priceFixed: 2, amountFixed: 4, step: 0.01, baseCoin: 'ETH' },
+  'BNB/USDT': { priceFixed: 2, amountFixed: 3, step: 0.1, baseCoin: 'BNB' },
+  'SOL/USDT': { priceFixed: 2, amountFixed: 2, step: 0.01, baseCoin: 'SOL' },
+  // 低价币：价格保留4位(看清微小波动)，数量保留2位(不需要太碎)
   'DOGE/USDT': { priceFixed: 4, amountFixed: 2, step: 0.0001, baseCoin: 'DOGE' },
   'TRX/USDT': { priceFixed: 4, amountFixed: 2, step: 0.0001, baseCoin: 'TRX' },
   'BEAT/USDT': { priceFixed: 4, amountFixed: 2, step: 0.0001, baseCoin: 'BEAT' },
@@ -654,9 +698,11 @@ const priceChange = ref(1.83);
 const lastPrice = ref(92255.50);
 const activeOrderTab = ref('orders');
 const selectedPercent = ref(null);
+const spotSliderValue = ref(0); // 现货滑块值 (0-100)
 const ordersList = ref([]);
 const showOrderTypeSheet = ref(false);
-const currentLeverage = ref(20); // 默认杠杆20x 
+const currentLeverage = ref(20); // 默认杠杆20x
+const isLoading = ref(false); // 下单加载状态 
 const showLeveragePopup = ref(false);
 
 // 合约交易相关变量
@@ -665,6 +711,7 @@ const markPrice = ref(92255.50);
 const futuresPrice = ref('');
 const futuresAmount = ref('');
 const selectedFuturesPercent = ref(null);
+const futuresSliderValue = ref(0); // 合约滑块值 (0-100)
 const activePositionTab = ref(0);
 const positions = ref([]);
 const showTPSLPopup = ref(false);
@@ -676,16 +723,16 @@ const tpSlForm = ref({
 // 资金费率（每8小时更新一次，通常范围在 -0.01% 到 0.01% 之间）
 const fundingRate = ref(0.0001); // 0.01% = 0.0001 
 
-// 模拟币种价格数据
+// 模拟币种价格数据（与后端 MOCK_MARKET_PRICES 保持一致）
 const coinPrices = {
-  'BTC': 92255.50,
-  'ETH': 2500.00,
-  'BNB': 500.00,
-  'SOL': 150.00,
-  'DOGE': 0.10,
+  'BTC': 92255.0,
+  'ETH': 3100.0,
+  'BNB': 590.0,
+  'SOL': 145.0,
+  'DOGE': 0.12,
   'TRX': 0.15,
-  'BEAT': 1.00,
-  'AIC': 2.00
+  'BEAT': 1.2,
+  'AIC': 2.0
 };
 
 const asks = ref([]);
@@ -758,7 +805,21 @@ const availableBalance = computed(() => {
   }
 });
 
-const frozenBalance = computed(() => 0);
+const frozenBalance = computed(() => {
+  // 1. 简单判空保护
+  if (!assetStore.userAssets) return 0;
+  
+  // 2. 根据当前是"买"还是"卖"来决定显示哪个币种的冻结额
+  // 买入时 (Buy BTC) -> 显示冻结的 USDT
+  if (orderSide.value === 'buy') {
+    return assetStore.userAssets['USDT_frozen'] || 0;
+  }
+  // 卖出时 (Sell BTC) -> 显示冻结的 BTC (即 symbol)
+  else {
+    const frozenKey = `${symbol.value}_frozen`;
+    return assetStore.userAssets[frozenKey] || 0;
+  }
+});
 
 const formatPrice = (value) => {
   if (!value) return '0.00';
@@ -781,6 +842,11 @@ const formatFiatPrice = (value) => {
 
 const formatNumber = (value) => {
   return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 8 });
+};
+
+// 格式化资产数量（使用统一的格式化函数）
+const formatAssetBalance = (value, symbol = '') => {
+  return formatAssetAmount(value, symbol);
 };
 
 const getDepthWidth = (quantity, list, type) => {
@@ -809,8 +875,64 @@ const handleAmountInput = (e) => {
   if (value.includes('-')) value = value.replace(/-/g, '');
   const numValue = parseFloat(value);
   if (!isNaN(numValue) && numValue < 0) value = Math.abs(numValue).toString();
-  if (value === '' || value === '-') { amount.value = ''; return; }
+  if (value === '' || value === '-') { 
+    amount.value = '';
+    spotSliderValue.value = 0;
+    return; 
+  }
   amount.value = value;
+  
+  // 反向计算百分比：根据输入的数量更新滑块值
+  updateSpotSliderFromAmount();
+};
+
+// 根据输入的数量反向计算滑块百分比
+const updateSpotSliderFromAmount = () => {
+  try {
+    const inputAmount = parseFloat(amount.value);
+    if (isNaN(inputAmount) || inputAmount <= 0) {
+      spotSliderValue.value = 0;
+      return;
+    }
+    
+    const balance = availableBalance.value;
+    if (balance <= 0) {
+      spotSliderValue.value = 0;
+      return;
+    }
+    
+    const orderPrice = parseFloat(price.value) || lastPrice.value;
+    if (!orderPrice || orderPrice <= 0) {
+      spotSliderValue.value = 0;
+      return;
+    }
+    
+    let percent = 0;
+    
+    if (orderSide.value === 'buy') {
+      // 买入：根据数量计算总花费，再计算百分比
+      // percent = (amount * price / balance) * 100
+      const totalCost = inputAmount * orderPrice;
+      percent = Math.min(100, Math.max(0, (totalCost / balance) * 100));
+    } else {
+      // 卖出：直接计算百分比
+      // percent = (amount / balance) * 100
+      percent = Math.min(100, Math.max(0, (inputAmount / balance) * 100));
+    }
+    
+    // 直接使用计算出的百分比（允许任意精度）
+    spotSliderValue.value = Math.round(percent);
+  } catch (error) {
+    console.error('Error updating slider from amount:', error);
+  }
+};
+
+// 滑块变化事件处理
+const onSpotSliderChange = (value) => {
+  // 确保值在有效范围内
+  const clampedValue = Math.max(0, Math.min(100, value));
+  spotSliderValue.value = clampedValue;
+  setAmountPercent(clampedValue);
 };
 
 const adjustAmount = (direction) => {
@@ -825,42 +947,162 @@ const setAmountPercent = (percent) => {
   selectedPercent.value = percent;
   try {
     const balance = availableBalance.value;
-    if (balance <= 0) { showToast({ message: t('earn.insufficient_balance'), duration: 2000 }); return; }
-    const config = currentCoinConfig.value;
-    if (orderSide.value === 'buy') {
-      const totalCost = balance * (percent / 100);
-      const calculatedAmount = totalCost / (parseFloat(price.value) || lastPrice.value);
-      amount.value = calculatedAmount.toFixed(config.amountFixed);
-    } else {
-      const calculatedAmount = balance * (percent / 100);
-      amount.value = calculatedAmount.toFixed(config.amountFixed);
+    if (balance <= 0) { 
+      spotSliderValue.value = 0;
+      amount.value = '';
+      return; 
     }
-  } catch (error) { console.error(error); showToast({ message: t('common.error'), duration: 2000 }); }
+    
+    const config = currentCoinConfig.value;
+    const orderPrice = parseFloat(price.value) || lastPrice.value;
+    
+    if (!orderPrice || orderPrice <= 0) {
+      spotSliderValue.value = 0;
+      amount.value = '';
+      return;
+    }
+    
+    if (orderSide.value === 'buy') {
+      // 买入操作：amount = (余额 * percent / 100) / price
+      let scalingFactor = percent / 100;
+      
+      // 如果是 100%，预留缓冲空间防止计算精度溢出或滑点
+      if (percent === 100) {
+        // 限价单：预留 0.1% 缓冲空间
+        // 市价单：预留 0.5% 缓冲空间（防止价格波动和滑点）
+        scalingFactor = orderType.value === 'market' ? 0.995 : 0.999;
+      }
+      
+      const totalCost = balance * scalingFactor;
+      const calculatedAmount = totalCost / orderPrice;
+      amount.value = calculatedAmount > 0 ? calculatedAmount.toFixed(config.amountFixed) : '';
+    } else {
+      // 卖出操作：amount = 余额 * percent / 100
+      let scalingFactor = percent / 100;
+      
+      // 如果是 100%，预留极小缓冲空间
+      if (percent === 100) {
+        scalingFactor = 0.999;
+      }
+      
+      const calculatedAmount = balance * scalingFactor;
+      amount.value = calculatedAmount > 0 ? calculatedAmount.toFixed(config.amountFixed) : '';
+    }
+  } catch (error) { 
+    console.error('Error setting amount percent:', error); 
+    spotSliderValue.value = 0;
+    amount.value = '';
+  }
 };
 
-const formatTotalAmount = computed(() => {
-  const p = parseFloat(price.value) || 0;
+// ========== 费率常量 ==========
+const SPOT_FEE_RATE = 0.001;   // 现货 0.1%
+const FUTURES_FEE_RATE = 0.0004; // 合约 0.04% (与后端保持一致)
+
+// ========== 现货交易计算属性 ==========
+
+// 获取当前有效的价格（市价单使用当前价格，限价单使用用户输入价格）
+const spotCurrentPrice = computed(() => {
+  if (orderType.value === 'market') {
+    return lastPrice.value; // 市价单使用最新价格
+  }
+  return parseFloat(price.value) || lastPrice.value; // 限价单使用用户输入，否则使用最新价格
+});
+
+// 现货预估手续费
+const spotEstimatedFee = computed(() => {
+  const p = spotCurrentPrice.value;
   const a = parseFloat(amount.value) || 0;
-  const total = p * a;
+  
+  if (p <= 0 || a <= 0) return 0;
+  
+  if (orderSide.value === 'buy') {
+    // 买入：手续费从获得的币种中扣除，显示币种单位
+    return a * SPOT_FEE_RATE;
+  } else {
+    // 卖出：手续费从获得的 USDT 中扣除，显示 USDT 单位
+    return (p * a) * SPOT_FEE_RATE;
+  }
+});
+
+// 格式化现货预估手续费显示
+const formatEstimatedFee = computed(() => {
+  const fee = spotEstimatedFee.value;
+  if (fee <= 0) return '0.00';
+  
+  if (orderSide.value === 'buy') {
+    // 买入：显示币种单位
+    const config = currentCoinConfig.value;
+    return fee.toFixed(config.amountFixed);
+  } else {
+    // 卖出：显示 USDT 单位
+    return formatAssetBalance(fee, 'USDT');
+  }
+});
+
+// 买入时的手续费 USDT 等值（用于小字备注）
+const formatEstimatedFeeUSDT = computed(() => {
+  if (orderSide.value !== 'buy') return '';
+  const fee = spotEstimatedFee.value;
+  if (fee <= 0) return '';
+  
+  const p = spotCurrentPrice.value;
+  const feeUSDT = fee * p; // BTC手续费 * BTC价格 = USDT等值
+  return feeUSDT > 0 ? formatAssetBalance(feeUSDT, 'USDT') : '';
+});
+
+// 现货总额（名义价值）
+const spotTotal = computed(() => {
+  const p = spotCurrentPrice.value;
+  const a = parseFloat(amount.value) || 0;
+  
+  if (p <= 0 || a <= 0) return 0;
+  
+  // 总额 = 价格 * 数量（名义价值）
+  return p * a;
+});
+
+// 格式化现货总额显示
+const formatTotalAmount = computed(() => {
+  const total = spotTotal.value;
   return total > 0 ? total.toFixed(2) : '0.00';
 });
 
-const formatEstimatedFee = computed(() => {
-  const p = parseFloat(price.value) || lastPrice.value;
+// 预估到账金额（用户实际能拿到的数量）
+const formatEstimatedReceived = computed(() => {
+  const p = spotCurrentPrice.value;
   const a = parseFloat(amount.value) || 0;
   if (p <= 0 || a <= 0) return '0.00';
-  const fee = p * a * assetStore.currentSpotFeeRate;
-  return fee > 0 ? fee.toFixed(4) : '0.00';
+  
+  if (orderSide.value === 'buy') {
+    // 买入：实际得到的币种 = amount - fee
+    const fee = spotEstimatedFee.value;
+    const received = a - fee;
+    const config = currentCoinConfig.value;
+    return received > 0 ? received.toFixed(config.amountFixed) + ' ' + currentCoinConfig.value.baseCoin : '0.00 ' + currentCoinConfig.value.baseCoin;
+  } else {
+    // 卖出：实际得到的 USDT = total - fee（统一使用 formatAssetBalance 确保 2 位小数）
+    const total = spotTotal.value;
+    const fee = spotEstimatedFee.value;
+    const received = total - fee;
+    return received > 0 ? formatAssetBalance(received, 'USDT') + ' USDT' : '0.00 USDT';
+  }
 });
 
 const formatAvailableBalance = computed(() => {
-  if (orderSide.value === 'buy') return formatNumber(availableBalance.value) + ' USDT';
-  else return formatNumber(availableBalance.value) + ' ' + symbol.value;
+  if (orderSide.value === 'buy') {
+    return formatAssetBalance(availableBalance.value, 'USDT') + ' USDT';
+  } else {
+    return formatAssetBalance(availableBalance.value, symbol.value) + ' ' + symbol.value;
+  }
 });
 
 const formatSellableBalance = computed(() => {
-  if (orderSide.value === 'buy') return formatNumber(availableBalance.value) + ' ' + symbol.value;
-  else return formatNumber(availableBalance.value) + ' USDT';
+  if (orderSide.value === 'buy') {
+    return formatAssetBalance(availableBalance.value, symbol.value) + ' ' + symbol.value;
+  } else {
+    return formatAssetBalance(availableBalance.value, 'USDT') + ' USDT';
+  }
 });
 
 // 使用 computed 来实现响应式翻译
@@ -891,28 +1133,163 @@ const selectFuturesPrice = (priceValue) => {
   }
 };
 
-const setFuturesAmountPercent = (percent) => {
-  selectedFuturesPercent.value = percent;
-  const balance = assetStore?.usdtBalance || 0;
-  const maxAmount = balance / (orderType.value === 'market' ? markPrice.value : parseFloat(futuresPrice.value || markPrice.value));
-  futuresAmount.value = (maxAmount * (percent / 100)).toFixed(currentCoinConfig.value.amountFixed);
+// 合约滑块变化事件处理
+const onFuturesSliderChange = (value) => {
+  // 确保值在有效范围内
+  const clampedValue = Math.max(0, Math.min(100, value));
+  futuresSliderValue.value = clampedValue;
+  setFuturesAmountPercent(clampedValue);
 };
 
+// 根据合约输入的数量反向计算滑块百分比
+const updateFuturesSliderFromAmount = () => {
+  try {
+    const inputAmount = parseFloat(futuresAmount.value);
+    if (isNaN(inputAmount) || inputAmount <= 0) {
+      futuresSliderValue.value = 0;
+      return;
+    }
+    
+    const balance = assetStore?.usdtBalance || 0;
+    if (balance <= 0) {
+      futuresSliderValue.value = 0;
+      return;
+    }
+    
+    const orderPrice = orderType.value === 'market' ? markPrice.value : parseFloat(futuresPrice.value || markPrice.value);
+    if (!orderPrice || orderPrice <= 0) {
+      futuresSliderValue.value = 0;
+      return;
+    }
+    
+    // 基于可用保证金和杠杆计算最大可开仓位
+    const maxAmount = (balance * currentLeverage.value) / orderPrice;
+    
+    if (maxAmount <= 0) {
+      futuresSliderValue.value = 0;
+      return;
+    }
+    
+    // percent = (inputAmount / maxAmount) * 100
+    const percent = Math.min(100, Math.max(0, (inputAmount / maxAmount) * 100));
+    
+    // 直接使用计算出的百分比（允许任意精度）
+    futuresSliderValue.value = Math.round(percent);
+  } catch (error) {
+    console.error('Error updating futures slider from amount:', error);
+  }
+};
+
+// 合约数量输入处理
+const handleFuturesAmountInput = (e) => {
+  let value = e.target.value;
+  if (value.includes('-')) value = value.replace(/-/g, '');
+  const numValue = parseFloat(value);
+  if (!isNaN(numValue) && numValue < 0) value = Math.abs(numValue).toString();
+  if (value === '' || value === '-') { 
+    futuresAmount.value = '';
+    futuresSliderValue.value = 0;
+    return; 
+  }
+  futuresAmount.value = value;
+  
+  // 反向计算百分比：根据输入的数量更新滑块值
+  updateFuturesSliderFromAmount();
+};
+
+const setFuturesAmountPercent = (percent) => {
+  selectedFuturesPercent.value = percent;
+  try {
+    const balance = assetStore?.usdtBalance || 0;
+    if (balance <= 0) {
+      futuresSliderValue.value = 0;
+      futuresAmount.value = '';
+      return;
+    }
+    
+    const orderPrice = orderType.value === 'market' ? markPrice.value : parseFloat(futuresPrice.value || markPrice.value);
+    if (!orderPrice || orderPrice <= 0) {
+      futuresSliderValue.value = 0;
+      futuresAmount.value = '';
+      return;
+    }
+    
+    // 基于可用保证金和杠杆计算最大可开仓位
+    // 最大可开数量 = (可用保证金 * 杠杆倍数) / 价格
+    const maxAmount = (balance * currentLeverage.value) / orderPrice;
+    
+    // 如果是 100%，预留极小缓冲空间（防止计算精度问题）
+    let scalingFactor = percent / 100;
+    if (percent === 100) {
+      scalingFactor = 0.999; // 预留 0.1% 缓冲
+    }
+    
+    const calculatedAmount = maxAmount * scalingFactor;
+    futuresAmount.value = calculatedAmount > 0 ? calculatedAmount.toFixed(currentCoinConfig.value.amountFixed) : '';
+  } catch (error) {
+    console.error('Error setting futures amount percent:', error);
+    futuresSliderValue.value = 0;
+    futuresAmount.value = '';
+  }
+};
+
+// ========== 合约交易计算属性 ==========
+
+// 获取当前有效的价格（市价单使用标记价格，限价单使用用户输入价格）
+const futuresCurrentPrice = computed(() => {
+  if (orderType.value === 'market') {
+    return markPrice.value; // 市价单使用标记价格
+  }
+  return parseFloat(futuresPrice.value) || markPrice.value; // 限价单使用用户输入，否则使用标记价格
+});
+
+// 合约名义价值
+const futuresNotionalValue = computed(() => {
+  const p = futuresCurrentPrice.value;
+  const a = parseFloat(futuresAmount.value) || 0;
+  
+  if (p <= 0 || a <= 0) return 0;
+  
+  // 名义价值 = 价格 * 数量
+  return p * a;
+});
+
+// 合约预估手续费
+const futuresEstimatedFee = computed(() => {
+  const notional = futuresNotionalValue.value;
+  if (notional <= 0) return 0;
+  
+  // 手续费 = 名义价值 * 费率
+  return notional * FUTURES_FEE_RATE;
+});
+
+// 格式化合约预估手续费显示
 const formatFuturesEstimatedFee = computed(() => {
-  if (!futuresPrice.value || !futuresAmount.value) return '0.00';
-  const total = parseFloat(futuresPrice.value) * parseFloat(futuresAmount.value);
-  const feeRate = assetStore.currentFuturesFeeRate || 0.0004;
-  const fee = total * feeRate;
+  const fee = futuresEstimatedFee.value;
   return fee > 0 ? fee.toFixed(4) : '0.00';
 });
 
+// 合约保证金（所需保证金）
+const futuresMargin = computed(() => {
+  const notional = futuresNotionalValue.value;
+  const leverage = currentLeverage.value || 20;
+  
+  if (notional <= 0 || leverage <= 0) return 0;
+  
+  // 保证金 = 名义价值 / 杠杆倍数
+  return notional / leverage;
+});
+
+// 合约总额（显示名义价值，也可以显示保证金）
+const futuresTotal = computed(() => {
+  // 这里显示名义价值，如果需要显示保证金，可以改为 futuresMargin.value
+  return futuresNotionalValue.value;
+});
+
+// 格式化合约总额显示
 const formatFuturesTotalAmount = computed(() => {
-  if (!futuresAmount.value) return '0.00';
-  if (orderType.value === 'market') {
-    return (markPrice.value * parseFloat(futuresAmount.value)).toFixed(2);
-  }
-  if (!futuresPrice.value) return '0.00';
-  return (parseFloat(futuresPrice.value) * parseFloat(futuresAmount.value)).toFixed(2);
+  const total = futuresTotal.value;
+  return total > 0 ? total.toFixed(2) : '0.00';
 });
 
 const isFuturesFormValid = computed(() => {
@@ -958,66 +1335,140 @@ const updatePositionsPnl = () => {
   });
 };
 
-const handleLong = () => {
+const handleLong = async () => {
   if (!isFuturesFormValid.value) {
     showToast({ message: t('trade.fill_all_fields'), duration: 2000 });
     return;
   }
-  const orderPrice = orderType.value === 'market' ? markPrice.value : parseFloat(futuresPrice.value);
-  showToast({
-    message: orderType.value === 'market' 
-      ? t('trade.market_order_submitted') 
-      : t('trade.limit_order_submitted'),
-    duration: 2000
-  });
-  const positionValue = orderPrice * parseFloat(futuresAmount.value);
-  const margin = positionValue / currentLeverage.value;
-  const liquidationPrice = calculateLiquidationPrice(orderPrice, currentLeverage.value, 'long');
-  positions.value.push({
-    symbol: symbol.value,
-    side: 'long',
-    quantity: parseFloat(futuresAmount.value),
-    entryPrice: orderPrice,
-    leverage: currentLeverage.value,
-    margin: margin,
-    liquidationPrice: liquidationPrice,
-    unrealizedPnl: 0,
-    unrealizedPnlPercent: 0
-  });
-  futuresAmount.value = '';
-  futuresPrice.value = '';
-  selectedFuturesPercent.value = null;
+  
+  isLoading.value = true;
+  
+  try {
+    const orderPrice = orderType.value === 'market' ? markPrice.value : parseFloat(futuresPrice.value);
+    
+    const params = {
+      symbol: `${symbol.value}/USDT`,
+      side: 'BUY',
+      type: orderType.value.toUpperCase(),
+      price: orderPrice,
+      amount: parseFloat(futuresAmount.value),
+      leverage: currentLeverage.value
+    };
+    
+    console.log('📤 发送合约开多请求:', params);
+    
+    const response = await createFuturesOrder(params);
+    const responseData = response.data || response;
+    
+    if (responseData && responseData.code === 200) {
+      showToast({
+        message: responseData.message || t('trade.order_submitted'),
+        icon: 'success',
+        duration: 2000
+      });
+      
+      // 刷新持仓列表和资产余额
+      await fetchFuturesPositions();
+      await assetStore.initData();
+      
+      // 清空输入框
+      futuresAmount.value = '';
+      futuresPrice.value = '';
+      selectedFuturesPercent.value = null;
+      futuresSliderValue.value = 0;
+      
+      console.log('✅ 合约开多成功，持仓列表和资产余额已刷新');
+    } else {
+      throw new Error(responseData?.message || t('trade.order_failed'));
+    }
+  } catch (error) {
+    console.error('❌ 合约开多失败:', error);
+    
+    let errorMessage = t('trade.order_failed') || '开仓失败，请重试';
+    if (error.response?.data?.detail) {
+      errorMessage = error.response.data.detail;
+    } else if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    showToast({
+      message: errorMessage,
+      icon: 'fail',
+      duration: 3000
+    });
+  } finally {
+    isLoading.value = false;
+  }
 };
 
-const handleShort = () => {
+const handleShort = async () => {
   if (!isFuturesFormValid.value) {
     showToast({ message: t('trade.fill_all_fields'), duration: 2000 });
     return;
   }
-  const orderPrice = orderType.value === 'market' ? markPrice.value : parseFloat(futuresPrice.value);
-  showToast({
-    message: orderType.value === 'market' 
-      ? t('trade.market_order_submitted') 
-      : t('trade.limit_order_submitted'),
-    duration: 2000
-  });
-  const positionValue = orderPrice * parseFloat(futuresAmount.value);
-  const margin = positionValue / currentLeverage.value;
-  const liquidationPrice = calculateLiquidationPrice(orderPrice, currentLeverage.value, 'short');
-  positions.value.push({
-    symbol: symbol.value,
-    side: 'short',
-    quantity: parseFloat(futuresAmount.value),
-    entryPrice: orderPrice,
-    leverage: currentLeverage.value,
-    margin: margin,
-    liquidationPrice: liquidationPrice,
-    unrealizedPnl: 0,
-    unrealizedPnlPercent: 0
-  });
-  futuresAmount.value = '';
-  futuresPrice.value = '';
-  selectedFuturesPercent.value = null;
+  
+  isLoading.value = true;
+  
+  try {
+    const orderPrice = orderType.value === 'market' ? markPrice.value : parseFloat(futuresPrice.value);
+    
+    const params = {
+      symbol: `${symbol.value}/USDT`,
+      side: 'SELL',
+      type: orderType.value.toUpperCase(),
+      price: orderPrice,
+      amount: parseFloat(futuresAmount.value),
+      leverage: currentLeverage.value
+    };
+    
+    console.log('📤 发送合约开空请求:', params);
+    
+    const response = await createFuturesOrder(params);
+    const responseData = response.data || response;
+    
+    if (responseData && responseData.code === 200) {
+      showToast({
+        message: responseData.message || t('trade.order_submitted'),
+        icon: 'success',
+        duration: 2000
+      });
+      
+      // 刷新持仓列表和资产余额
+      await fetchFuturesPositions();
+      await assetStore.initData();
+      
+      // 清空输入框
+      futuresAmount.value = '';
+      futuresPrice.value = '';
+      selectedFuturesPercent.value = null;
+      futuresSliderValue.value = 0;
+      
+      console.log('✅ 合约开空成功，持仓列表和资产余额已刷新');
+    } else {
+      throw new Error(responseData?.message || t('trade.order_failed'));
+    }
+  } catch (error) {
+    console.error('❌ 合约开空失败:', error);
+    
+    let errorMessage = t('trade.order_failed') || '开仓失败，请重试';
+    if (error.response?.data?.detail) {
+      errorMessage = error.response.data.detail;
+    } else if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    showToast({
+      message: errorMessage,
+      icon: 'fail',
+      duration: 3000
+    });
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 const handleTakeProfitStopLoss = (position, index) => {
@@ -1049,12 +1500,54 @@ const handleClosePosition = async (position, index) => {
       cancelButtonText: t('trade.close_position_cancel_btn'),
       confirmButtonColor: '#F6465D'
     });
-    positions.value.splice(index, 1);
-    showToast({
-      message: t('trade.position_closed'),
-      icon: 'success',
-      duration: 2000
-    });
+    
+    isLoading.value = true;
+    
+    try {
+      const symbolPair = position.symbol.includes('/') ? position.symbol : `${position.symbol}/USDT`;
+      
+      const response = await closeFuturesPositionApi({
+        symbol: symbolPair,
+        amount: position.quantity
+      });
+      
+      const responseData = response.data || response;
+      
+      if (responseData && responseData.code === 200) {
+        showToast({
+          message: responseData.message || t('trade.position_closed'),
+          icon: 'success',
+          duration: 2000
+        });
+        
+        // 刷新持仓列表和资产余额
+        await fetchFuturesPositions();
+        await assetStore.initData();
+        
+        console.log('✅ 平仓成功，持仓列表和资产余额已刷新');
+      } else {
+        throw new Error(responseData?.message || t('trade.close_failed'));
+      }
+    } catch (error) {
+      console.error('❌ 平仓失败:', error);
+      
+      let errorMessage = t('trade.close_failed') || '平仓失败，请重试';
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      showToast({
+        message: errorMessage,
+        icon: 'fail',
+        duration: 3000
+      });
+    } finally {
+      isLoading.value = false;
+    }
   } catch {
     // 用户取消
   }
@@ -1084,33 +1577,256 @@ const formatOrderTime = (timestamp) => {
 
 const scrollToTop = () => { window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
-const handleSubmitOrder = () => {
-  const amountValue = parseFloat(amount.value);
-  if (isNaN(amountValue) || amountValue <= 0) { showToast({ message: t('trade.amount_invalid'), icon: 'fail' }); return; }
-  if (!isOrderValid.value) { showToast({ message: t('trade.fill_all_fields'), duration: 2000 }); return; }
-  
-  const orderPrice = orderType.value === 'market' ? lastPrice.value : parseFloat(price.value);
-  const order = { side: orderSide.value, type: orderType.value, price: orderPrice, quantity: parseFloat(amount.value), symbol: symbol.value, timestamp: Date.now() };
-  
-  ordersList.value.push(order);
-  showToast({ message: orderType.value === 'market' ? t('trade.market_order_submitted') : t('trade.limit_order_submitted'), duration: 2000 });
-  
-  if (orderType.value === 'limit') price.value = '';
-  amount.value = ''; selectedPercent.value = null;
+// 获取当前委托订单列表
+const fetchOpenOrders = async () => {
+  try {
+    const response = await getOrders({ status: 'NEW' });
+    const responseData = response.data || response;
+    
+    if (responseData && responseData.code === 200 && responseData.data) {
+      // 映射后端数据格式到前端显示格式
+      ordersList.value = responseData.data.map(order => ({
+        order_id: order.order_id,
+        side: order.side.toLowerCase(), // BUY -> buy, SELL -> sell
+        type: order.type.toLowerCase(), // LIMIT -> limit, MARKET -> market
+        price: order.price,
+        quantity: order.quantity || order.amount, // 兼容 quantity 和 amount 字段
+        symbol: order.symbol.split('/')[0], // "BTC/USDT" -> "BTC"
+        timestamp: order.timestamp || order.create_time || Date.now(),
+        status: order.status
+      }));
+      
+      console.log('✅ 获取当前委托订单成功:', ordersList.value);
+    } else {
+      ordersList.value = [];
+      console.warn('⚠️ 获取订单列表失败:', responseData);
+    }
+  } catch (error) {
+    console.error('❌ 获取订单列表失败:', error);
+    ordersList.value = [];
+  }
 };
 
-const cancelOrder = (index) => { ordersList.value.splice(index, 1); showToast({ message: t('trade.order_cancelled'), duration: 2000 }); };
+// 获取合约持仓列表
+const fetchFuturesPositions = async () => {
+  try {
+    // 检查钱包是否连接
+    if (!assetStore.isWalletConnected) {
+      positions.value = [];
+      return;
+    }
+    
+    const response = await getFuturesPositionsApi();
+    const responseData = response.data || response;
+    
+    if (responseData && responseData.code === 200 && responseData.data) {
+      // 映射后端数据格式到前端显示格式
+      positions.value = responseData.data.map(pos => ({
+        symbol: pos.symbol?.split('/')[0] || pos.symbol, // "BTC/USDT" -> "BTC"
+        side: pos.side?.toLowerCase() || 'long', // LONG -> long, SHORT -> short
+        quantity: pos.size || pos.quantity || 0,
+        entryPrice: pos.entry_price || 0,
+        leverage: pos.leverage || 20,
+        margin: pos.margin || 0,
+        liquidationPrice: pos.liquidation_price || 0,
+        unrealizedPnl: pos.unrealized_pnl || 0,
+        unrealizedPnlPercent: 0, // 将在 updatePositionsPnl 中计算
+        markPrice: pos.mark_price || markPrice.value
+      }));
+      
+      // 更新盈亏
+      updatePositionsPnl();
+      
+      console.log('✅ 获取合约持仓成功:', positions.value);
+    } else {
+      positions.value = [];
+      console.warn('⚠️ 获取合约持仓失败:', responseData);
+    }
+  } catch (error) {
+    console.error('❌ 获取合约持仓失败:', error);
+    positions.value = [];
+  }
+};
+
+const handleSubmitOrder = async () => {
+  // 第一步：表单校验
+  const amountValue = parseFloat(amount.value);
+  if (isNaN(amountValue) || amountValue <= 0) {
+    showToast({ message: t('trade.amount_invalid'), icon: 'fail' });
+    return;
+  }
+  
+  if (!isOrderValid.value) {
+    showToast({ message: t('trade.fill_all_fields'), duration: 2000 });
+    return;
+  }
+
+  // 第二步：设置加载状态
+  isLoading.value = true;
+
+  try {
+    // 第三步：构造发送给后端的参数对象
+    const orderPrice = orderType.value === 'market' ? lastPrice.value : parseFloat(price.value);
+    
+    const params = {
+      symbol: `${symbol.value}/USDT`, // 确保格式为 "BTC/USDT"
+      side: orderSide.value.toUpperCase(), // 转换为大写：'BUY' 或 'SELL'
+      type: orderType.value.toUpperCase(), // 转换为大写：'LIMIT' 或 'MARKET'
+      price: orderType.value === 'market' ? orderPrice : parseFloat(price.value), // 市价单传当前市场价，限价单传用户输入的价格
+      amount: parseFloat(amount.value),
+      use_beat_discount: false // 暂时不使用 BEAT 折扣
+    };
+
+    console.log('📤 发送下单请求:', params);
+
+    // 第四步：调用后端 API
+    const response = await createOrder(params);
+    
+    console.log('✅ 下单成功:', response);
+
+    // 第五步：成功处理
+    // 注意：axios 返回的是 response 对象，后端数据在 response.data 中
+    const responseData = response.data || response;
+    
+    if (responseData && responseData.code === 200) {
+      // 显示成功提示
+      showToast({
+        message: orderType.value === 'market' 
+          ? t('trade.market_order_submitted') 
+          : t('trade.limit_order_submitted'),
+        icon: 'success',
+        duration: 2000
+      });
+
+      // 关键：刷新用户资产余额
+      await assetStore.initData();
+      
+      // 关键：刷新当前委托订单列表
+      await fetchOpenOrders();
+
+      // 清空输入框
+      if (orderType.value === 'limit') {
+        price.value = '';
+      }
+      amount.value = '';
+      selectedPercent.value = null;
+      spotSliderValue.value = 0; // 重置滑块
+
+      console.log('✅ 订单提交成功，资产余额和订单列表已刷新');
+    } else {
+      throw new Error(responseData?.message || t('trade.order_failed'));
+    }
+  } catch (error) {
+    // 第六步：失败处理
+    console.error('❌ 下单失败:', error);
+    
+    let errorMessage = t('trade.order_failed') || '订单提交失败，请重试';
+    
+    // 尝试从错误响应中提取错误信息
+    if (error.response?.data?.detail) {
+      errorMessage = error.response.data.detail;
+    } else if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    showToast({
+      message: errorMessage,
+      icon: 'fail',
+      duration: 3000
+    });
+  } finally {
+    // 第七步：重置加载状态
+    isLoading.value = false;
+  }
+};
+
+const cancelOrder = async (index) => {
+  const order = ordersList.value[index];
+  if (!order || !order.order_id) {
+    showToast({ message: t('trade.order_not_found'), icon: 'fail' });
+    return;
+  }
+
+  try {
+    // 调用后端撤单接口
+    const response = await cancelOrderApi(order.order_id);
+    const responseData = response.data || response;
+    
+    if (responseData && responseData.code === 200) {
+      showToast({ 
+        message: t('trade.order_cancelled'), 
+        icon: 'success',
+        duration: 2000 
+      });
+      
+      // 刷新订单列表和资产余额
+      await fetchOpenOrders();
+      await assetStore.initData();
+      
+      console.log('✅ 订单撤销成功，订单列表和资产余额已刷新');
+    } else {
+      throw new Error(responseData?.message || t('trade.cancel_failed'));
+    }
+  } catch (error) {
+    console.error('❌ 撤销订单失败:', error);
+    
+    let errorMessage = t('trade.cancel_failed') || '撤销订单失败，请重试';
+    
+    if (error.response?.data?.detail) {
+      errorMessage = error.response.data.detail;
+    } else if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    showToast({
+      message: errorMessage,
+      icon: 'fail',
+      duration: 3000
+    });
+  }
+};
 
 const goToKlineChart = () => { router.push({ path: '/market', query: { symbol: symbol.value } }); };
 
 const switchCoin = (newSymbol) => {
-  symbol.value = newSymbol; showCoinSelect.value = false;
-  router.push({ path: '/trade', query: { symbol: newSymbol, side: orderSide.value } });
-  showToast({ message: t('trade.switched_to', { symbol: `${newSymbol}/USDT` }), duration: 1500 });
+  // 1. 更新 symbol
+  symbol.value = newSymbol;
+  
+  // 2. 关闭币种选择弹窗
+  showCoinSelect.value = false;
+  
+  // 3. 清空 amount 输入框
+  amount.value = '';
+  
+  // 4. 重置百分比按钮状态和滑块值
+  selectedPercent.value = null;
+  spotSliderValue.value = 0;
+  
+  // 5. 更新价格为新币种的当前市价
+  updatePriceForSymbol(newSymbol);
+  
+  // 6. 更新 URL 参数（使用 replace 避免产生历史记录）
+  router.replace({ 
+    path: '/trade', 
+    query: { 
+      symbol: newSymbol, 
+      side: orderSide.value 
+    } 
+  });
+  
+  // 7. 显示切换成功提示
+  showToast({ 
+    message: t('trade.switched_to', { symbol: `${newSymbol}/USDT` }), 
+    duration: 1500 
+  });
 };
 
 // 初始化函数
-const initializeTrade = () => {
+const initializeTrade = async () => {
   generateOrderBook();
   // 首次进入也初始化价格
   updatePriceForSymbol(symbol.value);
@@ -1118,14 +1834,30 @@ const initializeTrade = () => {
   // 确保 WebSocket 连接（用于合约交易的标记价格）
   marketStore.ensureConnection();
   
-  if (ordersList.value.length === 0) {
-    const now = Date.now();
-    const buyPrice = lastPrice.value * 0.998;
-    ordersList.value.push({ side: 'buy', type: 'limit', price: buyPrice, quantity: 0.0015, symbol: symbol.value, timestamp: now - 300000 });
-    const sellPrice = lastPrice.value * 1.002;
-    ordersList.value.push({ side: 'sell', type: 'limit', price: sellPrice, quantity: 0.002, symbol: symbol.value, timestamp: now - 180000 });
+  // 检查钱包连接状态
+  if (assetStore.isWalletConnected) {
+    // 获取当前委托订单列表（现货）
+    await fetchOpenOrders();
+    
+    // 如果当前在合约 Tab，获取合约持仓
+    if (activeTradeTab.value === 'futures') {
+      await fetchFuturesPositions();
+    }
   }
 };
+
+// 监听 Tab 切换，加载对应的数据
+watch(activeTradeTab, async (newTab) => {
+  if (assetStore.isWalletConnected) {
+    if (newTab === 'futures') {
+      // 切换到合约 Tab，获取持仓列表
+      await fetchFuturesPositions();
+    } else if (newTab === 'spot') {
+      // 切换到现货 Tab，获取订单列表
+      await fetchOpenOrders();
+    }
+  }
+});
 
 onMounted(() => {
   initializeTrade();
@@ -1439,6 +2171,62 @@ onDeactivated(() => {
 .est-label { color: #848E9C; }
 .est-value { color: #EAECEF; }
 
+/* 滑块容器样式 */
+.slider-wrapper {
+  padding: 10px 10px; /* 上下左右留出空间，防止滑块被切断 */
+  margin-bottom: 12px;
+}
+
+.slider-container {
+  padding: 10px 10px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+}
+
+/* 刻度标签栏 */
+.slider-marks {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 4px 0;
+  margin-top: 4px;
+}
+
+.mark-item {
+  font-size: 10px;
+  color: #848E9C;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  user-select: none;
+  min-width: 32px;
+  text-align: center;
+}
+
+.mark-item:hover {
+  color: #FCD535;
+  background-color: rgba(252, 213, 53, 0.1);
+}
+
+.mark-item:active {
+  transform: scale(0.95);
+}
+
+/* 自定义滑块按钮样式 */
+.custom-slider-button {
+  width: 24px;
+  color: #000;
+  font-size: 10px;
+  line-height: 16px;
+  text-align: center;
+  background-color: #FCD535;
+  border-radius: 100px;
+  font-weight: bold;
+}
+
+/* 保留旧样式以兼容（如果其他地方还在使用） */
 .percent-row { display: flex; gap: 8px; }
 .percent-btn {
   flex: 1; height: 32px; display: flex; align-items: center; justify-content: center;
@@ -1452,14 +2240,23 @@ onDeactivated(() => {
 }
 .fee-estimate-label { font-size: 12px; color: #848E9C; }
 .fee-estimate-value { font-size: 13px; color: #EAECEF; font-weight: 600; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 4px; }
+.fee-usdt-note { font-size: 11px; color: #8E8E93; font-weight: 400; margin-left: 4px; }
 .discount-badge { font-size: 11px; color: #FCD535; font-weight: 500; }
 
 .total-row {
   display: flex; justify-content: space-between; align-items: center; padding: 8px 12px;
-  background-color: #1C1C1E; border-radius: 4px; height: 36px; margin-bottom: 16px;
+  background-color: #1C1C1E; border-radius: 4px; height: 36px; margin-bottom: 8px;
 }
 .total-label { font-size: 12px; color: #848E9C; }
 .total-value { font-size: 13px; color: #EAECEF; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.estimated-received-row {
+  display: flex; justify-content: space-between; align-items: center; padding: 10px 12px;
+  background-color: rgba(252, 213, 53, 0.08); border-radius: 4px; height: 40px; margin-bottom: 16px;
+  border: 1px solid rgba(252, 213, 53, 0.2);
+}
+.received-label { font-size: 13px; color: #D4AF37; font-weight: 600; }
+.received-value { font-size: 15px; color: #FCD535; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.3px; }
 
 .available-row { display: flex; flex-direction: column; gap: 4px; padding: 0 4px; }
 .avail-item { display: flex; align-items: center; justify-content: flex-end; font-size: 11px; }

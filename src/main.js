@@ -59,6 +59,19 @@ const messages = {
     },
     connect: 'Connect Wallet',
 
+    // 认证相关
+    auth: {
+      signMessage: 'Welcome to TruthFi. Sign to verify your identity and access institutional services.',
+      connectSuccess: 'Wallet connected successfully',
+      loginSuccess: 'Welcome to TruthFi!',
+      installWallet: 'Please install wallet',
+      disconnectConfirm: 'Disconnect Wallet',
+      disconnectMessage: 'Are you sure you want to disconnect your wallet?',
+      disconnectConfirmBtn: 'Disconnect',
+      disconnectCancelBtn: 'Cancel',
+      disconnected: 'Wallet disconnected'
+    },
+
     // 充值页面（新增 subtitle）
     deposit: {
       title: 'Deposit Crypto',
@@ -98,6 +111,15 @@ const messages = {
       network_bsc: 'BSC',
       estimated_time_prefix: ' Estimated Arrival: about',  // 前缀 + 空格
       min_withdraw: 'Min Withdraw 10 USDT' ,  // 新增：最小提现模板
+      scan_coming_soon: 'Scan feature coming soon',
+      scanning: 'Scanning...',
+      scan_success: 'Scan successful',
+      scan_failed: 'Scan failed, please try again',
+      addr_required: 'Please enter withdraw address',
+      amount_invalid: 'Please enter a valid amount',
+      amount_below_fee: 'Withdrawal amount cannot cover the network fee',
+      insufficient_balance: 'Insufficient balance',
+      failed: 'Withdraw failed, please try again',
       coins: {  // 新增 coins 对象
         usdt: 'USDT',  // 英文下显示 'USDT'
         btc: 'BTC',
@@ -349,6 +371,7 @@ const messages = {
       cancel: 'Cancel',
       order_submitted: 'Order submitted',
       order_cancelled: 'Order cancelled',
+      order_failed: 'Order submission failed',
       fill_all_fields: 'Please fill all fields',
       chart_coming_soon: 'Chart feature coming soon',
       assets: 'Assets',
@@ -359,6 +382,7 @@ const messages = {
       estimated_fee: 'Estimated Fee',
       discount_applied: '(25% discount applied)',
       estimated_value: 'Estimated Value',
+      estimated_received: 'Est. Received',
       market_price_hint: 'Execute at best market price',
       sellable: 'Sellable',
       frozen: 'Frozen',
@@ -681,6 +705,19 @@ const messages = {
       me: '我的'
     },
     connect: '连接钱包',
+    
+    // 认证相关
+    auth: {
+      signMessage: '欢迎登录 TruthFi。请签名以验证身份并访问机构级服务。',
+      connectSuccess: '钱包连接成功',
+      loginSuccess: '欢迎登录 TruthFi！',
+      installWallet: '请安装钱包',
+      disconnectConfirm: '断开连接',
+      disconnectMessage: '确定要断开钱包连接吗？',
+      disconnectConfirmBtn: '断开',
+      disconnectCancelBtn: '取消',
+      disconnected: '钱包已断开'
+    },
 
     // 充值页面（新增 subtitle）
     deposit: {
@@ -722,6 +759,15 @@ const messages = {
       network_bsc: 'BSC',
       estimated_time_prefix: ' 预计到账: 约', // 新增
       min_withdraw: '最小提现10 USDT' , // 新增
+      scan_coming_soon: '扫描功能开发中',
+      scanning: '正在扫描...',
+      scan_success: '扫描成功',
+      scan_failed: '扫描失败，请重试',
+      addr_required: '请输入提现地址',
+      amount_invalid: '请输入有效的提现金额',
+      amount_below_fee: '提现金额无法覆盖手续费',
+      insufficient_balance: '余额不足',
+      failed: '提现失败，请重试',
       coins: {// 新增 coins 对象
         usdt: '泰达币',  // 中文下显示 '泰达币'
         btc: '比特币',
@@ -974,6 +1020,7 @@ const messages = {
       cancel: '撤单',
       order_submitted: '订单已提交',
       order_cancelled: '订单已取消',
+      order_failed: '订单提交失败',
       fill_all_fields: '请填写所有字段',
       chart_coming_soon: '图表功能即将推出',
       assets: '资产',
@@ -984,6 +1031,7 @@ const messages = {
       estimated_fee: '预估手续费',
       discount_applied: '（已享25%折扣）',
       estimated_value: '估值',
+      estimated_received: '预估到账',
       market_price_hint: '以当前最优价格成交',
       sellable: '可卖',
       frozen: '冻结',
@@ -1269,6 +1317,9 @@ const i18n = createI18n({
   globalInjection: true,
   messages
 })
+
+// 导出 i18n 实例，供 Pinia store 使用
+export { i18n }
 
 const app = createApp(App)
 const pinia = createPinia()

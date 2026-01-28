@@ -69,10 +69,15 @@
       <div class="total-assets-container">
         <div class="assets-label">{{ $t('wallet.est_total_value') }}</div>
         <div class="assets-main">
-          <span class="total-amount">{{ displayTotalValue }}</span>
+          <span class="total-amount" :class="{ 'profit': isEquityProfit, 'loss': !isEquityProfit }">{{ displayEquity }}</span>
           <span class="profit-badge" v-if="assetStore.isWalletConnected">{{ displayTodayPnL }} {{ displayTodayPnLPercent }}</span>
         </div>
-        <div class="legal-currency">≈ ¥ {{ displayTotalValueCNY }}</div>
+        <div class="legal-currency">≈ ¥ {{ displayEquityCNY }}</div>
+        <div v-if="assetStore.futuresUnrealizedPnl !== 0" class="futures-pnl-hint">
+          <span :class="{ 'pnl-profit': assetStore.futuresUnrealizedPnl > 0, 'pnl-loss': assetStore.futuresUnrealizedPnl < 0 }">
+            合约盈亏: {{ formatFuturesPnl }}
+          </span>
+        </div>
       </div>
   
         <div class="action-grid">
@@ -100,6 +105,14 @@
       <div class="test-reset-section" style="display: none;">
         <button class="reset-test-btn" @click="handleResetTestData">
           Reset Test Data
+        </button>
+      </div>
+
+      <!-- 后端连通性测试按钮 -->
+      <div class="test-ping-section">
+        <button class="test-ping-btn" @click="testBackendConnection">
+          <van-icon name="link-o" />
+          <span>测试后端连接</span>
         </button>
       </div>
     </div>
@@ -213,7 +226,7 @@
           </div>
           
           <div class="coin-right">
-            <span class="coin-balance">{{ displayBalance(asset.balance) }}</span>
+            <span class="coin-balance">{{ displayBalance(asset.balance, asset.symbol) }}</span>
             <span class="coin-price">{{ displayValue(asset.value) }} USDT</span>
           </div>
         </div>
@@ -231,9 +244,11 @@
 import { ref, computed, onMounted, watch, onActivated, onDeactivated } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { showToast } from 'vant';
+import { showToast, showDialog } from 'vant';
 import { useAssetStore } from '@/stores/assets';
 import EarnList from './EarnList.vue';
+import request from '@/utils/request';
+import { formatAssetAmount } from '@/utils/format';
 
 defineOptions({
   name: 'Me'
@@ -358,6 +373,64 @@ const filteredAndSortedAssets = computed(() => {
   return filtered;
 });
 
+// 账户权益计算（包含合约未实现盈亏）
+const equity = computed(() => {
+  // 优先使用 equity（包含合约盈亏），如果没有则回退到 totalPortfolioValue
+  return assetStore.equity > 0 ? assetStore.equity : assetStore.totalPortfolioValue;
+});
+
+// 判断账户权益是否盈利（equity > balance）
+const isEquityProfit = computed(() => {
+  if (!assetStore.isWalletConnected) return false;
+  return equity.value > assetStore.usdtBalance;
+});
+
+// 显示账户权益（支持脱敏和钱包连接状态）
+const displayEquity = computed(() => {
+  // 如果钱包未连接，显示 "---"
+  if (!assetStore.isWalletConnected) {
+    return '---';
+  }
+  if (isPrivacyMode.value) {
+    return '****';
+  }
+  return equity.value.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+});
+
+// 显示账户权益人民币价值（支持脱敏和钱包连接状态）
+const displayEquityCNY = computed(() => {
+  // 如果钱包未连接，显示 "---"
+  if (!assetStore.isWalletConnected) {
+    return '---';
+  }
+  if (isPrivacyMode.value) {
+    return '****';
+  }
+  return (equity.value * 7.2).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+});
+
+// 格式化合约未实现盈亏显示
+const formatFuturesPnl = computed(() => {
+  if (!assetStore.isWalletConnected) {
+    return '---';
+  }
+  if (isPrivacyMode.value) {
+    return '****';
+  }
+  const pnl = assetStore.futuresUnrealizedPnl || 0;
+  const sign = pnl >= 0 ? '+' : '';
+  return `${sign}${Math.abs(pnl).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })} USDT`;
+});
+
 // 总资产计算（使用 Store 中的统一计算逻辑，确保与"赚币"页面一致）
 // 优先使用 totalPortfolioValue 确保数据一致性
 const totalValue = computed(() => {
@@ -395,7 +468,7 @@ const displayTotalValueCNY = computed(() => {
 });
 
 // 显示余额（支持脱敏和钱包连接状态）
-const displayBalance = (balance) => {
+const displayBalance = (balance, symbol = '') => {
   // 如果钱包未连接，显示 "---"
   if (!assetStore.isWalletConnected) {
     return '---';
@@ -403,10 +476,8 @@ const displayBalance = (balance) => {
   if (isPrivacyMode.value) {
     return '****';
   }
-  return balance.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 8
-  });
+  // 使用统一的格式化函数
+  return formatAssetAmount(balance, symbol);
 };
 
 // 显示价值（支持脱敏和钱包连接状态）
@@ -431,13 +502,97 @@ const formatAddress = (address) => {
   return `${address.slice(0, 4)}...${address.slice(-4)}`;
 };
 
+// 钱包检测状态
+const isWalletInstalled = ref(false);
+
+// 初始化数据
+const initializeData = async () => {
+  try {
+    // 如果钱包已连接，则获取最新资产数据
+    if (assetStore.isWalletConnected) {
+      await assetStore.initData();
+    }
+  } catch (error) {
+    console.error('初始化数据失败:', error);
+  }
+};
+
+// 页面加载时检测钱包并初始化数据
+onMounted(async () => {
+  // 检测 window.ethereum 是否存在
+  isWalletInstalled.value = assetStore.checkWalletInstalled();
+  
+  if (!isWalletInstalled.value) {
+    // 如果钱包未安装，显示提示（使用 i18n 翻译）
+    showToast({
+      message: t('auth.installWallet'),
+      icon: 'warning-o',
+      duration: 3000
+    });
+  }
+  
+  // 初始化数据（如果钱包已连接）
+  await initializeData();
+  
+  // 根据 query 参数自动切换 Tab
+  applyTabFromQuery();
+});
+
 // 连接钱包
 const handleConnectWallet = async () => {
   try {
-    await assetStore.connectWallet();
-    // 连接成功提示已在 store 中处理
+    // 再次检查钱包是否安装
+    if (!assetStore.checkWalletInstalled()) {
+      showToast({
+        message: t('auth.installWallet'),
+        icon: 'warning-o',
+        duration: 3000
+      });
+      return;
+    }
+
+    // 调用连接钱包方法
+    // connectWallet 会：
+    // 1. 调用 eth_requestAccounts 弹出钱包连接请求
+    // 2. 连接成功后立即发起 personal_sign 签名
+    // 3. 将签名发送到后端 http://127.0.0.1:8000/api/v1/auth/connect
+    // 4. 如果成功，返回包含 token 的对象
+    const result = await assetStore.connectWallet();
+    
+    // 检查是否成功获取了 JWT Token
+    if (result && result.success && result.token) {
+      // 成功反馈：显示欢迎登录提示（使用 i18n 翻译）
+      showToast({
+        message: t('auth.loginSuccess'),
+        icon: 'success',
+        duration: 3000
+      });
+      
+      // 连接成功后立即获取最新资产数据
+      await assetStore.initData();
+    } else {
+      // 如果没有获取到 token，显示错误
+      showToast({
+        message: t('auth.loginFailed') || '登录失败：未获取到 Token',
+        icon: 'fail',
+        duration: 3000
+      });
+    }
+    
   } catch (error) {
-    console.error('Failed to connect wallet:', error);
+    console.error('连接钱包失败:', error);
+    
+    // 显示错误提示
+    let errorMessage = '连接钱包失败';
+    if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    showToast({
+      message: errorMessage,
+      icon: 'fail',
+      duration: 3000
+    });
   }
 };
 
@@ -518,6 +673,68 @@ const goToIDO = () => {
 // 跳转到邀请返佣页面
 const toReferral = () => {
   router.push('/referral');
+};
+
+/**
+ * 测试后端连通性
+ * 使用 async/await 处理异步请求
+ * 
+ * async/await 说明：
+ * 1. async: 声明一个异步函数，函数内部可以使用 await
+ * 2. await: 等待 Promise 完成，让异步代码看起来像同步代码
+ * 3. try/catch: 捕获异步操作中的错误
+ * 
+ * 对比：
+ * - 使用 Promise.then(): request.get('/ping').then(res => {...}).catch(err => {...})
+ * - 使用 async/await: const res = await request.get('/ping') (更简洁易读)
+ */
+const testBackendConnection = async () => {
+  try {
+    // await: 等待请求完成，如果成功，response 会包含服务器返回的数据
+    // 如果失败，会抛出错误，被 catch 捕获
+    const response = await request.get('/ping');
+    
+    // 请求成功，显示后端返回的内容
+    showDialog({
+      title: '连接成功！',
+      message: `后端返回：${JSON.stringify(response.data, null, 2)}`,
+      confirmButtonText: '确定',
+      confirmButtonColor: '#D4AF37'
+    });
+    
+    // 也可以在控制台查看详细信息
+    console.log('✅ 后端连接成功:', response.data);
+    console.log('完整响应对象:', response);
+    
+  } catch (error) {
+    // 请求失败，打印错误日志
+    console.error('❌ 后端连接失败:', error);
+    
+    // 根据错误类型显示不同的错误信息
+    let errorMessage = '连接失败';
+    
+    if (error.response) {
+      // 服务器返回了错误响应（如 404, 500 等）
+      errorMessage = `服务器错误: ${error.response.status} - ${error.response.statusText}`;
+      console.error('错误响应数据:', error.response.data);
+    } else if (error.request) {
+      // 请求已发出，但没有收到响应（可能是网络问题或 CORS 问题）
+      errorMessage = '无法连接到服务器，请检查：\n1. 后端是否运行在 http://127.0.0.1:8000\n2. 是否配置了 CORS';
+      console.error('请求已发出但无响应:', error.request);
+    } else {
+      // 在设置请求时发生了错误
+      errorMessage = `请求配置错误: ${error.message}`;
+      console.error('请求配置错误:', error.message);
+    }
+    
+    // 显示错误弹窗
+    showDialog({
+      title: '连接失败',
+      message: errorMessage,
+      confirmButtonText: '确定',
+      confirmButtonColor: '#FF453A'
+    });
+  }
 };
 
 // 处理 PnL 卡片点击（可扩展为跳转到详细页面）
@@ -630,11 +847,6 @@ const applyTabFromQuery = () => {
   }
 };
 
-// 初始化时检查 URL 参数
-onMounted(() => {
-  applyTabFromQuery();
-});
-
 // 监听路由变化，防止在当前页跳转时不更新
 watch(() => route.query.tab, (newTab) => {
   if (newTab) {
@@ -642,10 +854,12 @@ watch(() => route.query.tab, (newTab) => {
   }
 });
 
-// 如果使用了 keep-alive，需要在激活时也检查
-onActivated(() => {
+// 如果使用了 keep-alive，需要在激活时也检查并刷新数据
+onActivated(async () => {
   applyTabFromQuery();
-    });
+  // 页面激活时刷新资产数据（如果钱包已连接）
+  await initializeData();
+});
     </script>
   
   <style scoped>
@@ -816,6 +1030,28 @@ onActivated(() => {
     color: #FFFFFF;
     line-height: 1.2;
     display: inline-block;
+    transition: color 0.3s ease;
+  }
+  
+  .total-amount.profit {
+    color: #0ECB81; /* 盈利时显示绿色 */
+  }
+  
+  .total-amount.loss {
+    color: #FF453A; /* 亏损时显示红色 */
+  }
+  
+  .futures-pnl-hint {
+    margin-top: 8px;
+    font-size: 12px;
+  }
+  
+  .futures-pnl-hint .pnl-profit {
+    color: #0ECB81;
+  }
+  
+  .futures-pnl-hint .pnl-loss {
+    color: #FF453A;
   }
 
   .profit-badge {
@@ -941,6 +1177,39 @@ onActivated(() => {
 .reset-test-btn:active {
   opacity: 0.7;
   background-color: rgba(246, 70, 93, 0.3);
+}
+
+/* 后端连通性测试按钮 */
+.test-ping-section {
+  margin-top: 12px;
+  padding: 0 16px;
+}
+
+.test-ping-btn {
+  width: 100%;
+  height: 44px;
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 8px;
+  color: #D4AF37;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.test-ping-btn:active {
+  opacity: 0.8;
+  background: rgba(212, 175, 55, 0.2);
+  transform: scale(0.98);
+}
+
+.test-ping-btn .van-icon {
+  font-size: 16px;
 }
 
   .primary {

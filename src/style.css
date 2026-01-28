@@ -52,40 +52,70 @@ body::-webkit-scrollbar {
   border-radius: 16px !important;
   border: 1px solid rgba(255, 255, 255, 0.05) !important;
   overflow: hidden !important;
+  width: 85% !important;
+  max-width: 400px !important;
 }
 
 .van-dialog__header {
   color: #FFFFFF !important;
   font-weight: 600 !important;
-  padding-top: 26px !important;
+  font-size: 18px !important;
+  padding: 32px 28px 8px 28px !important;
+  line-height: 1.5 !important;
+  text-align: center !important;
 }
 
 .van-dialog__message {
   color: #8E8E93 !important;
   font-size: 15px !important;
-  line-height: 1.5 !important;
+  line-height: 1.7 !important;
   white-space: normal !important;
   word-break: break-word !important;
   max-height: 60vh !important;
   overflow-y: auto !important;
-  padding: 24px !important;
+  padding: 0 28px 32px 28px !important;
+  margin: 0 !important;
+  text-align: center !important;
 }
 
 /* Dialog Buttons */
 .van-dialog__footer {
   border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+  padding: 0 !important;
+  margin-top: 0 !important;
+  display: flex !important;
+}
+
+.van-dialog__cancel,
+.van-dialog__confirm {
+  flex: 1 !important;
+  height: 56px !important;
+  font-size: 16px !important;
+  border: none !important;
+  background-color: transparent !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transition: background-color 0.2s ease !important;
 }
 
 .van-dialog__cancel {
-  background-color: #1C1C1E !important;
   color: #8E8E93 !important;
+  font-weight: 500 !important;
+}
+
+.van-dialog__cancel:active {
+  background-color: rgba(255, 255, 255, 0.05) !important;
 }
 
 .van-dialog__confirm, 
 .van-dialog__confirm:active {
-  background-color: #1C1C1E !important;
-  color: #FCD535 !important;
+  color: #F6465D !important;
   font-weight: 600 !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.van-dialog__confirm:active {
+  background-color: rgba(246, 70, 93, 0.1) !important;
 }
 
 .van-hairline--top::after,

@@ -61,6 +61,8 @@
           type="success" 
           size="small" 
           icon="plus"
+          :loading="isLoading"
+          :disabled="isLoading"
           @click="handleTestDeposit"
         >
           [测试专用] 模拟到账 1000 USDT
@@ -86,10 +88,14 @@
   import { useI18n } from 'vue-i18n';
   import { showToast } from 'vant';
   import { useAssetStore } from '@/stores/assets';
+  import { deposit } from '@/api/wallet';
 
   const router = useRouter();
   const { t } = useI18n();
   const assetStore = useAssetStore();
+  
+  // 加载状态
+  const isLoading = ref(false);
   
   const networks = {
     TRC20: { name: 'TRC20 (Tron)', address: 'TR7NHqjeKQxGTCuuP8qACu7f9i5dU9Y9aF' },
@@ -155,12 +161,50 @@
   };
 
   // 测试专用：模拟充值
-  const handleTestDeposit = () => {
-    assetStore.deposit(1000); // 调用 Pinia 的加钱方法
-    showToast({
-      message: '充值成功 +1000 USDT',
-      icon: 'success',
-    });
+  const handleTestDeposit = async () => {
+    // 设置加载状态，防止重复点击
+    isLoading.value = true;
+    
+    try {
+      // 核心调用：调用真实的 deposit API，硬编码充值 1000 USDT
+      const response = await deposit({ 
+        amount: 1000, 
+        currency: 'USDT' 
+      });
+      
+      // 成功反馈
+      if (response.data && response.data.code === 200) {
+        showToast({
+          message: '测试充值成功！资金已到账',
+          icon: 'success',
+          duration: 3000
+        });
+        
+        // 调用 assetStore.initData() 刷新右上角的总余额
+        await assetStore.initData();
+        
+        console.log('✅ 充值成功，余额已刷新');
+      } else {
+        throw new Error(response.data?.message || '充值失败');
+      }
+    } catch (error) {
+      // 失败反馈
+      console.error('❌ 充值失败:', error);
+      
+      let errorMessage = error.message || '充值失败，请重试';
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      }
+      
+      showToast({
+        message: errorMessage,
+        icon: 'fail',
+        duration: 3000
+      });
+    } finally {
+      // 结束：重置加载状态
+      isLoading.value = false;
+    }
   };
   </script>
   

@@ -1,6 +1,9 @@
 ﻿import { defineStore } from 'pinia'
 import * as walletApi from '@/api/wallet'
 import * as tradeApi from '@/api/trade'
+import { walletConnect } from '@/api/user'
+import { useI18n } from 'vue-i18n'
+import request from '@/utils/request'
 
 // Helper function to load from localStorage (用于钱包连接状态和 BNB 开关状态)
 const loadFromStorage = (key, defaultValue) => {
@@ -44,6 +47,7 @@ export const useAssetStore = defineStore('assets', {
       // 资金和订单数据 - 初始值设为空或0，通过 initData() 从 API 获取
       usdtBalance: 0,
       holdings: {},
+      userAssets: null, // 完整的资产数据（包括冻结余额）
       orders: [],
       transactionHistory: [],
       
@@ -52,6 +56,10 @@ export const useAssetStore = defineStore('assets', {
       
       // BEAT 代币持仓（暂时保留，后续可迁移到 API）
       beatBalance: 0,
+      
+      // 账户权益相关（包含合约盈亏）
+      equity: 0, // 账户权益 = 可用余额 + 冻结保证金 + 合约未实现盈亏
+      futuresUnrealizedPnl: 0, // 合约未实现盈亏总计
       
       // 钱包连接状态 - 保留从 localStorage 读取
       isWalletConnected: loadFromStorage('isWalletConnected', false),
@@ -70,9 +78,18 @@ export const useAssetStore = defineStore('assets', {
   },
 
   getters: {
-    // 获取指定币种的持仓数量
+    // 获取指定币种的持仓数量（优先从 userAssets 中获取）
     getHolding: (state) => (symbol) => {
-      return state.holdings[symbol] || 0
+      // 自动转大写，防止 symbol 大小写不匹配
+      const key = symbol?.toUpperCase()
+      
+      // 优先从 userAssets 中获取（包含所有币种）
+      if (state.userAssets && state.userAssets[key] !== undefined) {
+        return state.userAssets[key] || 0
+      }
+      
+      // 兼容旧代码：从 holdings 中获取
+      return state.holdings[key] || 0
     },
 
     // 获取所有持仓列表（用于 Me.vue 显示）
@@ -128,15 +145,25 @@ export const useAssetStore = defineStore('assets', {
       return beatValue + idoFrozen
     },
 
-    // 计算 IEO 待解锁价值（模拟数据，可后续扩展）
+    // 计算 IEO 待解锁价值（动态数据）
     idoPendingValue: (state) => {
-      // 模拟待解锁金额
-      return 500.00
+      // 从 IDO 记录中计算待解锁金额（动态数据，不再使用写死的 500）
+      // TODO: 后续可以从 API 获取真实的待解锁金额
+      return state.idoRecords.reduce((sum, record) => {
+        // 假设有 pending 字段表示待解锁金额
+        return sum + (record.pending || 0)
+      }, 0)
     },
 
     // 统一计算所有子账户之和（用于确保数据一致性）
+    // 注意：如果 equity 已设置，优先使用 equity（包含合约盈亏）
     totalPortfolioValue: (state) => {
-      // 直接计算，避免 getter 访问顺序问题
+      // 如果 equity 已设置且大于 0，优先使用 equity（包含合约未实现盈亏）
+      if (state.equity > 0) {
+        return state.equity
+      }
+      
+      // 否则使用传统计算方式（兼容旧代码）
       let spotValue = state.usdtBalance || 0
       Object.keys(state.holdings).forEach(symbol => {
         if (symbol === 'BEAT') return
@@ -151,7 +178,10 @@ export const useAssetStore = defineStore('assets', {
       }, 0)
       const earnValue = beatValue + idoFrozen
       
-      const idoPending = 500.00 // 模拟待解锁金额
+      // 动态计算 IEO 待解锁金额（不再使用写死的 500）
+      const idoPending = state.idoRecords.reduce((sum, record) => {
+        return sum + (record.pending || 0)
+      }, 0)
       
       return spotValue + earnValue + idoPending
     },
@@ -183,15 +213,108 @@ export const useAssetStore = defineStore('assets', {
       this.isLoading = true
       try {
         // 并行获取资产和订单数据
-        const [assetsRes, ordersRes] = await Promise.all([
-          walletApi.getAssets(),
+        // 获取完整资产数据（包括冻结余额和账户权益）
+        const [assetsResponse, ordersRes] = await Promise.all([
+          request.get('/api/v1/assets/'), // 使用 /api/v1/assets/ 获取包含 equity 的数据
           tradeApi.getOrders()
         ])
 
         // 检查响应格式
-        if (assetsRes.code === 200 && assetsRes.data) {
-          this.usdtBalance = assetsRes.data.balance || 0
-          this.holdings = assetsRes.data.holdings || {}
+        // /api/v1/assets/ 返回的格式：{ code: 200, data: { balance: 50000, equity: 51234.56, holdings: {...}, frozen: {...}, futures_unrealized_pnl: 1234.56 } }
+        console.log('前端接收到的完整资产数据:', assetsResponse)
+        
+        // 处理响应数据
+        let assetsData = null
+        
+        // 检查响应格式：axios 返回 { data: { code: 200, data: {...} } }
+        if (assetsResponse && assetsResponse.data) {
+          const response = assetsResponse.data
+          
+          // 检查后端返回的 code
+          if (response.code === 200 && response.data) {
+            assetsData = response.data
+          } else {
+            console.warn('⚠️ 后端返回错误:', response.message || '未知错误')
+          }
+        } else {
+          console.warn('⚠️ 资产数据格式异常:', assetsResponse)
+        }
+        
+        // 如果成功获取到数据，更新状态
+        if (assetsData) {
+          // 提取账户权益和合约盈亏
+          this.equity = assetsData.equity || 0
+          this.futuresUnrealizedPnl = assetsData.futures_unrealized_pnl || 0
+          
+          // 兼容旧格式：如果返回的是旧格式（直接是资产字典），则从 holdings 中提取
+          let assets = {}
+          if (assetsData.holdings) {
+            // 新格式：从 holdings 和 frozen 中提取
+            assets = { ...assetsData.holdings }
+            // 添加冻结余额字段
+            Object.keys(assetsData.frozen || {}).forEach(coin => {
+              assets[`${coin}_frozen`] = assetsData.frozen[coin]
+            })
+          } else {
+            // 旧格式：直接使用 data
+            assets = assetsData
+          }
+          
+          // 存储完整的资产数据（包括冻结余额）
+          this.userAssets = { ...assets }
+          
+          // 提取 USDT 可用余额
+          const balance = assets.USDT || 0
+          
+          // 全量提取所有币种的可用余额（排除 USDT 和冻结字段）
+          const holdings = {}
+          const supportedCoins = ['BTC', 'ETH', 'BNB', 'SOL', 'DOGE', 'TRX', 'BEAT', 'AIC']
+          
+          supportedCoins.forEach(coin => {
+            if (assets[coin] !== undefined) {
+              holdings[coin] = assets[coin] || 0
+            }
+          })
+          
+          // 如果后端返回了其他币种，也一并添加（动态支持）
+          Object.keys(assets).forEach(key => {
+            // 排除 USDT、冻结字段（_frozen）和已处理的币种
+            if (key !== 'USDT' && !key.endsWith('_frozen') && !supportedCoins.includes(key)) {
+              holdings[key] = assets[key] || 0
+            }
+          })
+          
+          console.log('解析后的资产数据:', { 
+            balance, 
+            holdings, 
+            equity: this.equity,
+            futuresUnrealizedPnl: this.futuresUnrealizedPnl,
+            frozen: { 
+              USDT: assets.USDT_frozen || 0, 
+              BTC: assets.BTC_frozen || 0,
+              ETH: assets.ETH_frozen || 0,
+            },
+            fullAssets: assets
+          })
+          
+          // 关键：确保将 API 返回的 balance 正确赋值给 state
+          this.usdtBalance = balance
+          this.holdings = holdings
+          
+          // 如果 holdings 中有 BEAT，也更新 beatBalance（兼容旧代码）
+          if (holdings.BEAT !== undefined) {
+            this.beatBalance = holdings.BEAT
+          }
+          
+          // 调试确认：在赋值语句之后，立即打印确保数据真的存进去了
+          console.log('✅ State更新后余额:', this.usdtBalance)
+          console.log('✅ State更新后持仓:', this.holdings)
+          console.log('✅ State更新后账户权益:', this.equity)
+          console.log('✅ State更新后合约盈亏:', this.futuresUnrealizedPnl)
+          console.log('✅ State更新后完整资产数据:', this.userAssets)
+        } else {
+          // 如果没有获取到数据，不要重置为 0，保留现有数据
+          console.warn('⚠️ 未能获取到资产数据，保留现有状态')
         }
 
         if (ordersRes.code === 200 && ordersRes.data) {
@@ -211,35 +334,128 @@ export const useAssetStore = defineStore('assets', {
         }
 
       } catch (error) {
-        console.error('Error initializing data:', error)
-        // 初始化失败时使用默认值
-        this.usdtBalance = 0
-        this.holdings = {}
-        this.orders = []
-        this.transactionHistory = []
+        console.error('❌ Error initializing data:', error)
+        console.error('错误详情:', error.response?.data || error.message)
+        
+        // 初始化失败时，不要重置为 0，保留现有数据
+        // 这样可以避免因为网络问题或临时错误导致数据丢失
+        // 只有在确认是认证失败（401）时才清除数据
+        if (error.response?.status === 401) {
+          console.warn('⚠️ 认证失败，清除数据')
+          this.usdtBalance = 0
+          this.holdings = {}
+          this.orders = []
+          this.transactionHistory = []
+          this.equity = 0
+          this.futuresUnrealizedPnl = 0
+        } else {
+          console.warn('⚠️ 数据加载失败，保留现有状态')
+        }
       } finally {
         this.isLoading = false
       }
     },
     
     /**
-     * 连接钱包（模拟）
+     * 检查是否安装了 Web3 钱包
+     * 在页面加载时调用，用于检测钱包是否可用
+     */
+    checkWalletInstalled() {
+      return typeof window.ethereum !== 'undefined'
+    },
+
+    /**
+     * 连接 Web3 钱包并完成认证
+     * 参考币安 Web3 钱包的认证流程
      */
     async connectWallet() {
-      // 模拟网络延迟
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // 生成模拟地址
-      const mockAddress = '0x' + Array.from({ length: 40 }, () => 
-        Math.floor(Math.random() * 16).toString(16)
-      ).join('')
-      
-      this.isWalletConnected = true
-      this.walletAddress = mockAddress
-      saveToStorage('isWalletConnected', true)
-      saveToStorage('walletAddress', mockAddress)
-      
-      return mockAddress
+      try {
+        // 1. 检查是否安装了 Web3 钱包（MetaMask、币安钱包等）
+        // window.ethereum 是 Web3 钱包注入到浏览器的全局对象
+        if (typeof window.ethereum === 'undefined') {
+          throw new Error('请安装钱包')
+        }
+
+        // 2. 请求用户授权连接钱包
+        // request 方法会弹出钱包授权窗口，用户需要点击"连接"或"授权"
+        const accounts = await window.ethereum.request({
+          method: 'eth_requestAccounts'
+        });
+        
+        if (!accounts || accounts.length === 0) {
+          throw new Error('没有检测到钱包地址');
+        }
+        // --- 到这里，address 已经在整个 connectWallet 内部“自由”了 ---
+        const address = accounts[0];
+
+        // 3. 获取 i18n 消息
+        const { i18n } = await import('@/main');
+        const message = i18n.global.t('auth.signMessage');
+
+        // 4. 发起签名
+        // 使用 personal_sign 方法请求用户签名消息
+        // 用户需要在钱包中确认签名，签名后会返回签名结果（十六进制字符串）
+        const signature = await window.ethereum.request({
+          method: 'personal_sign',
+          params: [message, address]
+        });
+
+        // 5. 将签名发送到后端进行验证
+        // walletConnect 函数会调用 request.post('/api/v1/auth/connect', data)
+        // 实际请求的 URL 是：http://127.0.0.1:8000/api/v1/auth/connect
+        const response = await walletConnect({
+          address: address,
+          signature: signature,
+          message: message
+        });
+
+        // 6. 检查响应格式，确保后端返回了正确的数据
+        if (response.data && response.data.code === 200 && response.data.data) {
+          // 8. 成功拿到后端返回的 JWT Token
+          const token = response.data.data.token
+
+          // 9. 将 Token 存入 localStorage
+          // localStorage.setItem('token', ...) 用于持久化存储 Token
+          // 即使关闭浏览器，Token 也会保留（直到用户清除浏览器数据）
+          // 后续请求会自动从 localStorage 读取 Token 并添加到请求头
+          localStorage.setItem('token', token)
+
+          // 10. 保存钱包地址到 localStorage（可选，用于显示）
+          localStorage.setItem('walletAddress', address)
+
+          // 11. 更新 Store 状态
+          this.isWalletConnected = true
+          this.walletAddress = address
+          saveToStorage('isWalletConnected', true)
+          saveToStorage('walletAddress', address)
+
+          // 12. 打印激活提示
+          console.log('✅ 机构级账户已激活')
+          console.log('钱包地址:', address)
+          console.log('Token:', token)
+
+          // 返回成功信息，包含地址和 token
+          return {
+            success: true,
+            address: address,
+            token: token
+          }
+        } else {
+          throw new Error('认证失败：服务器返回异常')
+        }
+
+      } catch (error) {
+        console.error('连接钱包失败:', error)
+        
+        // 如果是用户拒绝连接或签名，给出友好提示
+        if (error.code === 4001) {
+          throw new Error('用户拒绝了钱包连接请求')
+        } else if (error.code === -32002) {
+          throw new Error('钱包连接请求已在进行中，请稍候')
+        } else {
+          throw error
+        }
+      }
     },
     
     /**
@@ -272,17 +488,33 @@ export const useAssetStore = defineStore('assets', {
      * @param {number} amount - 充值金额
      * @returns {Promise<boolean>} - 成功返回 true
      */
-    async deposit(amount) {
+    /**
+     * 充值操作
+     * 调用后端 API 进行充值，成功后重新拉取余额
+     * 
+     * @param {number} amount - 充值金额
+     * @param {string} currency - 币种，默认为 'USDT'
+     * @returns {Promise<boolean>} 成功返回 true
+     */
+    async deposit(amount, currency = 'USDT') {
       this.isLoading = true
       try {
-        const res = await walletApi.deposit(amount)
+        // 调用后端 API 进行充值
+        const res = await walletApi.deposit(amount, currency)
         
-        if (res.code === 200) {
-          // 重新拉取最新数据
+        // 检查响应格式
+        if (res.data && res.data.code === 200 && res.data.data) {
+          // 更新本地状态（可选，也可以等 initData 拉取）
+          const assets = res.data.data
+          this.usdtBalance = assets.USDT || this.usdtBalance
+          if (assets.BTC !== undefined) this.holdings.BTC = assets.BTC
+          if (assets.BEAT !== undefined) this.beatBalance = assets.BEAT
+          
+          // 重新拉取最新数据（确保数据一致性）
           await this.initData()
           return true
         } else {
-          throw new Error(res.msg || '充值失败')
+          throw new Error(res.data?.message || res.message || '充值失败')
         }
       } catch (error) {
         console.error('Deposit error:', error)
@@ -297,20 +529,40 @@ export const useAssetStore = defineStore('assets', {
      * @param {number} amount - 提现金额
      * @returns {Promise<boolean>} - 成功返回 true
      */
-    async withdraw(amount) {
+    /**
+     * 提现操作
+     * 调用后端 API 进行提现，成功后重新拉取余额
+     * 
+     * @param {number} amount - 提现金额
+     * @param {string} currency - 币种，默认为 'USDT'
+     * @returns {Promise<boolean>} 成功返回 true
+     */
+    async withdraw(amount, currency = 'USDT') {
       this.isLoading = true
       try {
-        const res = await walletApi.withdraw(amount)
+        // 调用后端 API 进行提现
+        const res = await walletApi.withdraw(amount, currency)
         
-        if (res.code === 200) {
-          // 重新拉取最新数据
+        // 检查响应格式
+        if (res.data && res.data.code === 200 && res.data.data) {
+          // 更新本地状态（可选，也可以等 initData 拉取）
+          const assets = res.data.data
+          this.usdtBalance = assets.USDT || this.usdtBalance
+          if (assets.BTC !== undefined) this.holdings.BTC = assets.BTC
+          if (assets.BEAT !== undefined) this.beatBalance = assets.BEAT
+          
+          // 重新拉取最新数据（确保数据一致性）
           await this.initData()
           return true
         } else {
-          throw new Error(res.msg || '提现失败')
+          throw new Error(res.data?.message || res.message || '提现失败')
         }
       } catch (error) {
         console.error('Withdraw error:', error)
+        // 如果是余额不足的错误，显示更友好的提示
+        if (error.response?.data?.detail) {
+          throw new Error(error.response.data.detail)
+        }
         throw error
       } finally {
         this.isLoading = false

@@ -27,6 +27,15 @@
           </span>
         </div>
         
+        <!-- 测试按钮：验证 API 连通性和 Token 自动携带 -->
+        <div 
+          class="test-btn" 
+          @click="handleTestUserInfo"
+          title="测试获取用户信息"
+        >
+          🛠️
+        </div>
+        
         <div class="lang-icon-box" @click="langRef?.open()">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EAECEF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"></circle>
@@ -71,6 +80,13 @@
 
     <LanguageSelect ref="langRef" />
     
+    <!-- 断开连接确认弹窗 -->
+    <DisconnectDialog 
+      :show="showDisconnectDialog"
+      @confirm="handleDisconnectConfirm"
+      @cancel="handleDisconnectCancel"
+    />
+    
     <!-- 全局通知组件 (高端黑金风格) -->
     <transition name="notif-slide">
       <div v-if="notification.show" class="global-notification" @click="handleNotifClick">
@@ -89,10 +105,15 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { Tabbar, TabbarItem, Icon, showConfirmDialog, showToast } from 'vant';
+import { useI18n } from 'vue-i18n';
+import { Tabbar, TabbarItem, Icon, showToast } from 'vant';
 import LanguageSelect from './components/LanguageSelect.vue';
+import DisconnectDialog from './components/DisconnectDialog.vue';
 import { useAssetStore } from '@/stores/assets';
 import { useMarketStore } from '@/stores/market';
+import { getCurrentUser } from '@/api/user';
+
+const { t } = useI18n();
 
 // 注册组件
 const VanTabbar = Tabbar;
@@ -107,6 +128,7 @@ const routerReady = ref(false);
 const assetStore = useAssetStore();
 const marketStore = useMarketStore();
 const isConnecting = ref(false);
+const showDisconnectDialog = ref(false);
 
 // --- 全局通知状态 ---
 const notification = ref({
@@ -249,31 +271,24 @@ const formatAddress = (address) => {
 const handleWalletClick = async () => {
   if (assetStore.isWalletConnected) {
     // 已连接，显示断开确认对话框
-    try {
-      await showConfirmDialog({
-        title: '断开连接',
-        message: '确定要断开钱包连接吗？',
-        confirmButtonText: '断开',
-        cancelButtonText: '取消',
-        confirmButtonColor: '#F6465D'
-      });
-      assetStore.disconnectWallet();
-      showToast({
-        message: '钱包已断开',
-        icon: 'success'
-      });
-    } catch {
-      // 用户取消
-    }
+    showDisconnectDialog.value = true;
   } else {
     // 未连接，开始连接
     isConnecting.value = true;
     try {
-      const address = await assetStore.connectWallet();
+      const result = await assetStore.connectWallet();
+      // 检查返回结果，如果成功获取 token，显示欢迎登录提示
+      if (result && result.success && result.token) {
+        showToast({
+          message: t('auth.loginSuccess'),
+          icon: 'success'
+        });
+      } else {
       showToast({
-        message: '钱包连接成功',
+          message: t('auth.loginSuccess'),
         icon: 'success'
       });
+      }
     } catch (error) {
       showToast({
         message: '连接失败，请重试',
@@ -285,12 +300,86 @@ const handleWalletClick = async () => {
   }
 };
 
+// 处理断开连接确认
+const handleDisconnectConfirm = () => {
+  assetStore.disconnectWallet();
+  showDisconnectDialog.value = false;
+  showToast({
+    message: t('auth.disconnected'),
+    icon: 'success'
+  });
+};
+
+// 处理断开连接取消
+const handleDisconnectCancel = () => {
+  showDisconnectDialog.value = false;
+};
+
+// 测试获取用户信息（验证 API 连通性和 Token 自动携带）
+const handleTestUserInfo = async () => {
+  try {
+    console.log('🧪 开始测试获取用户信息...');
+    
+    // 调用 getCurrentUser API
+    // request.js 的请求拦截器会自动从 localStorage 读取 token 并添加到请求头
+    const response = await getCurrentUser();
+    
+    // 成功时：显示后端返回的用户数据
+    const userData = response.data;
+    console.log('✅ 测试成功');
+    console.log('返回数据:', userData);
+    
+    // 使用 alert 显示数据（格式化 JSON）
+    alert(`✅ 测试成功！\n\n返回数据：\n${JSON.stringify(userData, null, 2)}`);
+    
+  } catch (error) {
+    // 失败时：显示错误信息
+    console.error('❌ 测试失败:', error);
+    
+    // 获取错误详情
+    let errorMessage = '请求失败';
+    if (error.response) {
+      // 服务器返回了错误响应
+      errorMessage = `请求失败：${error.response.status} - ${error.response.data?.detail || error.response.data?.message || '未知错误'}`;
+      console.error('错误响应:', error.response.data);
+    } else if (error.request) {
+      // 请求已发出但没有收到响应
+      errorMessage = '请求失败：网络错误或服务器无响应';
+      console.error('请求已发出但无响应:', error.request);
+    } else {
+      // 请求配置错误
+      errorMessage = `请求失败：${error.message}`;
+      console.error('请求配置错误:', error.message);
+    }
+    
+    // 使用 alert 显示错误
+    alert(`❌ ${errorMessage}`);
+  }
+};
+
 // App 启动时初始化数据
 onMounted(async () => {
   try {
+    // 检查 localStorage 中是否有 Token
+    const token = localStorage.getItem('token');
+    
+    if (token) {
+      // 如果有 Token，立即调用 initData() 拉取用户数据
+      console.log('🔄 页面加载，正在初始化用户数据...');
+      console.log('检测到 Token，开始拉取余额和订单数据');
+      
     await assetStore.initData();
+      
+      console.log('✅ 用户数据初始化完成');
+      console.log('当前余额:', assetStore.usdtBalance);
+    } else {
+      // 如果没有 Token，说明用户未登录，不需要拉取数据
+      console.log('ℹ️ 未检测到 Token，跳过数据初始化（用户未登录）');
+    }
   } catch (error) {
-    console.error('Failed to initialize app data:', error);
+    console.error('❌ 初始化用户数据失败:', error);
+    // 如果是 401 错误，说明 Token 无效，响应拦截器会自动处理
+    // 这里只记录错误，不进行额外处理
   }
 });
 </script>
@@ -360,6 +449,35 @@ body, html, #app {
 }
 .app-logo { height: 28px; width: auto; }
 .header-right { display: flex; align-items: center; gap: 16px; }
+
+/* 测试按钮样式 */
+.test-btn {
+  background-color: #383E46;
+  color: #EAECEF;
+  font-size: 18px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  user-select: none;
+  min-width: 36px;
+  height: 32px;
+}
+
+.test-btn:hover {
+  background-color: #424850;
+  transform: scale(1.05);
+}
+
+.test-btn:active {
+  transform: scale(0.95);
+  opacity: 0.8;
+}
+
 .connect-wallet-btn { 
   background-color: #383E46; 
   color: #EAECEF; 

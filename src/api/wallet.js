@@ -1,10 +1,11 @@
 ﻿/**
  * 钱包相关 API
  * 负责资产、充值、提现等功能
- * 所有数据操作直接读写 localStorage，不依赖 Pinia Store
+ * 
+ * 注意：现在使用真实的后端 API，不再使用 Mock 数据
  */
 
-import { mockRequest } from './mockRequest';
+import request from '@/utils/request';
 
 /**
  * 从 localStorage 读取数据
@@ -33,125 +34,132 @@ const saveToStorage = (key, value) => {
 };
 
 /**
- * 获取资产列表
- * 返回 { balance: USDT余额, holdings: 持仓对象 }
+ * 获取资产余额
+ * 从后端 API 获取当前用户的资产余额
+ * 
+ * @returns {Promise} 返回资产余额
+ * 
+ * 返回格式：
+ * {
+ *   code: 200,
+ *   message: "获取余额成功",
+ *   data: {
+ *     USDT: 50000.0,
+ *     BTC: 0.0,
+ *     BEAT: 0.0
+ *   }
+ * }
+ */
+export function getBalance() {
+  return request.get('/api/v1/assets/balance');
+}
+
+/**
+ * 获取资产列表（兼容旧代码）
+ * 返回格式：{ code: 200, data: { balance: USDT余额, holdings: 持仓对象 } }
  */
 export function getAssets() {
-  return mockRequest(() => {
-    const balance = loadFromStorage('userBalance', 10000.00);
-    const holdings = loadFromStorage('userHoldings', {
-      BTC: 0.15,
-      ZEC: 8.50,
-      AIC: 3200.00
-    });
-
+  return getBalance().then(response => {
+    // 适配后端返回格式：{ code: 200, data: { USDT: 50000, BTC: 0, BEAT: 0 } }
+    const assets = response.data.data || {};
     return {
-      balance,
-      holdings
+      code: 200,
+      data: {
+        balance: assets.USDT || 0,
+        holdings: {
+          BTC: assets.BTC || 0,
+          BEAT: assets.BEAT || 0
+        }
+      }
     };
   });
 }
 
 /**
  * 充值
- * @param {number} amount - 充值金额
+ * 调用后端 API 进行充值操作
+ * 
+ * @param {Object} data - 充值数据对象
+ * @param {number} data.amount - 充值金额（必填）
+ * @param {string} data.currency - 币种，默认为 'USDT'
  * @returns {Promise} 返回最新余额
+ * 
+ * 使用示例：
+ * deposit({ amount: 1000, currency: 'USDT' })
+ * 
+ * 返回格式：
+ * {
+ *   code: 200,
+ *   message: "充值成功",
+ *   data: {
+ *     USDT: 51000.0,
+ *     BTC: 0.0,
+ *     BEAT: 0.0
+ *   }
+ * }
  */
-export function deposit(amount) {
-  return mockRequest(() => {
-    if (!amount || amount <= 0) {
-      throw new Error('充值金额必须大于 0');
-    }
+export function deposit(data) {
+  // 参数验证
+  if (!data || typeof data !== 'object') {
+    return Promise.reject(new Error('参数必须是一个对象'));
+  }
+  
+  const { amount, currency = 'USDT' } = data;
+  
+  if (!amount || amount <= 0) {
+    return Promise.reject(new Error('充值金额必须大于 0'));
+  }
 
-    // 读取当前余额
-    const currentBalance = loadFromStorage('userBalance', 10000.00);
-    
-    // 更新余额
-    const newBalance = currentBalance + amount;
-    saveToStorage('userBalance', newBalance);
-
-    // 读取交易历史
-    const txHistory = loadFromStorage('txHistory', []);
-    
-    // 生成交易记录
-    const now = new Date();
-    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-    const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    
-    const transaction = {
-      id: Date.now() + Math.random(),
-      time: `${dateStr} ${timeStr}`,
-      type: '充值',
-      amount: amount,
-      status: '成功',
-      tx_id: '0x' + Array.from({ length: 64 }, () => 
-        Math.floor(Math.random() * 16).toString(16)
-      ).join(''),
-      chain_name: 'TRC20'
-    };
-
-    // 添加到历史记录开头
-    txHistory.unshift(transaction);
-    saveToStorage('txHistory', txHistory);
-
-    return {
-      balance: newBalance,
-      transaction
-    };
+  // POST 请求到 /api/v1/assets/deposit
+  // request 中已配置 baseURL: 'http://127.0.0.1:8000'
+  // 实际请求的 URL 是：http://127.0.0.1:8000/api/v1/assets/deposit
+  return request.post('/api/v1/assets/deposit', {
+    amount: amount,
+    currency: currency
   });
 }
 
 /**
  * 提现
- * @param {number} amount - 提现金额
+ * 调用后端 API 进行提现操作
+ * 
+ * @param {Object} data - 提现数据对象
+ * @param {number} data.amount - 提现金额（必填）
+ * @param {string} data.currency - 币种，默认为 'USDT'
  * @returns {Promise} 返回最新余额
+ * 
+ * 使用示例：
+ * withdraw({ amount: 1000, currency: 'USDT' })
+ * 
+ * 返回格式：
+ * {
+ *   code: 200,
+ *   message: "提现成功",
+ *   data: {
+ *     USDT: 49000.0,
+ *     BTC: 0.0,
+ *     BEAT: 0.0
+ *   }
+ * }
  */
-export function withdraw(amount) {
-  return mockRequest(() => {
-    if (!amount || amount <= 0) {
-      throw new Error('提现金额必须大于 0');
-    }
+export function withdraw(data) {
+  // 参数验证
+  if (!data || typeof data !== 'object') {
+    return Promise.reject(new Error('参数必须是一个对象'));
+  }
+  
+  const { amount, currency = 'USDT' } = data;
+  
+  if (!amount || amount <= 0) {
+    return Promise.reject(new Error('提现金额必须大于 0'));
+  }
 
-    // 读取当前余额
-    const currentBalance = loadFromStorage('userBalance', 10000.00);
-    
-    // 检查余额是否足够
-    if (currentBalance < amount) {
-      throw new Error('余额不足');
-    }
-
-    // 扣除余额
-    const newBalance = currentBalance - amount;
-    saveToStorage('userBalance', newBalance);
-
-    // 读取交易历史
-    const txHistory = loadFromStorage('txHistory', []);
-    
-    // 生成交易记录
-    const now = new Date();
-    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-    const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    
-    const transaction = {
-      id: Date.now() + Math.random(),
-      time: `${dateStr} ${timeStr}`,
-      type: '提现',
-      amount: -amount, // 负数表示支出
-      status: '成功',
-      tx_id: '0x' + Array.from({ length: 64 }, () => 
-        Math.floor(Math.random() * 16).toString(16)
-      ).join(''),
-      chain_name: 'TRC20'
-    };
-
-    // 添加到历史记录开头
-    txHistory.unshift(transaction);
-    saveToStorage('txHistory', txHistory);
-
-    return {
-      balance: newBalance,
-      transaction
-    };
+  // POST 请求到 /api/v1/assets/withdraw
+  // request 中已配置 baseURL: 'http://127.0.0.1:8000'
+  // 实际请求的 URL 是：http://127.0.0.1:8000/api/v1/assets/withdraw
+  return request.post('/api/v1/assets/withdraw', {
+    amount: amount,
+    currency: currency
   });
 }
 
@@ -190,6 +198,7 @@ export function getWithdrawHistory() {
 }
 
 export default {
+  getBalance,
   getAssets,
   deposit,
   withdraw,
