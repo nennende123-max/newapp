@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="chain-explorer-page">
     <!-- 顶部导航 -->
     <div class="explorer-header">
@@ -9,6 +9,9 @@
         <span class="header-title">{{ $t('chain_explorer.title') }}</span>
       </div>
       <div class="header-right">
+        <div class="refresh-button" @click="handleManualRefresh" :class="{ refreshing: isRefreshing }">
+          <van-icon name="replay" size="18" />
+        </div>
         <div class="status-indicator">
           <div class="status-dot"></div>
           <span class="status-text">{{ $t('chain_explorer.network_status') }}</span>
@@ -29,6 +32,61 @@
       <div class="dashboard-card">
         <div class="card-label">{{ $t('chain_explorer.net_flow_24h') }}</div>
         <div class="card-value">{{ formatNetFlow(netFlow24h) }}</div>
+      </div>
+    </div>
+
+    <!-- 持仓列表（如果钱包已连接） -->
+    <div v-if="assetStore.isWalletConnected && positions.length > 0" class="positions-section">
+      <div class="section-header">
+        <h3 class="section-title">合约持仓</h3>
+        <span class="positions-count">{{ positions.length }} 个持仓</span>
+      </div>
+      <div class="positions-list">
+        <div 
+          v-for="(position, index) in positions" 
+          :key="index"
+          class="position-card"
+        >
+          <div class="position-header">
+            <span class="position-symbol">{{ position.symbol }}</span>
+            <span class="position-side" :class="position.side === 'long' ? 'side-long' : 'side-short'">
+              {{ position.side === 'long' ? '做多' : '做空' }}
+            </span>
+          </div>
+          <div class="position-info">
+            <div class="info-row">
+              <span class="info-label">开仓价:</span>
+              <span class="info-value">{{ formatPrice(position.entryPrice) }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">标记价:</span>
+              <span class="info-value">{{ formatPrice(position.markPrice) }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">数量:</span>
+              <span class="info-value">{{ formatQuantity(position.quantity) }} {{ position.symbol }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">杠杆:</span>
+              <span class="info-value">{{ position.leverage }}x</span>
+            </div>
+          </div>
+          <div class="position-pnl">
+            <div class="pnl-label">未实现盈亏</div>
+            <div 
+              class="pnl-value" 
+              :class="{ positive: position.unrealizedPnl >= 0, negative: position.unrealizedPnl < 0 }"
+            >
+              {{ position.unrealizedPnl >= 0 ? '+' : '' }}{{ formatUnrealizedPnl(position.unrealizedPnl) }} USDT
+            </div>
+            <div 
+              class="pnl-percent" 
+              :class="{ positive: position.unrealizedPnlPercent >= 0, negative: position.unrealizedPnlPercent < 0 }"
+            >
+              {{ position.unrealizedPnlPercent >= 0 ? '+' : '' }}{{ position.unrealizedPnlPercent.toFixed(2) }}%
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -75,10 +133,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch, onActivated, onDeactivated } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { Icon } from 'vant';
+import { useAssetStore } from '@/stores/assets';
+import { getPositions as getFuturesPositionsApi } from '@/api/futures';
+import { showToast } from 'vant';
+
+const assetStore = useAssetStore();
 
 const VanIcon = Icon;
 
@@ -267,6 +330,39 @@ const formatNetFlow = (value) => {
   return `$${value.toFixed(0)}`;
 };
 
+/**
+ * 格式化价格
+ */
+const formatPrice = (price) => {
+  if (!price && price !== 0) return '0.00';
+  return price.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};
+
+/**
+ * 格式化数量
+ */
+const formatQuantity = (quantity) => {
+  if (!quantity && quantity !== 0) return '0.00';
+  return quantity.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 6
+  });
+};
+
+/**
+ * 格式化未实现盈亏
+ */
+const formatUnrealizedPnl = (pnl) => {
+  if (!pnl && pnl !== 0) return '0.00';
+  return Math.abs(pnl).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};
+
 // --- 主循环 ---
 
 /**
@@ -303,7 +399,101 @@ const startBlockUpdate = () => {
   }, 1500);
 };
 
+// --- 持仓数据获取 ---
+
+// 获取持仓数据
+const fetchPositions = async () => {
+  if (!assetStore.isWalletConnected) {
+    positions.value = [];
+    return;
+  }
+  
+  try {
+    const response = await getFuturesPositionsApi();
+    const responseData = response.data || response;
+    
+    if (responseData && responseData.code === 200 && responseData.data) {
+      // 映射后端数据格式到前端显示格式（直接使用后端返回的 unrealized_pnl）
+      positions.value = responseData.data.map(pos => {
+        const margin = pos.margin || (pos.entry_price * pos.size / (pos.leverage || 20));
+        const unrealizedPnl = pos.unrealized_pnl || 0;
+        const unrealizedPnlPercent = margin > 0 ? (unrealizedPnl / margin) * 100 : 0;
+        
+        return {
+          symbol: pos.symbol?.split('/')[0] || pos.symbol,
+          side: pos.side?.toLowerCase() || 'long',
+          quantity: pos.size || pos.quantity || 0,
+          entryPrice: pos.entry_price || 0,
+          leverage: pos.leverage || 20,
+          margin: margin,
+          liquidationPrice: pos.liquidation_price || 0,
+          unrealizedPnl: unrealizedPnl, // 直接使用后端返回的值
+          unrealizedPnlPercent: unrealizedPnlPercent,
+          markPrice: pos.mark_price || 0
+        };
+      });
+      
+      console.log('✅ 获取持仓成功（使用后端 PnL）:', positions.value);
+    } else {
+      positions.value = [];
+    }
+  } catch (error) {
+    console.error('❌ 获取持仓失败:', error);
+    positions.value = [];
+  }
+};
+
+// 手动刷新
+const handleManualRefresh = async () => {
+  if (isRefreshing.value) return;
+  
+  isRefreshing.value = true;
+  try {
+    await Promise.all([
+      assetStore.initData(),
+      fetchPositions()
+    ]);
+    showToast({ message: '刷新成功', icon: 'success', duration: 1500 });
+  } catch (error) {
+    console.error('❌ 手动刷新失败:', error);
+    showToast({ message: '刷新失败', icon: 'fail', duration: 1500 });
+  } finally {
+    isRefreshing.value = false;
+  }
+};
+
 // --- 生命周期 ---
+
+// 资产数据定时刷新定时器
+let assetRefreshTimer = null;
+
+// 启动资产数据定时刷新（每5秒）
+const startAssetRefresh = () => {
+  // 清除旧的定时器（如果存在）
+  stopAssetRefresh();
+  
+  // 如果钱包已连接，启动定时刷新
+  if (assetStore.isWalletConnected) {
+    assetRefreshTimer = setInterval(async () => {
+      try {
+        // 刷新资产数据（包含未实现盈亏）
+        await assetStore.initData();
+        // 刷新持仓数据（包含后端计算的 PnL）
+        await fetchPositions();
+      } catch (error) {
+        console.error('❌ 定时刷新数据失败:', error);
+      }
+    }, 5000); // 每5秒刷新一次
+  }
+};
+
+// 停止资产数据定时刷新
+const stopAssetRefresh = () => {
+  if (assetRefreshTimer) {
+    clearInterval(assetRefreshTimer);
+    assetRefreshTimer = null;
+  }
+};
 
 onMounted(() => {
   // 初始化生成几条数据
@@ -317,6 +507,40 @@ onMounted(() => {
   startDataGeneration();
   startGasUpdate();
   startBlockUpdate();
+  
+  // 如果钱包已连接，加载持仓数据
+  if (assetStore.isWalletConnected) {
+    fetchPositions();
+  }
+  
+  // 启动资产数据定时刷新
+  startAssetRefresh();
+});
+
+onActivated(() => {
+  // 页面激活时重新启动资产数据刷新
+  startAssetRefresh();
+  
+  // 如果钱包已连接，加载持仓数据
+  if (assetStore.isWalletConnected) {
+    fetchPositions();
+  }
+});
+
+// 监听钱包连接状态变化
+watch(() => assetStore.isWalletConnected, (isConnected) => {
+  if (isConnected) {
+    fetchPositions();
+    startAssetRefresh();
+  } else {
+    positions.value = [];
+    stopAssetRefresh();
+  }
+});
+
+onDeactivated(() => {
+  // 页面失活时停止资产数据刷新
+  stopAssetRefresh();
 });
 
 onUnmounted(() => {
@@ -324,6 +548,7 @@ onUnmounted(() => {
   if (dataInterval) clearTimeout(dataInterval);
   if (gasInterval) clearInterval(gasInterval);
   if (blockInterval) clearInterval(blockInterval);
+  stopAssetRefresh();
 });
 
 // --- 导航处理 ---
@@ -606,6 +831,172 @@ const handleBack = () => {
 
 .status-pending {
   color: #FCD535;
+}
+
+/* 刷新按钮 */
+.refresh-button {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-right: 12px;
+}
+
+.refresh-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.refresh-button.refreshing {
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 持仓区域 */
+.positions-section {
+  margin: 20px 16px;
+  background-color: #141414;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin: 0;
+}
+
+.positions-count {
+  font-size: 12px;
+  color: #8E8E93;
+}
+
+.positions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.position-card {
+  background-color: #1C1C1E;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.position-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.position-symbol {
+  font-size: 16px;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.position-side {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.side-long {
+  background-color: rgba(14, 203, 129, 0.2);
+  color: #0ECB81;
+}
+
+.side-short {
+  background-color: rgba(246, 70, 93, 0.2);
+  color: #F6465D;
+}
+
+.position-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.info-label {
+  color: #8E8E93;
+}
+
+.info-value {
+  color: #FFFFFF;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.position-pnl {
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  text-align: center;
+}
+
+.pnl-label {
+  font-size: 12px;
+  color: #8E8E93;
+  margin-bottom: 8px;
+}
+
+.pnl-value {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pnl-value.positive {
+  color: #0ECB81;
+}
+
+.pnl-value.negative {
+  color: #F6465D;
+}
+
+.pnl-percent {
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.pnl-percent.positive {
+  color: #0ECB81;
+}
+
+.pnl-percent.negative {
+  color: #F6465D;
 }
 
 /* 滑入动画 */

@@ -33,7 +33,14 @@ export function createFuturesOrder(params) {
  * @returns {Promise} 返回持仓数据
  */
 export function getPositions() {
-  return request.get('/api/v1/futures/positions');
+  console.log('[API] getPositions 调用');
+  return request.get('/api/v1/futures/positions').then(response => {
+    console.log('[API] getPositions 响应:', response);
+    return response;
+  }).catch(error => {
+    console.error('[API] getPositions 错误:', error);
+    throw error;
+  });
 }
 
 /**
@@ -53,10 +60,12 @@ export function closePosition(params) {
 
 /**
  * 获取当前委托订单（挂单）
+ * @param {Object} params - 查询参数（可选）
+ * @param {string} params.status - 订单状态筛选：'NEW' 或 'OPEN' 获取当前委托，'FILLED' 获取已成交，'CANCELLED' 获取已撤销
  * @returns {Promise} 返回订单列表
  */
-export function getFuturesOrders() {
-  return request.get('/api/v1/futures/orders');
+export function getFuturesOrders(params = {}) {
+  return request.get('/api/v1/futures/orders', { params });
 }
 
 /**
@@ -65,8 +74,36 @@ export function getFuturesOrders() {
  * @returns {Promise} 返回操作结果
  */
 export function cancelFuturesOrder(orderId) {
-  return request.post('/api/v1/futures/cancel', {
+  return request.post('/api/v1/futures/order/cancel', {
     order_id: orderId
+  });
+}
+
+/**
+ * 设置持仓的止盈止损价格
+ * @param {Object} params - 参数
+ * @param {string} params.symbol - 交易对，例如 "BTC/USDT"
+ * @param {number|null} params.takeProfitPrice - 止盈价格（可选，传0或null表示清除）
+ * @param {number|null} params.stopLossPrice - 止损价格（可选，传0或null表示清除）
+ * @returns {Promise} 返回操作结果
+ */
+export function setPositionTPSL(params) {
+  console.log('[API] setPositionTPSL 调用:', {
+    symbol: params.symbol,
+    take_profit: params.take_profit,
+    stop_loss: params.stop_loss
+  });
+  
+  return request.post('/api/v1/futures/position/set-tpsl', {
+    symbol: params.symbol,
+    take_profit_price: params.take_profit || null,
+    stop_loss_price: params.stop_loss || null
+  }).then(response => {
+    console.log('[API] setPositionTPSL 响应:', response);
+    return response;
+  }).catch(error => {
+    console.error('[API] setPositionTPSL 错误:', error);
+    throw error;
   });
 }
 
@@ -75,5 +112,6 @@ export default {
   getPositions,
   closePosition,
   getFuturesOrders,
-  cancelFuturesOrder
+  cancelFuturesOrder,
+  setPositionTPSL
 };

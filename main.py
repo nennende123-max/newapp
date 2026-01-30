@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from eth_account import Account
@@ -7,6 +7,7 @@ import jwt
 import os
 import asyncio
 import time
+import uuid
 from datetime import datetime, timedelta
 from typing import Dict
 
@@ -18,11 +19,18 @@ from app.api.endpoints import assets
 from app.api.endpoints import trade
 # 导入合约路由
 from app.api.endpoints import futures
+# 导入市场数据路由
+from app.api.endpoints import market
 # 导入 Mock 数据层
-from app.db.mock import MOCK_POSITIONS, update_position, get_market_price
+from app.db.mock import MOCK_POSITIONS, MOCK_ORDERS, MOCK_USER_ASSETS, update_position, get_market_price, save_assets, _save_json_file, ORDERS_FILE, POSITIONS_FILE, MOCK_MARKET_PRICES, save_prices, create_order as create_order_in_db
+# 导入交易服务层
+from app.services.trade import check_tpsl_triggers
+# 导入市场服务
+from app.services.market_service import market_service
+from app.models.kline import KlineModel
 
 # 创建 FastAPI 应用实例
-app = FastAPI()
+app = FastAPI(title="TruthFi API")
 
 # 注册资产路由
 app.include_router(assets.router)
@@ -30,6 +38,8 @@ app.include_router(assets.router)
 app.include_router(trade.router)
 # 注册合约路由
 app.include_router(futures.router)
+# 注册市场数据路由
+app.include_router(market.router)
 
 # JWT Token 安全配置
 # SECRET_KEY 的作用和重要性：
@@ -55,33 +65,307 @@ class WalletConnectRequest(BaseModel):
 
 # 配置 CORS 中间件
 # 这是解决跨域问题的关键配置
+# 注意：如果 allow_credentials=True，FastAPI 不允许使用 "*"，必须明确指定域名
+# 如果运行时出现 CORS 错误，请移除 "*" 或设置 allow_credentials=False
 app.add_middleware(
     CORSMiddleware,
-    # allow_origins: 允许哪些源（域名+端口）访问你的 API
-    # 这里允许前端应用（运行在 localhost:5173）访问后端
-    # 使用 ["*"] 可以允许所有源，但生产环境不推荐，应该明确指定域名
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:8000"],  # 允许的前端地址和 Swagger UI
-    
-    # allow_credentials: 是否允许发送凭证（如 cookies、authorization headers）
-    # 如果设置为 True，allow_origins 不能包含 "*"，必须明确指定域名
+    allow_origins=["*", "http://localhost:5173", "http://127.0.0.1:5173"],  # Wildcard + specific for Vite dev
     allow_credentials=True,
-    
-    # allow_methods: 允许的 HTTP 方法
-    # 这里允许所有常用方法：GET（获取）、POST（创建）、PUT（更新）、DELETE（删除）等
-    allow_methods=["*"],  # 允许所有 HTTP 方法，也可以指定如 ["GET", "POST"]
-    
-    # allow_headers: 允许的请求头
-    # 设置为 ["*"] 允许所有请求头，包括自定义的 Authorization、Content-Type 等
-    allow_headers=["*"],  # 允许所有请求头
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
+
+# 请求日志中间件
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    print(f"Request: {request.method} {request.url}")
+    response = await call_next(request)
+    return response
 
 @app.get("/")  # 这是一个接口
 def read_root():
-    return {"message": "Hello TruthFi! 后端环境搭建成功！"}
+    return {"message": "TruthFi API 运行中"}
 
 @app.get("/ping") # 这是另一个接口
 def ping():
     return "pong"
+
+# TODO: DELETE THIS DEBUG ENDPOINT BEFORE PRODUCTION（待办：上线前必须删除此接口）
+def _check_debug_environment():
+    """
+    检查是否在开发环境中运行
+    
+    返回:
+        bool: 如果在开发环境返回 True，否则返回 False
+    """
+    import os
+    # 检查环境变量 DEBUG 是否为 True
+    if os.getenv("DEBUG", "").upper() == "TRUE":
+        return True
+    # 检查是否在本地环境（127.0.0.1 或 localhost）
+    # 注意：这里无法直接获取请求的 IP，所以只检查环境变量
+    # 在生产环境部署时，应该设置 DEBUG=False 或删除此环境变量
+    return False
+
+@app.get("/api/v1/debug/reset")
+def reset_data(current_user: Dict = Depends(get_current_user)):
+    """
+    重置数据（开发环境专用）
+    
+    功能：
+    1. 清空订单表（MOCK_ORDERS）
+    2. 清空持仓表（MOCK_POSITIONS）
+    3. 重置用户 USDT 余额为 1,000,000
+    4. 重置用户 USDT 冻结金额为 0
+    
+    注意：此接口仅用于开发环境，生产环境应禁用
+    """
+    # TODO: DELETE THIS DEBUG ENDPOINT BEFORE PRODUCTION（待办：上线前必须删除此接口）
+    
+    # 环境隔离：只在开发环境允许运行
+    if not _check_debug_environment():
+        raise HTTPException(
+            status_code=403,
+            detail="此接口仅在开发环境中可用"
+        )
+    
+    # 日志警告：每次调用时打印醒目的警告
+    print("\n" + "="*80)
+    print("⚠️  WARNING: DEBUG INTERFACE CALLED! DATA HAS BEEN RESET.")
+    print("="*80 + "\n")
+    
+    try:
+        address = current_user.get("address")
+        if not address:
+            raise HTTPException(
+                status_code=400,
+                detail="无法获取用户地址"
+            )
+        address_lower = address.lower()
+        
+        # 1. 清空订单列表
+        global MOCK_ORDERS
+        MOCK_ORDERS.clear()
+        _save_json_file(ORDERS_FILE, MOCK_ORDERS)
+        print(f"[RESET] 已清空订单列表，当前订单数: {len(MOCK_ORDERS)}")
+        
+        # 2. 清空持仓列表
+        global MOCK_POSITIONS
+        MOCK_POSITIONS.clear()
+        _save_json_file(POSITIONS_FILE, MOCK_POSITIONS)
+        print(f"[RESET] 已清空持仓列表，当前持仓数: {len(MOCK_POSITIONS)}")
+        
+        # 3. 重置用户资产（仅 USDT）
+        if address_lower not in MOCK_USER_ASSETS:
+            MOCK_USER_ASSETS[address_lower] = {}
+        
+        # 强制重置 USDT 余额为 1,000,000，冻结金额为 0
+        MOCK_USER_ASSETS[address_lower]["USDT"] = 1000000.0
+        MOCK_USER_ASSETS[address_lower]["USDT_frozen"] = 0.0
+        
+        # 保存资产数据
+        save_assets()
+        print(f"[RESET] 已重置用户资产：USDT={MOCK_USER_ASSETS[address_lower].get('USDT', 0)}, USDT_frozen={MOCK_USER_ASSETS[address_lower].get('USDT_frozen', 0)}")
+        
+        return {
+            "code": 200,
+            "message": "数据重置成功",
+            "data": {
+                "orders_count": 0,
+                "positions_count": 0,
+                "usdt_balance": MOCK_USER_ASSETS[address_lower].get("USDT", 0),
+                "usdt_frozen": MOCK_USER_ASSETS[address_lower].get("USDT_frozen", 0)
+            }
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"重置数据失败: {str(e)}"
+        )
+
+@app.get("/api/v1/debug/reset_all")
+def reset_all_data(current_user: Dict = Depends(get_current_user)):
+    """
+    一键重置所有数据（开发环境专用）
+    
+    功能：
+    1. 清空 MOCK_ORDERS 列表
+    2. 清空 MOCK_POSITIONS 列表
+    3. 重置用户资产：USDT 余额设为 1,000,000，冻结余额归零
+    
+    注意：此接口仅用于开发环境，生产环境应禁用
+    """
+    # TODO: DELETE THIS DEBUG ENDPOINT BEFORE PRODUCTION（待办：上线前必须删除此接口）
+    
+    # 环境隔离：只在开发环境允许运行
+    if not _check_debug_environment():
+        raise HTTPException(
+            status_code=403,
+            detail="此接口仅在开发环境中可用"
+        )
+    
+    # 日志警告：每次调用时打印醒目的警告
+    print("\n" + "="*80)
+    print("⚠️  WARNING: DEBUG INTERFACE CALLED! DATA HAS BEEN RESET.")
+    print("="*80 + "\n")
+    
+    try:
+        address = current_user.get("address")
+        if not address:
+            raise HTTPException(
+                status_code=400,
+                detail="无法获取用户地址"
+            )
+        address_lower = address.lower()
+        
+        # 1. 清空订单列表
+        global MOCK_ORDERS
+        MOCK_ORDERS.clear()
+        _save_json_file(ORDERS_FILE, MOCK_ORDERS)
+        print(f"[RESET] 已清空订单列表，当前订单数: {len(MOCK_ORDERS)}")
+        
+        # 2. 清空持仓列表
+        global MOCK_POSITIONS
+        MOCK_POSITIONS.clear()
+        _save_json_file(POSITIONS_FILE, MOCK_POSITIONS)
+        print(f"[RESET] 已清空持仓列表，当前持仓数: {len(MOCK_POSITIONS)}")
+        
+        # 3. 重置用户资产
+        if address_lower not in MOCK_USER_ASSETS:
+            MOCK_USER_ASSETS[address_lower] = {}
+        
+        # 重置 USDT 余额为 1,000,000，冻结余额归零
+        MOCK_USER_ASSETS[address_lower]["USDT"] = 1000000.0
+        MOCK_USER_ASSETS[address_lower]["USDT_frozen"] = 0.0
+        
+        # 其他币种保持不变，但冻结余额归零
+        for currency in ["BTC", "ETH", "BNB", "SOL", "DOGE", "TRX", "BEAT", "AIC"]:
+            frozen_key = f"{currency}_frozen"
+            if frozen_key in MOCK_USER_ASSETS[address_lower]:
+                MOCK_USER_ASSETS[address_lower][frozen_key] = 0.0
+        
+        # 保存资产数据
+        save_assets()
+        print(f"[RESET] 已重置用户资产：USDT={MOCK_USER_ASSETS[address_lower].get('USDT', 0)}")
+        
+        return {
+            "code": 200,
+            "message": "数据重置成功",
+            "data": {
+                "orders_count": 0,
+                "positions_count": 0,
+                "assets": MOCK_USER_ASSETS[address_lower].copy()
+            }
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"重置数据失败: {str(e)}"
+        )
+
+# TODO: DELETE THIS DEBUG ENDPOINT BEFORE PRODUCTION（待办：上线前必须删除此接口）
+class SetPriceRequest(BaseModel):
+    """设置价格请求模型"""
+    symbol: str  # 交易对，例如 "BTC/USDT"
+    price: float  # 新价格
+
+@app.post("/api/v1/debug/set_price")
+def set_price(request: SetPriceRequest):
+    """
+    强制修改市场价格（开发环境专用）
+    
+    功能：
+    1. 修改内存中的全局价格变量 MOCK_MARKET_PRICES
+    2. 保存价格到 JSON 文件（确保持久化）
+    3. 修改后，持仓列表中的"未实现盈亏"会立即根据新价格计算
+    
+    请求格式：
+    {
+        "symbol": "BTC/USDT",
+        "price": 95000.0
+    }
+    
+    返回格式：
+    {
+        "code": 200,
+        "message": "价格更新成功",
+        "data": {
+            "symbol": "BTC/USDT",
+            "old_price": 92255.0,
+            "new_price": 95000.0,
+            "variable_name": "MOCK_MARKET_PRICES"
+        }
+    }
+    
+    注意：
+    - 此接口修改的变量名：MOCK_MARKET_PRICES（在 app.db.mock 模块中定义）
+    - 此接口仅用于开发环境，生产环境应禁用
+    """
+    # TODO: DELETE THIS DEBUG ENDPOINT BEFORE PRODUCTION（待办：上线前必须删除此接口）
+    
+    # 环境限制已移除：允许本地测试直接调用
+    # 注意：生产环境部署前必须删除此接口或重新启用环境检查
+    
+    # 日志警告：每次调用时打印醒目的警告
+    print("\n" + "="*80)
+    print("⚠️  WARNING: DEBUG INTERFACE CALLED! PRICE HAS BEEN MODIFIED.")
+    print("="*80 + "\n")
+    
+    try:
+        # 规范化交易对格式
+        symbol = request.symbol.upper()
+        if '/' not in symbol:
+            symbol = f"{symbol}/USDT"
+        
+        # 验证价格
+        if request.price <= 0:
+            raise HTTPException(
+                status_code=400,
+                detail="价格必须大于 0"
+            )
+        
+        # 获取旧价格
+        old_price = MOCK_MARKET_PRICES.get(symbol, 0.0)
+        
+        # 修改内存中的价格（全局唯一事实来源）
+        # 变量名：MOCK_MARKET_PRICES（在 app.db.mock 模块中定义）
+        MOCK_MARKET_PRICES[symbol] = request.price
+        
+        # 自动保存到 JSON 文件（确保持久化）
+        save_prices()
+        
+        print(f"[DEBUG] 价格已更新: {symbol} = {old_price} -> {request.price}")
+        
+        # 被动触发止盈止损检查（集成强平检查）
+        print(f"[DEBUG] 开始检查止盈止损和强平条件...")
+        triggered_positions = check_tpsl_triggers(request.price, symbol)
+        
+        if triggered_positions:
+            print(f"[DEBUG] 共触发 {len(triggered_positions)} 个持仓的止盈止损/强平")
+            for tp in triggered_positions:
+                print(f"  - {tp['symbol']} {tp['side']}: {tp['reason']} (Order: {tp['order_id']})")
+        else:
+            print(f"[DEBUG] 未触发任何止盈止损或强平条件")
+        
+        return {
+            "code": 200,
+            "message": f"价格更新成功: {symbol}",
+            "data": {
+                "symbol": symbol,
+                "old_price": old_price,
+                "new_price": request.price,
+                "variable_name": "MOCK_MARKET_PRICES",  # 告诉用户修改的变量名
+                "triggered_positions": len(triggered_positions),  # 触发的持仓数量
+                "triggered_details": triggered_positions if triggered_positions else None  # 触发详情
+            }
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"更新价格失败: {str(e)}"
+        )
 
 # ========== 合约交易后台任务：定时更新持仓盈亏和自动强平 ==========
 # 注意：get_market_price 已从 app.db.mock 导入，确保使用全局唯一的价格数据源
@@ -151,6 +435,49 @@ async def futures_position_monitor():
                 if should_liquidate:
                     # 执行强平：删除持仓，保证金归零（模拟被没收）
                     # 注意：保证金不会返还给用户，这是强平的惩罚机制
+                    
+                    # 获取持仓信息用于创建强平订单
+                    margin = float(pos.get("margin", 0))
+                    leverage = pos.get("leverage", 20)
+                    
+                    # 确定强平订单的方向（与持仓方向相反）
+                    # LONG 持仓 -> SELL 强平，SHORT 持仓 -> BUY 强平
+                    liquidation_side = "SELL" if side == "LONG" else "BUY"
+                    
+                    # 创建强平订单记录
+                    timestamp = int(time.time())
+                    order_id = f"fut_liq_{uuid.uuid4().hex[:12]}"
+                    
+                    # 计算已实现盈亏（强平时亏光保证金）
+                    realized_pnl = -margin  # 强平时亏损全部保证金
+                    
+                    # 创建强平订单记录
+                    liquidation_order = {
+                        "order_id": order_id,
+                        "user_id": user_address,
+                        "symbol": symbol,
+                        "side": liquidation_side,  # 与持仓方向相反
+                        "type": "LIQUIDATION",  # 强平类型
+                        "price": current_price,  # 强平执行价格
+                        "amount": size,
+                        "leverage": leverage,
+                        "status": "FILLED",  # 强平立即成交
+                        "timestamp": timestamp,
+                        "create_time": timestamp,
+                        "fee": 0.0,  # 强平时不收取手续费（已经亏光了）
+                        "fee_currency": "USDT",
+                        "realized_pnl": realized_pnl,  # 亏损全部保证金
+                        "margin": margin,  # 记录被没收的保证金
+                        "margin_type": pos.get("margin_type", "ISOLATED"),
+                        "market_type": "futures",  # 必须标记为合约订单
+                        "liquidation_price": liquidation_price,  # 记录强平价
+                        "entry_price": entry_price  # 记录开仓价
+                    }
+                    
+                    # 保存强平订单到数据库
+                    create_order_in_db(liquidation_order)
+                    
+                    # 执行强平：删除持仓
                     update_position(user_address, symbol, {"size": 0})
                     
                     # 打印强平日志
@@ -161,7 +488,9 @@ async def futures_position_monitor():
                     print(f"  Liquidation Price: {liquidation_price:.2f}")
                     print(f"  Current Price: {current_price:.2f}")
                     print(f"  Size: {size}")
-                    print(f"  Margin Lost: {pos.get('margin', 0):.2f} USDT")
+                    print(f"  Margin Lost: {margin:.2f} USDT")
+                    print(f"  Realized PnL: {realized_pnl:.2f} USDT")
+                    print(f"  Liquidation Order ID: {order_id}")
                     print(f"{'='*60}\n")
                 else:
                     # 更新持仓的未实现盈亏和标记价格（使用 update_position 确保数据一致性）
@@ -196,9 +525,41 @@ async def startup_event():
     FastAPI 启动事件
     在服务器启动时启动后台任务
     """
+    # 初始化 K 线数据库
+    try:
+        await KlineModel.init_db()
+        print("[INFO] K 线数据库初始化完成")
+    except Exception as e:
+        print(f"[ERROR] K 线数据库初始化失败: {str(e)}")
+    
+    # 启动市场服务（包含历史数据同步和实时行情流）
+    try:
+        print("[INFO] 启动市场服务...")
+        await market_service.initialize_exchange()
+        await market_service.start()
+        print("[INFO] 市场服务已启动（历史数据同步和实时行情流）")
+    except Exception as e:
+        print(f"[ERROR] 启动市场服务失败: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+    
     # 启动合约持仓监控任务
     asyncio.create_task(futures_position_monitor())
     print("[INFO] Futures position monitor started (runs every 3 seconds)")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """
+    FastAPI 关闭事件
+    在服务器关闭时清理资源
+    """
+    try:
+        await market_service.close()
+        print("[INFO] 市场服务已关闭")
+    except Exception as e:
+        print(f"[ERROR] 关闭市场服务失败: {str(e)}")
+
 
 @app.get("/api/v1/users/me")
 def get_user_info(current_user: Dict = Depends(get_current_user)):
@@ -380,3 +741,12 @@ def wallet_connect(request: WalletConnectRequest):
             status_code=500,
             detail=f"认证过程出错: {str(e)}"
         )
+
+# 在文件加载时打印成功消息
+print("FastAPI app 已加载成功")
+
+# 如果直接运行此文件，启动 uvicorn 服务器
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    print("后端启动成功，访问 http://localhost:8000/docs 测试")

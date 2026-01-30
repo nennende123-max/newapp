@@ -21,6 +21,7 @@ import FundPassword from '../components/FundPassword.vue'
 import GoogleAuth from '../components/GoogleAuth.vue'
 import FuturesTrade from '../components/FuturesTrade.vue'
 import ReferralIndex from '../views/referral/ReferralIndex.vue'
+import TradeSubPage from '../components/TradeSubPage.vue'
 
 const routes = [
   { path: '/', component: Home },
@@ -30,6 +31,7 @@ const routes = [
   { path: '/deposit', name: 'Deposit', component: Deposit },
   { path: '/withdraw', name: 'Withdraw', component: Withdraw },
   { path: '/trade', name: 'Trade', component: Trade },
+  { path: '/trade/detail', name: 'TradeSubPage', component: TradeSubPage, meta: { hideTabbar: true } },
   { path: '/futures', name: 'FuturesTrade', component: FuturesTrade },
   { path: '/market', name: 'MarketDetail', component: MarketDetail },
   { path: '/history', name: 'History', component: History },

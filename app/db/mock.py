@@ -6,7 +6,7 @@ Mock 数据库模块
 import json
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict
 
 # 安全导入 requests 库（防御性增强）
 try:
@@ -26,6 +26,10 @@ PRICES_FILE = DATA_DIR / "mock_prices.json"
 
 # 确保数据目录存在
 DATA_DIR.mkdir(exist_ok=True)
+
+# ========== 用户资产数据初始化 ==========
+# 先定义为空字典，后续通过 init_mock_data() 和 _load_assets() 填充
+MOCK_USER_ASSETS = {}  # type: Dict[str, Dict[str, float]]
 
 
 def _load_json_file(file_path: Path, default_value):
@@ -141,150 +145,145 @@ def save_assets():
     
     _save_json_file(ASSETS_FILE, normalized_data)
 
-# 初始化资产数据（全局唯一事实来源）
-# 必须在函数定义之后初始化，因为 _load_assets() 需要调用 _load_json_file() 和 ASSETS_FILE
-MOCK_USER_ASSETS = _load_assets()
-
 # Mock 订单存储
 # 使用列表存储所有订单对象
 # 每个订单对象包含完整的订单信息
-MOCK_ORDERS = []
+MOCK_ORDERS = []  # 注意：当前代码使用列表结构，但 init_mock_data() 中会按地址初始化
 
 # Mock 持仓存储（合约交易）
 # 存储用户当前的开仓信息
-MOCK_POSITIONS = []
+MOCK_POSITIONS = []  # 注意：当前代码使用列表结构，但 init_mock_data() 中会按地址初始化
 
-# ========== 市场价格数据（全局唯一事实来源） ==========
-# 默认价格配置
+# ========== 市场价格数据 ==========
+# 全局市场价格字典（全局唯一事实来源）
+# 格式：{"BTC/USDT": 87000.0, "ETH/USDT": 3000.0, ...}
+MOCK_MARKET_PRICES = {}  # type: Dict[str, float]
+
+# 默认价格映射（用于初始化）
 _DEFAULT_PRICES = {
-    "BTC/USDT": 92255.0,
-    "ETH/USDT": 3100.0,
-    "BNB/USDT": 590.0,
-    "SOL/USDT": 145.0,
-    "DOGE/USDT": 0.12,
-    "TRX/USDT": 0.15,
-    "BEAT/USDT": 1.2,
-    "AIC/USDT": 2.0
+    "BTC/USDT": 87000.0,
+    "BTCUSDT": 87000.0,
+    "ETH/USDT": 3000.0,
+    "ETHUSDT": 3000.0,
+    "BNB/USDT": 600.0,
+    "BNBUSDT": 600.0,
+    "SOL/USDT": 150.0,
+    "SOLUSDT": 150.0,
+    "DOGE/USDT": 0.08,
+    "DOGEUSDT": 0.08,
+    "TRX/USDT": 0.1,
+    "TRXUSDT": 0.1,
 }
+
 
 def _load_prices():
     """
     从 JSON 文件加载价格数据（如果存在），否则使用默认值
     
     Returns:
-        dict: 价格字典
+        dict: 价格字典，Key 为交易对（例如 "BTC/USDT"），Value 为价格
     """
-    return _load_json_file(PRICES_FILE, _DEFAULT_PRICES.copy())
+    loaded_data = _load_json_file(PRICES_FILE, {})
+    
+    # 如果文件存在但格式是旧格式（只有币种名，没有 /USDT），需要转换
+    normalized_prices = {}
+    for key, value in loaded_data.items():
+        key_upper = key.upper()
+        # 如果键不包含 "/"，假设是 "BTC" -> "BTC/USDT"
+        if "/" not in key_upper:
+            normalized_prices[f"{key_upper}/USDT"] = float(value)
+            normalized_prices[key_upper + "USDT"] = float(value)  # 同时支持无斜杠格式
+        else:
+            normalized_prices[key_upper] = float(value)
+            # 如果包含 "/"，也添加无斜杠版本
+            if "/" in key_upper:
+                normalized_prices[key_upper.replace("/", "")] = float(value)
+    
+    # 如果文件为空或不存在，使用默认价格
+    if not normalized_prices:
+        normalized_prices = _DEFAULT_PRICES.copy()
+    
+    return normalized_prices
 
-# 初始化价格数据（全局唯一事实来源）
-# 必须在函数定义之前初始化，因为 save_prices() 和 get_market_price() 会引用它
-MOCK_MARKET_PRICES = _load_prices()
 
 def save_prices():
     """
     保存当前价格数据到 JSON 文件
     供外部调用，用于持久化价格变更
-    """
-    _save_json_file(PRICES_FILE, MOCK_MARKET_PRICES)
-
-# 全局标志：是否已打印过 requests 缺失警告（避免刷屏）
-_REQUESTS_WARNING_PRINTED = False
-
-def _get_real_time_price_from_binance(symbol: str) -> Optional[float]:
-    """
-    从 Binance API 获取实时价格（优先级2：实时行情）
     
-    Args:
-        symbol: 交易对，例如 "BTC/USDT"
-        
-    Returns:
-        Optional[float]: 实时价格，如果获取失败则返回 None
-        
     Note:
-        此函数用于获取真实的市场价格，当 MOCK_MARKET_PRICES 中没有手动设置的价格时使用
-        如果 requests 库不可用，将直接返回 None
+        保存时只保存 "BASE/USDT" 格式的价格（去掉无斜杠版本，避免冗余）
     """
-    # 防御性检查：如果没有 requests 库，直接返回 None
-    if not HAS_REQUESTS:
-        return None
+    # 只保存 "BASE/USDT" 格式的价格（避免冗余）
+    prices_to_save = {}
+    for key, value in MOCK_MARKET_PRICES.items():
+        if "/" in key:
+            # 提取币种名（例如 "BTC/USDT" -> "BTC"）
+            base_currency = key.split("/")[0]
+            prices_to_save[base_currency] = value
     
-    try:
-        # 将交易对格式转换为 Binance 格式（例如 "BTC/USDT" -> "BTCUSDT"）
-        binance_symbol = symbol.upper().replace('/', '')
-        
-        # Binance 24hr ticker price API
-        url = f"https://api.binance.com/api/v3/ticker/price?symbol={binance_symbol}"
-        
-        # 发送请求（设置超时时间，避免阻塞）
-        response = requests.get(url, timeout=2)
-        
-        if response.status_code == 200:
-            data = response.json()
-            price = float(data.get('price', 0))
-            if price > 0:
-                return price
-    except Exception as e:
-        # 静默失败，不打印错误日志（避免日志过多）
-        # 如果 Binance API 不可用，返回 None，使用默认值
-        pass
+    # 如果 prices_to_save 为空，使用默认价格
+    if not prices_to_save:
+        for key, value in _DEFAULT_PRICES.items():
+            if "/" in key:
+                base_currency = key.split("/")[0]
+                if base_currency not in prices_to_save:
+                    prices_to_save[base_currency] = value
     
-    return None
+    _save_json_file(PRICES_FILE, prices_to_save)
 
 
 def get_market_price(symbol: str) -> float:
     """
-    获取交易对的当前市场价格（带优先级判断）
-    
-    优先级 1 (手动覆盖)：首先检查 MOCK_MARKET_PRICES 字典中是否有该币种的值。
-                         如果该值大于 0，则强制返回这个值。
-    
-    优先级 2 (实时行情)：如果字典里没有或者值为 0，再从 Binance API 获取真实价格。
-    
-    优先级 3 (默认保底)：如果都失败，返回 _DEFAULT_PRICES 中的默认值。
+    获取交易对的市场价格（Mock 实现）
     
     Args:
-        symbol: 交易对，例如 "BTC/USDT"
+        symbol: 交易对，例如 "BTC/USDT" 或 "BTCUSDT"
         
     Returns:
-        float: 当前市场价格，如果都不存在则返回默认值或 0.0
+        float: 市场价格，如果交易对不存在则返回默认价格 87000.0
         
-    Example:
-        # 如果 MOCK_MARKET_PRICES["BTC/USDT"] = 95000.0
-        # 即使 Binance 实时价格是 91401，也会返回 95000（手动覆盖）
-        
-        # 如果 MOCK_MARKET_PRICES["BTC/USDT"] = 0 或不存在
-        # 则从 Binance API 获取实时价格（例如 91401）
-        
-        # 如果 Binance API 也失败，返回 _DEFAULT_PRICES 中的默认值（例如 92255.0）
+    Note:
+        从全局 MOCK_MARKET_PRICES 字典读取价格。
+        这是一个简单的 mock 函数，用于开发和测试。
+        生产环境建议使用 app.services.market_service.get_current_price() 获取真实价格。
     """
-    global _REQUESTS_WARNING_PRINTED
-    
+    # 规范化交易对格式（转换为大写）
     symbol_upper = symbol.upper()
     
-    # 优先级 1：检查 MOCK_MARKET_PRICES 中是否有手动设置的价格（且大于0）
-    manual_price = MOCK_MARKET_PRICES.get(symbol_upper, 0.0)
-    if manual_price and manual_price > 0:
-        return float(manual_price)
+    # 优先从全局 MOCK_MARKET_PRICES 读取
+    if symbol_upper in MOCK_MARKET_PRICES:
+        return MOCK_MARKET_PRICES[symbol_upper]
     
-    # 优先级 2：从 Binance API 获取实时价格（防御性检查）
-    if HAS_REQUESTS:
-        real_time_price = _get_real_time_price_from_binance(symbol_upper)
-        if real_time_price is not None and real_time_price > 0:
-            return real_time_price
-    else:
-        # 如果没有 requests 库，打印友好的警告（仅一次，避免刷屏）
-        if not _REQUESTS_WARNING_PRINTED:
-            print("[WARN] requests 库未安装，无法获取外部实时行情。将使用 MOCK_MARKET_PRICES 中的价格或默认值。")
-            print("[WARN] 建议安装 requests: pip install requests")
-            _REQUESTS_WARNING_PRINTED = True
+    # 如果格式是 "BASE/USDT"，尝试转换为 "BASEUSDT" 格式
+    if "/" in symbol_upper:
+        symbol_no_slash = symbol_upper.replace("/", "")
+        if symbol_no_slash in MOCK_MARKET_PRICES:
+            return MOCK_MARKET_PRICES[symbol_no_slash]
     
-    # 优先级 3：默认保底值（从 _DEFAULT_PRICES 获取）
-    default_price = _DEFAULT_PRICES.get(symbol_upper, 0.0)
-    if default_price > 0:
-        return float(default_price)
+    # 如果格式是 "BASEUSDT"，尝试转换为 "BASE/USDT" 格式
+    if symbol_upper.endswith("USDT") and "/" not in symbol_upper:
+        symbol_with_slash = symbol_upper[:-4] + "/USDT"
+        if symbol_with_slash in MOCK_MARKET_PRICES:
+            return MOCK_MARKET_PRICES[symbol_with_slash]
     
-    # 如果都获取不到，返回 0.0
-    return 0.0
+    # 如果 MOCK_MARKET_PRICES 中没有，尝试从默认价格读取
+    if symbol_upper in _DEFAULT_PRICES:
+        return _DEFAULT_PRICES[symbol_upper]
+    
+    if "/" in symbol_upper:
+        symbol_no_slash = symbol_upper.replace("/", "")
+        if symbol_no_slash in _DEFAULT_PRICES:
+            return _DEFAULT_PRICES[symbol_no_slash]
+    
+    if symbol_upper.endswith("USDT") and "/" not in symbol_upper:
+        symbol_with_slash = symbol_upper[:-4] + "/USDT"
+        if symbol_with_slash in _DEFAULT_PRICES:
+            return _DEFAULT_PRICES[symbol_with_slash]
+    
+    # 如果都不匹配，返回默认价格（BTC/USDT 的价格）
+    print(f"[WARN] 未找到交易对 {symbol} 的价格，使用默认价格 87000.0")
+    return 87000.0
 
 
 def _init_data_from_files():
@@ -293,12 +292,11 @@ def _init_data_from_files():
     在模块导入时自动执行
     
     Note:
-        资产数据和价格数据已在模块顶层初始化，这里只需要加载订单和持仓数据
+        资产数据已在模块顶层初始化，这里需要加载订单、持仓和价格数据
     """
-    global MOCK_ORDERS, MOCK_POSITIONS
+    global MOCK_ORDERS, MOCK_POSITIONS, MOCK_MARKET_PRICES
     
     # 注意：资产数据已在模块顶层通过 MOCK_USER_ASSETS = _load_assets() 初始化
-    # 价格数据已在模块顶层通过 MOCK_MARKET_PRICES = _load_prices() 初始化
     # 这里不需要重新加载，因为它们已经会从文件读取数据
     
     # 加载订单
@@ -311,11 +309,59 @@ def _init_data_from_files():
     if isinstance(loaded_positions, list):
         MOCK_POSITIONS = loaded_positions
     
-    print(f"[INIT] 数据初始化完成: 资产用户数={len(MOCK_USER_ASSETS)}, 订单数={len(MOCK_ORDERS)}, 持仓数={len(MOCK_POSITIONS)}, 价格对={len(MOCK_MARKET_PRICES)}")
+    # 加载价格数据
+    MOCK_MARKET_PRICES.update(_load_prices())
+    
+    print(f"[INIT] 数据初始化完成: 资产用户数={len(MOCK_USER_ASSETS)}, 订单数={len(MOCK_ORDERS)}, 持仓数={len(MOCK_POSITIONS)}, 价格数={len(MOCK_MARKET_PRICES)}")
+
+
+def init_mock_data():
+    """
+    初始化测试钱包的 mock 数据
+    确保测试地址有初始余额，用于开发和测试
+    """
+    global MOCK_USER_ASSETS, MOCK_ORDERS, MOCK_POSITIONS
+    
+    # 首先从文件加载数据（如果存在）
+    loaded_assets = _load_assets()
+    MOCK_USER_ASSETS.update(loaded_assets)
+    
+    # 初始化测试地址列表
+    default_address = "0x1234567890abcdef".lower()
+    your_address = "0xfr0.4508".lower()  # Your wallet from screenshot, add more if needed
+    addresses = [default_address, your_address]
+    
+    for addr in addresses:
+        if addr not in MOCK_USER_ASSETS:
+            MOCK_USER_ASSETS[addr] = {
+                "USDT": 100000.0,
+                "BTC": 1.0,  # Add some BTC for testing
+                "ETH": 10.0,
+                "BEAT": 1000.0,  # If your app has BEAT
+                "USDT_frozen": 0.0,
+                "BTC_frozen": 0.0,
+                "ETH_frozen": 0.0,
+            }
+        # Also init positions and orders if missing
+        # 注意：虽然当前代码中 MOCK_POSITIONS 和 MOCK_ORDERS 是列表，
+        # 但按照用户要求，这里按地址初始化（如果将来改为字典结构）
+        # 当前保持列表结构，但确保已初始化
+        if not isinstance(MOCK_POSITIONS, list):
+            MOCK_POSITIONS = []
+        if not isinstance(MOCK_ORDERS, list):
+            MOCK_ORDERS = []
+    
+    print("Mock data initialized for addresses:", list(MOCK_USER_ASSETS.keys()))
+    print("Balances:", MOCK_USER_ASSETS)
 
 
 # 模块加载时自动初始化
 _init_data_from_files()
+init_mock_data()
+
+# 模块入口点（如果直接运行此文件）
+if __name__ == "__main__":
+    pass  # But call init_mock_data() unconditionally at module level: init_mock_data()
 
 
 def get_user_assets(address: str) -> dict:
@@ -460,7 +506,7 @@ def freeze_assets(address: str, currency: str, amount: float) -> dict:
     return update_user_assets(address_lower, current_assets)
 
 
-def unfreeze_assets(address: str, currency: str, amount: float) -> dict:
+def unfreeze_assets(address: str, currency: str, amount: float, safe_mode: bool = True) -> dict:
     """
     解冻用户资产（订单成交或取消时）
     
@@ -468,12 +514,13 @@ def unfreeze_assets(address: str, currency: str, amount: float) -> dict:
         address: 钱包地址
         currency: 币种（例如 "USDT", "BTC"）
         amount: 解冻数量
+        safe_mode: 安全模式（默认 True）。如果为 True，当冻结余额不足时，记录警告并归零，而不是抛出异常
         
     Returns:
         dict: 更新后的资产余额
         
     Raises:
-        ValueError: 如果冻结余额不足
+        ValueError: 如果冻结余额不足且 safe_mode=False
     """
     address_lower = address.lower()
     current_assets = get_user_assets(address_lower)
@@ -481,12 +528,25 @@ def unfreeze_assets(address: str, currency: str, amount: float) -> dict:
     # 检查冻结余额是否充足
     frozen_key = f"{currency}_frozen"
     frozen = current_assets.get(frozen_key, 0.0)
-    if frozen < amount:
-        raise ValueError(f"冻结余额不足。需要解冻 {amount} {currency}，当前冻结: {frozen} {currency}")
     
-    # 解冻资产：从冻结余额转移到可用余额
-    current_assets[frozen_key] = frozen - amount
-    current_assets[currency] = current_assets.get(currency, 0.0) + amount
+    if frozen < amount:
+        if safe_mode:
+            # 安全模式：记录警告，将冻结余额归零（或扣减仅有的金额），强制完成解冻
+            print(f"[WARN] 解冻资产警告：用户 {address_lower[:8]}...")
+            print(f"       需要解冻 {amount} {currency}，当前冻结: {frozen} {currency}")
+            print(f"       安全模式：将冻结余额归零，解冻金额调整为 {frozen} {currency}")
+            
+            # 解冻所有可用的冻结余额（有多少解冻多少）
+            actual_unfreeze = frozen
+            current_assets[frozen_key] = 0.0
+            current_assets[currency] = current_assets.get(currency, 0.0) + actual_unfreeze
+        else:
+            # 非安全模式：抛出异常
+            raise ValueError(f"冻结余额不足。需要解冻 {amount} {currency}，当前冻结: {frozen} {currency}")
+    else:
+        # 正常情况：解冻资产
+        current_assets[frozen_key] = frozen - amount
+        current_assets[currency] = current_assets.get(currency, 0.0) + amount
     
     return update_user_assets(address_lower, current_assets)
 
@@ -515,6 +575,24 @@ def create_order(order_data: dict) -> dict:
     
     # 创建订单副本并添加到列表
     new_order = order_data.copy()
+    
+    # 确保时间戳字段存在且是动态的（如果缺失或为0则补充）
+    import time
+    current_timestamp = int(time.time())
+    
+    # 如果 timestamp 字段缺失或为0，使用当前时间
+    if "timestamp" not in new_order or not new_order.get("timestamp") or new_order.get("timestamp") == 0:
+        new_order["timestamp"] = current_timestamp
+        print(f"[DEBUG] 订单 {order_id} 缺少 timestamp，已补充为: {current_timestamp}")
+    
+    # 如果 create_time 字段缺失或为0，使用当前时间
+    if "create_time" not in new_order or not new_order.get("create_time") or new_order.get("create_time") == 0:
+        new_order["create_time"] = current_timestamp
+        print(f"[DEBUG] 订单 {order_id} 缺少 create_time，已补充为: {current_timestamp}")
+    
+    # 打印订单时间戳用于调试
+    print(f"[DEBUG] 创建订单 {order_id}: timestamp={new_order.get('timestamp')}, create_time={new_order.get('create_time')}")
+    
     MOCK_ORDERS.append(new_order)
     
     # 自动保存到 JSON 文件
@@ -631,17 +709,33 @@ def get_user_orders(address: str, status: str = None) -> list:
     address_lower = address.lower()
     orders = []
     
+    print(f"[DEBUG] get_user_orders: 查询地址={address_lower}, 状态筛选={status}")
+    print(f"[DEBUG] get_user_orders: MOCK_ORDERS 总数={len(MOCK_ORDERS)}")
+    
     # 遍历所有订单，筛选属于该用户的订单
     for order in MOCK_ORDERS:
         # 兼容 user_id 和 address 字段
         order_user_id = order.get("user_id", "").lower()
         order_address = order.get("address", "").lower()
+        order_status = order.get("status")
+        order_id = order.get("order_id", "")
         
         # 如果订单属于该用户
         if order_user_id == address_lower or order_address == address_lower:
+            print(f"[DEBUG] 找到用户订单: order_id={order_id}, status={order_status}, user_id={order_user_id}")
             # 如果指定了状态筛选，则只返回匹配状态的订单
-            if status is None or order.get("status") == status:
+            if status is None:
                 orders.append(order.copy())
+                print(f"[DEBUG] 无状态筛选，添加订单: {order_id}")
+            elif order_status == status:
+                orders.append(order.copy())
+                print(f"[DEBUG] 状态匹配，添加订单: {order_id}, status={order_status}")
+            else:
+                print(f"[DEBUG] 状态不匹配，跳过订单: {order_id}, 订单状态={order_status}, 筛选状态={status}")
+        else:
+            # 调试：打印不匹配的订单
+            if order_id.startswith("fut_"):
+                print(f"[DEBUG] 用户不匹配，跳过订单: order_id={order_id}, order_user_id={order_user_id}, 查询地址={address_lower}")
     
     # 按创建时间倒序排列（最新的在前）
     # 兼容 timestamp 和 create_time 字段
@@ -650,6 +744,7 @@ def get_user_orders(address: str, status: str = None) -> list:
         reverse=True
     )
     
+    print(f"[DEBUG] get_user_orders: 最终返回订单数量={len(orders)}")
     return orders
 
 

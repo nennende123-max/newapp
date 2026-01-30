@@ -144,15 +144,15 @@
           <!-- 卖单区域 -->
           <div class="orderbook-section asks-section">
             <div 
-              v-for="(ask, index) in asks" 
-              :key="'ask-' + index"
+              v-for="(ask, index) in (orderBook.asks || [])" 
+              :key="'ask-' + (ask[0] || index)"
               class="orderbook-row ask-row"
-              @click="handlePriceClick(ask.price, 'sell')"
+              @click="handlePriceClick(ask[0], 'sell')"
             >
-              <div class="depth-bar ask-depth" :style="{ '--percent': getDepthWidth(ask.amount) + '%' }"></div>
+              <div class="depth-bar ask-depth" :style="{ '--percent': getDepthWidth(ask[1] || 0) + '%' }"></div>
               <div class="row-content">
-                <span class="price ask-price">{{ formatOrderPrice(ask.price) }}</span>
-                <span class="amount">{{ formatOrderAmount(ask.amount) }}</span>
+                <span class="price ask-price">{{ formatOrderPrice(ask[0] || 0) }}</span>
+                <span class="amount">{{ formatOrderAmount(ask[1] || 0) }}</span>
               </div>
             </div>
           </div>
@@ -170,15 +170,15 @@
           <!-- 买单区域 -->
           <div class="orderbook-section bids-section">
             <div 
-              v-for="(bid, index) in bids" 
-              :key="'bid-' + index"
+              v-for="(bid, index) in (orderBook.bids || [])" 
+              :key="'bid-' + (bid[0] || index)"
               class="orderbook-row bid-row"
-              @click="handlePriceClick(bid.price, 'buy')"
+              @click="handlePriceClick(bid[0], 'buy')"
             >
-              <div class="depth-bar bid-depth" :style="{ '--percent': getDepthWidth(bid.amount) + '%' }"></div>
+              <div class="depth-bar bid-depth" :style="{ '--percent': getDepthWidth(bid[1] || 0) + '%' }"></div>
               <div class="row-content">
-                <span class="price bid-price">{{ formatOrderPrice(bid.price) }}</span>
-                <span class="amount">{{ formatOrderAmount(bid.amount) }}</span>
+                <span class="price bid-price">{{ formatOrderPrice(bid[0] || 0) }}</span>
+                <span class="amount">{{ formatOrderAmount(bid[1] || 0) }}</span>
               </div>
             </div>
           </div>
@@ -194,15 +194,15 @@
           </div>
           <div class="trades-list">
             <div 
-              v-for="(trade, index) in trades" 
+              v-for="(trade, index) in (trades || [])" 
               :key="'trade-' + index"
               class="trade-row"
             >
-              <span class="trade-price" :class="{ buy: trade.side === 'buy', sell: trade.side === 'sell' }">
-                {{ formatPrice(trade.price) }}
+              <span class="trade-price" :class="{ buy: trade?.side === 'buy', sell: trade?.side === 'sell' }">
+                {{ formatPrice(trade?.price || 0) }}
               </span>
-              <span class="trade-amount">{{ formatOrderAmount(trade.amount) }}</span>
-              <span class="trade-time">{{ formatTradeTime(trade.time) }}</span>
+              <span class="trade-amount">{{ formatOrderAmount(trade?.amount || 0) }}</span>
+              <span class="trade-time">{{ formatTradeTime(trade?.time || new Date()) }}</span>
             </div>
           </div>
         </div>
@@ -228,12 +228,13 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { showToast } from 'vant';
 import TradingViewWidget from './TradingViewWidget.vue';
 import { useMarketStore } from '@/stores/market';
+import request from '@/utils/request';
 
 // 定义组件名称，用于 KeepAlive 识别
 defineOptions({
@@ -247,6 +248,9 @@ const marketStore = useMarketStore();
 
 // 获取 URL 里的 symbol，如果没有则默认显示 BTC
 const symbol = ref(route.query.symbol || 'BTC');
+
+// 获取交易类型（现货或合约），如果没有则默认为合约
+const marketType = ref(route.query.type === 'spot' ? 'spot' : 'futures');
 
 // 币种切换抽屉
 const showCoinDrawer = ref(false);
@@ -310,12 +314,13 @@ const handleSwitchCoin = (newSymbol) => {
   // 更新 symbol
   symbol.value = newSymbol;
   
-  // 更新 URL 参数（无刷新切换）
+  // 更新 URL 参数（无刷新切换），保持 type 参数
   router.replace({
     path: route.path,
     query: {
       ...route.query,
-      symbol: newSymbol
+      symbol: newSymbol,
+      type: marketType.value // 保持交易类型
     }
   });
 
@@ -334,7 +339,14 @@ const handleSwitchCoin = (newSymbol) => {
 watch(() => route.query.symbol, (newSymbol) => {
   if (newSymbol) {
     symbol.value = newSymbol;
+    // 当 symbol 变化时，重新加载订单簿数据
+    loadOrderBook();
   }
+});
+
+// 监听 symbol 变化，重新加载订单簿数据
+watch(() => symbol.value, () => {
+  loadOrderBook();
 });
 
 // 从市场 store 获取实时数据
@@ -389,8 +401,13 @@ const selectedTimeframe = ref('1h');
 
 // 计算所有订单中的最大数量（用于深度条计算）
 const maxOrderVolume = computed(() => {
-  const allAsks = asks.value.map(a => a.amount || 0);
-  const allBids = bids.value.map(b => b.amount || 0);
+  // 确保 orderBook.bids 和 orderBook.asks 是数组
+  const safeAsks = Array.isArray(orderBook.value.asks) ? orderBook.value.asks : [];
+  const safeBids = Array.isArray(orderBook.value.bids) ? orderBook.value.bids : [];
+  
+  // 从数组格式 [price, quantity] 中提取数量
+  const allAsks = safeAsks.map(a => parseFloat(a[1]) || 0);
+  const allBids = safeBids.map(b => parseFloat(b[1]) || 0);
   const allAmounts = [...allAsks, ...allBids];
   if (allAmounts.length === 0) return 1; // 避免除零
   return Math.max(...allAmounts, 1);
@@ -438,11 +455,47 @@ const handleSettings = () => {
 // 标签页状态
 const activeTab = ref(0);
 
-// 盘口数据生成函数
+// 盘口数据（从 API 获取）
+const orderBook = ref({
+  bids: [],
+  asks: []
+});
+const maxVolume = ref(1000);
+
+// 从后端 API 加载订单簿数据
+const fetchOrderBook = () => {
+  request.get('/api/v1/market/orderbook', {
+    params: {
+      symbol: 'BTCUSDT',
+      limit: 20
+    }
+  }).then(res => {
+    orderBook.value = res.data || { bids: [], asks: [] };
+    
+    // 计算最大数量（用于深度条）
+    if (orderBook.value.bids && orderBook.value.asks) {
+      const allAmounts = [
+        ...(orderBook.value.bids || []).map(b => parseFloat(b[1]) || 0),
+        ...(orderBook.value.asks || []).map(a => parseFloat(a[1]) || 0)
+      ];
+      maxVolume.value = allAmounts.length > 0 ? Math.max(...allAmounts, 1) : 1000;
+    }
+    
+    console.log('Orderbook fetched:', orderBook.value);
+  }).catch(err => {
+    console.error('Orderbook error:', err);
+    orderBook.value = { bids: [], asks: [] };
+  });
+};
+
+// 兼容旧代码的 loadOrderBook 函数
+const loadOrderBook = fetchOrderBook;
+
+// 盘口数据生成函数（保留作为后备方案，但不再使用）
 const generateOrderBook = (basePrice) => {
   const asks = [];
   const bids = [];
-  const maxVolume = 1000; // 用于计算深度条的最大值
+  const maxVolume = 1000;
   
   // 生成卖单（价格从高到低，倒序显示）
   for (let i = 0; i < 10; i++) {
@@ -462,19 +515,6 @@ const generateOrderBook = (basePrice) => {
   
   return { asks, bids, maxVolume };
 };
-
-// 初始化盘口数据（使用计算属性，当价格更新时自动更新）
-const orderBookData = computed(() => {
-  const price = currentPrice.value || 0;
-  if (price === 0) {
-    return { asks: [], bids: [], maxVolume: 1000 };
-  }
-  return generateOrderBook(price);
-});
-
-const asks = computed(() => orderBookData.value.asks);
-const bids = computed(() => orderBookData.value.bids);
-const maxVolume = computed(() => orderBookData.value.maxVolume);
 
 // 最新成交数据生成函数（使用计算属性，当价格更新时自动更新）
 const generateTrades = (basePrice) => {
@@ -503,7 +543,8 @@ const generateTrades = (basePrice) => {
 };
 
 const trades = computed(() => {
-  return generateTrades(currentPrice.value);
+  const data = generateTrades(currentPrice.value);
+  return Array.isArray(data) ? data : [];
 });
 
 // 格式化价格（处理空值）
@@ -580,19 +621,39 @@ const formatAmount = (value) => {
 
 // 跳转到交易页面
 const goToTrade = (side) => {
-  router.push({ 
-    path: '/trade', 
-    query: { 
+  // 跳转到交易子页面（从K线页进入），传递交易类型
+  router.push({
+    path: '/trade/detail',
+    query: {
       symbol: symbol.value,
-      side: side // 可选：传递买卖方向
-    } 
+      side: side,
+      type: marketType.value // 传递交易类型（spot 或 futures）
+    }
   });
 };
+
+// 订单簿刷新定时器
+let orderBookInterval = null;
 
 // 初始化 WebSocket 连接（如果尚未连接）
 onMounted(() => {
   if (!marketStore.isConnected) {
     marketStore.initWebSocket();
+  }
+  // 加载订单簿数据
+  fetchOrderBook();
+  
+  // 定时刷新订单簿数据（每3秒）
+  orderBookInterval = setInterval(() => {
+    fetchOrderBook();
+  }, 3000);
+});
+
+// 组件卸载时清理定时器
+onUnmounted(() => {
+  if (orderBookInterval) {
+    clearInterval(orderBookInterval);
+    orderBookInterval = null;
   }
 });
 </script>
@@ -922,9 +983,9 @@ onMounted(() => {
 }
 
 .price {
-  font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', 'Arial', 'DIN Alternate', sans-serif;
+  font-family: 'Roboto Mono', 'DIN Alternate', monospace;
   font-variant-numeric: tabular-nums;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 13px;
   line-height: 24px;
   flex: 0 0 auto;
@@ -932,10 +993,14 @@ onMounted(() => {
 
 .ask-price {
   color: #F6465D;
+  font-weight: 600;
+  text-shadow: 0 0 6px rgba(246, 70, 93, 0.4);
 }
 
 .bid-price {
   color: #0ECB81;
+  font-weight: 600;
+  text-shadow: 0 0 6px rgba(14, 203, 129, 0.4);
 }
 
 .amount {

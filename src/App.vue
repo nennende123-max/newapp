@@ -213,6 +213,11 @@ watch(() => marketStore.tickers, (newTickers) => {
 const isFullScreen = computed(() => {
   if (!route || !route.path) return false;
   
+  // 优先检查路由meta中是否有hideTabbar标记
+  if (route.meta?.hideTabbar === true) {
+    return true;
+  }
+  
   // 定义需要全屏展示（隐藏底部导航和AppHeader）的路径关键词
   const fullScreenKeywords = [
     'deposit',
@@ -290,9 +295,19 @@ const handleWalletClick = async () => {
       });
       }
     } catch (error) {
+      // 根据错误类型显示不同的提示
+      let errorMessage = '连接失败，请重试'
+      
+      if (error.code === 'WALLET_NOT_INSTALLED' || error.message?.includes('安装')) {
+        errorMessage = '请先安装 MetaMask 钱包以使用此功能'
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
       showToast({
-        message: '连接失败，请重试',
-        icon: 'fail'
+        message: errorMessage,
+        icon: 'fail',
+        duration: 3000
       });
     } finally {
       isConnecting.value = false;

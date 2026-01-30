@@ -4,7 +4,7 @@
  * 所有数据操作直接读写 localStorage，不依赖 Pinia Store
  */
 
-import { mockRequest } from './mockRequest';
+import request from '@/utils/request';
 
 /**
  * 从 localStorage 读取数据
@@ -160,14 +160,20 @@ const generateMockMarkets = () => {
  * @returns {Promise} 返回市场列表
  */
 export function getMarkets(category = 'All') {
-  return mockRequest(() => {
-    const allMarkets = generateMockMarkets();
-    
-    if (category === 'All' || !category) {
-      return allMarkets;
-    }
-    
-    return allMarkets.filter(market => market.category === category);
+  // 使用 Promise.resolve 保持与 mockRequest 相同的返回格式
+  // TODO: 如果后端有预测市场 API，替换为真实 API 调用
+  return Promise.resolve({
+    code: 200,
+    msg: 'success',
+    data: (() => {
+      const allMarkets = generateMockMarkets();
+      
+      if (category === 'All' || !category) {
+        return allMarkets;
+      }
+      
+      return allMarkets.filter(market => market.category === category);
+    })()
   });
 }
 
@@ -179,20 +185,31 @@ export function getMarkets(category = 'All') {
  * @returns {Promise} 返回订单结果
  */
 export function placePredictionBet(eventId, side, amount) {
-  return mockRequest(() => {
+  // 使用 Promise.resolve 保持与 mockRequest 相同的返回格式
+  // TODO: 如果后端有预测市场 API，替换为真实 API 调用
+  try {
     if (!eventId || !side || !amount || amount <= 0) {
-      throw new Error('参数无效');
+      return Promise.reject({
+        code: 500,
+        msg: '参数无效'
+      });
     }
 
     if (side !== 'YES' && side !== 'NO') {
-      throw new Error('下注方向必须是 YES 或 NO');
+      return Promise.reject({
+        code: 500,
+        msg: '下注方向必须是 YES 或 NO'
+      });
     }
 
     // 读取当前余额
     const balance = loadFromStorage('userBalance', 10000.00);
     
     if (balance < amount) {
-      throw new Error('USDT 余额不足');
+      return Promise.reject({
+        code: 500,
+        msg: 'USDT 余额不足'
+      });
     }
 
     // 扣除余额
@@ -204,12 +221,18 @@ export function placePredictionBet(eventId, side, amount) {
     const market = markets.find(m => m.id === eventId);
     
     if (!market) {
-      throw new Error('事件不存在');
+      return Promise.reject({
+        code: 500,
+        msg: '事件不存在'
+      });
     }
 
     const outcome = market.outcomes.find(o => o.side === side);
     if (!outcome) {
-      throw new Error('下注方向无效');
+      return Promise.reject({
+        code: 500,
+        msg: '下注方向无效'
+      });
     }
 
     // 计算预期收益
@@ -240,12 +263,21 @@ export function placePredictionBet(eventId, side, amount) {
     predictionOrders.unshift(order);
     saveToStorage('predictionOrders', predictionOrders);
 
-    return {
-      orderId: order.id,
-      order,
-      newBalance
-    };
-  });
+    return Promise.resolve({
+      code: 200,
+      msg: 'success',
+      data: {
+        orderId: order.id,
+        order,
+        newBalance
+      }
+    });
+  } catch (error) {
+    return Promise.reject({
+      code: 500,
+      msg: error.message || '下注失败'
+    });
+  }
 }
 
 /**
@@ -253,8 +285,12 @@ export function placePredictionBet(eventId, side, amount) {
  * @returns {Promise} 返回订单列表
  */
 export function getPredictionOrders() {
-  return mockRequest(() => {
-    return loadFromStorage('predictionOrders', []);
+  // 使用 Promise.resolve 保持与 mockRequest 相同的返回格式
+  // TODO: 如果后端有预测市场 API，替换为真实 API 调用
+  return Promise.resolve({
+    code: 200,
+    msg: 'success',
+    data: loadFromStorage('predictionOrders', [])
   });
 }
 

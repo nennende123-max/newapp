@@ -344,6 +344,7 @@ def create_order(
                     print(f"   冻结: {request.amount} {base_currency}")
         
         # 11. 创建订单记录
+        # 必须在函数内部动态获取时间戳，不能使用默认参数或模块级变量
         order_data = {
             "order_id": order_id,
             "user_id": address_lower,  # 使用地址作为 user_id
@@ -355,10 +356,12 @@ def create_order(
             "quantity": request.amount,  # 使用 quantity 字段
             "amount": request.amount,  # 保留 amount 字段以兼容现有代码
             "status": order_status,
-            "timestamp": create_time,  # 使用 timestamp 字段
-            "create_time": create_time,  # 保留 create_time 字段以兼容现有代码
-            "update_time": create_time
+            "timestamp": create_time,  # 动态生成的时间戳
+            "create_time": create_time,  # 动态生成的时间戳
+            "update_time": create_time,
+            "market_type": "spot"  # 强制标记为现货订单
         }
+        print(f"[DEBUG] 创建现货订单成功: order_id={order_id}, timestamp={create_time}, create_time={create_time}")
         
         # 如果是立即成交，添加成交信息
         if order_status == ORDER_STATUS["FILLED"]:
@@ -484,11 +487,12 @@ def get_orders(
             if status.upper() == "OPEN":
                 filter_status = ORDER_STATUS["NEW"]
             elif status.upper() == "HISTORY":
-                # 如果传入 'HISTORY'，返回已成交和已撤销的订单
+                # 如果传入 'HISTORY'，返回已成交和已撤销的订单（只返回现货订单）
                 all_orders = get_user_orders(address_lower)
                 history_orders = [
                     order for order in all_orders
                     if order.get("status") in [ORDER_STATUS["FILLED"], ORDER_STATUS["CANCELLED"]]
+                    and order.get("market_type") == "spot"  # 严格隔离：只返回现货订单
                 ]
                 return {
                     "code": 200,
@@ -498,10 +502,16 @@ def get_orders(
             else:
                 filter_status = status.upper()
         
-        # 3. 获取订单列表
-        orders = get_user_orders(address_lower, filter_status)
+        # 3. 获取订单列表（只获取现货订单）
+        all_orders = get_user_orders(address_lower, filter_status)
         
-        # 4. 格式化订单数据（确保包含所有必要字段）
+        # 4. 过滤：只返回 market_type == 'spot' 的订单（严格隔离）
+        orders = [
+            order for order in all_orders
+            if order.get("market_type") == "spot"
+        ]
+        
+        # 5. 格式化订单数据（确保包含所有必要字段）
         formatted_orders = []
         for order in orders:
             formatted_order = {
@@ -629,28 +639,16 @@ def cancel_order(
         price = order.get("price")
         
         if side == "BUY":
-            # 买入订单：解冻 USDT
+            # 买入订单：解冻 USDT（使用安全模式，避免坏账卡死系统）
             total_cost = price * quantity
-            try:
-                updated_assets = unfreeze_assets(address_lower, quote_currency, total_cost)
-                print(f"✅ 撤销买入订单：用户 {address_lower}")
-                print(f"   解冻: {total_cost} {quote_currency}")
-            except ValueError as e:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"解冻资产失败: {str(e)}"
-                )
+            updated_assets = unfreeze_assets(address_lower, quote_currency, total_cost, safe_mode=True)
+            print(f"✅ 撤销买入订单：用户 {address_lower}")
+            print(f"   解冻: {total_cost} {quote_currency}")
         else:  # SELL
-            # 卖出订单：解冻 BTC
-            try:
-                updated_assets = unfreeze_assets(address_lower, base_currency, quantity)
-                print(f"✅ 撤销卖出订单：用户 {address_lower}")
-                print(f"   解冻: {quantity} {base_currency}")
-            except ValueError as e:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"解冻资产失败: {str(e)}"
-                )
+            # 卖出订单：解冻 BTC（使用安全模式，避免坏账卡死系统）
+            updated_assets = unfreeze_assets(address_lower, base_currency, quantity, safe_mode=True)
+            print(f"✅ 撤销卖出订单：用户 {address_lower}")
+            print(f"   解冻: {quantity} {base_currency}")
         
         # 7. 更新订单状态
         update_time = int(time.time())

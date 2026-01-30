@@ -168,12 +168,18 @@ export function withdraw(data) {
  * @param {string} symbol - 币种符号
  */
 export function getAssetDetail(symbol) {
-  return mockRequest(() => {
-    const holdings = loadFromStorage('userHoldings', {});
-    return {
-      symbol,
-      balance: holdings[symbol] || 0
-    };
+  // 使用 Promise.resolve 保持与 mockRequest 相同的返回格式
+  // TODO: 如果后端有资产详情 API，替换为真实 API 调用
+  return Promise.resolve({
+    code: 200,
+    msg: 'success',
+    data: (() => {
+      const holdings = loadFromStorage('userHoldings', {});
+      return {
+        symbol,
+        balance: holdings[symbol] || 0
+      };
+    })()
   });
 }
 
@@ -181,9 +187,15 @@ export function getAssetDetail(symbol) {
  * 获取充值历史
  */
 export function getDepositHistory() {
-  return mockRequest(() => {
-    const txHistory = loadFromStorage('txHistory', []);
-    return txHistory.filter(tx => tx.type === '充值');
+  // 使用 Promise.resolve 保持与 mockRequest 相同的返回格式
+  // TODO: 如果后端有充值历史 API，替换为真实 API 调用
+  return Promise.resolve({
+    code: 200,
+    msg: 'success',
+    data: (() => {
+      const txHistory = loadFromStorage('txHistory', []);
+      return txHistory.filter(tx => tx.type === '充值');
+    })()
   });
 }
 
@@ -191,9 +203,15 @@ export function getDepositHistory() {
  * 获取提现历史
  */
 export function getWithdrawHistory() {
-  return mockRequest(() => {
-    const txHistory = loadFromStorage('txHistory', []);
-    return txHistory.filter(tx => tx.type === '提现');
+  // 使用 Promise.resolve 保持与 mockRequest 相同的返回格式
+  // TODO: 如果后端有提现历史 API，替换为真实 API 调用
+  return Promise.resolve({
+    code: 200,
+    msg: 'success',
+    data: (() => {
+      const txHistory = loadFromStorage('txHistory', []);
+      return txHistory.filter(tx => tx.type === '提现');
+    })()
   });
 }
 

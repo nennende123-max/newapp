@@ -1,4 +1,4 @@
-﻿import { defineStore } from 'pinia'
+import { defineStore } from 'pinia'
 import * as walletApi from '@/api/wallet'
 import * as tradeApi from '@/api/trade'
 import { walletConnect } from '@/api/user'
@@ -73,7 +73,10 @@ export const useAssetStore = defineStore('assets', {
       priceMap: priceMap,
       
       // 全局加载状态
-      isLoading: false
+      isLoading: false,
+      
+      // 持仓列表（用于同步）
+      positions: []
     }
   },
 
@@ -205,6 +208,12 @@ export const useAssetStore = defineStore('assets', {
   },
 
   actions: {
+    // 同步持仓列表
+    syncPositions(positions) {
+      this.positions = [...positions];
+      console.log('[AssetsStore] Assets synced:', this.positions);
+    },
+    
     /**
      * 初始化数据 - App 启动时唯一获取数据的入口
      * 从 API 获取资产和订单数据
@@ -367,13 +376,19 @@ export const useAssetStore = defineStore('assets', {
     /**
      * 连接 Web3 钱包并完成认证
      * 参考币安 Web3 钱包的认证流程
+     * 
+     * 注意：此方法仅在用户主动点击"连接钱包"按钮时调用
+     * 不要在页面加载时自动调用，避免未安装钱包时频繁报错
      */
     async connectWallet() {
       try {
-        // 1. 检查是否安装了 Web3 钱包（MetaMask、币安钱包等）
+        // 1. 静默检测是否安装了 Web3 钱包（MetaMask、币安钱包等）
         // window.ethereum 是 Web3 钱包注入到浏览器的全局对象
         if (typeof window.ethereum === 'undefined') {
-          throw new Error('请安装钱包')
+          // 返回一个特殊的错误对象，让调用方显示友好的 Toast 提示
+          const error = new Error('请先安装 MetaMask 钱包以使用此功能')
+          error.code = 'WALLET_NOT_INSTALLED'
+          throw error
         }
 
         // 2. 请求用户授权连接钱包
@@ -445,14 +460,19 @@ export const useAssetStore = defineStore('assets', {
         }
 
       } catch (error) {
-        console.error('连接钱包失败:', error)
+        // 静默处理错误，不打印到控制台（避免刷屏）
+        // 调用方会显示友好的 Toast 提示
         
         // 如果是用户拒绝连接或签名，给出友好提示
         if (error.code === 4001) {
           throw new Error('用户拒绝了钱包连接请求')
         } else if (error.code === -32002) {
           throw new Error('钱包连接请求已在进行中，请稍候')
+        } else if (error.code === 'WALLET_NOT_INSTALLED') {
+          // 钱包未安装的错误，直接抛出（调用方会显示友好提示）
+          throw error
         } else {
+          // 其他错误，静默处理
           throw error
         }
       }
@@ -785,6 +805,56 @@ export const useAssetStore = defineStore('assets', {
         localStorage.setItem('useBNBForInterest', value.toString())
       } catch (error) {
         console.error('Error saving useBNBForInterest to localStorage:', error)
+      }
+    },
+
+    /**
+     * 设置止盈止损 (TP/SL)
+     * @param {Object} params - { positionId, tp, sl }
+     * @returns {Promise<boolean>} - 成功返回 true
+     */
+    async setTPSL(params) {
+      try {
+        // 调用后端 API 设置 TP/SL
+        const res = await request.post('/api/v1/futures/positions/tpsl', params)
+        
+        // 检查响应格式
+        if (res.success || res.code === 200) {
+          // 手动更新本地 positions 数组中的对应字段
+          const target = this.positions.find(p => p.id === params.positionId)
+          if (target) {
+            // 同步更新所有可能的字段名（兼容不同格式）
+            target.tp = params.tp
+            target.take_profit = params.tp
+            target.takeProfit = params.tp
+            target.sl = params.sl
+            target.stop_loss = params.sl
+            target.stopLoss = params.sl
+            
+            console.log('[TP/SL] Updated position:', target)
+          }
+          
+          return true
+        } else {
+          throw new Error(res.message || res.msg || '设置失败')
+        }
+      } catch (error) {
+        console.error('[TP/SL] Set error:', error)
+        
+        // 即使 API 失败，也尝试更新本地数据（使用 localStorage 作为 fallback）
+        const target = this.positions.find(p => p.id === params.positionId)
+        if (target) {
+          target.tp = params.tp
+          target.take_profit = params.tp
+          target.takeProfit = params.tp
+          target.sl = params.sl
+          target.stop_loss = params.sl
+          target.stopLoss = params.sl
+          
+          console.log('[TP/SL] Updated position locally (API failed):', target)
+        }
+        
+        throw error
       }
     }
   }

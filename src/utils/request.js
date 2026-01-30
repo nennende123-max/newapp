@@ -13,10 +13,9 @@ import router from '@/router';
 // 创建 axios 实例
 const request = axios.create({
   // baseURL: API 的基础地址
-  // 当你调用 request.get('/ping') 时，实际请求的是 baseURL + '/ping'
-  // 例如：http://127.0.0.1:8000/ping
-  // 这样你就不需要在每个 API 调用中都写完整的 URL
-  baseURL: 'http://127.0.0.1:8000',
+  // 使用 '/api' 通过 Vite 代理，避免直接 localhost（避免 DNS 问题）
+  // 或者使用 'http://127.0.0.1:8000' 直接连接后端
+  baseURL: '/api',  // 使用 Vite 代理
   
   // timeout: 请求超时时间（毫秒）
   // 如果服务器在 10 秒内没有响应，请求会被自动取消
@@ -28,6 +27,9 @@ const request = axios.create({
     'Content-Type': 'application/json'
   }
 });
+
+// 添加请求头以支持 CORS
+request.defaults.headers.common['Content-Type'] = 'application/json';
 
 /**
  * 请求拦截器：在发送请求之前做一些处理
@@ -44,6 +46,9 @@ const request = axios.create({
  */
 request.interceptors.request.use(
   (config) => {
+    // 记录请求日志
+    console.log('发送请求:', config.url);
+    
     // 1. 从 localStorage 获取 token
     // localStorage.getItem('token') 会返回存储的 token 字符串，如果不存在则返回 null
     const token = localStorage.getItem('token');
@@ -87,6 +92,15 @@ request.interceptors.response.use(
     return response;
   },
   (error) => {
+    // 处理 Network Error
+    if (error.message && error.message.includes('Network Error')) {
+      console.error('网络错误: 请确保后端运行在 http://127.0.0.1:8000');
+      return Promise.reject(error);
+    }
+    
+    // 记录响应错误日志
+    console.error('Response error:', error.message);
+    
     // 错误响应处理
     if (error.response) {
       // 服务器返回了错误响应（有状态码）

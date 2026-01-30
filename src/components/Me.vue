@@ -580,11 +580,16 @@ const handleConnectWallet = async () => {
     }
     
   } catch (error) {
-    console.error('连接钱包失败:', error);
+    // 静默处理错误，不打印到控制台（避免刷屏）
+    // 只显示友好的 Toast 提示
     
     // 显示错误提示
     let errorMessage = '连接钱包失败';
-    if (error.message) {
+    
+    // 根据错误类型显示不同的提示
+    if (error.code === 'WALLET_NOT_INSTALLED' || error.message?.includes('安装')) {
+      errorMessage = '请先安装 MetaMask 钱包以使用此功能';
+    } else if (error.message) {
       errorMessage = error.message;
     }
     
