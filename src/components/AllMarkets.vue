@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="all-markets-page">
     <!-- 顶部导航栏 -->
     <div class="markets-header">
@@ -827,4 +827,3 @@ onUnmounted(() => {
   font-family: 'vant-icon', 'vant-iconfont', 'vant-icons', 'iconfont', 'vant', sans-serif !important;
 }
 </style>
-

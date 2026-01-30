@@ -123,8 +123,13 @@
     </div>
 
     <!-- K 线图区域 -->
-    <div class="chart-container">
-      <TradingViewWidget :symbol="symbol" :interval="selectedTimeframe" />
+    <div class="chart-box">
+      <trading-view-widget 
+        ref="tvWidget"
+        :symbol="symbol"
+        :initial-data="klineHistory" 
+        theme="dark"
+      />
     </div>
 
     <!-- 盘口和成交标签页 -->
@@ -145,14 +150,14 @@
           <div class="orderbook-section asks-section">
             <div 
               v-for="(ask, index) in (orderBook.asks || [])" 
-              :key="'ask-' + (ask[0] || index)"
+              :key="'ask-' + (ask.priceStr || ask.price || index)"
               class="orderbook-row ask-row"
-              @click="handlePriceClick(ask[0], 'sell')"
+              @click="handlePriceClick(ask.price || ask.priceStr || 0, 'sell')"
             >
-              <div class="depth-bar ask-depth" :style="{ '--percent': getDepthWidth(ask[1] || 0) + '%' }"></div>
+              <div class="depth-bar ask-depth" :style="{ '--percent': getDepthWidth(ask.amount || 0) + '%' }"></div>
               <div class="row-content">
-                <span class="price ask-price">{{ formatOrderPrice(ask[0] || 0) }}</span>
-                <span class="amount">{{ formatOrderAmount(ask[1] || 0) }}</span>
+                <span class="price ask-price">{{ formatOrderPrice(ask.price || parseFloat(ask.priceStr) || 0) }}</span>
+                <span class="amount">{{ formatOrderAmount(ask.amount || parseFloat(ask.amountStr) || 0) }}</span>
               </div>
             </div>
           </div>
@@ -164,6 +169,17 @@
                 {{ formatPrice(currentPrice) }}
               </span>
               <span class="price-fiat">≈ {{ formatFiatPrice(currentPrice) }}</span>
+              <!-- 调试：显示最后更新时间戳（闪烁效果） -->
+              <small 
+                :style="{ 
+                  display: 'block', 
+                  fontSize: '10px', 
+                  color: '#8E8E93', 
+                  marginTop: '2px',
+                  animation: 'blink 1s infinite'
+                }">
+                更新: {{ lastUpdateTime }}
+              </small>
             </div>
           </div>
 
@@ -171,14 +187,14 @@
           <div class="orderbook-section bids-section">
             <div 
               v-for="(bid, index) in (orderBook.bids || [])" 
-              :key="'bid-' + (bid[0] || index)"
+              :key="'bid-' + (bid.priceStr || bid.price || index)"
               class="orderbook-row bid-row"
-              @click="handlePriceClick(bid[0], 'buy')"
+              @click="handlePriceClick(bid.price || bid.priceStr || 0, 'buy')"
             >
-              <div class="depth-bar bid-depth" :style="{ '--percent': getDepthWidth(bid[1] || 0) + '%' }"></div>
+              <div class="depth-bar bid-depth" :style="{ '--percent': getDepthWidth(bid.amount || 0) + '%' }"></div>
               <div class="row-content">
-                <span class="price bid-price">{{ formatOrderPrice(bid[0] || 0) }}</span>
-                <span class="amount">{{ formatOrderAmount(bid[1] || 0) }}</span>
+                <span class="price bid-price">{{ formatOrderPrice(bid.price || parseFloat(bid.priceStr) || 0) }}</span>
+                <span class="amount">{{ formatOrderAmount(bid.amount || parseFloat(bid.amountStr) || 0) }}</span>
               </div>
             </div>
           </div>
@@ -228,15 +244,16 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { showToast } from 'vant';
 import TradingViewWidget from './TradingViewWidget.vue';
 import { useMarketStore } from '@/stores/market';
+import { storeToRefs } from 'pinia';
 import request from '@/utils/request';
 
-// 定义组件名称，用于 KeepAlive 识别
+// 定义组件名称
 defineOptions({
   name: 'MarketDetail'
 });
@@ -246,135 +263,72 @@ const router = useRouter();
 const { t } = useI18n();
 const marketStore = useMarketStore();
 
-// 获取 URL 里的 symbol，如果没有则默认显示 BTC
-const symbol = ref(route.query.symbol || 'BTC');
-
-// 获取交易类型（现货或合约），如果没有则默认为合约
+// --- 状态定义 ---
+const tvWidget = ref(null);
+const klineHistory = ref([]); // K 线历史数据
+const showCoinDrawer = ref(false); // 币种切换抽屉
+const activeTab = ref(0); // 标签页状态
+const orderBook = ref({ bids: [], asks: [] }); // 盘口数据
+const maxVolume = ref(1000);
+const lastUpdateTime = ref(new Date().toLocaleTimeString());
+const selectedTimeframe = ref('1h'); // 默认时间周期
 const marketType = ref(route.query.type === 'spot' ? 'spot' : 'futures');
 
-// 币种切换抽屉
-const showCoinDrawer = ref(false);
+// Binance WebSocket 变量
+let binanceWS = null;
+let useDirectBinance = false;
+let orderBookInterval = null;
 
-// 币种列表数据（从市场 store 获取实时数据）
+// 从 Store 提取响应式数据 (合并提取，更简洁)
+// 注意：确保 store 里确实有 currentKline 字段，如果没有，请去 store 里加上，或者暂时注释掉 currentKline
+const { depths, currentKline } = storeToRefs(marketStore);
+
+// --- 计算属性 ---
+
+// Symbol 规范化
+const normalizeSymbol = (sym) => {
+  if (!sym) return 'BTC';
+  let normalized = sym
+    .replace(/^BINANCE:/i, '')
+    .replace(/USDT/i, '')
+    .replace(/\//g, '')
+    .toUpperCase();
+  return (!normalized || normalized.length === 0) ? 'BTC' : normalized;
+};
+
+// 获取默认 Symbol
+const getDefaultSymbol = () => {
+  if (route.query.symbol) return normalizeSymbol(route.query.symbol);
+  const savedSymbol = localStorage.getItem('selectedSymbol');
+  return savedSymbol ? normalizeSymbol(savedSymbol) : 'BTC';
+};
+
+const symbol = ref(getDefaultSymbol());
+
+// 转换为后端/API需要的格式 (如 BINANCE:BTCUSDT)
+const tradingViewFormat = computed(() => `BINANCE:${symbol.value}USDT`);
+
+// 币种列表
 const coinList = computed(() => {
   const symbols = ['BTC', 'ETH', 'BNB', 'SOL', 'DOGE', 'TRX', 'BEAT', 'AIC'];
   return symbols.map(sym => {
     const ticker = marketStore.getTicker(sym);
-    if (ticker) {
-      return {
-        symbol: sym,
-        price: ticker.price,
-        change: ticker.change
-      };
-    } else {
-      // 如果没有实时数据，使用模拟数据
-      return {
-        symbol: sym,
-        price: getMockPrice(sym),
-        change: (Math.random() - 0.5) * 10 // 模拟涨跌幅
-      };
-    }
+    return ticker ? 
+      { symbol: sym, price: ticker.price, change: ticker.change } : 
+      { symbol: sym, price: getMockPrice(sym), change: (Math.random() - 0.5) * 10 };
   });
 });
 
-// 模拟价格（当没有实时数据时使用）
-const getMockPrice = (sym) => {
-  const mockPrices = {
-    'BTC': 92000,
-    'ETH': 3100,
-    'BNB': 710,
-    'SOL': 142,
-    'DOGE': 0.14,
-    'TRX': 0.12,
-    'BEAT': 0.05,
-    'AIC': 0.08
-  };
-  return mockPrices[sym] || 100;
-};
+// 从 Store 获取当前币种的 Ticker
+const tickerData = computed(() => marketStore.getTicker(symbol.value));
+const currentPrice = computed(() => tickerData.value?.price || 0);
+const priceChange = computed(() => tickerData.value?.change || 0);
+const isDataLoaded = computed(() => marketStore.hasData(symbol.value));
 
-// 格式化币种价格
-const formatCoinPrice = (price) => {
-  if (!price || price === 0) return '---';
-  if (price >= 1000) {
-    return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  } else if (price >= 1) {
-    return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
-  } else {
-    return price.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 6 });
-  }
-};
-
-// 切换币种
-const handleSwitchCoin = (newSymbol) => {
-  if (newSymbol === symbol.value) {
-    showCoinDrawer.value = false;
-    return;
-  }
-
-  // 更新 symbol
-  symbol.value = newSymbol;
-  
-  // 更新 URL 参数（无刷新切换），保持 type 参数
-  router.replace({
-    path: route.path,
-    query: {
-      ...route.query,
-      symbol: newSymbol,
-      type: marketType.value // 保持交易类型
-    }
-  });
-
-  // 关闭抽屉
-  showCoinDrawer.value = false;
-
-  // 显示切换成功提示
-  showToast({
-    message: `${newSymbol}/USDT`,
-    icon: 'success',
-    duration: 1500
-  });
-};
-
-// 监听路由变化
-watch(() => route.query.symbol, (newSymbol) => {
-  if (newSymbol) {
-    symbol.value = newSymbol;
-    // 当 symbol 变化时，重新加载订单簿数据
-    loadOrderBook();
-  }
-});
-
-// 监听 symbol 变化，重新加载订单簿数据
-watch(() => symbol.value, () => {
-  loadOrderBook();
-});
-
-// 从市场 store 获取实时数据
-const tickerData = computed(() => {
-  return marketStore.getTicker(symbol.value);
-});
-
-// 当前价格和涨跌幅（从 store 读取）
-const currentPrice = computed(() => {
-  return tickerData.value?.price || 0;
-});
-
-const priceChange = computed(() => {
-  return tickerData.value?.change || 0;
-});
-
-// 24小时统计数据（从 store 读取）
+// 24小时统计
 const stats = computed(() => {
   const ticker = tickerData.value;
-  if (!ticker) {
-    return {
-      high24h: 0,
-      low24h: 0,
-      volume24h: 0,
-      amount24h: 0
-    };
-  }
-  
+  if (!ticker) return { high24h: 0, low24h: 0, volume24h: 0, amount24h: 0 };
   return {
     high24h: ticker.high || 0,
     low24h: ticker.low || 0,
@@ -383,12 +337,23 @@ const stats = computed(() => {
   };
 });
 
-// 检查数据是否已加载
-const isDataLoaded = computed(() => {
-  return marketStore.hasData(symbol.value);
+// 计算深度条最大值
+const maxOrderVolume = computed(() => {
+  const safeAsks = Array.isArray(orderBook.value.asks) ? orderBook.value.asks : [];
+  const safeBids = Array.isArray(orderBook.value.bids) ? orderBook.value.bids : [];
+  
+  const allAmounts = [...safeAsks, ...safeBids].map(item => {
+    // 兼容数组格式 [price, amount] 和对象格式 {amount: ...}
+    return typeof item === 'object' && item !== null 
+      ? (item.amount || parseFloat(item[1]) || 0)
+      : (parseFloat(item[1]) || 0);
+  });
+  
+  return allAmounts.length > 0 ? Math.max(...allAmounts, 1) : 1000;
 });
 
-// 时间周期
+const trades = computed(() => generateTrades(currentPrice.value));
+
 const timeframes = [
   { label: '1m', value: '1m' },
   { label: '5m', value: '5m' },
@@ -397,265 +362,263 @@ const timeframes = [
   { label: '4h', value: '4h' },
   { label: '1d', value: '1d' }
 ];
-const selectedTimeframe = ref('1h');
 
-// 计算所有订单中的最大数量（用于深度条计算）
-const maxOrderVolume = computed(() => {
-  // 确保 orderBook.bids 和 orderBook.asks 是数组
-  const safeAsks = Array.isArray(orderBook.value.asks) ? orderBook.value.asks : [];
-  const safeBids = Array.isArray(orderBook.value.bids) ? orderBook.value.bids : [];
+// --- 工具函数 ---
+
+const getMockPrice = (sym) => {
+  const mockPrices = { 'BTC': 92000, 'ETH': 3100, 'BNB': 710, 'SOL': 142, 'BEAT': 0.05 };
+  return mockPrices[sym] || 100;
+};
+
+// 辅助：获取当前时间周期的起始时间戳（用于对齐 K 线）
+// 修复了“每秒画一根线”的 Bug
+const getCandleStartTime = (interval) => {
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  let seconds = 60; // 默认 1m
+  if (interval === '5m') seconds = 5 * 60;
+  else if (interval === '15m') seconds = 15 * 60;
+  else if (interval === '1h') seconds = 60 * 60;
+  else if (interval === '4h') seconds = 4 * 60 * 60;
+  else if (interval === '1d') seconds = 24 * 60 * 60;
   
-  // 从数组格式 [price, quantity] 中提取数量
-  const allAsks = safeAsks.map(a => parseFloat(a[1]) || 0);
-  const allBids = safeBids.map(b => parseFloat(b[1]) || 0);
-  const allAmounts = [...allAsks, ...allBids];
-  if (allAmounts.length === 0) return 1; // 避免除零
-  return Math.max(...allAmounts, 1);
-});
-
-// 计算深度条宽度（基于全局最大挂单量）
-const getDepthWidth = (amount) => {
-  if (!amount || amount === 0 || !maxOrderVolume.value) return 0;
-  return (amount / maxOrderVolume.value) * 100;
+  // 取余数向下取整，对齐时间网格
+  return nowSeconds - (nowSeconds % seconds);
 };
 
-// 格式化法币价格（CNY）
-const formatFiatPrice = (price) => {
-  if (!price || price === 0) return '¥---';
-  // 假设 1 USDT ≈ 7.2 CNY
-  const cnyPrice = price * 7.2;
-  return `¥${cnyPrice.toLocaleString('en-US', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  })}`;
-};
+const formatPrice = (val) => val ? Number(val).toLocaleString('en-US', { maximumFractionDigits: val >= 1 ? 2 : 6 }) : '---';
+const formatCoinPrice = (val) => formatPrice(val);
+const formatVolume = (val) => val > 1000 ? (val/1000).toFixed(2)+'K' : val?.toFixed(2);
+const formatAmount = (val) => val > 1000 ? (val/1000).toFixed(0)+'K' : val?.toFixed(0);
+const formatFiatPrice = (val) => val ? '¥' + (val * 7.2).toFixed(0) : '¥---';
+const formatOrderPrice = (val) => Number(val).toFixed(2);
+const formatOrderAmount = (val) => Number(val).toFixed(4);
+const formatTradeTime = (date) => date.toTimeString().slice(0, 8);
+const getDepthWidth = (amount) => (amount / maxOrderVolume.value) * 100;
 
-// 点击价格行
-const handlePriceClick = (price, side) => {
-  router.push({ 
-    path: '/trade', 
-    query: { 
-      symbol: symbol.value,
-      side: side,
-      price: price
-    } 
+const formatOrderBookData = (list) => {
+  if (!Array.isArray(list)) return [];
+  return list.map(item => {
+    const p = Array.isArray(item) ? item[0] : (item.price || item[0]);
+    const a = Array.isArray(item) ? item[1] : (item.amount || item.quantity || item[1]);
+    return {
+      price: parseFloat(p),
+      amount: parseFloat(a),
+      priceStr: String(p),
+      amountStr: String(a)
+    };
   });
 };
 
-// 指标设置
-const handleIndicators = () => {
-  showToast({ message: t('market.indicators_coming_soon'), duration: 2000 });
+// --- 核心业务逻辑函数 (提前定义，防止 watcher 调用时未定义) ---
+
+// 1. 获取 K 线历史
+const fetchKlineHistory = async () => {
+  try {
+    const res = await request.get('/api/v1/market/kline', {
+      params: {
+        symbol: tradingViewFormat.value, 
+        interval: selectedTimeframe.value, 
+        limit: 1000
+      }
+    });
+
+    if (res.data && Array.isArray(res.data)) {
+      const formattedData = res.data.map(item => ({
+        time: item[0] / 1000, 
+        open: parseFloat(item[1]),
+        high: parseFloat(item[2]),
+        low: parseFloat(item[3]),
+        close: parseFloat(item[4]),
+      }));
+      klineHistory.value = formattedData;
+      console.log('[Market] K-line history loaded:', formattedData.length);
+    }
+  } catch (error) {
+    console.error('[Market] Failed to fetch kline:', error);
+  }
 };
 
-// 图表设置
-const handleSettings = () => {
-  showToast({ message: t('market.settings_coming_soon'), duration: 2000 });
-};
-
-// 标签页状态
-const activeTab = ref(0);
-
-// 盘口数据（从 API 获取）
-const orderBook = ref({
-  bids: [],
-  asks: []
-});
-const maxVolume = ref(1000);
-
-// 从后端 API 加载订单簿数据
+// 2. 获取订单簿 (修复了 Symbol 写死的问题)
 const fetchOrderBook = () => {
+  if (useDirectBinance && binanceWS?.readyState === WebSocket.OPEN) return;
+
   request.get('/api/v1/market/orderbook', {
     params: {
-      symbol: 'BTCUSDT',
+      symbol: `${symbol.value}USDT`, // 【修正】这里必须是动态的！
       limit: 20
     }
   }).then(res => {
-    orderBook.value = res.data || { bids: [], asks: [] };
+    const newData = res.data || { bids: [], asks: [] };
+    let newBids = formatOrderBookData(newData.bids);
+    let newAsks = formatOrderBookData(newData.asks);
     
-    // 计算最大数量（用于深度条）
-    if (orderBook.value.bids && orderBook.value.asks) {
-      const allAmounts = [
-        ...(orderBook.value.bids || []).map(b => parseFloat(b[1]) || 0),
-        ...(orderBook.value.asks || []).map(a => parseFloat(a[1]) || 0)
-      ];
-      maxVolume.value = allAmounts.length > 0 ? Math.max(...allAmounts, 1) : 1000;
-    }
+    // 排序 & 截取
+    newBids.sort((a, b) => b.price - a.price);
+    newAsks.sort((a, b) => a.price - b.price);
     
-    console.log('Orderbook fetched:', orderBook.value);
+    orderBook.value.bids = newBids.slice(0, 20);
+    orderBook.value.asks = newAsks.slice(0, 20);
+    lastUpdateTime.value = new Date().toLocaleTimeString();
+    
+    useDirectBinance = false;
   }).catch(err => {
-    console.error('Orderbook error:', err);
-    orderBook.value = { bids: [], asks: [] };
+    console.error('Orderbook fetch error:', err);
+    if (!useDirectBinance) connectBinanceWebSocket();
   });
 };
 
-// 兼容旧代码的 loadOrderBook 函数
+// 兼容旧名
 const loadOrderBook = fetchOrderBook;
 
-// 盘口数据生成函数（保留作为后备方案，但不再使用）
-const generateOrderBook = (basePrice) => {
-  const asks = [];
-  const bids = [];
-  const maxVolume = 1000;
+// 3. 币安 WS 连接
+const connectBinanceWebSocket = () => {
+  if (binanceWS) binanceWS.close();
   
-  // 生成卖单（价格从高到低，倒序显示）
-  for (let i = 0; i < 10; i++) {
-    asks.push({
-      price: basePrice * (1 + (10 - i) * 0.001),
-      amount: Math.random() * 50 + 10
-    });
-  }
+  const cleanSymbol = symbol.value.toLowerCase() + 'usdt';
+  const wsUrl = `wss://stream.binance.com:9443/ws/${cleanSymbol}@depth20@100ms`;
   
-  // 生成买单（价格从低到高，正序显示）
-  for (let i = 0; i < 10; i++) {
-    bids.push({
-      price: basePrice * (1 - (i + 1) * 0.001),
-      amount: Math.random() * 50 + 10
-    });
-  }
-  
-  return { asks, bids, maxVolume };
+  try {
+    binanceWS = new WebSocket(wsUrl);
+    binanceWS.onopen = () => { useDirectBinance = true; };
+    binanceWS.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.bids && data.asks) {
+        let newBids = formatOrderBookData(data.bids).sort((a, b) => b.price - a.price).slice(0, 20);
+        let newAsks = formatOrderBookData(data.asks).sort((a, b) => a.price - b.price).slice(0, 20);
+        orderBook.value.bids = newBids;
+        orderBook.value.asks = newAsks;
+        lastUpdateTime.value = new Date().toLocaleTimeString();
+      }
+    };
+    binanceWS.onerror = () => { useDirectBinance = false; };
+  } catch (e) { console.error(e); }
 };
 
-// 最新成交数据生成函数（使用计算属性，当价格更新时自动更新）
-const generateTrades = (basePrice) => {
-  const trades = [];
-  const now = new Date();
-  
-  if (basePrice === 0) {
-    return trades;
-  }
-  
-  for (let i = 0; i < 20; i++) {
-    const time = new Date(now.getTime() - i * 30000); // 每30秒一笔
-    const side = Math.random() > 0.5 ? 'buy' : 'sell';
-    const price = basePrice * (1 + (Math.random() - 0.5) * 0.002);
-    const amount = Math.random() * 5 + 0.1;
-    
-    trades.push({
-      time,
-      side,
-      price,
-      amount
-    });
-  }
-  
-  return trades;
+// --- 事件处理 ---
+
+const handleSwitchCoin = (newSymbol) => {
+  if (newSymbol === symbol.value) { showCoinDrawer.value = false; return; }
+  const normalized = normalizeSymbol(newSymbol);
+  symbol.value = normalized;
+  localStorage.setItem('selectedSymbol', normalized);
+  router.replace({ path: route.path, query: { ...route.query, symbol: normalized } });
+  showCoinDrawer.value = false;
+  showToast({ message: `${normalized}/USDT`, icon: 'success' });
 };
 
-const trades = computed(() => {
-  const data = generateTrades(currentPrice.value);
-  return Array.isArray(data) ? data : [];
+const handlePriceClick = (price, side) => {
+  router.push({ path: '/trade', query: { symbol: symbol.value, side, price } });
+};
+
+const goToTrade = (side) => {
+  router.push({ path: '/trade/detail', query: { symbol: symbol.value, side, type: marketType.value } });
+};
+
+const handleIndicators = () => showToast(t('market.indicators_coming_soon'));
+const handleSettings = () => showToast(t('market.settings_coming_soon'));
+
+// --- Watchers ---
+
+// 1. 监听 URL symbol 变化
+watch(() => route.query.symbol, (newSymbol) => {
+  if (newSymbol) {
+    symbol.value = normalizeSymbol(newSymbol);
+    localStorage.setItem('selectedSymbol', symbol.value);
+  }
 });
 
-// 格式化价格（处理空值）
-const formatPrice = (value) => {
-  if (!value || value === 0) return '---';
+// 2. 监听时间周期变化 -> 刷新 K 线
+watch(selectedTimeframe, () => {
+  fetchKlineHistory();
+});
+
+// 3. 监听 Symbol 变化 -> 刷新所有数据
+watch(() => symbol.value, (newSymbol) => {
+  // 关闭旧 WS
+  if (binanceWS) { binanceWS.close(); binanceWS = null; }
   
-  // 根据价格大小选择不同的格式化方式
-  if (value >= 1000) {
-    return value.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
-  } else if (value >= 1) {
-    return value.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 4
-    });
+  // 尝试从 Store 获取深度
+  const normalized = normalizeSymbol(newSymbol);
+  const depthData = depths.value[normalized];
+  
+  if (depthData) {
+    // ... Store 逻辑 (省略部分重复代码，核心是更新 orderBook) ...
+    // 这里为了简洁，直接调用 fetchOrderBook 重新获取也是一种保底策略
+    fetchOrderBook(); 
   } else {
-    return value.toLocaleString('en-US', {
-      minimumFractionDigits: 4,
-      maximumFractionDigits: 6
+    fetchOrderBook();
+  }
+  
+  // 必须重新拉取 K 线
+  fetchKlineHistory();
+});
+
+// 4. 监听 Store 的实时深度更新 (WebSocket)
+watch(depths, (newDepths) => {
+  const normalized = normalizeSymbol(symbol.value);
+  const data = newDepths[normalized];
+  if (data && data.bids) {
+    let newBids = formatOrderBookData(data.bids).sort((a, b) => b.price - a.price).slice(0, 20);
+    let newAsks = formatOrderBookData(data.asks).sort((a, b) => a.price - b.price).slice(0, 20);
+    orderBook.value.bids = newBids;
+    orderBook.value.asks = newAsks;
+  }
+}, { deep: true });
+
+// 5. 【修复】监听实时 Ticker -> 更新 K 线最后一位
+watch(tickerData, (newTicker) => {
+  if (newTicker && tvWidget.value) {
+    const currentPrice = parseFloat(newTicker.price);
+    
+    // 【核心修复】计算当前 K 线的“起始时间戳”，而不是当前秒数
+    // 这样才能保证是更新“当前这根” K 线，而不是画新线
+    const candleTime = getCandleStartTime(selectedTimeframe.value);
+    
+    tvWidget.value.updateLiveCandle({
+       time: candleTime,
+       close: currentPrice,
+       open: currentPrice, // 暂用当前价填充，为了视觉流畅
+       high: currentPrice,
+       low: currentPrice
     });
   }
-};
+});
 
-// 格式化成交量（处理空值）
-const formatVolume = (value) => {
-  if (!value || value === 0) return '---';
-  
-  if (value >= 1000000000) {
-    return (value / 1000000000).toFixed(2) + 'B';
-  } else if (value >= 1000000) {
-    return (value / 1000000).toFixed(2) + 'M';
-  } else if (value >= 1000) {
-    return (value / 1000).toFixed(2) + 'K';
-  }
-  return value.toFixed(2);
-};
+// --- 生命周期 ---
 
-// 格式化盘口价格
-const formatOrderPrice = (value) => {
-  return value.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
-};
-
-// 格式化盘口数量
-const formatOrderAmount = (value) => {
-  return value.toLocaleString('en-US', {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 4
-  });
-};
-
-// 格式化成交时间
-const formatTradeTime = (date) => {
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  const seconds = date.getSeconds().toString().padStart(2, '0');
-  return `${hours}:${minutes}:${seconds}`;
-};
-
-// 格式化金额
-const formatAmount = (value) => {
-  if (value >= 1000000) {
-    return (value / 1000000).toFixed(0) + 'M';
-  } else if (value >= 1000) {
-    return (value / 1000).toFixed(0) + 'K';
-  }
-  return value.toFixed(0);
-};
-
-
-// 跳转到交易页面
-const goToTrade = (side) => {
-  // 跳转到交易子页面（从K线页进入），传递交易类型
-  router.push({
-    path: '/trade/detail',
-    query: {
-      symbol: symbol.value,
-      side: side,
-      type: marketType.value // 传递交易类型（spot 或 futures）
-    }
-  });
-};
-
-// 订单簿刷新定时器
-let orderBookInterval = null;
-
-// 初始化 WebSocket 连接（如果尚未连接）
 onMounted(() => {
-  if (!marketStore.isConnected) {
-    marketStore.initWebSocket();
-  }
-  // 加载订单簿数据
-  fetchOrderBook();
+  // 1. 修正 Symbol
+  const saved = getDefaultSymbol();
+  if (symbol.value !== saved) symbol.value = saved;
   
-  // 定时刷新订单簿数据（每3秒）
+  // 2. 初始化 WS
+  if (!marketStore.isConnected) marketStore.initWebSocket();
+  
+  // 3. 首次加载数据
+  fetchOrderBook();
+  fetchKlineHistory();
+  
+  // 4. 定时轮询盘口（作为 WS 的备用）
   orderBookInterval = setInterval(() => {
-    fetchOrderBook();
+    if (!useDirectBinance) fetchOrderBook();
   }, 3000);
 });
 
-// 组件卸载时清理定时器
 onUnmounted(() => {
-  if (orderBookInterval) {
-    clearInterval(orderBookInterval);
-    orderBookInterval = null;
-  }
+  if (orderBookInterval) clearInterval(orderBookInterval);
+  if (binanceWS) binanceWS.close();
 });
+
+// 模拟成交数据 (Mock)
+const generateTrades = (basePrice) => {
+  if (!basePrice) return [];
+  return Array(15).fill(0).map((_, i) => ({
+    time: new Date(Date.now() - i * 10000),
+    side: Math.random() > 0.5 ? 'buy' : 'sell',
+    price: basePrice * (1 + (Math.random() - 0.5) * 0.002),
+    amount: Math.random() * 2
+  }));
+};
 </script>
 
 <style scoped>
@@ -882,17 +845,33 @@ onUnmounted(() => {
 }
 
 /* K 线图区域 */
-.chart-container {
+.chart-wrapper {
   flex: 1;
-  background-color: #000000;
+  display: flex;
+  flex-direction: column;
+  height: 450px; /* 固定高度，与 TradingView 容器一致 */
+  width: 100%;
   overflow: hidden;
-  min-height: 400px;
+  background-color: #000000;
+  min-height: 450px;
+  margin: 0; /* 移除多余的 margin */
+  padding: 0; /* 移除多余的 padding */
 }
+
+/* 移动端响应式 */
+@media (max-width: 768px) {
+  .chart-wrapper {
+    height: 50vh; /* 移动端使用视口高度 */
+    min-height: 50vh;
+  }
+}
+
 /* Chart container styles - TradingView widget handles its own styling */
 
 /* 盘口和成交标签页 */
 .market-tabs {
-  margin-top: 0;
+  margin-top: 0; /* 确保紧贴 K 线图下方 */
+  padding-top: 0;
   background-color: #000000;
 }
 :deep(.market-tabs .van-tab) {
@@ -1332,5 +1311,10 @@ onUnmounted(() => {
   font-size: 18px;
   color: #FCD535 !important;
 }
-</style>
 
+/* 闪烁动画用于时间戳 */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+</style>

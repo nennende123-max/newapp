@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="earn-page">
 
     <!-- 顶部资产卡片 -->
@@ -1418,4 +1418,3 @@ onDeactivated(() => {
   font-family: 'vant-icon', 'vant-iconfont', 'vant-icons', 'iconfont', 'vant', sans-serif !important;
 }
 </style>
-

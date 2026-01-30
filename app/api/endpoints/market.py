@@ -29,13 +29,25 @@ def get_price(symbol: str = Query(..., description="交易对，如 BTCUSDT")):
 
 
 @router.get("/kline")
-def get_kline(
-    symbol: str = Query(..., description="交易对，如 BTCUSDT"),
-    interval: str = Query("1m", description="K线间隔，如 1m, 5m, 1h"),
-    limit: int = Query(500, description="数据条数，最大1000")
+async def get_kline(
+    symbol: str = Query(..., description="交易对，如 BTCUSDT 或 BTC/USDT"),
+    interval: str = Query("1h", description="K线间隔，如 1m, 5m, 1h"),
+    limit: int = Query(1000, description="数据条数，最大1000")
 ):
-    """获取 K 线数据"""
-    return get_klines(symbol, interval, limit)
+    """
+    获取 K 线数据（从数据库查询）
+    
+    返回格式：数组列表，每个元素为 [timestamp(毫秒), open, high, low, close, volume]
+    """
+    # 清理 symbol 字符串：移除 "BINANCE:", "/", "USDT" 等杂质
+    # 例如：BINANCE:BTCUSDT -> BTCUSDT, BTC/USDT -> BTCUSDT
+    cleaned_symbol = symbol.upper()
+    cleaned_symbol = cleaned_symbol.replace("BINANCE:", "")
+    cleaned_symbol = cleaned_symbol.replace("/", "")
+    
+    # 调用 market_service.get_kline_data 获取数据
+    kline_data = await market_service.get_kline_data(cleaned_symbol, interval, limit)
+    return kline_data
 
 
 @router.get("/klines")

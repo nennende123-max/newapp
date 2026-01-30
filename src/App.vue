@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div id="app">
     <!-- 全局加载条 -->
     <div v-if="assetStore.isLoading" class="global-loading-bar">

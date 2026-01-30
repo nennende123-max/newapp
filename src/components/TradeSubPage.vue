@@ -12,7 +12,7 @@
         />
       </div>
       <div class="navbar-center">
-        <span class="navbar-title">{{ displayTitle }}</span>
+        <span class="navbar-title">{{ formattedTitle }}</span>
       </div>
       <div class="navbar-right">
         <div class="lang-icon-wrapper" @click="handleLanguageClick">
@@ -21,7 +21,7 @@
       </div>
     </div>
 
-    <!-- 主体内容：整合 Trade.vue 和 FuturesTrade.vue 的逻辑 -->
+    <!-- 主体内容：使用 TradePanel 组件 -->
     <div class="trade-sub-content">
       <!-- Tab 切换：现货/合约 -->
       <div class="trade-tabs">
@@ -52,10 +52,20 @@
         </div>
       </div>
 
-      <!-- 现货交易界面 -->
-      <div v-if="activeTradeTab === 'spot'" class="trade-main">
-        <!-- 左侧：盘口区 -->
-        <div ref="orderBookContainerRef" class="orderbook-side">
+      <!-- 核心交易区域：使用 TradePanel 组件 -->
+      <TradePanel 
+        :initial-symbol="symbol"
+        :force-trade-tab="activeTradeTab"
+        :initial-mode="activeTradeTab"
+        :is-sub-page="true"
+        :key="`${activeTradeTab}-${symbol}`"
+      />
+
+      <!-- 现货交易界面（保留原有代码作为备用） -->
+      <div v-if="false && activeTradeTab === 'spot'" class="trade-container">
+        <div class="trade-main">
+          <!-- 左侧：盘口区 -->
+          <div ref="orderBookContainerRef" class="orderbook-side left-order-book">
           <div class="orderbook-header">
             <span class="header-price">{{ t('trade.price') }} (USDT)</span>
             <span class="header-quantity">{{ t('trade.amount') }} ({{ currentCoinConfig.baseCoin }})</span>
@@ -95,8 +105,8 @@
           </div>
         </div>
 
-        <!-- 右侧：交易表单 -->
-        <div ref="orderFormRef" class="form-side">
+          <!-- 右侧：交易表单 -->
+          <div ref="orderFormRef" class="form-side right-trade-form">
           <div class="buy-sell-toggle">
             <div 
               class="toggle-btn buy-btn" 
@@ -227,6 +237,7 @@
           >
             {{ orderSide === 'buy' ? t('trade.buy_btc').replace('BTC', symbol) : t('trade.sell_btc').replace('BTC', symbol) }}
           </button>
+          </div>
         </div>
       </div>
 
@@ -254,9 +265,10 @@
         </div>
 
         <!-- 核心交易区 - 左右布局 -->
-        <div class="futures-trade-main">
-          <!-- 左侧：盘口区 -->
-          <div ref="orderBookContainerRef" class="futures-orderbook-side">
+        <div class="trade-container">
+          <div class="futures-trade-main">
+            <!-- 左侧：盘口区 -->
+            <div ref="orderBookContainerRef" class="futures-orderbook-side left-order-book">
             <div class="orderbook-header">
               <span class="header-price">{{ t('trade.price') }} (USDT)</span>
               <span class="header-quantity">{{ t('trade.amount') }} ({{ currentCoinConfig.baseCoin }})</span>
@@ -296,10 +308,10 @@
             </div>
           </div>
 
-          <!-- 右侧：交易表单 -->
-          <div ref="orderFormRef" class="futures-form-side">
-            <!-- 资产信息面板：合约模式下显示合约资产 -->
-            <div class="futures-asset-panel">
+            <!-- 右侧：交易表单 -->
+            <div ref="orderFormRef" class="futures-form-side right-trade-form">
+              <!-- 资产信息面板：合约模式下显示合约资产 -->
+              <div class="futures-asset-panel asset-info">
               <div class="asset-row">
                 <div class="asset-item">
                   <span class="asset-label">{{ t('trade.total_equity') }}</span>
@@ -427,6 +439,7 @@
               >
                 {{ t('trade.open_short') }}
               </button>
+              </div>
             </div>
           </div>
         </div>
@@ -901,6 +914,7 @@ import { useAssetStore } from '@/stores/assets';
 import { useMarketStore } from '@/stores/market';
 import { useTradeStore } from '@/stores/trade';
 import { createOrder, getOrders, cancelOrder as cancelSpotOrderApi } from '@/api/trade';
+import TradePanel from '@/components/trade/TradePanel.vue';
 import { createFuturesOrder, getPositions as getFuturesPositionsApi, closePosition as closeFuturesPositionApi, getFuturesOrders, cancelFuturesOrder as cancelFuturesOrderApi, setPositionTPSL } from '@/api/futures';
 import { formatAssetAmount } from '@/utils/format';
 import LanguageSelect from './LanguageSelect.vue';
@@ -937,14 +951,15 @@ const detectTradeType = () => {
 
 const activeTradeTab = ref(detectTradeType());
 
-// 计算显示标题
-const displayTitle = computed(() => {
+// 计算显示标题 - 强制移除"永续"二字
+const formattedTitle = computed(() => {
   const symbolText = `${symbol.value}/USDT`;
-  if (activeTradeTab.value === 'futures') {
-    return `${symbolText} ${t('trade.perpetual')}`;
-  }
-  return symbolText;
+  // 强制移除 "永续" 及可能的空格
+  return symbolText.replace(/\s*永续/g, '').trim();
 });
+
+// 保留 displayTitle 以兼容旧代码
+const displayTitle = formattedTitle;
 
 // 币种配置
 const coinConfigs = {
@@ -2619,6 +2634,15 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
+/* 交易容器 - 严格的 Flex 布局包装 */
+.trade-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+  /* 移除 min-height，让内容自然高度 */
+}
+
 /* 顶部导航栏 - 玻璃拟态效果 */
 .trade-sub-navbar {
   position: fixed;
@@ -2712,7 +2736,7 @@ onUnmounted(() => {
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: 20px;
+  padding-bottom: 10px; /* 减少底部 padding，紧凑布局 */
   background-color: #050505;
   color: #FFFFFF;
 }
@@ -2787,18 +2811,27 @@ onUnmounted(() => {
   background-color: rgba(246, 70, 93, 0.1);
 }
 
-/* 核心交易区 */
-.trade-main {
-  display: flex;
-  flex-direction: row;
+/* 核心交易区 - 强制横向布局 */
+.trade-main,
+.futures-trade-main {
+  display: flex !important;
+  flex-direction: row !important;
   gap: 8px;
   padding: 8px;
   align-items: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+  flex-wrap: nowrap; /* 防止换行 */
+  /* 移除 min-height，让内容自然高度 */
 }
 
-/* 盘口区 */
-.orderbook-side {
-  width: 60%;
+/* 盘口区 - 确保固定宽度，不被压缩 */
+.orderbook-side,
+.futures-orderbook-side,
+.left-order-book {
+  width: 60% !important;
+  min-width: 0; /* 允许 flex 收缩 */
+  flex: 0 0 60% !important; /* flex-grow: 0, flex-shrink: 0, flex-basis: 60% */
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, rgba(5, 5, 5, 0.95) 0%, #050505 100%);
@@ -2807,19 +2840,21 @@ onUnmounted(() => {
   padding: 0;
   border: 1px solid rgba(212, 175, 55, 0.08);
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  align-self: flex-start; /* 确保顶部对齐 */
 }
 
 .orderbook-header {
   display: flex;
   justify-content: space-between;
-  padding: 8px 12px;
-  font-size: 10px;
+  padding: 6px 12px; /* 减少 padding，紧凑布局 */
+  font-size: 10px; /* 保持小字号 */
   color: #8E8E93;
   border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   flex-shrink: 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 600;
+  line-height: 1.2; /* 紧凑行高 */
 }
 
 .header-price {
@@ -2840,8 +2875,8 @@ onUnmounted(() => {
 
 .order-row {
   position: relative;
-  height: 22px;
-  line-height: 22px;
+  height: 20px; /* 减少高度，紧凑布局 */
+  line-height: 20px; /* 匹配高度 */
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -2849,6 +2884,7 @@ onUnmounted(() => {
   cursor: pointer;
   overflow: hidden;
   transition: all 0.2s ease;
+  font-size: 11px; /* 紧凑字号 */
 }
 
 .order-row:hover {
@@ -2887,7 +2923,7 @@ onUnmounted(() => {
 .order-row .price {
   position: relative;
   z-index: 1;
-  font-size: 13px;
+  font-size: 11px; /* 减小字号，紧凑布局 */
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
@@ -2911,7 +2947,7 @@ onUnmounted(() => {
 .order-row .quantity {
   position: relative;
   z-index: 1;
-  font-size: 13px;
+  font-size: 11px; /* 减小字号，紧凑布局 */
   color: #8E8E93;
   text-align: right;
   flex: 1;
@@ -2922,7 +2958,7 @@ onUnmounted(() => {
 
 .last-price {
   flex-shrink: 0;
-  height: 48px;
+  height: 40px; /* 减少高度，紧凑布局 */
   background: linear-gradient(180deg, rgba(212, 175, 55, 0.05) 0%, rgba(212, 175, 55, 0.02) 100%);
   display: flex;
   flex-direction: column;
@@ -2936,11 +2972,11 @@ onUnmounted(() => {
 }
 
 .price-main {
-  font-size: 20px;
+  font-size: 18px; /* 稍微减小字号，紧凑布局 */
   font-weight: 800;
   color: #FFFFFF;
   font-variant-numeric: tabular-nums;
-  line-height: 1.2;
+  line-height: 1.1; /* 紧凑行高 */
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
   letter-spacing: -0.5px;
   text-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
@@ -2948,11 +2984,11 @@ onUnmounted(() => {
 }
 
 .price-fiat {
-  font-size: 11px;
+  font-size: 10px; /* 减小字号 */
   color: #8E8E93;
   font-variant-numeric: tabular-nums;
   line-height: 1;
-  margin-top: 4px;
+  margin-top: 2px; /* 减少间距 */
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
 }
 
@@ -2966,12 +3002,22 @@ onUnmounted(() => {
   text-shadow: 0 0 12px rgba(246, 70, 93, 0.5);
 }
 
-/* 交易表单 */
-.form-side {
-  width: 40%;
+/* 交易表单 - 确保固定宽度，不被压缩 */
+.form-side,
+.futures-form-side,
+.right-trade-form {
+  width: 40% !important;
+  min-width: 0; /* 允许 flex 收缩 */
+  flex: 0 0 40% !important; /* flex-grow: 0, flex-shrink: 0, flex-basis: 40% */
   display: flex;
   flex-direction: column;
   gap: 8px;
+  box-sizing: border-box;
+}
+
+/* 资产信息面板 */
+.asset-info {
+  flex-shrink: 0;
 }
 
 .buy-sell-toggle {
@@ -3367,6 +3413,18 @@ onUnmounted(() => {
   flex-direction: column;
 }
 
+/* 合约交易主区域 - 强制横向布局 */
+.futures-trade-main {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 8px;
+  padding: 8px;
+  align-items: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+  flex-wrap: nowrap; /* 防止换行 */
+}
+
 /* 顶部控制栏 - 与现货页面的 pair-info 高度完全一致 */
 .futures-control-bar {
   display: flex;
@@ -3464,24 +3522,26 @@ onUnmounted(() => {
 
 
 /* 持仓看板 */
-/* 底部面板 */
-.futures-bottom-section {
+/* 底部面板 - 紧凑布局，紧贴交易面板 */
+.futures-bottom-section,
+.bottom-section {
   background: linear-gradient(180deg, #050505 0%, rgba(5, 5, 5, 0.98) 100%);
   border-top: 1px solid rgba(212, 175, 55, 0.1);
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: column;
-  margin-top: 8px;
+  margin-top: 12px; /* 减少 margin，紧贴交易面板 */
   padding: 0 8px;
+  /* 移除 min-height，让内容自然高度 */
 }
 
 .positions-list,
 .orders-list,
 .history-list {
-  padding: 16px;
+  padding: 12px; /* 减少 padding，紧凑布局 */
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px; /* 减少 gap */
 }
 
 .empty-state {

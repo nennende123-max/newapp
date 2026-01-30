@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="history-page">
     <!-- 顶部导航栏 -->
     <div class="history-header">
@@ -491,4 +491,3 @@ const handleItemClick = (item) => {
   background-color: rgba(255, 255, 255, 0.05);
 }
 </style>
-

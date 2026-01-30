@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { ref } from 'vue'
 
 defineProps({
@@ -41,4 +41,3 @@ const count = ref(0)
   color: #888;
 }
 </style>
-

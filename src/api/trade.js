@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 交易相关 API
  * 负责下单、撤单、历史记录等功能
  * 
@@ -207,4 +207,3 @@ export default {
   getTradeHistory,
   getMarketData
 };
-

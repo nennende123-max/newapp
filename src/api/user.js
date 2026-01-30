@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 用户相关 API
  * 负责登录、用户信息等功能
  */
@@ -57,4 +57,3 @@ export default {
   walletConnect,
   getCurrentUser
 };
-

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 模拟网络请求工具
  * 用于模拟网络延迟和标准响应格式
  */
@@ -89,4 +89,3 @@ export default {
   mockSuccess,
   mockError
 };
-

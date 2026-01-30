@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <van-nav-bar
     :title="$t('support.title')"
     left-arrow

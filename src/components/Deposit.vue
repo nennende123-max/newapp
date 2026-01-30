@@ -1,4 +1,4 @@
-﻿<template>
+<template>
     <van-nav-bar
       :title="t('deposit.title')"
       left-arrow
@@ -386,4 +386,3 @@
     margin-top: 5px;
   }
   </style>
-

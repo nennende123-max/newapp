@@ -98,7 +98,9 @@ export function createDatafeed() {
     currentSymbol = symbol;
     currentResolution = resolution;
 
-    const wsUrl = `${WS_BASE}/api/v1/market/ws/kline`;
+    // 使用 Vite 代理：通过 /ws 路径连接，Vite 会自动代理到后端 /api/v1/market/ws/kline
+    // 注意：不能直接在浏览器地址栏访问 ws:// 协议，必须从 http:// 页面内通过 JavaScript 连接
+    const wsUrl = `ws://${window.location.host}/ws`;
     console.log('[Datafeed] 连接 WebSocket:', wsUrl);
 
     try {
@@ -115,35 +117,24 @@ export function createDatafeed() {
 
       wsConnection.onmessage = (event) => {
         try {
-          const message = JSON.parse(event.data);
-          
-          if (message.type === 'kline') {
-            const kline = message.data;
-            
-            // 检查是否是当前订阅的交易对和时间周期
-            const klineResolution = intervalToResolution(kline.interval);
-            const callbackKey = `${kline.symbol}_${klineResolution}`;
-            
-            // 查找匹配的回调函数
+          const data = JSON.parse(event.data);
+          console.log('🔥 Go数据:', data);
+
+          // Go 后端扁平格式: { time, open, high, low, close, volume }
+          if (data && typeof data.time === 'number') {
+            const callbackKey = `${currentSymbol}_${currentResolution}`;
             const callback = callbacks.get(callbackKey);
             if (callback) {
-              // 转换为 TradingView 格式
               const bar = {
-                time: kline.timestamp,
-                open: kline.open,
-                high: kline.high,
-                low: kline.low,
-                close: kline.close,
-                volume: kline.volume
+                time: data.time,
+                open: data.open,
+                high: data.high,
+                low: data.low,
+                close: data.close,
+                volume: data.volume
               };
-
-              // 调用回调更新图表
               callback(bar);
             }
-          } else if (message.type === 'connected') {
-            console.log('[Datafeed] WebSocket 已连接:', message.message);
-          } else if (message.type === 'pong') {
-            // 心跳响应
           }
         } catch (error) {
           console.error('[Datafeed] 解析 WebSocket 消息失败:', error);

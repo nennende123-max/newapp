@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 钱包相关 API
  * 负责资产、充值、提现等功能
  * 
@@ -224,4 +224,3 @@ export default {
   getDepositHistory,
   getWithdrawHistory
 };
-

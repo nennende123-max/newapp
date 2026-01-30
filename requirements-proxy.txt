@@ -1,0 +1,9 @@
+# WebSocket 代理支持库（可选，但推荐用于 SOCKS5 代理）
+# 优先使用 aiosocksy（更现代，性能更好）
+aiosocksy>=0.0.6
+
+# 或者使用 python-socks（备选方案）
+# python-socks[asyncio]>=2.4.0
+
+# 注意：如果不需要 SOCKS5 代理支持，可以不安装这些库
+# 系统会自动降级到仅支持 HTTP 代理

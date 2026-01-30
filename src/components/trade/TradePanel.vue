@@ -1,5 +1,18 @@
 <template>
   <div class="trade-page">
+    <!-- ========== DEBUG MODE: 屏幕调试面板 ========== -->
+    <div style="background: #330000; color: #ff0000; padding: 10px; border: 2px solid red; font-family: monospace; z-index: 9999; margin-bottom: 10px; position: sticky; top: 0;">
+      <p><strong>=== DEBUG MODE ===</strong></p>
+      <p>Props Symbol: {{ props.initialSymbol || 'undefined' }}</p>
+      <p>Symbol Value: {{ symbol }}</p>
+      <p>Is Spot Mode (Computed): {{ isSpot }}</p>
+      <p>Is Spot Mode (Old): {{ isSpotMode }}</p>
+      <p>Screen Height: {{ screenHeight }}px</p>
+      <p>Initial Mode: {{ props.initialMode || 'undefined' }}</p>
+      <p>Force Trade Tab: {{ props.forceTradeTab || 'undefined' }}</p>
+      <p>Active Trade Tab: {{ activeTradeTab }}</p>
+    </div>
+
     <!-- 固定顶部导航栏 - 子页面模式隐藏 -->
     <div v-if="!isSubPage" class="trade-header">
       <div class="header-center">
@@ -34,7 +47,7 @@
 
     <div class="pair-info">
       <div class="pair-selector" @click="showCoinSelect = true">
-        <span class="pair-name">{{ symbol }}/USDT</span>
+        <span class="pair-name">{{ displayTitle }}/USDT</span>
         <van-icon name="arrow-down" size="12" color="#FFFFFF" style="margin-left: 4px" />
       </div>
       <div class="price-change" :class="{ positive: priceChange >= 0 }">
@@ -42,9 +55,12 @@
       </div>
     </div>
 
-    <!-- 现货交易界面 -->
-    <div v-if="activeTradeTab === 'spot'" class="trade-main">
-      <div ref="orderBookContainerRef" class="orderbook-side">
+    <!-- 现货交易界面 - 严格隔离，使用独立的 v-if (DEBUG MODE: 使用 isSpot) -->
+    <template v-if="isSpot">
+      <div class="trade-panel-container">
+        <div class="trade-main">
+          <!-- 左侧：盘口区 -->
+          <div ref="orderBookContainerRef" class="orderbook-side left-panel">
         <div class="orderbook-header">
           <span class="header-price">{{ t('trade.price') }} (USDT)</span>
           <span class="header-quantity">{{ t('trade.amount') }} ({{ currentCoinConfig.baseCoin }})</span>
@@ -84,19 +100,25 @@
         </div>
       </div>
 
-      <div ref="orderFormRef" class="form-side">
+          <!-- 右侧：交易表单 - DEBUG MODE: 强制重写为简单结构 -->
+          <div ref="orderFormRef" class="right-form-panel flex flex-col flex-1" style="border: 2px dashed yellow;">
+            <!-- 现货模式表单 - 完全独立的 template 块 -->
+            <template v-if="isSpot">
+              <div class="spot-zone" style="border: 1px solid #00ff00; padding: 5px; margin-top: 5px;">
+                <p style="color: #00ff00; font-size: 12px; font-weight: bold;">[DEBUG: 这是现货区域]</p>
+                <!-- 买入/卖出切换 -->
         <div class="buy-sell-toggle">
           <div 
             class="toggle-btn buy-btn" 
             :class="{ active: orderSide === 'buy' }"
-            @click="() => { orderSide = 'buy'; spotSliderValue = 0; amount.value = ''; }"
+                    @click="() => { orderSide = 'buy'; spotSliderValue = 0; amount = ''; }"
           >
             {{ t('trade.buy') }}
           </div>
           <div 
             class="toggle-btn sell-btn" 
             :class="{ active: orderSide === 'sell' }"
-            @click="() => { orderSide = 'sell'; spotSliderValue = 0; amount.value = ''; }"
+                    @click="() => { orderSide = 'sell'; spotSliderValue = 0; amount = ''; }"
           >
             {{ t('trade.sell') }}
           </div>
@@ -142,6 +164,7 @@
           />
         </div>
 
+                <!-- 现货滑块 -->
         <div class="slider-wrapper">
           <van-slider
             v-model="spotSliderValue"
@@ -215,13 +238,225 @@
         >
           {{ orderSide === 'buy' ? t('trade.buy_btc').replace('BTC', symbol) : t('trade.sell_btc').replace('BTC', symbol) }}
         </button>
+              </div>
+            </template>
+
+            <!-- 合约模式表单 - 完全独立的 template 块（禁止使用 v-else） -->
+            <template v-if="!isSpot">
+              <div class="futures-zone" style="border: 1px solid #00ffff; padding: 5px; margin-top: 5px;">
+                <p style="color: #00ffff; font-size: 12px; font-weight: bold;">[DEBUG: 这是合约区域]</p>
+                <!-- 资产信息面板：合约模式专用 -->
+                <div class="futures-asset-panel">
+                  <div class="asset-row">
+                    <div class="asset-item">
+                      <span class="asset-label">{{ t('trade.total_equity') }}</span>
+                      <span class="asset-value">{{ formatPrice(totalEquity) }} USDT</span>
+                    </div>
+                    <div class="asset-item">
+                      <span class="asset-label">{{ t('trade.available_margin') }}</span>
+                      <span class="asset-value">{{ formatPrice(availableMargin) }} USDT</span>
+                    </div>
+                  </div>
+                  <div class="asset-row">
+                    <div class="asset-item">
+                      <span class="asset-label">{{ t('trade.frozen_margin') }}</span>
+                      <span class="asset-value">{{ formatPrice(frozenMargin) }} USDT</span>
+                    </div>
+                    <div class="asset-item">
+                      <span class="asset-label">{{ t('trade.unrealized_pnl') }}</span>
+                      <span 
+                        class="asset-value" 
+                        :class="{ 'pnl-positive': totalUnrealizedPnl >= 0, 'pnl-negative': totalUnrealizedPnl < 0, 'pnl-flash': pnlChanged }"
+                      >
+                        {{ totalUnrealizedPnl >= 0 ? '+' : '' }}{{ formatPrice(totalUnrealizedPnl) }} USDT
+                      </span>
+                    </div>
       </div>
     </div>
 
-    <!-- 合约交易界面 -->
-    <div v-else-if="activeTradeTab === 'futures'" class="futures-trade-container">
-      <!-- 合约控制栏：全仓文本 + 杠杆倍数（左边），资金费率（右边） - 仅在合约模式下显示 -->
-      <div v-if="!isSpotMode" class="futures-control-bar">
+                <div class="order-type-selector" @click="showOrderTypeSheet = true">
+                  <span>{{ orderType === 'limit' ? t('trade.limit_order') : t('trade.market_order') }}</span>
+                  <van-icon name="arrow-down" size="12" color="#848E9C" />
+                </div>
+
+                <div class="input-row">
+                  <input
+                    v-if="orderType === 'limit'"
+                    v-model="futuresPrice"
+                    type="number"
+                    :placeholder="markPrice.toFixed(currentCoinConfig.priceFixed)"
+                    class="input-field no-spinner"
+                  />
+                  <input
+                    v-else
+                    type="text"
+                    :value="t('trade.market_price_hint')"
+                    disabled
+                    class="input-field market-price-input"
+                  />
+                  <span class="input-suffix">USDT</span>
+                </div>
+
+                <div class="input-row">
+                  <input
+                    v-model="futuresAmount"
+                    type="number"
+                    :placeholder="t('trade.amount_placeholder')"
+                    class="input-field no-spinner"
+                    @input="handleFuturesAmountInput"
+                  />
+                  <span class="input-suffix">{{ currentCoinConfig.baseCoin }}</span>
+                </div>
+
+                <!-- 合约滑块 -->
+                <div class="slider-wrapper">
+                  <van-slider
+                    v-model="futuresSliderValue"
+                    :min="0"
+                    :max="100"
+                    :step="1"
+                    bar-height="4px"
+                    button-size="16px"
+                    active-color="#FCD535"
+                    inactive-color="#2A2D35"
+                    @update:model-value="onFuturesSliderChange"
+                  >
+                    <template #button>
+                      <div class="custom-slider-button">{{ futuresSliderValue }}%</div>
+                    </template>
+                  </van-slider>
+                  <div class="slider-marks">
+                    <span 
+                      v-for="val in [0, 25, 50, 75, 100]" 
+                      :key="val" 
+                      class="mark-item"
+                      @click="futuresSliderValue = val; onFuturesSliderChange(val)"
+                    >
+                      {{ val }}%
+                    </span>
+                  </div>
+                </div>
+
+                <div class="fee-estimate-row">
+                  <span class="fee-estimate-label">{{ t('trade.estimated_fee') }}(USDT)</span>
+                  <span class="fee-estimate-value">
+                    {{ formatFuturesEstimatedFee }}
+                  </span>
+                </div>
+
+                <div class="total-row">
+                  <span class="total-label">{{ t('trade.total') }}(USDT)</span>
+                  <span class="total-value">
+                    {{ formatFuturesTotalAmount }}
+                  </span>
+                </div>
+
+                <div class="estimated-received-row">
+                  <span class="received-label">{{ t('trade.margin_amount') }}</span>
+                  <span class="received-value">{{ futuresMargin > 0 ? futuresMargin.toFixed(2) : '0.00' }} USDT</span>
+                </div>
+
+                <!-- 合约操作按钮 -->
+                <div class="futures-action-buttons-grid">
+                  <button 
+                    class="long-btn-grid"
+                    :disabled="!isFuturesFormValid || isLoading"
+                    @click="handleLong"
+                  >
+                    {{ t('trade.open_long') }}
+                  </button>
+                  <button 
+                    class="short-btn-grid"
+                    :disabled="!isFuturesFormValid || isLoading"
+                    @click="handleShort"
+                  >
+                    {{ t('trade.open_short') }}
+                  </button>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- 现货底部：委托与资产 -->
+        <div class="bottom-section">
+        <div class="bottom-tabs">
+          <div 
+            class="tab-item"
+            :class="{ active: activeOrderTab === 'orders' }"
+            @click="activeOrderTab = 'orders'"
+          >
+            {{ t('trade.open_orders') }}
+          </div>
+          <div 
+            class="tab-item"
+            :class="{ active: activeOrderTab === 'assets' }"
+            @click="activeOrderTab = 'assets'"
+          >
+            {{ t('trade.assets') }}
+          </div>
+        </div>
+
+        <div class="bottom-content">
+          <transition name="fade" mode="out-in">
+            <div v-if="activeOrderTab === 'orders'" key="orders" class="orders-panel panel-full">
+              <div v-if="!spotOrdersList || spotOrdersList.length === 0" class="orders-empty-compact">
+                <span class="empty-text-compact">{{ t('trade.no_orders') }}</span>
+              </div>
+              <div v-else class="orders-list-compact">
+                <div 
+                  v-for="(order, index) in spotOrdersList"
+                  :key="order.order_id || `order-${index}`"
+                  class="order-item"
+                >
+                  <div class="order-left">
+                    <div class="order-side-badge" :class="order.side">
+                      {{ order.side === 'buy' ? t('trade.buy') : t('trade.sell') }}
+                    </div>
+                    <div class="order-symbol-time">
+                      <span class="order-symbol">{{ order.symbol || 'N/A' }}</span>
+                      <span class="order-time">{{ formatOrderTime(order.timestamp) }}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="order-center">
+                    <div class="order-price">{{ formatPrice(order.price) }}</div>
+                    <div class="order-quantity">{{ formatQuantity(order.quantity || order.amount) }} / {{ formatQuantity(order.quantity || order.amount) }}</div>
+                  </div>
+                  
+                  <div class="order-right">
+                    <button class="cancel-btn" @click="cancelOrder(order.order_id)">{{ t('trade.cancel') }}</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div v-else key="assets" class="assets-panel panel-full">
+              <div class="assets-glass-card">
+                <div class="assets-hud-strip">
+                  <div class="asset-hud-item">
+                    <span class="asset-hud-label">{{ t('trade.avail') }}</span>
+                    <span class="asset-hud-value">{{ formatAssetBalance(assetStore.getHolding(symbol), symbol) }} {{ symbol }}</span>
+                  </div>
+                  <div class="asset-hud-divider"></div>
+                  <div class="asset-hud-item">
+                    <span class="asset-hud-label">{{ t('trade.frozen') }}</span>
+                    <span class="asset-hud-value">{{ formatAssetBalance(assetStore.userAssets?.[`${symbol}_frozen`] || 0, symbol) }} {{ symbol }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </transition>
+        </div>
+      </div>
+      </div>
+    </template>
+
+    <!-- 合约交易界面 - 严格隔离，使用独立的 v-if（禁止使用 v-else）(DEBUG MODE: 使用 !isSpot) -->
+    <template v-if="!isSpot">
+      <div class="trade-panel-container">
+        <!-- 合约控制栏：全仓文本 + 杠杆倍数（左边），资金费率（右边） -->
+        <div class="futures-control-bar">
         <div class="control-left">
           <div class="margin-mode-text">
             {{ t('trade.full_position') }}
@@ -243,8 +478,8 @@
 
       <!-- 核心交易区 - 左右布局 -->
       <div class="futures-trade-main">
-        <!-- 左侧：盘口区 (42%) -->
-        <div ref="orderBookContainerRef" class="futures-orderbook-side">
+          <!-- 左侧：盘口区 -->
+          <div ref="orderBookContainerRef" class="futures-orderbook-side left-panel">
           <div class="orderbook-header">
             <span class="header-price">{{ t('trade.price') }} (USDT)</span>
             <span class="header-quantity">{{ t('trade.amount') }} ({{ currentCoinConfig.baseCoin }})</span>
@@ -284,28 +519,10 @@
           </div>
         </div>
 
-        <!-- 右侧：交易表单 (58%) -->
-        <div ref="orderFormRef" class="futures-form-side">
-          <!-- 买入/卖出切换栏：仅在现货模式下显示 -->
-          <div v-if="isSpotMode" class="buy-sell-toggle">
-            <div 
-              class="toggle-btn buy-btn" 
-              :class="{ active: orderSide === 'buy' }"
-              @click="() => { orderSide = 'buy'; spotSliderValue = 0; amount = ''; }"
-            >
-              {{ t('trade.buy') }}
-            </div>
-            <div 
-              class="toggle-btn sell-btn" 
-              :class="{ active: orderSide === 'sell' }"
-              @click="() => { orderSide = 'sell'; spotSliderValue = 0; amount = ''; }"
-            >
-              {{ t('trade.sell') }}
-            </div>
-          </div>
-
-          <!-- 资产信息面板：合约模式下显示合约资产，现货模式下显示现货资产 -->
-          <div v-if="!isSpotMode" class="futures-asset-panel">
+          <!-- 右侧：交易表单 - 合约模式专用，无需 template 包裹（已在合约模板内） -->
+          <div ref="orderFormRef" class="futures-form-side right-panel">
+            <!-- 资产信息面板：合约模式专用 -->
+            <div class="futures-asset-panel">
             <div class="asset-row">
               <div class="asset-item">
                 <span class="asset-label">{{ t('trade.total_equity') }}</span>
@@ -332,17 +549,6 @@
               </div>
             </div>
           </div>
-          <!-- 现货模式：显示可用余额 -->
-          <div v-else class="available-row" style="margin-bottom: 16px; padding: 12px;">
-            <div class="avail-item">
-              <span class="avail-label">{{ t('trade.avail') }}：</span>
-              <span class="avail-value">{{ formatAvailableBalance }}</span>
-            </div>
-            <div class="avail-item">
-              <span class="avail-label">{{ t('trade.sellable') }}：</span>
-              <span class="avail-value">{{ formatSellableBalance }}</span>
-            </div>
-          </div>
 
           <div class="order-type-selector" @click="showOrderTypeSheet = true">
             <span>{{ orderType === 'limit' ? t('trade.limit_order') : t('trade.market_order') }}</span>
@@ -350,25 +556,7 @@
           </div>
 
           <div class="input-row">
-            <!-- 现货模式：使用 price 字段 -->
-            <template v-if="isSpotMode">
-              <input
-                v-if="orderType === 'limit'"
-                v-model="price"
-                type="number"
-                :placeholder="formatPrice(lastPrice)"
-                class="input-field no-spinner"
-              />
-              <input
-                v-else
-                type="text"
-                :value="t('trade.market_price_hint')"
-                disabled
-                class="input-field market-price-input"
-              />
-            </template>
             <!-- 合约模式：使用 futuresPrice 字段 -->
-            <template v-else>
             <input
               v-if="orderType === 'limit'"
               v-model="futuresPrice"
@@ -383,25 +571,11 @@
               disabled
               class="input-field market-price-input"
             />
-            </template>
             <span class="input-suffix">USDT</span>
           </div>
 
           <div class="input-row">
-            <!-- 现货模式：使用 amount 字段 -->
-            <template v-if="isSpotMode">
-              <input
-                v-model="amount"
-                type="number"
-                min="0"
-                step="0.0001"
-                :placeholder="t('trade.amount_placeholder')"
-                class="input-field no-spinner"
-                @input="handleAmountInput"
-              />
-            </template>
             <!-- 合约模式：使用 futuresAmount 字段 -->
-            <template v-else>
             <input
               v-model="futuresAmount"
               type="number"
@@ -409,12 +583,11 @@
               class="input-field no-spinner"
               @input="handleFuturesAmountInput"
             />
-            </template>
             <span class="input-suffix">{{ currentCoinConfig.baseCoin }}</span>
           </div>
 
-          <!-- 杠杆滑块：仅在合约模式下显示 -->
-          <div v-if="!isSpotMode" class="slider-wrapper">
+          <!-- 杠杆滑块：合约模式专用 -->
+          <div class="slider-wrapper">
             <van-slider
               v-model="futuresSliderValue"
               :min="0"
@@ -441,90 +614,40 @@
               </span>
             </div>
           </div>
-          <!-- 现货模式：使用现货滑块 -->
-          <div v-else class="slider-wrapper">
-            <van-slider
-              v-model="spotSliderValue"
-              :min="0"
-              :max="100"
-              :step="1"
-              bar-height="4px"
-              button-size="16px"
-              active-color="#FCD535"
-              inactive-color="#2A2D35"
-              @update:model-value="onSpotSliderChange"
-            >
-              <template #button>
-                <div class="custom-slider-button">{{ spotSliderValue }}%</div>
-              </template>
-            </van-slider>
-            <div class="slider-marks">
-              <span 
-                v-for="val in [0, 25, 50, 75, 100]" 
-                :key="val" 
-                class="mark-item"
-                @click="spotSliderValue = val; onSpotSliderChange(val)"
-              >
-                {{ val }}%
-              </span>
-            </div>
-          </div>
 
           <!-- 费用和总额：根据模式显示不同的计算逻辑 -->
           <div class="fee-estimate-row">
-            <span class="fee-estimate-label">{{ t('trade.estimated_fee') }}({{ isSpotMode && orderSide === 'buy' ? currentCoinConfig.baseCoin : 'USDT' }})</span>
+            <span class="fee-estimate-label">{{ t('trade.estimated_fee') }}(USDT)</span>
             <span class="fee-estimate-value">
-              <template v-if="isSpotMode">
-                {{ formatEstimatedFee }}
-                <span v-if="orderSide === 'buy' && formatEstimatedFeeUSDT" class="fee-usdt-note">(≈ {{ formatEstimatedFeeUSDT }} USDT)</span>
-              </template>
-              <template v-else>
                 {{ formatFuturesEstimatedFee }}
-              </template>
             </span>
           </div>
 
           <div class="total-row">
             <span class="total-label">{{ t('trade.total') }}(USDT)</span>
             <span class="total-value">
-              <template v-if="isSpotMode">
-                {{ formatTotalAmount }}
-              </template>
-              <template v-else>
                 {{ formatFuturesTotalAmount }}
-              </template>
             </span>
           </div>
 
-          <!-- 保证金金额：仅在合约模式下显示 -->
-          <div v-if="!isSpotMode" class="estimated-received-row">
+          <!-- 保证金金额：合约模式专用 -->
+          <div class="estimated-received-row">
             <span class="received-label">{{ t('trade.margin_amount') }}</span>
             <span class="received-value">{{ futuresMargin > 0 ? futuresMargin.toFixed(2) : '0.00' }} USDT</span>
           </div>
 
-          <!-- 操作按钮：根据模式显示不同按钮 -->
-          <div v-if="isSpotMode" class="futures-action-buttons-grid">
-            <!-- 现货模式：买入/卖出按钮 -->
+          <!-- 操作按钮：合约模式专用 - 开多/开空按钮 -->
+          <div class="futures-action-buttons-grid">
             <button 
               class="long-btn-grid"
-              :disabled="!isOrderValid || isLoading"
-              @click="handleSubmitOrder"
-            >
-              {{ orderSide === 'buy' ? t('trade.buy_btc').replace('BTC', symbol) : t('trade.sell_btc').replace('BTC', symbol) }}
-            </button>
-          </div>
-          <div v-else class="futures-action-buttons-grid">
-            <!-- 合约模式：开多/开空按钮 -->
-            <button 
-              class="long-btn-grid"
-              :disabled="!isFuturesFormValid"
+              :disabled="!isFuturesFormValid || isLoading"
               @click="handleLong"
             >
               {{ t('trade.open_long') }}
             </button>
             <button 
               class="short-btn-grid"
-              :disabled="!isFuturesFormValid"
+              :disabled="!isFuturesFormValid || isLoading"
               @click="handleShort"
             >
               {{ t('trade.open_short') }}
@@ -546,8 +669,8 @@
           :border="false"
           class="position-tabs"
         >
-          <!-- 持有仓位Tab：仅在合约模式下显示 -->
-          <van-tab v-if="!isSpotMode" :title="t('trade.positions_tab', { count: positions.length })">
+          <!-- 持有仓位Tab：合约模式专用 -->
+          <van-tab :title="t('trade.positions_tab', { count: positions.length })">
             <div class="positions-list">
               <div v-if="positions.length === 0" class="empty-state">
                 <div class="empty-icon">
@@ -746,79 +869,10 @@
         </van-tabs>
       </div>
     </div>
-
-    <div v-if="activeTradeTab === 'spot'" class="bottom-section">
-      <div class="bottom-tabs">
-        <div 
-          class="tab-item"
-          :class="{ active: activeOrderTab === 'orders' }"
-          @click="activeOrderTab = 'orders'"
-        >
-          {{ t('trade.open_orders') }}
-        </div>
-        <div 
-          class="tab-item"
-          :class="{ active: activeOrderTab === 'assets' }"
-          @click="activeOrderTab = 'assets'"
-        >
-          {{ t('trade.assets') }}
-        </div>
-      </div>
-
-      <div class="bottom-content">
-        <transition name="fade" mode="out-in">
-          <div v-if="activeOrderTab === 'orders'" key="orders" class="orders-panel panel-full">
-            <div v-if="!spotOrdersList || spotOrdersList.length === 0" class="orders-empty-compact">
-              <span class="empty-text-compact">{{ t('trade.no_orders') }}</span>
-              </div>
-            <div v-else class="orders-list-compact">
-              <div 
-                v-for="(order, index) in spotOrdersList"
-                :key="order.order_id || `order-${index}`"
-                class="order-item"
-              >
-                <div class="order-left">
-                  <div class="order-side-badge" :class="order.side">
-                    {{ order.side === 'buy' ? t('trade.buy') : t('trade.sell') }}
-                  </div>
-                  <div class="order-symbol-time">
-                      <span class="order-symbol">{{ order.symbol || 'N/A' }}</span>
-                    <span class="order-time">{{ formatOrderTime(order.timestamp) }}</span>
-                  </div>
-                </div>
-                
-                <div class="order-center">
-                  <div class="order-price">{{ formatPrice(order.price) }}</div>
-                    <div class="order-quantity">{{ formatQuantity(order.quantity || order.amount) }} / {{ formatQuantity(order.quantity || order.amount) }}</div>
-                </div>
-                
-                <div class="order-right">
-                    <button class="cancel-btn" @click="cancelOrder(order.order_id)">{{ t('trade.cancel') }}</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div v-else key="assets" class="assets-panel panel-full">
-            <div class="assets-glass-card">
-              <div class="assets-hud-strip">
-                <div class="asset-hud-item">
-                  <span class="asset-hud-label">{{ t('trade.avail') }}</span>
-                  <span class="asset-hud-value">{{ formatAssetBalance(assetStore.getHolding(symbol), symbol) }} {{ symbol }}</span>
-              </div>
-                <div class="asset-hud-divider"></div>
-                <div class="asset-hud-item">
-                  <span class="asset-hud-label">{{ t('trade.frozen') }}</span>
-                  <span class="asset-hud-value">{{ formatAssetBalance(assetStore.userAssets?.[`${symbol}_frozen`] || 0, symbol) }} {{ symbol }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </transition>
-      </div>
-    </div>
-    </div>
+    </template>
     <!-- 可滚动内容区域结束 -->
+        </div>
+    <!-- trade-scrollable-content 结束 -->
 
     <van-popup
       v-model:show="showCoinSelect"
@@ -1045,6 +1099,12 @@ const marketStore = useMarketStore();
 // 修复1：计算属性绑定 pageTitle，解决语言切换问题
 const pageTitle = computed(() => t('trade.title'));
 
+// 标题显示逻辑：移除"永续"二字用于显示，但在逻辑判断中保留原始值
+const displayTitle = computed(() => {
+  const title = symbol.value || '';
+  return title.replace(/\s*永续/g, '').trim();
+});
+
 // 支持子页面模式：优先使用props传入的symbol，否则使用路由参数
 const symbol = ref(props.initialSymbol || route.query.symbol || 'BTC');
 
@@ -1079,15 +1139,56 @@ const coinList = ref([
 // 主页面模式下，默认显示现货
 const activeTradeTab = ref(props.forceTradeTab || 'spot');
 
-// 判断是否为现货模式（用于控制界面元素显示）
+// 强制修正 isSpot 逻辑 - DEBUG MODE
+const isSpot = computed(() => {
+  console.log('🔍 [DEBUG] Calculating Mode for:', props.initialSymbol);
+  if (!props.initialSymbol) {
+    console.log('🔍 [DEBUG] No symbol prop, defaulting to spot');
+    return true; // 默认现货
+  }
+  // 只要名字里带 '永续'、'SWAP'、'USD' (如果是合约特征) 就判定为合约
+  const isFutures = props.initialSymbol.includes('永续') || props.initialSymbol.includes('SWAP') || props.initialSymbol.includes('swap');
+  const result = !isFutures;
+  console.log('🔍 [DEBUG] Symbol check result:', { symbol: props.initialSymbol, isFutures, isSpot: result });
+  return result;
+});
+
+// 保留旧的 isSpotMode 以兼容现有代码
 const isSpotMode = computed(() => {
+  // 首先检查 symbol 是否包含合约标识
+  const symbolText = symbol.value || '';
+  if (symbolText.includes('永续') || symbolText.includes('SWAP') || symbolText.includes('swap')) {
+    return false; // 是合约
+  }
+  
   // 子页面模式下，使用 initialMode prop
   if (props.isSubPage) {
     return props.initialMode === 'spot';
   }
+  
   // 主页面模式下，根据 activeTradeTab 判断
   return activeTradeTab.value === 'spot';
 });
+
+// 添加调试日志
+watch([isSpot, isSpotMode], ([newIsSpot, newIsSpotMode]) => {
+  console.log('[TradePanel] Mode changed:', {
+    isSpot: newIsSpot ? 'Spot' : 'Futures',
+    isSpotMode: newIsSpotMode ? 'Spot' : 'Futures',
+    symbol: symbol.value,
+    propsSymbol: props.initialSymbol,
+    initialMode: props.initialMode,
+    activeTradeTab: activeTradeTab.value
+  });
+}, { immediate: true });
+
+// 屏幕高度监控 - DEBUG MODE
+const screenHeight = ref(typeof window !== 'undefined' ? window.innerHeight : 0);
+const updateScreenHeight = () => {
+  if (typeof window !== 'undefined') {
+    screenHeight.value = window.innerHeight;
+  }
+};
 
 // 子页面模式下，禁止切换标签页（因为标签切换器已被隐藏）
 const canSwitchTab = computed(() => !props.isSubPage);
@@ -2970,6 +3071,20 @@ const stopPositionsRefresh = () => {
 };
 
 onMounted(async () => {
+  // DEBUG MODE: 更新屏幕高度
+  updateScreenHeight();
+  window.addEventListener('resize', updateScreenHeight);
+  
+  // 调试输出：确认当前模式
+  console.log('[TradePanel] Current Mode:', isSpotMode.value ? 'Spot' : 'Futures');
+  console.log('[TradePanel] isSpot (DEBUG):', isSpot.value ? 'Spot' : 'Futures');
+  console.log('[TradePanel] activeTradeTab:', activeTradeTab.value);
+  console.log('[TradePanel] props:', {
+    isSubPage: props.isSubPage,
+    initialMode: props.initialMode,
+    forceTradeTab: props.forceTradeTab,
+    initialSymbol: props.initialSymbol
+  });
   await initializeTrade();
   
   // 子页面模式下，根据 forceTradeTab 加载对应数据
@@ -3032,6 +3147,9 @@ onDeactivated(() => {
 
 // 组件卸载时
 onUnmounted(() => {
+  // DEBUG MODE: 清理屏幕高度监听
+  window.removeEventListener('resize', updateScreenHeight);
+  
   // 清理 IntersectionObserver
   if (historyObserver) {
     historyObserver.disconnect();
@@ -3182,29 +3300,45 @@ onUnmounted(() => {
 .price-change.positive { color: #0ECB81; background-color: rgba(14, 203, 129, 0.1); }
 .price-change.negative { color: #F6465D; background-color: rgba(246, 70, 93, 0.1); }
 
-/* ========== 核心交易区 - 统一布局结构 ========== */
-.trade-main, .futures-trade-main {
+/* ========== 交易面板容器 - 标准 Flex 布局 ========== */
+.trade-panel-container {
   display: flex;
-  flex-direction: row;
-  gap: 8px; /* gap-2 = 8px */
-  padding: 8px; /* p-2 = 8px */
-  align-items: flex-start; /* items-start - 确保顶部对齐 */
-  /* 使用自然流式布局，不限制高度 */
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative; /* 使用 relative，禁止 absolute */
+  /* 移除 min-height 和 height: 100%，让内容自然高度 */
 }
 
-/* ========== 左侧：盘口区 (60%) - 黑金赛博朋克风格 ========== */
-.orderbook-side, .futures-orderbook-side {
-  width: 60%; /* w-[60%] - 与现货页面一致 */
+/* ========== 核心交易区 - 统一布局结构：左右各占 50% ========== */
+.trade-main, .futures-trade-main {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 8px;
+  padding: 8px;
+  align-items: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+  flex-wrap: nowrap; /* 防止换行 */
+  position: relative; /* 使用 relative，禁止 absolute */
+}
+
+/* ========== 左侧：盘口区 (50%) - 使用 flex: 1 自然分配 ========== */
+.orderbook-side, 
+.futures-orderbook-side,
+.left-panel {
+  flex: 1 !important; /* 左右各占 50% */
+  min-width: 0;
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, rgba(5, 5, 5, 0.95) 0%, #050505 100%);
   border-radius: 8px;
-  overflow: visible; /* 允许内容自然显示 */
+  overflow: visible;
   padding: 0;
-  align-self: flex-start; /* 使用 flex-start，确保高度由内容决定 */
+  align-self: flex-start;
   border: 1px solid rgba(212, 175, 55, 0.08);
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-  /* 使用自然高度，显示完整的 15-20 行 */
+  position: relative; /* 使用 relative，禁止 absolute */
 }
 
 .orderbook-header {
@@ -3380,12 +3514,28 @@ onUnmounted(() => {
   text-shadow: 0 0 12px rgba(246, 70, 93, 0.5);
 }
 
-.form-side {
-  width: 40%; /* w-[40%] - 与现货页面一致 */
+/* ========== 右侧：交易表单 (50%) - 使用 flex: 1 自然分配 ========== */
+.form-side,
+.futures-form-side,
+.right-panel {
+  flex: 1 !important; /* 左右各占 50% */
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  /* 使用自然流式布局，不限制高度 */
+  box-sizing: border-box;
+  position: relative; /* 使用 relative，禁止 absolute */
+}
+
+/* 现货和合约模式容器 - 确保完全隔离，使用 flex-col 自然排列 */
+.spot-mode-container,
+.futures-mode-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  position: relative; /* 使用 relative，禁止 absolute */
+  /* 移除任何可能导致重叠的样式，让元素自然排列 */
 }
 
 .buy-sell-toggle {
@@ -4554,6 +4704,11 @@ onUnmounted(() => {
 
 /* ========== 合约交易样式 - 自然流式布局 ========== */
 .futures-trade-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative; /* 使用 relative，禁止 absolute */
   display: flex;
   flex-direction: column;
   /* 移除固定高度和 overflow，使用自然流式布局 */

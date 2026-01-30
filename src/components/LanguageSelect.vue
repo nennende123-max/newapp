@@ -1,4 +1,4 @@
-﻿<template>
+<template>
     <van-action-sheet
       v-model:show="show"
       :actions="actions"
@@ -31,4 +31,3 @@
     
     defineExpose({ open: () => { show.value = true; } });
     </script>
-

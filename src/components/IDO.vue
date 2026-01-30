@@ -1,4 +1,4 @@
-﻿<template>
+<template>
     <div class="ido-page">
       
       <div class="launchpad-header">
@@ -917,4 +917,3 @@
     color: #FCD535;
   }
   </style>
-

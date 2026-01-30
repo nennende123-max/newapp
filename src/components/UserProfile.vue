@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <van-nav-bar
     :title="$t('profile.title')"
     left-arrow

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
     <div class="me-page">
     <!-- 顶部导航 -->
       <div class="top-nav">
@@ -1686,4 +1686,3 @@ onActivated(async () => {
   font-variant-numeric: tabular-nums;
   }
   </style>
-

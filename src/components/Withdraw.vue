@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <!-- 顶部导航栏 - 居中标题（参考充值页面） -->
   <van-nav-bar
     :title="t('withdraw.title')"

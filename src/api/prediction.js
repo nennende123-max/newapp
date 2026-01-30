@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 预测市场相关 API
  * 负责预测事件、下注等功能
  * 所有数据操作直接读写 localStorage，不依赖 Pinia Store
@@ -299,4 +299,3 @@ export default {
   placePredictionBet,
   getPredictionOrders
 };
-

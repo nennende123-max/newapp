@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="earn-list-page" :class="{ 'embedded-mode': isEmbedded }">
     <!-- 顶部导航栏（仅在独立页面显示） -->
     <van-nav-bar
@@ -673,4 +673,3 @@ onMounted(() => {
   font-family: 'vant-icon', 'vant-iconfont', 'vant-icons', 'iconfont', 'vant', sans-serif !important;
 }
 </style>
-

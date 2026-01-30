@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2');
 
@@ -82,4 +82,3 @@ app.get('/api/miners', (req, res) => {
 app.listen(PORT, () => {
     console.log(`🚀 服务端已启动: http://localhost:${PORT}`);
 });
-

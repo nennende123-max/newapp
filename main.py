@@ -11,6 +11,23 @@ import uuid
 from datetime import datetime, timedelta
 from typing import Dict
 
+from dotenv import load_dotenv
+# --- 🔍 强力加载模式 START ---
+# 1. 获取 main.py 文件所在的绝对路径（也就是你的项目根目录）
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# 2. 拼出 .env 文件的完整路径 (例如 C:\Users\velve\test\.env)
+ENV_PATH = os.path.join(BASE_DIR, ".env")
+
+# 3. 强制加载这个路径的文件
+load_dotenv(ENV_PATH)
+
+# 4. [调试用] 打印出来看看，如果这里打印 None，说明 .env 文件名不对或没保存
+print(f"------------ 调试信息 ------------")
+print(f"尝试加载配置路径: {ENV_PATH}")
+print(f"读取到的 PROXY_URL: {os.getenv('PROXY_URL')}")
+print(f"----------------------------------")
+# --- 🔍 强力加载模式 END ---
 # 导入依赖函数
 from app.api.deps import get_current_user
 # 导入资产路由
@@ -28,6 +45,7 @@ from app.services.trade import check_tpsl_triggers
 # 导入市场服务
 from app.services.market_service import market_service
 from app.models.kline import KlineModel
+from app.models.subscription import SubscriptionModel
 
 # 创建 FastAPI 应用实例
 app = FastAPI(title="TruthFi API")
@@ -531,6 +549,13 @@ async def startup_event():
         print("[INFO] K 线数据库初始化完成")
     except Exception as e:
         print(f"[ERROR] K 线数据库初始化失败: {str(e)}")
+    
+    # 初始化认购数据库
+    try:
+        await SubscriptionModel.init_db()
+        print("[INFO] 认购数据库初始化完成")
+    except Exception as e:
+        print(f"[ERROR] 认购数据库初始化失败: {str(e)}")
     
     # 启动市场服务（包含历史数据同步和实时行情流）
     try:

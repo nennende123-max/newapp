@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="treasury-detail-page">
     <!-- 顶部导航栏 -->
     <div class="app-header">
@@ -615,4 +615,3 @@ onUnmounted(() => {
   background: rgba(255, 255, 255, 0.2);
 }
 </style>
-

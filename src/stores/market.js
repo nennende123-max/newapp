@@ -1,4 +1,4 @@
-﻿import { defineStore } from 'pinia'
+import { defineStore } from 'pinia'
 
 export const useMarketStore = defineStore('market', {
   state: () => ({
@@ -28,6 +28,13 @@ export const useMarketStore = defineStore('market', {
     // Check if data is loaded for a symbol
     hasData: (state) => (symbol) => {
       return !!state.tickers[symbol]
+    },
+    
+    // Get depth data for a specific symbol (case-insensitive)
+    getDepth: (state) => (symbol) => {
+      // Normalize symbol: remove '/' and convert to uppercase (e.g., 'BTC/USDT' -> 'BTC')
+      const normalizedSymbol = symbol.replace('/', '').replace('USDT', '').toUpperCase()
+      return state.depths[normalizedSymbol] || null
     }
   },
 
@@ -51,15 +58,29 @@ export const useMarketStore = defineStore('market', {
       try {
         // Binance WebSocket endpoint for combined streams
         // 使用 ticker 流获取 24h 涨跌幅，并增加 depth 流获取盘口深度数据
+        // 注意：WebSocket 需要小写、无前缀的 symbol（如 btcusdt）
         const baseSymbols = ['btc', 'eth', 'bnb', 'sol', 'doge', 'trx', 'beat', 'aic'];
         const streams = [];
         
         baseSymbols.forEach(symbol => {
-          streams.push(`${symbol}usdt@ticker`);
-          streams.push(`${symbol}usdt@depth20@100ms`); // 20 档深度，100ms 更新
+          // 清理 symbol：移除 BINANCE: 前缀（如果有），转换为小写，确保格式正确
+          const cleanSymbol = symbol
+            .replace(/^BINANCE:/i, '')  // 移除 BINANCE: 前缀（不区分大小写）
+            .replace(/\//g, '')          // 移除斜杠
+            .toLowerCase();              // 转换为小写
+          
+          streams.push(`${cleanSymbol}usdt@ticker`);
+          streams.push(`${cleanSymbol}usdt@depth20@100ms`); // 20 档深度，100ms 更新
         });
 
         const wsUrl = `wss://stream.binance.com:9443/stream?streams=${streams.join('/')}`
+        
+        // DEBUG: 记录 WebSocket 订阅的 symbol
+        console.log('[MarketStore] Subscribing to WebSocket streams:', {
+          baseSymbols: baseSymbols,
+          streams: streams,
+          wsUrl: wsUrl
+        });
         
         // 本地开发环境下降低日志级别
         if (process.env.NODE_ENV === 'development') {
@@ -90,15 +111,34 @@ export const useMarketStore = defineStore('market', {
 
         this.ws.onmessage = (event) => {
           try {
+            // DEBUG: Log raw WebSocket message
+            console.log('WS Message Received:', event.data)
+            
             const data = JSON.parse(event.data)
+            
+            // DEBUG: Log parsed data structure
+            console.log('WS Parsed Data:', {
+              stream: data.stream,
+              hasData: !!data.data,
+              dataKeys: data.data ? Object.keys(data.data) : null
+            })
             
             // Binance combined stream format: { stream: 'btcusdt@ticker', data: {...} }
             if (data.stream && data.data) {
               if (data.stream.includes('@ticker')) {
+                console.log('Processing ticker update:', data.stream, data.data)
                 this.updateTicker(data.stream, data.data)
               } else if (data.stream.includes('@depth')) {
+                console.log('Processing depth update:', data.stream, {
+                  asksCount: data.data.asks?.length || 0,
+                  bidsCount: data.data.bids?.length || 0,
+                  sampleAsk: data.data.asks?.[0],
+                  sampleBid: data.data.bids?.[0]
+                })
                 this.updateDepth(data.stream, data.data)
               }
+            } else {
+              console.warn('WS Message format unexpected:', data)
             }
           } catch (error) {
             console.error('Error parsing WebSocket message:', error)
@@ -323,17 +363,26 @@ export const useMarketStore = defineStore('market', {
      * @param {Object} data - Binance depth data
      */
     updateDepth(stream, data) {
-      const symbol = stream.split('@')[0].replace('usdt', '').toUpperCase()
+      // Extract symbol from stream (e.g., 'btcusdt@depth20@100ms' -> 'btcusdt')
+      const streamSymbol = stream.split('@')[0].toLowerCase() // Keep lowercase for matching
+      const symbol = streamSymbol.replace('usdt', '').toUpperCase() // Convert to uppercase for storage (e.g., 'BTC')
+      
+      // DEBUG: Log symbol matching
+      console.log('[MarketStore] updateDepth - Stream:', stream, 'Extracted symbol:', symbol, 'Stream symbol:', streamSymbol);
+      
+      // Normalize data format: convert to array format [[price, quantity], ...] for consistency
       this.depths[symbol] = {
-        asks: data.asks.map(item => ({ 
-          price: parseFloat(item[0]), 
-          quantity: parseFloat(item[1]) 
-        })),
-        bids: data.bids.map(item => ({ 
-          price: parseFloat(item[0]), 
-          quantity: parseFloat(item[1]) 
-        }))
+        asks: data.asks.map(item => [parseFloat(item[0]), parseFloat(item[1])]),
+        bids: data.bids.map(item => [parseFloat(item[0]), parseFloat(item[1])])
       }
+      
+      // DEBUG: Log update result
+      console.log('[MarketStore] Depth updated for', symbol, ':', {
+        bidsCount: this.depths[symbol].bids.length,
+        asksCount: this.depths[symbol].asks.length,
+        sampleBid: this.depths[symbol].bids[0],
+        sampleAsk: this.depths[symbol].asks[0]
+      });
     },
 
     /**
@@ -370,4 +419,3 @@ export const useMarketStore = defineStore('market', {
     }
   }
 })
-

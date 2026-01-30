@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="settings-page">
     <van-nav-bar
       :title="uiText.title"

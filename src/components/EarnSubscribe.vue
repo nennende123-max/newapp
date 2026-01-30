@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="earn-subscribe-page">
     <!-- 顶部导航栏 -->
     <div class="subscribe-header">

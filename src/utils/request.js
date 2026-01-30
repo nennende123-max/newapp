@@ -13,9 +13,9 @@ import router from '@/router';
 // 创建 axios 实例
 const request = axios.create({
   // baseURL: API 的基础地址
-  // 使用 '/api' 通过 Vite 代理，避免直接 localhost（避免 DNS 问题）
-  // 或者使用 'http://127.0.0.1:8000' 直接连接后端
-  baseURL: '/api',  // 使用 Vite 代理
+  // 使用空字符串，因为各 API 路径已包含 /api/v1/...，Vite 会把 /api 代理到 127.0.0.1:8000
+  // 若写 baseURL: '/api' 会与路径里的 /api 重复，变成 /api/api/v1/... 导致 404
+  baseURL: '',
   
   // timeout: 请求超时时间（毫秒）
   // 如果服务器在 10 秒内没有响应，请求会被自动取消

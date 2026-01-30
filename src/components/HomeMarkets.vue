@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="markets-section">
     <!-- 顶部选项卡 -->
     <div class="markets-tabs">
@@ -514,4 +514,3 @@ onUnmounted(() => {
   color: #848E9C;
 }
 </style>
-

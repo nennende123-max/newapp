@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="home-page">
     
     <div class="ticker-container">
