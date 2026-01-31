@@ -51,13 +51,40 @@ async def get_kline(
 
 
 @router.get("/klines")
-def get_klines_endpoint(
+async def get_klines_endpoint(
     symbol: str = Query(..., description="交易对，如 BTCUSDT"),
     interval: str = Query("1m", description="K线间隔，如 1m, 5m, 1h"),
-    limit: int = Query(500, description="数据条数，最大1000")
+    limit: int = Query(1000, description="数据条数，最大1000")
 ):
-    """获取 K 线数据（别名端点）"""
-    return get_klines(symbol, interval, limit)
+    """
+    获取 K 线数据（从币安 REST API 获取）
+    
+    返回格式：数组列表，每个元素为 [timestamp(毫秒), open, high, low, close, volume]
+    与 /kline 接口格式一致，便于前端统一处理
+    """
+    # 清理 symbol 字符串：移除 "BINANCE:", "/", "USDT" 等杂质
+    cleaned_symbol = symbol.upper()
+    cleaned_symbol = cleaned_symbol.replace("BINANCE:", "")
+    cleaned_symbol = cleaned_symbol.replace("/", "")
+    
+    # 调用 get_klines 获取数据（从币安 REST API）
+    klines_dict = get_klines(cleaned_symbol, interval, min(limit, 1000))
+    
+    # 转换为数组格式：[[timestamp(ms), open, high, low, close, volume], ...]
+    result = [
+        [
+            kline["time"],      # timestamp (毫秒)
+            kline["open"],      # open
+            kline["high"],      # high
+            kline["low"],       # low
+            kline["close"],     # close
+            kline["volume"]      # volume
+        ]
+        for kline in klines_dict
+    ]
+    
+    logger.info(f"[API] /klines: symbol={cleaned_symbol}, interval={interval}, limit={limit}, 返回 {len(result)} 条数据")
+    return result
 
 
 @router.get("/orderbook")

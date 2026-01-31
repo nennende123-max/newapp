@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="market-detail-page">
     <!-- 顶部导航栏 -->
     <van-nav-bar
@@ -79,6 +79,17 @@
             </template>
             <template v-else>---</template>
           </div>
+          <!-- WebSocket 连接状态指示器 -->
+          <div class="ws-status-indicator" :class="{ 
+            connected: wsConnected && !wsConnecting, 
+            connecting: wsConnecting,
+            disconnected: !wsConnected && !wsConnecting 
+          }">
+            <span class="ws-status-dot"></span>
+            <span class="ws-status-text">
+              {{ wsConnecting ? '连接中...' : (wsConnected ? '已连接' : '未连接') }}
+            </span>
+          </div>
         </div>
         
         <!-- 右侧：2x2 网格布局 -->
@@ -127,8 +138,8 @@
       <trading-view-widget 
         ref="tvWidget"
         :symbol="symbol"
+        :interval="selectedTimeframe"
         :initial-data="klineHistory" 
-        theme="dark"
       />
     </div>
 
@@ -279,6 +290,15 @@ let binanceWS = null;
 let useDirectBinance = false;
 let orderBookInterval = null;
 
+// 后端 WebSocket 连接（用于实时K线数据）
+let backendWS = null;
+let wsReconnectAttempts = 0;
+let wsReconnectTimer = null;
+const maxWsReconnectAttempts = 3;
+const wsReconnectDelay = 3000; // 3秒
+const wsConnected = ref(false); // WebSocket 连接状态
+const wsConnecting = ref(false); // WebSocket 连接中状态（初始状态）
+
 // 从 Store 提取响应式数据 (合并提取，更简洁)
 // 注意：确保 store 里确实有 currentKline 字段，如果没有，请去 store 里加上，或者暂时注释掉 currentKline
 const { depths, currentKline } = storeToRefs(marketStore);
@@ -414,24 +434,50 @@ const formatOrderBookData = (list) => {
 // 1. 获取 K 线历史
 const fetchKlineHistory = async () => {
   try {
-    const res = await request.get('/api/v1/market/kline', {
+    // ========== 关键修复：使用 /klines 接口（从币安 REST API 获取最新数据）==========
+    const res = await request.get('/api/v1/market/klines', {
       params: {
-        symbol: tradingViewFormat.value, 
+        symbol: symbol.value + 'USDT', // 使用标准格式，如 BTCUSDT
         interval: selectedTimeframe.value, 
         limit: 1000
       }
     });
 
     if (res.data && Array.isArray(res.data)) {
-      const formattedData = res.data.map(item => ({
-        time: item[0] / 1000, 
-        open: parseFloat(item[1]),
-        high: parseFloat(item[2]),
-        low: parseFloat(item[3]),
-        close: parseFloat(item[4]),
-      }));
+      // ========== 关键修复：确保数据格式正确（time 单位为秒）==========
+      // /klines 接口返回格式：[[timestamp(ms), open, high, low, close, volume], ...]
+      const formattedData = res.data.map(item => {
+        // 兼容数组格式和对象格式
+        if (Array.isArray(item)) {
+          return {
+            time: Math.floor(item[0] / 1000), // 毫秒转秒级时间戳（整数）
+            open: parseFloat(item[1]),
+            high: parseFloat(item[2]),
+            low: parseFloat(item[3]),
+            close: parseFloat(item[4]),
+            volume: item[5] ? parseFloat(item[5]) : undefined // 可选：成交量
+          };
+        } else {
+          // 兼容对象格式（如果后端返回对象格式）
+          return {
+            time: Math.floor((item.time || item.timestamp) / 1000),
+            open: parseFloat(item.open),
+            high: parseFloat(item.high),
+            low: parseFloat(item.low),
+            close: parseFloat(item.close),
+            volume: item.volume ? parseFloat(item.volume) : undefined
+          };
+        }
+      });
       klineHistory.value = formattedData;
-      console.log('[Market] K-line history loaded:', formattedData.length);
+      console.log('[Market] ✅ K-line history loaded from /klines:', formattedData.length, '条');
+      console.log('[Market] 第一条数据:', formattedData[0]);
+      
+      // ========== 关键修复：如果有图表组件，立即更新历史数据 ==========
+      if (tvWidget.value && tvWidget.value.updateHistory) {
+        tvWidget.value.updateHistory(formattedData);
+        console.log('[Market] ✅ 图表历史数据已更新');
+      }
     }
   } catch (error) {
     console.error('[Market] Failed to fetch kline:', error);
@@ -470,7 +516,7 @@ const fetchOrderBook = () => {
 // 兼容旧名
 const loadOrderBook = fetchOrderBook;
 
-// 3. 币安 WS 连接
+// 3. 币安 WS 连接（订单簿）
 const connectBinanceWebSocket = () => {
   if (binanceWS) binanceWS.close();
   
@@ -492,6 +538,226 @@ const connectBinanceWebSocket = () => {
     };
     binanceWS.onerror = () => { useDirectBinance = false; };
   } catch (e) { console.error(e); }
+};
+
+// 4. 后端 WebSocket 连接（实时K线数据）
+// 注意：WebSocket 必须通过 JavaScript 代码连接，不能直接在浏览器地址栏访问 ws:// 协议
+// 用户应该访问 http://localhost:5173/（非 ws://），然后 JavaScript 代码会自动连接 WebSocket
+const connectBackendWebSocket = () => {
+  // 如果已有连接且状态正常，不重复连接
+  if (backendWS && backendWS.readyState === WebSocket.OPEN) {
+    console.log('[MarketDetail] ✅ WebSocket 已连接，跳过重复连接');
+    return;
+  }
+
+  // 关闭旧连接
+  if (backendWS) {
+    try {
+      backendWS.close();
+    } catch (e) {
+      console.warn('[MarketDetail] 关闭旧连接时出错:', e);
+    }
+    backendWS = null;
+  }
+
+  // 清除重连定时器
+  if (wsReconnectTimer) {
+    clearTimeout(wsReconnectTimer);
+    wsReconnectTimer = null;
+  }
+
+  // ========== 关键修复：设置连接中状态 ==========
+  wsConnecting.value = true;
+  wsConnected.value = false;
+
+  // 使用 Vite 代理：通过 /ws 路径连接，Vite 会自动代理到后端 /api/v1/market/ws/kline
+  // 注意：必须使用 ws:// 协议，不能使用 wss://（开发环境）
+  // 前端通过 ws://localhost:5173/ws 连接，Vite 会自动代理到 ws://127.0.0.1:8000/api/v1/market/ws/kline
+  const wsUrl = `ws://${window.location.host}/ws`;
+  console.log('[MarketDetail] ========== 连接后端 WebSocket ==========');
+  console.log('[MarketDetail] WebSocket URL:', wsUrl);
+  console.log('[MarketDetail] 注意: WebSocket 必须通过 JavaScript 代码连接，不能直接在浏览器地址栏访问');
+  console.log('[MarketDetail] 请访问 http://localhost:5173/（非 ws://）');
+
+  try {
+    backendWS = new WebSocket(wsUrl);
+
+    backendWS.onopen = () => {
+      console.log('[MarketDetail] ✅ WebSocket 连接成功');
+      // ========== 关键修复：更新状态为"已连接" ==========
+      wsConnected.value = true;
+      wsConnecting.value = false; // 连接成功，取消连接中状态
+      wsReconnectAttempts = 0; // 重置重连次数
+      if (wsReconnectTimer) {
+        clearTimeout(wsReconnectTimer);
+        wsReconnectTimer = null;
+      }
+      console.log('[MarketDetail] 📡 WebSocket 状态: 已连接，等待接收 K 线数据...');
+    };
+
+    backendWS.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log('[MarketDetail] 📨 收到 WebSocket 消息:', data);
+
+        // ========== 关键修复：处理连接成功消息，更新状态为"已连接" ==========
+        if (data.type === 'connected') {
+          console.log('[MarketDetail] ✅ WebSocket 连接确认:', data.message);
+          wsConnected.value = true;
+          wsConnecting.value = false; // 连接成功，取消连接中状态
+          console.log('[MarketDetail] 📡 WebSocket 状态: 已连接，等待接收 K 线数据...');
+          return;
+        }
+
+        // ========== 关键修复：处理 K 线数据并立即更新 TradingViewWidget ==========
+        if (data.type === 'kline' && data.data) {
+          const kline = data.data;
+          console.log('[MarketDetail] 📊 收到K线数据:', {
+            symbol: kline.symbol,
+            interval: kline.interval,
+            timestamp: kline.timestamp,
+            close: kline.close,
+            is_closed: kline.is_closed
+          });
+          
+          // ========== 关键修复：立即更新 K 线图 ==========
+          // 检查当前交易对是否匹配
+          const normalizedSymbol = normalizeSymbol(symbol.value);
+          const klineSymbol = kline.symbol?.replace('/', '').replace('USDT', '').toUpperCase();
+          
+          // ========== 关键修复：处理 K 线数据并更新图表 ==========
+          // 如果交易对匹配，且时间周期匹配，则更新图表
+          if (klineSymbol === normalizedSymbol && kline.interval === selectedTimeframe.value) {
+            // ========== 关键修复：确保 tvWidget 存在且已初始化 ==========
+            if (!tvWidget.value) {
+              console.warn('[MarketDetail] ⚠️ TradingViewWidget ref 未找到，等待组件初始化...');
+              return;
+            }
+            
+            // ========== 关键修复：确保 updateLiveCandle 方法存在 ==========
+            if (typeof tvWidget.value.updateLiveCandle !== 'function') {
+              console.warn('[MarketDetail] ⚠️ TradingViewWidget.updateLiveCandle 不是函数，等待组件初始化...');
+              console.warn('[MarketDetail] tvWidget.value:', tvWidget.value);
+              console.warn('[MarketDetail] 可用方法:', Object.keys(tvWidget.value || {}));
+              return;
+            }
+            
+            // ========== 关键修复：转换时间戳和数据格式 ==========
+            // 后端发送的 time 是毫秒级时间戳（unix_ms），TradingView 需要秒级时间戳
+            const candleTime = Math.floor((kline.time || kline.timestamp) / 1000);
+            
+            // ========== 关键修复：调用 TradingViewWidget 的 updateLiveCandle 方法更新 K 线 ==========
+            // 数据格式：{time: number(秒), open: number, high: number, low: number, close: number, volume?: number}
+            try {
+              tvWidget.value.updateLiveCandle({
+                time: candleTime,
+                open: parseFloat(kline.open),
+                high: parseFloat(kline.high),
+                low: parseFloat(kline.low),
+                close: parseFloat(kline.close),
+                volume: kline.volume ? parseFloat(kline.volume) : undefined
+              });
+              
+              console.log('[MarketDetail] ✅ 已更新 K 线图:', {
+                symbol: kline.symbol,
+                interval: kline.interval,
+                time: candleTime,
+                close: kline.close,
+                volume: kline.volume
+              });
+            } catch (updateError) {
+              console.error('[MarketDetail] ❌ 更新 K 线图失败:', updateError);
+              console.error('[MarketDetail] K 线数据:', kline);
+            }
+          } else {
+            console.log('[MarketDetail] ⚠️ K线数据交易对或时间周期不匹配，跳过更新:', {
+              klineSymbol,
+              normalizedSymbol,
+              klineInterval: kline.interval,
+              selectedTimeframe: selectedTimeframe.value
+            });
+          }
+        }
+      } catch (error) {
+        console.error('[MarketDetail] ❌ 解析 WebSocket 消息失败:', error);
+        console.error('[MarketDetail] 消息内容:', event.data);
+      }
+    };
+
+    backendWS.onerror = (error) => {
+      console.error('[MarketDetail] ❌ WebSocket 错误:', error);
+      console.error('[MarketDetail] 重连次数:', wsReconnectAttempts, '/', maxWsReconnectAttempts);
+      wsConnected.value = false;
+      wsConnecting.value = false; // 连接失败，取消连接中状态
+      
+      // 检查是否是 ERR_UNKNOWN_URL_SCHEME 错误
+      if (error && error.message && error.message.includes('ERR_UNKNOWN_URL_SCHEME')) {
+        console.error('[MarketDetail] ⚠️ ERR_UNKNOWN_URL_SCHEME 错误');
+        console.error('[MarketDetail] 原因: 不能直接在浏览器地址栏访问 ws:// 协议');
+        console.error('[MarketDetail] 解决方案: 请访问 http://localhost:5173/（非 ws://），然后 JavaScript 代码会自动连接 WebSocket');
+      }
+    };
+
+    backendWS.onclose = (event) => {
+      console.warn('[MarketDetail] ⚠️ WebSocket 连接已关闭');
+      console.warn('[MarketDetail] 关闭代码:', event.code);
+      console.warn('[MarketDetail] 关闭原因:', event.reason || '未知');
+      wsConnected.value = false;
+      wsConnecting.value = false; // 连接关闭，取消连接中状态
+      backendWS = null;
+
+      // 自动重连（如果未达到最大重连次数）
+      if (wsReconnectAttempts < maxWsReconnectAttempts) {
+        wsReconnectAttempts++;
+        console.log(`[MarketDetail] 🔄 准备重连 WebSocket (${wsReconnectAttempts}/${maxWsReconnectAttempts})，${wsReconnectDelay}ms 后重试...`);
+        wsReconnectTimer = setTimeout(() => {
+          console.log(`[MarketDetail] 🔄 尝试重连 WebSocket (${wsReconnectAttempts}/${maxWsReconnectAttempts})...`);
+          connectBackendWebSocket();
+        }, wsReconnectDelay);
+      } else {
+        console.error(`[MarketDetail] ❌ 已达到最大重连次数 (${maxWsReconnectAttempts} 次)，停止重连`);
+        console.error('[MarketDetail] 请检查网络连接或后端服务是否正常运行');
+        console.error('[MarketDetail] 后端服务地址: http://127.0.0.1:8000');
+        wsReconnectAttempts = 0; // 重置计数器，允许用户手动重试
+      }
+    };
+  } catch (error) {
+    console.error('[MarketDetail] ❌ 创建 WebSocket 连接失败:', error);
+    wsConnected.value = false;
+    wsConnecting.value = false; // 连接失败，取消连接中状态
+    
+    // 检查是否是 ERR_UNKNOWN_URL_SCHEME 错误
+    if (error && error.message && error.message.includes('ERR_UNKNOWN_URL_SCHEME')) {
+      console.error('[MarketDetail] ⚠️ ERR_UNKNOWN_URL_SCHEME 错误');
+      console.error('[MarketDetail] 原因: 不能直接在浏览器地址栏访问 ws:// 协议');
+      console.error('[MarketDetail] 解决方案: 请访问 http://localhost:5173/（非 ws://），然后 JavaScript 代码会自动连接 WebSocket');
+    }
+    
+    // 连接失败时也触发重连逻辑
+    if (wsReconnectAttempts < maxWsReconnectAttempts) {
+      wsReconnectAttempts++;
+      console.log(`[MarketDetail] 🔄 准备重连 WebSocket (${wsReconnectAttempts}/${maxWsReconnectAttempts})，${wsReconnectDelay}ms 后重试...`);
+      wsReconnectTimer = setTimeout(() => {
+        console.log(`[MarketDetail] 🔄 尝试重连 WebSocket (${wsReconnectAttempts}/${maxWsReconnectAttempts})...`);
+        connectBackendWebSocket();
+      }, wsReconnectDelay);
+    }
+  }
+};
+
+// 断开后端 WebSocket
+const disconnectBackendWebSocket = () => {
+  if (backendWS) {
+    backendWS.close();
+    backendWS = null;
+  }
+  wsConnected.value = false;
+  wsConnecting.value = false; // 断开连接，取消连接中状态
+  wsReconnectAttempts = 0;
+  if (wsReconnectTimer) {
+    clearTimeout(wsReconnectTimer);
+    wsReconnectTimer = null;
+  }
 };
 
 // --- 事件处理 ---
@@ -536,6 +802,15 @@ watch(selectedTimeframe, () => {
 watch(() => symbol.value, (newSymbol) => {
   // 关闭旧 WS
   if (binanceWS) { binanceWS.close(); binanceWS = null; }
+  
+  // 重新连接后端 WebSocket（如果需要）
+  if (backendWS && backendWS.readyState === WebSocket.OPEN) {
+    // WebSocket 已连接，不需要重连（后端会推送所有symbol的数据）
+    console.log('[MarketDetail] Symbol 变化，WebSocket 保持连接');
+  } else {
+    // WebSocket 未连接，尝试连接
+    connectBackendWebSocket();
+  }
   
   // 尝试从 Store 获取深度
   const normalized = normalizeSymbol(newSymbol);
@@ -594,11 +869,19 @@ onMounted(() => {
   // 2. 初始化 WS
   if (!marketStore.isConnected) marketStore.initWebSocket();
   
-  // 3. 首次加载数据
+  // ========== 关键修复：确保连接状态初始化为"连接中" ==========
+  // 初始状态：连接中
+  wsConnecting.value = true;
+  wsConnected.value = false;
+  
+  // 3. 连接后端 WebSocket（实时K线数据）
+  connectBackendWebSocket();
+  
+  // 4. 首次加载数据
   fetchOrderBook();
   fetchKlineHistory();
   
-  // 4. 定时轮询盘口（作为 WS 的备用）
+  // 5. 定时轮询盘口（作为 WS 的备用）
   orderBookInterval = setInterval(() => {
     if (!useDirectBinance) fetchOrderBook();
   }, 3000);
@@ -607,6 +890,7 @@ onMounted(() => {
 onUnmounted(() => {
   if (orderBookInterval) clearInterval(orderBookInterval);
   if (binanceWS) binanceWS.close();
+  disconnectBackendWebSocket(); // 断开后端 WebSocket
 });
 
 // 模拟成交数据 (Mock)
@@ -741,6 +1025,66 @@ const generateTrades = (basePrice) => {
   font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', 'Arial', 'DIN Alternate', sans-serif;
   font-variant-numeric: tabular-nums;
   width: fit-content;
+}
+
+/* WebSocket 连接状态指示器 */
+.ws-status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 11px;
+}
+
+.ws-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #848E9C;
+  transition: background-color 0.3s ease;
+}
+
+.ws-status-indicator.connected .ws-status-dot {
+  background-color: #0ECB81;
+  box-shadow: 0 0 4px rgba(14, 203, 129, 0.5);
+}
+
+.ws-status-indicator.connecting .ws-status-dot {
+  background-color: #F0B90B;
+  box-shadow: 0 0 4px rgba(240, 185, 11, 0.5);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.ws-status-indicator.disconnected .ws-status-dot {
+  background-color: #F6465D;
+  box-shadow: 0 0 4px rgba(246, 70, 93, 0.5);
+}
+
+.ws-status-text {
+  color: #848E9C;
+  font-size: 11px;
+  transition: color 0.3s ease;
+}
+
+.ws-status-indicator.connected .ws-status-text {
+  color: #0ECB81;
+}
+
+.ws-status-indicator.connecting .ws-status-text {
+  color: #F0B90B;
+}
+
+.ws-status-indicator.disconnected .ws-status-text {
+  color: #F6465D;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 .price-change-badge.up {
   background-color: rgba(14, 203, 129, 0.15);

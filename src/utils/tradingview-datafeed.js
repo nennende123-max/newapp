@@ -69,6 +69,9 @@ export function createDatafeed() {
   let onRealtimeCallback = null;
   let reconnectTimer = null;
   let isReconnecting = false;
+  let reconnectAttempts = 0;  // 重连次数计数器
+  const maxReconnectAttempts = 0;  // 0=无限重试
+  const reconnectDelay = 3000;  // 重连延迟（毫秒）
   
   // 保存回调函数的引用（用于在 WebSocket 消息处理中调用）
   const callbacks = new Map();
@@ -109,6 +112,7 @@ export function createDatafeed() {
       wsConnection.onopen = () => {
         console.log('[Datafeed] WebSocket 连接成功');
         isReconnecting = false;
+        reconnectAttempts = 0;  // 重置重连次数
         if (reconnectTimer) {
           clearTimeout(reconnectTimer);
           reconnectTimer = null;
@@ -143,23 +147,59 @@ export function createDatafeed() {
 
       wsConnection.onerror = (error) => {
         console.error('[Datafeed] WebSocket 错误:', error);
+        console.error('[Datafeed] 重连次数:', reconnectAttempts, '/', maxReconnectAttempts);
       };
 
       wsConnection.onclose = () => {
         console.warn('[Datafeed] WebSocket 连接已关闭');
         wsConnection = null;
         
-        // 自动重连（如果还在订阅状态）
+        // 自动重连（如果还在订阅状态且未达到最大重连次数，或 max=0 则无限重试）
         if (currentSymbol && currentResolution && !isReconnecting) {
-          isReconnecting = true;
-          reconnectTimer = setTimeout(() => {
-            console.log('[Datafeed] 尝试重连 WebSocket...');
-            connectWebSocket(currentSymbol, currentResolution);
-          }, 3000);
+          if (maxReconnectAttempts === 0 || reconnectAttempts < maxReconnectAttempts) {
+            reconnectAttempts++;
+            isReconnecting = true;
+            const attemptInfo = maxReconnectAttempts === 0 
+              ? `${reconnectAttempts} (无限重试)` 
+              : `${reconnectAttempts}/${maxReconnectAttempts}`;
+            console.log(`[Datafeed] 准备重连 WebSocket (${attemptInfo})，${reconnectDelay}ms 后重试...`);
+            reconnectTimer = setTimeout(() => {
+              console.log(`[Datafeed] 尝试重连 WebSocket (${attemptInfo})...`);
+              isReconnecting = false;
+              connectWebSocket(currentSymbol, currentResolution);
+            }, reconnectDelay);
+          } else {
+            console.error(`[Datafeed] 已达到最大重连次数 (${maxReconnectAttempts} 次)，停止重连`);
+            console.error('[Datafeed] 最大重试失败 - 检查后端Binance连接');
+            isReconnecting = false;
+            reconnectAttempts = 0;  // 重置计数器，允许用户手动重试
+          }
         }
       };
     } catch (error) {
       console.error('[Datafeed] 创建 WebSocket 连接失败:', error);
+      // 连接失败时也触发重连逻辑
+      wsConnection = null;
+      if (currentSymbol && currentResolution && !isReconnecting) {
+        if (maxReconnectAttempts === 0 || reconnectAttempts < maxReconnectAttempts) {
+          reconnectAttempts++;
+          isReconnecting = true;
+          const attemptInfo = maxReconnectAttempts === 0 
+            ? `${reconnectAttempts} (无限重试)` 
+            : `${reconnectAttempts}/${maxReconnectAttempts}`;
+          console.log(`[Datafeed] 连接失败，准备重连 (${attemptInfo})，${reconnectDelay}ms 后重试...`);
+          reconnectTimer = setTimeout(() => {
+            console.log(`[Datafeed] 尝试重连 WebSocket (${attemptInfo})...`);
+            isReconnecting = false;
+            connectWebSocket(currentSymbol, currentResolution);
+          }, reconnectDelay);
+        } else {
+          console.error(`[Datafeed] 已达到最大重连次数 (${maxReconnectAttempts} 次)，停止重连`);
+          console.error('[Datafeed] 最大重试失败 - 检查后端Binance连接');
+          isReconnecting = false;
+          reconnectAttempts = 0;
+        }
+      }
     }
   }
 
@@ -180,11 +220,12 @@ export function createDatafeed() {
       }
       currentSymbol = null;
       currentResolution = null;
+      isReconnecting = false;
+      reconnectAttempts = 0;  // 重置重连次数
       if (reconnectTimer) {
         clearTimeout(reconnectTimer);
         reconnectTimer = null;
       }
-      isReconnecting = false;
     }
   }
 

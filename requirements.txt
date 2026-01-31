@@ -1,6 +1,2 @@
-# WebSocket 代理支持库（必需，用于 SOCKS5 代理支持）
-# 安装命令: pip install aiosocksy
-aiosocksy>=0.0.6
-
-# 注意：如果不需要 SOCKS5 代理支持，可以不安装此库
-# 系统会自动降级到直接连接模式
+# 注意：已移除所有代理相关依赖（aiosocksy 等）
+# 系统固定为直连模式，日本东京 IP 无需代理即可连接 Binance API
