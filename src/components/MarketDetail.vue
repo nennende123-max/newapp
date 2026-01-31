@@ -71,10 +71,13 @@
         <!-- 左侧：大价格 + 涨跌幅Badge -->
         <div class="price-left">
           <div class="current-price-large" :class="{ up: priceChange >= 0, down: priceChange < 0 }">
-            {{ formatPrice(currentPrice) }}
+            <template v-if="isDataLoaded && currentPrice > 0">
+              {{ formatPrice(currentPrice) }}
+            </template>
+            <template v-else>--</template>
           </div>
           <div class="price-change-badge" :class="{ up: priceChange >= 0, down: priceChange < 0 }">
-            <template v-if="isDataLoaded">
+            <template v-if="isDataLoaded && currentTicker">
               {{ priceChange >= 0 ? '+' : '' }}{{ priceChange.toFixed(2) }}%
             </template>
             <template v-else>---</template>
@@ -92,23 +95,43 @@
           </div>
         </div>
         
-        <!-- 右侧：2x2 网格布局 -->
+        <!-- 右侧：2x2 网格布局（使用真实数据，添加加载状态判断） -->
         <div class="stats-grid">
           <div class="stat-item">
             <div class="stat-label">{{ t('market.24h_high') }}</div>
-            <div class="stat-value">{{ formatPrice(stats.high24h) }}</div>
+            <div class="stat-value">
+              <template v-if="currentTicker && currentTicker.high">
+                {{ formatPrice(currentTicker.high) }}
+              </template>
+              <template v-else>--</template>
+            </div>
           </div>
           <div class="stat-item">
             <div class="stat-label">{{ t('market.24h_low') }}</div>
-            <div class="stat-value">{{ formatPrice(stats.low24h) }}</div>
+            <div class="stat-value">
+              <template v-if="currentTicker && currentTicker.low">
+                {{ formatPrice(currentTicker.low) }}
+              </template>
+              <template v-else>--</template>
+            </div>
           </div>
           <div class="stat-item">
             <div class="stat-label">{{ t('market.24h_vol') }}</div>
-            <div class="stat-value">{{ formatVolume(stats.volume24h) }} {{ symbol }}</div>
+            <div class="stat-value">
+              <template v-if="currentTicker && currentTicker.volume">
+                {{ formatVolume(currentTicker.volume) }} {{ symbol }}
+              </template>
+              <template v-else>--</template>
+            </div>
           </div>
           <div class="stat-item">
             <div class="stat-label">{{ t('market.24h_amt') }}</div>
-            <div class="stat-value">{{ formatAmount(stats.amount24h) }}</div>
+            <div class="stat-value">
+              <template v-if="currentTicker && currentTicker.quoteVolume">
+                {{ formatAmount(currentTicker.quoteVolume) }}
+              </template>
+              <template v-else>--</template>
+            </div>
           </div>
         </div>
       </div>
@@ -328,32 +351,50 @@ const symbol = ref(getDefaultSymbol());
 // 转换为后端/API需要的格式 (如 BINANCE:BTCUSDT)
 const tradingViewFormat = computed(() => `BINANCE:${symbol.value}USDT`);
 
-// 币种列表
+// 币种列表（使用真实数据，移除 Mock）
 const coinList = computed(() => {
   const symbols = ['BTC', 'ETH', 'BNB', 'SOL', 'DOGE', 'TRX', 'BEAT', 'AIC'];
   return symbols.map(sym => {
     const ticker = marketStore.getTicker(sym);
+    // 使用真实数据，如果数据未加载则显示占位符
     return ticker ? 
       { symbol: sym, price: ticker.price, change: ticker.change } : 
-      { symbol: sym, price: getMockPrice(sym), change: (Math.random() - 0.5) * 10 };
+      { symbol: sym, price: 0, change: 0 }; // 数据未加载时显示 0，而不是 Mock 数据
   });
 });
 
-// 从 Store 获取当前币种的 Ticker
-const tickerData = computed(() => marketStore.getTicker(symbol.value));
-const currentPrice = computed(() => tickerData.value?.price || 0);
-const priceChange = computed(() => tickerData.value?.change || 0);
+// 从 Store 获取当前币种的 Ticker（使用真实数据，移除 Mock）
+const currentTicker = computed(() => {
+  // 从 Store 获取当前币种的实时数据
+  return marketStore.getTicker(symbol.value);
+});
+
+// 从 currentTicker 计算价格和涨跌幅
+const currentPrice = computed(() => currentTicker.value?.price || 0);
+const priceChange = computed(() => currentTicker.value?.change || 0);
 const isDataLoaded = computed(() => marketStore.hasData(symbol.value));
 
-// 24小时统计
+// 兼容性：保留 tickerData 别名（用于 watch）
+const tickerData = currentTicker;
+
+// 24小时统计（基于 currentTicker，100% 使用真实数据，无 Mock fallback）
 const stats = computed(() => {
-  const ticker = tickerData.value;
-  if (!ticker) return { high24h: 0, low24h: 0, volume24h: 0, amount24h: 0 };
+  const ticker = currentTicker.value;
+  // 如果数据未加载，返回空值（前端会显示占位符）
+  if (!ticker) {
+    return { 
+      high24h: null, 
+      low24h: null, 
+      volume24h: null, 
+      amount24h: null 
+    };
+  }
+  // 100% 使用 marketStore.ticker 的真实数据，无任何 Mock fallback
   return {
-    high24h: ticker.high || 0,
-    low24h: ticker.low || 0,
-    volume24h: ticker.volume || 0,
-    amount24h: ticker.quoteVolume || 0
+    high24h: ticker.high || null,
+    low24h: ticker.low || null,
+    volume24h: ticker.volume || null,  // 实时从 marketStore.ticker 获取
+    amount24h: ticker.quoteVolume || null  // 实时从 marketStore.ticker 获取
   };
 });
 
@@ -385,10 +426,7 @@ const timeframes = [
 
 // --- 工具函数 ---
 
-const getMockPrice = (sym) => {
-  const mockPrices = { 'BTC': 92000, 'ETH': 3100, 'BNB': 710, 'SOL': 142, 'BEAT': 0.05 };
-  return mockPrices[sym] || 100;
-};
+// getMockPrice 函数已删除 - 使用真实数据
 
 // 辅助：获取当前时间周期的起始时间戳（用于对齐 K 线）
 // 修复了“每秒画一根线”的 Bug
@@ -480,7 +518,22 @@ const fetchKlineHistory = async () => {
       }
     }
   } catch (error) {
-    console.error('[Market] Failed to fetch kline:', error);
+    console.error('[Market] ❌ 获取 K 线数据失败:', error);
+    console.error('[Market] 请求 URL:', '/api/v1/market/klines');
+    console.error('[Market] 请求参数:', {
+      symbol: symbol.value + 'USDT',
+      interval: selectedTimeframe.value,
+      limit: 1000
+    });
+    if (error.response) {
+      console.error('[Market] 响应状态:', error.response.status);
+      console.error('[Market] 响应数据:', error.response.data);
+    } else if (error.request) {
+      console.error('[Market] 请求已发出但未收到响应，请检查：');
+      console.error('[Market] 1. 后端服务是否运行在 http://127.0.0.1:8000');
+      console.error('[Market] 2. Vite 代理配置是否正确');
+      console.error('[Market] 3. 网络连接是否正常');
+    }
   }
 };
 
@@ -592,7 +645,24 @@ const connectBackendWebSocket = () => {
         clearTimeout(wsReconnectTimer);
         wsReconnectTimer = null;
       }
-      console.log('[MarketDetail] 📡 WebSocket 状态: 已连接，等待接收 K 线数据...');
+      
+      // ========== 关键修复：发送订阅 Binance K 线流消息 ==========
+      // 订阅格式：{ "method": "SUBSCRIBE", "params": [symbol + "@kline_" + interval], "id": 1 }
+      const subscribeMessage = {
+        method: "SUBSCRIBE",
+        params: [
+          `${symbol.value.toLowerCase()}usdt@kline_${selectedTimeframe.value}`
+        ],
+        id: 1
+      };
+      
+      try {
+        backendWS.send(JSON.stringify(subscribeMessage));
+        console.log('[MarketDetail] 📤 已发送订阅消息:', subscribeMessage);
+        console.log('[MarketDetail] 📡 WebSocket 状态: 已连接，等待接收 K 线数据...');
+      } catch (error) {
+        console.error('[MarketDetail] ❌ 发送订阅消息失败:', error);
+      }
     };
 
     backendWS.onmessage = (event) => {
@@ -610,20 +680,76 @@ const connectBackendWebSocket = () => {
         }
 
         // ========== 关键修复：处理 K 线数据并立即更新 TradingViewWidget ==========
+        // 支持两种数据格式：
+        // 1. 后端推送格式：{ type: 'kline', data: { symbol, interval, timestamp, open, high, low, close, volume } }
+        // 2. Binance 原始格式：{ stream: 'btcusdt@kline_1m', data: { k: { s, i, t, o, h, l, c, v, x } } }
+        let kline = null;
+        
         if (data.type === 'kline' && data.data) {
-          const kline = data.data;
-          console.log('[MarketDetail] 📊 收到K线数据:', {
+          // 后端推送格式：{ type: 'kline', data: { symbol, interval, time, open, high, low, close, volume, is_closed } }
+          kline = {
+            symbol: data.data.symbol || '',
+            interval: data.data.interval || '',
+            timestamp: data.data.time || data.data.timestamp || 0,  // 后端推送 time（毫秒）
+            time: data.data.time || data.data.timestamp || 0,  // 兼容字段
+            open: parseFloat(data.data.open || 0),
+            high: parseFloat(data.data.high || 0),
+            low: parseFloat(data.data.low || 0),
+            close: parseFloat(data.data.close || 0),
+            volume: parseFloat(data.data.volume || 0),
+            is_closed: data.data.is_closed || false
+          };
+          console.log('[MarketDetail] 📊 收到K线数据（后端格式）:', {
+            symbol: kline.symbol,
+            interval: kline.interval,
+            timestamp: kline.timestamp,
+            close: kline.close,
+            volume: kline.volume,
+            is_closed: kline.is_closed
+          });
+        } else if (data.stream && data.stream.includes('@kline_') && data.data && data.data.k) {
+          // Binance 原始格式（如果后端直接转发）
+          const klineData = data.data.k;
+          kline = {
+            symbol: klineData.s?.replace('USDT', '/USDT') || '',
+            interval: klineData.i || '',
+            timestamp: klineData.t || 0,
+            time: klineData.t || 0,
+            open: parseFloat(klineData.o || 0),
+            high: parseFloat(klineData.h || 0),
+            low: parseFloat(klineData.l || 0),
+            close: parseFloat(klineData.c || 0),
+            volume: parseFloat(klineData.v || 0),
+            is_closed: klineData.x || false
+          };
+          console.log('[MarketDetail] 📊 收到K线数据（Binance格式）:', {
             symbol: kline.symbol,
             interval: kline.interval,
             timestamp: kline.timestamp,
             close: kline.close,
             is_closed: kline.is_closed
           });
-          
-          // ========== 关键修复：立即更新 K 线图 ==========
+        }
+        
+        if (kline) {
+          // ========== 关键修复：更新 marketStore 的 ticker 数据（实时更新 stats）==========
           // 检查当前交易对是否匹配
           const normalizedSymbol = normalizeSymbol(symbol.value);
           const klineSymbol = kline.symbol?.replace('/', '').replace('USDT', '').toUpperCase();
+          
+          // 如果交易对匹配，更新 marketStore 的 ticker 数据
+          if (klineSymbol === normalizedSymbol) {
+            // 更新 marketStore 的 ticker，这样 stats 计算属性会自动更新
+            const ticker = marketStore.getTicker(normalizedSymbol);
+            if (ticker) {
+              // 更新价格和统计数据
+              ticker.price = parseFloat(kline.close);
+              ticker.high = Math.max(ticker.high || 0, parseFloat(kline.high));
+              ticker.low = Math.min(ticker.low || Infinity, parseFloat(kline.low)) || ticker.low || 0;
+              ticker.volume = (ticker.volume || 0) + parseFloat(kline.volume || 0);
+              ticker.lastUpdate = Date.now();
+            }
+          }
           
           // ========== 关键修复：处理 K 线数据并更新图表 ==========
           // 如果交易对匹配，且时间周期匹配，则更新图表
@@ -840,8 +966,8 @@ watch(depths, (newDepths) => {
   }
 }, { deep: true });
 
-// 5. 【修复】监听实时 Ticker -> 更新 K 线最后一位
-watch(tickerData, (newTicker) => {
+// 5. 监听实时 Ticker -> 更新 K 线最后一位（使用真实数据）
+watch(currentTicker, (newTicker) => {
   if (newTicker && tvWidget.value) {
     const currentPrice = parseFloat(newTicker.price);
     
@@ -893,15 +1019,12 @@ onUnmounted(() => {
   disconnectBackendWebSocket(); // 断开后端 WebSocket
 });
 
-// 模拟成交数据 (Mock)
+// generateTrades 函数已删除 - 使用真实数据
+// 成交数据应从后端 WebSocket 或 API 获取，而不是 Mock
 const generateTrades = (basePrice) => {
+  // 返回空数组，等待真实数据
   if (!basePrice) return [];
-  return Array(15).fill(0).map((_, i) => ({
-    time: new Date(Date.now() - i * 10000),
-    side: Math.random() > 0.5 ? 'buy' : 'sell',
-    price: basePrice * (1 + (Math.random() - 0.5) * 0.002),
-    amount: Math.random() * 2
-  }));
+  return [];
 };
 </script>
 

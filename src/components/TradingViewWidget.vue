@@ -370,7 +370,19 @@ onMounted(() => {
   // ========== 关键修复：在 mounted 中调用 initChart（不是 this.chart.initChart）==========
   // initChart 是组件的方法，不是 chart 实例的方法
   // 确保图表在 DOM 渲染完成后初始化
+  
+  // 检查 TradingView 库是否可用（如果使用 TradingView widget）
+  if (!window.TradingView) {
+    console.error('[TradingViewWidget] ❌ TradingView 库未加载，使用 lightweight-charts');
+    // 继续使用 lightweight-charts 初始化
+  } else if (typeof window.TradingView.widget === 'function') {
+    console.log('[TradingViewWidget] TradingView 库已加载');
+  }
+  
+  // 初始化图表（使用 lightweight-charts，避免 eval）
+  // 注意：当前使用 lightweight-charts，如需使用 TradingView widget + datafeed，需要修改初始化逻辑
   initChart()
+  console.log('[TradingViewWidget] ✅ Widget 初始化成功');
   
   // 添加窗口 resize 监听器（自适应）
   window.addEventListener('resize', handleResize)

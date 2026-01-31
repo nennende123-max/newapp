@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- CSP Meta Tag (开发环境) - 允许 TradingView 库、WebSocket 和字体源 -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://* ws: wss:; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://s3.tradingview.com https://www.tradingview.com; style-src 'self' 'unsafe-inline' https://*; img-src 'self' data: https://*; font-src 'self' data: https://at.alicdn.com https://fonts.gstatic.com; connect-src 'self' ws: wss: https://data.tradingview.com wss://stream.binance.com https://api.binance.com; frame-src https://www.tradingview.com; worker-src 'self' blob:;">
     <title>test</title>
     <!-- TradingView Widget Library -->
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>

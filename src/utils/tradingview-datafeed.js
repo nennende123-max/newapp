@@ -122,10 +122,97 @@ export function createDatafeed() {
       wsConnection.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          console.log('🔥 Go数据:', data);
+          console.log('[Datafeed] 收到 WebSocket 数据:', data);
 
-          // Go 后端扁平格式: { time, open, high, low, close, volume }
-          if (data && typeof data.time === 'number') {
+          // 处理 Binance K-line 流格式: { stream: "btcusdt@kline_1m", data: { k: {...} } }
+          if (data.stream && data.stream.includes('@kline_')) {
+            const klineData = data.data.k;
+            const timeframe = data.stream.split('@kline_')[1];
+            const symbol = klineData.s.toLowerCase().replace('usdt', '');
+            
+            // 动态导入 marketStore（避免循环依赖）
+            import('../stores/market').then(({ useMarketStore }) => {
+              const marketStore = useMarketStore();
+              const tickerSymbol = symbol.toUpperCase() + 'USDT';
+              const ticker = marketStore.getTicker(tickerSymbol) || {
+                symbol: tickerSymbol,
+                price: parseFloat(klineData.c),
+                high: parseFloat(klineData.h),
+                low: parseFloat(klineData.l),
+                volume: 0,
+                quoteVolume: 0
+              };
+              
+              // 更新 ticker（累加 volume）
+              marketStore.updateTicker({
+                symbol: tickerSymbol,
+                price: parseFloat(klineData.c),
+                high: parseFloat(klineData.h),
+                low: parseFloat(klineData.l),
+                volume: (ticker.volume || 0) + parseFloat(klineData.v),
+                quoteVolume: (ticker.quoteVolume || 0) + parseFloat(klineData.v) * parseFloat(klineData.c)
+              });
+            }).catch(err => console.error('[Datafeed] 更新 marketStore 失败:', err));
+
+            // 调用回调更新图表
+            const callbackKey = `${currentSymbol}_${currentResolution}`;
+            const callback = callbacks.get(callbackKey);
+            if (callback) {
+              const bar = {
+                time: Math.floor(klineData.t / 1000), // 转换为秒级时间戳
+                open: parseFloat(klineData.o),
+                high: parseFloat(klineData.h),
+                low: parseFloat(klineData.l),
+                close: parseFloat(klineData.c),
+                volume: parseFloat(klineData.v)
+              };
+              callback(bar);
+            }
+          }
+          // 处理后端推送格式: { type: 'kline', data: { symbol, interval, time, open, high, low, close, volume } }
+          else if (data.type === 'kline' && data.data) {
+            const kline = data.data;
+            const symbol = kline.symbol || currentSymbol;
+            
+            // 动态导入 marketStore（避免循环依赖）
+            import('../stores/market').then(({ useMarketStore }) => {
+              const marketStore = useMarketStore();
+              const ticker = marketStore.getTicker(symbol) || {
+                symbol: symbol,
+                price: parseFloat(kline.close),
+                high: parseFloat(kline.high),
+                low: parseFloat(kline.low),
+                volume: 0,
+                quoteVolume: 0
+              };
+              
+              marketStore.updateTicker({
+                symbol: symbol,
+                price: parseFloat(kline.close),
+                high: parseFloat(kline.high),
+                low: parseFloat(kline.low),
+                volume: (ticker.volume || 0) + parseFloat(kline.volume || 0),
+                quoteVolume: (ticker.quoteVolume || 0) + parseFloat(kline.volume || 0) * parseFloat(kline.close)
+              });
+            }).catch(err => console.error('[Datafeed] 更新 marketStore 失败:', err));
+
+            // 调用回调更新图表
+            const callbackKey = `${currentSymbol}_${currentResolution}`;
+            const callback = callbacks.get(callbackKey);
+            if (callback) {
+              const bar = {
+                time: Math.floor(kline.time / 1000), // 转换为秒级时间戳
+                open: parseFloat(kline.open),
+                high: parseFloat(kline.high),
+                low: parseFloat(kline.low),
+                close: parseFloat(kline.close),
+                volume: parseFloat(kline.volume || 0)
+              };
+              callback(bar);
+            }
+          }
+          // 处理扁平格式: { time, open, high, low, close, volume }
+          else if (data && typeof data.time === 'number') {
             const callbackKey = `${currentSymbol}_${currentResolution}`;
             const callback = callbacks.get(callbackKey);
             if (callback) {

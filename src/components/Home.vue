@@ -60,7 +60,7 @@
           :class="{ active: activeButton === 'deposit' }"
           @click="handleButtonClick('deposit', '/deposit')"
           @touchstart="activeButton = 'deposit'"
-          @touchend="setTimeout(() => { activeButton = null }, 150)"
+          @touchend="handleTouchEnd"
         >
           <div class="icon-circle">
             <van-icon name="down" class="rotate-icon" />
@@ -73,7 +73,7 @@
           :class="{ active: activeButton === 'withdraw' }"
           @click="handleButtonClick('withdraw', '/withdraw')"
           @touchstart="activeButton = 'withdraw'"
-          @touchend="setTimeout(() => { activeButton = null }, 150)"
+          @touchend="handleTouchEnd"
         >
           <div class="icon-circle">
             <van-icon name="envelop-o" />
@@ -86,7 +86,7 @@
           :class="{ active: activeButton === 'earn' }"
           @click="handleButtonClick('earn', '/earn')"
           @touchstart="activeButton = 'earn'"
-          @touchend="setTimeout(() => { activeButton = null }, 150)"
+          @touchend="handleTouchEnd"
         >
           <div class="icon-circle">
             <van-icon name="gold-coin-o" />
@@ -99,7 +99,7 @@
           :class="{ active: activeButton === 'security' }"
           @click="handleButtonClick('security', '/security-center')"
           @touchstart="activeButton = 'security'"
-          @touchend="setTimeout(() => { activeButton = null }, 150)"
+          @touchend="handleTouchEnd"
         >
           <div class="icon-circle">
             <van-icon name="shield-o" />
@@ -420,6 +420,13 @@ const goToChainExplorer = () => {
 
 // 功能按钮选中状态
 const activeButton = ref(null);
+
+// 处理触摸结束事件（替代 setTimeout 字符串形式）
+const handleTouchEnd = () => {
+  setTimeout(() => {
+    activeButton.value = null;
+  }, 150);
+};
 
 // 处理按钮点击
 const handleButtonClick = (btnType, path) => {
