@@ -429,7 +429,7 @@
               <!-- Logo 区域 -->
               <div class="poster-logo-section">
                 <div class="poster-logo">
-                  <img src="https://cryptologos.cc/logos/binance-coin-bnb-logo.svg?v=026" alt="TruthFi" class="logo-img" />
+                  <BinanceLogo :size="40" class="logo-img" />
                 </div>
                 <div class="poster-app-name">TruthFi</div>
               </div>
@@ -479,6 +479,7 @@ import { useI18n } from 'vue-i18n';
 import { showToast } from 'vant';
 import QRCode from 'qrcode';
 import html2canvas from 'html2canvas';
+import BinanceLogo from '@/components/BinanceLogo.vue';
 
 defineOptions({
   name: 'ReferralIndex'
@@ -1844,11 +1845,6 @@ onUnmounted(() => {
   padding: 12px;
 }
 
-.logo-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
 
 .poster-app-name {
   font-size: 24px;

@@ -1,3 +1,5 @@
+@import './styles/design-tokens.css';
+
 /* ---------------------------------------------------------
    TruthFi Global Vant Style Overrides (Pro Max Style)
    Author: UI/UX Architecture Team
@@ -129,4 +131,126 @@ body::-webkit-scrollbar {
 /* 4. Global Active State (点击反馈) */
 .van-button--active::before {
   opacity: 0.1 !important;
+}
+
+/* ---------------------------------------------------------
+   5. Global Design System Utilities
+   --------------------------------------------------------- */
+
+body,
+html,
+#app {
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+}
+
+/* Numbers — monospace tabular alignment */
+.num,
+.tabular-nums,
+.apy-value,
+.data-value,
+.total-amount,
+.asset-value,
+.overview-value,
+.limit-value,
+.amount-value,
+.price-main,
+.position-pnl,
+[data-numeric='true'] {
+  font-family: var(--font-number) !important;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' on, 'lnum' on;
+}
+
+.text-earn,
+.text-green:not(.submit-btn):not(.btn-cta) {
+  color: var(--color-earn) !important;
+}
+
+.text-loss,
+.text-red {
+  color: var(--color-loss) !important;
+}
+
+/* Primary CTA — brand yellow only */
+.btn-cta,
+.van-button--primary.btn-cta {
+  background-color: var(--color-brand) !important;
+  color: #000000 !important;
+  border: none !important;
+  border-radius: var(--radius-button) !important;
+  font-weight: 700;
+}
+
+.btn-cta:disabled,
+.btn-cta.van-button--disabled {
+  background-color: var(--color-bg-elevated) !important;
+  color: var(--color-text-secondary) !important;
+  opacity: 1 !important;
+}
+
+/* Cards & inputs */
+.card-surface {
+  background-color: var(--color-bg-elevated);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.input-surface {
+  border-radius: var(--radius-input);
+}
+
+/* Tabs — yellow underline only; active label stays neutral */
+.van-tabs__line {
+  background-color: var(--color-brand) !important;
+}
+
+.van-tabs .van-tab--active {
+  color: var(--color-text-primary) !important;
+  font-weight: 600;
+}
+
+.van-tabs .van-tab {
+  color: var(--color-text-secondary) !important;
+}
+
+/* Tabbar — active icon/text neutral + yellow top indicator */
+.van-tabbar {
+  background-color: var(--color-bg-elevated) !important;
+  border-top: 1px solid var(--color-border-subtle) !important;
+}
+
+.van-tabbar-item {
+  color: var(--color-text-muted) !important;
+}
+
+.van-tabbar-item--active {
+  color: var(--color-text-primary) !important;
+}
+
+.van-tabbar-item--active .van-tabbar-item__icon,
+.van-tabbar-item--active .van-tabbar-item__text {
+  color: var(--color-text-primary) !important;
+}
+
+.van-tabbar-item--active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 2px;
+  background-color: var(--color-brand);
+  border-radius: 1px;
+}
+
+.van-field__control {
+  border-radius: var(--radius-input);
+}
+
+.van-cell-group--inset,
+.section-group {
+  border-radius: var(--radius-card) !important;
 }

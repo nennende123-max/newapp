@@ -1,0 +1,46 @@
+---
+description: TruthFi global color, typography, and component radius standards
+alwaysApply: true
+---
+
+# Global Design System
+
+## Color System (Strict)
+
+- Background: `#0B0E11` (`var(--color-bg)`) or existing dark surfaces.
+- Brand yellow `#F0B90B` (`var(--color-brand)`) **ONLY** for:
+  - Primary CTA buttons (申购, 立即租赁, 确认, Connect, Submit)
+  - Selected tab **underlines** (not tab text/icons unless underline)
+- Earning green `#0ECB81` (`var(--color-earn)`) **ONLY** for:
+  - Earning rate data (APY, ROI %, positive yield numbers)
+  - **Never** use for buttons or badges
+- Loss red `#F6465D` (`var(--color-loss)`) **ONLY** for:
+  - Negative PnL, losses, sell-side destructive actions
+- Greys for all other text, borders, inactive states.
+
+## Typography
+
+- Use `var(--font-number)` + `font-variant-numeric: tabular-nums` for **all numbers** (balances, rates, prices, APY).
+- Apply class `.num` or semantic classes: `.apy-value`, `.data-value`, `.total-amount`.
+
+## Component Radii
+
+| Element | Radius | Token |
+|---------|--------|-------|
+| Buttons | 8px | `var(--radius-button)` |
+| Inputs | 12px | `var(--radius-input)` |
+| Cards | 16px | `var(--radius-card)` |
+
+## CSS Usage
+
+Prefer design tokens from `src/styles/design-tokens.css` over hardcoded hex values.
+
+```css
+.btn-cta {
+  background: var(--color-brand);
+  color: #000;
+  border-radius: var(--radius-button);
+}
+.text-earn { color: var(--color-earn); }
+.text-loss { color: var(--color-loss); }
+```

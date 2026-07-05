@@ -1,0 +1,40 @@
+/* TruthFi Global Design Tokens — cursor_rules_global_design */
+
+:root {
+  /* Color System */
+  --color-bg: #0B0E11;
+  --color-bg-elevated: #1E2329;
+  --color-bg-card: #1C1C1E;
+  --color-bg-input: #141414;
+
+  --color-brand: #F0B90B;
+  --color-brand-legacy: #FCD535;
+
+  --color-earn: #0ECB81;
+  --color-loss: #F6465D;
+
+  --color-text-primary: #EAECEF;
+  --color-text-secondary: #848E9C;
+  --color-text-muted: #8E8E93;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-subtle: rgba(255, 255, 255, 0.05);
+
+  /* Corner Radius */
+  --radius-button: 8px;
+  --radius-input: 12px;
+  --radius-card: 16px;
+
+  /* Typography — numbers */
+  --font-number: 'SF Mono', 'Roboto Mono', 'DIN Alternate', ui-monospace, monospace;
+  --font-ui: 'SF Pro Display', 'PingFang SC', 'Helvetica Neue', sans-serif;
+
+  /* Vant theme hooks */
+  --van-primary-color: var(--color-brand);
+  --van-background: var(--color-bg);
+  --van-background-2: var(--color-bg-elevated);
+  --van-text-color: var(--color-text-primary);
+  --van-text-color-2: var(--color-text-secondary);
+  --van-border-color: var(--color-border);
+  --van-button-radius: var(--radius-button);
+  --van-field-border-radius: var(--radius-input);
+}

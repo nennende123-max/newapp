@@ -1,6 +1,5 @@
 <template>
   <div class="earn-list-page" :class="{ 'embedded-mode': isEmbedded }">
-    <!-- 顶部导航栏（仅在独立页面显示） -->
     <van-nav-bar
       v-if="!isEmbedded"
       :title="t('earn.title')"
@@ -30,15 +29,16 @@
       </div>
     </div>
 
-    <van-tabs 
+    <!-- Section 1: Tabs -->
+    <van-tabs
       :key="tabsKey"
-      v-model:active="activeTab" 
-      background="transparent" 
-      title-active-color="#F0B90B" 
-      title-inactive-color="#848E9C" 
-      line-width="30px" 
-      line-height="2px" 
-      color="#F0B90B" 
+      v-model:active="activeTab"
+      background="transparent"
+      title-active-color="#EAECEF"
+      title-inactive-color="#848E9C"
+      line-width="30px"
+      line-height="2px"
+      color="#F0B90B"
       :border="false"
       class="earn-tabs"
     >
@@ -47,60 +47,146 @@
       <van-tab :title="t('earn.tab.high_yield')"></van-tab>
     </van-tabs>
 
-    <div class="products-list">
-      <div 
-        v-for="product in filteredProducts" 
-        :key="product.id"
-        class="product-card"
-      >
-        <div class="product-header">
-          <div class="coin-info">
-            <img 
-              :src="getCoinIcon(product.symbol)" 
-              :alt="product.symbol"
-              class="coin-icon"
-              @error="handleImageError"
-            />
-            <div class="coin-name-group">
-              <span class="coin-name">{{ product.symbol }}</span>
-              <span v-if="product.bonusRate" class="bonus-rate">+{{ product.bonusRate }}%</span>
+    <div class="marketplace-content">
+      <!-- Section 2: Simple Earn -->
+      <section class="market-section">
+        <h2 class="section-title">{{ t('earn.section_simple_earn') }}</h2>
+
+        <div class="products-list">
+          <div
+            v-for="product in filteredSimpleEarn"
+            :key="product.id"
+            class="product-card"
+          >
+            <div class="product-header">
+              <div class="coin-info">
+                <img
+                  :src="getCoinIcon(product.symbol)"
+                  :alt="product.symbol"
+                  class="coin-icon"
+                  @error="handleImageError"
+                />
+                <span class="coin-name">{{ product.symbol }}</span>
+                <span v-if="product.bonusRate" class="bonus-rate">+{{ product.bonusRate }}%</span>
+              </div>
+              <div v-if="product.tieredRate" class="header-badge">
+                {{ t('earn.tiered_annual_rate') }}
+              </div>
+            </div>
+
+            <div class="product-row">
+              <!-- Rate column (left, DIN) -->
+              <div class="rate-column">
+                <div class="apy-main">
+                  <span class="apy-value num">{{ formatApy(getDisplayApy(product)) }}%</span>
+                </div>
+                <div class="apy-label">{{ t('earn.reference_annual') }}</div>
+              </div>
+
+              <!-- Tenure chips + action -->
+              <div class="meta-column">
+                <div v-if="hasMultipleTenures(product)" class="tenure-chips">
+                  <button
+                    v-for="option in product.tenureOptions"
+                    :key="option.value"
+                    type="button"
+                    class="tenure-chip"
+                    :class="{ active: getSelectedTenure(product) === option.value }"
+                    @click.stop="selectTenure(product.id, option.value)"
+                  >
+                    <van-icon v-if="option.locked" name="lock" class="chip-lock" />
+                    <span>{{ formatTenureLabel(option) }}</span>
+                  </button>
+                </div>
+                <div v-else-if="product.tenureOptions?.length" class="tenure-single">
+                  <span class="tenure-chip active static">
+                    <van-icon v-if="product.tenureOptions[0].locked" name="lock" class="chip-lock" />
+                    <span>{{ formatTenureLabel(product.tenureOptions[0]) }}</span>
+                  </span>
+                </div>
+              </div>
+
+              <van-button
+                class="subscribe-btn btn-cta"
+                @click.stop="goToSubscribe(product)"
+              >
+                {{ t('earn.subscribe') }}
+              </van-button>
             </div>
           </div>
-          <div v-if="product.tieredRate" class="header-badge">
-            {{ t('earn.tiered_annual_rate') }}
+
+          <div v-if="filteredSimpleEarn.length === 0" class="empty-state compact">
+            <van-empty :description="t('earn.no_products')" />
           </div>
         </div>
+      </section>
 
-        <div class="product-body">
-          <div class="apy-main">
-            <span class="apy-value">{{ product.apy }}%</span>
-            <span v-if="product.bonusRate" class="apy-bonus">+{{ product.bonusRate }}%</span>
-          </div>
-          <div class="apy-label">{{ t('earn.reference_annual') }}</div>
-        </div>
+      <!-- Section 3: Cloud Mining -->
+      <section class="market-section">
+        <h2 class="section-title">{{ t('earn.section_cloud_mining') }}</h2>
 
-        <div class="product-footer">
-          <div class="term-tag">
-            {{ product.term === 0 ? t('earn.flexible') : `${product.term}${t('earn.days')}` }}
-          </div>
-          <van-button 
-            class="subscribe-btn"
-            @click.stop="goToSubscribe(product)"
+        <div class="products-list">
+          <div
+            v-for="miner in filteredCloudMining"
+            :key="miner.id"
+            class="product-card mining-card"
           >
-            {{ t('earn.subscribe') }}
-          </van-button>
-        </div>
-      </div>
+            <div class="product-header">
+              <div class="coin-info">
+                <img
+                  :src="getCoinIcon(miner.symbol)"
+                  :alt="miner.symbol"
+                  class="coin-icon"
+                  @error="handleImageError"
+                />
+                <div class="coin-name-group">
+                  <span class="coin-name">{{ miner.pair || `${miner.symbol}/USDT` }}</span>
+                  <span class="mining-tag">{{ t('miner.cloud_mining') }}</span>
+                </div>
+              </div>
+            </div>
 
-      <div v-if="filteredProducts.length === 0" class="empty-state">
-        <van-empty :description="t('earn.no_products')" />
-      </div>
+            <div class="product-row mining-row">
+              <div class="rate-column">
+                <div class="apy-main">
+                  <span class="est-apy-label">{{ t('earn.est_apy') }}</span>
+                  <span class="apy-value num">{{ formatApy(miner.apy) }}%</span>
+                </div>
+              </div>
+
+              <div class="meta-column mining-meta">
+                <div class="miner-model">
+                  <span class="meta-label">{{ t('earn.miner_model') }}</span>
+                  <span class="meta-value">{{ miner.minerModel }}</span>
+                </div>
+                <div class="tenure-single">
+                  <span class="tenure-chip static locked-only">
+                    <van-icon name="lock" class="chip-lock" />
+                    <span>{{ miner.term }}{{ t('earn.days_short') }}</span>
+                  </span>
+                </div>
+              </div>
+
+              <van-button
+                class="rent-btn btn-cta"
+                @click.stop="goToRent(miner)"
+              >
+                {{ t('earn.rent_now') }}
+              </van-button>
+            </div>
+          </div>
+
+          <div v-if="filteredCloudMining.length === 0" class="empty-state compact">
+            <van-empty :description="t('earn.no_products')" />
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onActivated } from 'vue';
+import { ref, computed, watch, onMounted, onActivated, reactive } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 
@@ -108,158 +194,206 @@ const router = useRouter();
 const route = useRoute();
 const { t, locale } = useI18n();
 
-// 检测是否在 Me.vue 中嵌入显示（通过路由路径判断）
 const isEmbedded = computed(() => route.path === '/me' || route.query.from === 'me');
-
-// 强制更新 key，用于强制重新渲染 Tab 组件
 const tabsKey = ref(0);
-
-// 搜索和筛选
 const searchQuery = ref('');
 const activeTab = ref(0);
+const selectedTenures = reactive({});
 
-// Mock 产品数据
-const products = ref([
-  {
-    id: 'sfp',
-    symbol: 'SFP',
-    apy: 1.04,
-    bonusRate: null,
-    term: 0, // 0 表示活期
-    tieredRate: false,
-    minAmount: 0.01,
-    maxAmount: 100000000000
-  },
-  {
-    id: 'btc',
-    symbol: 'BTC',
-    apy: 0.01,
-    bonusRate: 0.25,
-    term: 0,
-    tieredRate: true,
-    minAmount: 0.0001,
-    maxAmount: 100000000000
-  },
+const simpleEarnProducts = ref([
   {
     id: 'usdt',
     symbol: 'USDT',
-    apy: 2.07,
     bonusRate: 5,
-    term: 0,
     tieredRate: true,
-    minAmount: 1,
-    maxAmount: 100000000000
-  },
-  {
-    id: 'bnb',
-    symbol: 'BNB',
-    apy: 0.32,
-    bonusRate: null,
-    term: 30,
-    tieredRate: false,
-    minAmount: 0.01,
-    maxAmount: 100000000000
+    tenureOptions: [
+      { value: 0, apy: 2.07, locked: false },
+      { value: 30, apy: 4.5, locked: true },
+      { value: 90, apy: 6.8, locked: true }
+    ]
   },
   {
     id: 'eth',
     symbol: 'ETH',
-    apy: 1.5,
     bonusRate: 2,
-    term: 90,
     tieredRate: false,
-    minAmount: 0.001,
-    maxAmount: 100000000000
+    tenureOptions: [
+      { value: 0, apy: 1.5, locked: false },
+      { value: 30, apy: 2.8, locked: true },
+      { value: 90, apy: 4.2, locked: true }
+    ]
+  },
+  {
+    id: 'btc',
+    symbol: 'BTC',
+    bonusRate: 0.25,
+    tieredRate: true,
+    tenureOptions: [
+      { value: 0, apy: 0.01, locked: false }
+    ]
+  },
+  {
+    id: 'bnb',
+    symbol: 'BNB',
+    bonusRate: null,
+    tieredRate: false,
+    tenureOptions: [
+      { value: 30, apy: 0.32, locked: true }
+    ]
+  },
+  {
+    id: 'sfp',
+    symbol: 'SFP',
+    bonusRate: null,
+    tieredRate: false,
+    tenureOptions: [
+      { value: 0, apy: 1.04, locked: false }
+    ]
   }
 ]);
 
-// 根据 Tab 筛选产品
-const filteredByTab = computed(() => {
+const cloudMiningProducts = ref([
+  {
+    id: 'btc-mining',
+    symbol: 'BTC',
+    pair: 'BTC/USDT',
+    minerModel: 'Antminer S21',
+    apy: 2.5,
+    term: 30
+  },
+  {
+    id: 'usdt-mining',
+    symbol: 'USDT',
+    pair: 'USDT',
+    minerModel: 'Antminer S19 XP',
+    apy: 1.8,
+    term: 90
+  }
+]);
+
+const filterByTab = (items, getApy, getFlexible) => {
   if (activeTab.value === 0) {
-    // 热门：按 APY 排序
-    return [...products.value].sort((a, b) => (b.apy + (b.bonusRate || 0)) - (a.apy + (a.bonusRate || 0)));
-  } else if (activeTab.value === 1) {
-    // 保本：活期产品
-    return products.value.filter(p => p.term === 0);
-  } else {
-    // 高收益：APY > 1%
-    return products.value.filter(p => (p.apy + (p.bonusRate || 0)) > 1);
+    return [...items].sort((a, b) => getApy(b) - getApy(a));
   }
-});
+  if (activeTab.value === 1) {
+    return items.filter(item => getFlexible(item));
+  }
+  return items.filter(item => getApy(item) > 1);
+};
 
-// 根据搜索关键词筛选
-const filteredProducts = computed(() => {
-  if (!searchQuery.value) {
-    return filteredByTab.value;
-  }
+const filterBySearch = (items, getSymbol) => {
+  if (!searchQuery.value) return items;
   const query = searchQuery.value.toLowerCase();
-  return filteredByTab.value.filter(p => 
-    p.symbol.toLowerCase().includes(query)
-  );
+  return items.filter(item => getSymbol(item).toLowerCase().includes(query));
+};
+
+const getProductApy = (product) => {
+  const tenure = getSelectedTenure(product);
+  const option = product.tenureOptions?.find(o => o.value === tenure);
+  return (option?.apy ?? 0) + (product.bonusRate || 0);
+};
+
+const isFlexibleProduct = (product) => {
+  return product.tenureOptions?.some(o => o.value === 0 && !o.locked);
+};
+
+const filteredSimpleEarn = computed(() => {
+  const tabbed = filterByTab(simpleEarnProducts.value, getProductApy, isFlexibleProduct);
+  return filterBySearch(tabbed, p => p.symbol);
 });
 
-// 跳转到申购页面
+const filteredCloudMining = computed(() => {
+  const tabbed = filterByTab(
+    cloudMiningProducts.value,
+    m => m.apy,
+    m => m.term <= 30
+  );
+  return filterBySearch(tabbed, m => m.symbol + (m.pair || ''));
+});
+
+const hasMultipleTenures = (product) => (product.tenureOptions?.length ?? 0) > 1;
+
+const getSelectedTenure = (product) => {
+  if (selectedTenures[product.id] !== undefined) {
+    return selectedTenures[product.id];
+  }
+  return product.tenureOptions?.[0]?.value ?? 0;
+};
+
+const getDisplayApy = (product) => {
+  const tenure = getSelectedTenure(product);
+  const option = product.tenureOptions?.find(o => o.value === tenure);
+  return option?.apy ?? 0;
+};
+
+const selectTenure = (productId, value) => {
+  selectedTenures[productId] = value;
+};
+
+const formatApy = (value) => {
+  const n = Number(value);
+  if (Number.isInteger(n)) return String(n);
+  return n.toFixed(2);
+};
+
+const formatTenureLabel = (option) => {
+  if (option.value === 0) return t('earn.flexible');
+  return `${option.value}${t('earn.days')}`;
+};
+
 const goToSubscribe = (product) => {
-  // 检查当前是否在 Me.vue 页面（通过路由路径判断）
   const isFromMePage = route.path === '/me';
-  
+  const term = getSelectedTenure(product);
   router.push({
     path: '/earn/subscribe',
     query: {
       symbol: product.symbol,
       id: product.id,
+      term: String(term),
       from: isFromMePage ? 'me' : 'list',
       activeTab: isFromMePage ? 'earn' : undefined
     }
   });
 };
 
-// 排序功能
+const goToRent = (miner) => {
+  router.push({
+    path: '/miner',
+    query: { tab: 'mining', minerId: miner.id }
+  });
+};
+
 const handleSort = () => {
   console.log('Sort clicked');
 };
 
-// 历史记录
 const handleHistory = () => {
   router.push('/history');
 };
 
-
-// 获取币种图标 URL
 const getCoinIcon = (symbol) => {
   const iconMap = {
-    'BTC': 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
-    'ETH': 'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
-    'USDT': 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
-    'BNB': 'https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png',
-    'SFP': 'https://cryptologos.cc/logos/safepal-sfp-logo.png'
+    BTC: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
+    ETH: 'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
+    USDT: 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
+    BNB: 'https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png',
+    SFP: 'https://assets.coingecko.com/coins/images/16010/large/safepal.png'
   };
-  const upperSymbol = symbol.toUpperCase();
-  // 如果 SFP 图标加载失败，使用备用地址
-  if (upperSymbol === 'SFP') {
-    return iconMap['SFP'] || 'https://assets.coingecko.com/coins/images/16010/large/safepal.png';
-  }
-  return iconMap[upperSymbol] || `https://assets.coingecko.com/coins/images/1/large/bitcoin.png`;
+  return iconMap[symbol.toUpperCase()] || iconMap.BTC;
 };
 
-// 图片加载失败时的处理
 const handleImageError = (event) => {
-  event.target.style.display = 'block';
   event.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-  event.target.style.backgroundImage = 'none';
-  const symbol = event.target.alt || '?';
-  event.target.alt = symbol;
 };
 
-// 设置页面标题
 const updatePageTitle = () => {
   document.title = t('earn.title') || 'Earn';
 };
 
-// 监听语言变化，强制更新 Tab 组件和页面标题
 watch(() => locale.value, () => {
   tabsKey.value += 1;
   updatePageTitle();
-}, { immediate: false });
+});
 
 onActivated(() => {
   tabsKey.value += 1;
@@ -267,409 +401,334 @@ onActivated(() => {
 });
 
 onMounted(() => {
-  tabsKey.value = 0;
   updatePageTitle();
 });
 </script>
 
 <style scoped>
-/* 全局强制无衬线字体 */
 .earn-list-page {
-  background-color: #000000;
+  background-color: var(--color-bg, #0B0E11);
   min-height: 100vh;
-  /* 增加底部内边距，防止内容被底部 TabBar 遮挡 */
   padding-bottom: 80px;
-  color: #FFFFFF;
-  font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif !important;
+  color: var(--color-text-primary, #EAECEF);
+  font-family: var(--font-ui);
   width: 100%;
   box-sizing: border-box;
 }
 
-/* 嵌入模式（在 Me.vue 中显示时） */
 .earn-list-page.embedded-mode {
   min-height: auto;
   padding-bottom: 0;
-  padding-top: 0;
-  margin-top: 0;
 }
 
-/* 嵌入模式下移除导航栏占位符 */
 .embedded-mode :deep(.van-nav-bar__placeholder) {
   display: none !important;
   height: 0 !important;
 }
 
-/* 自定义导航栏 */
 .custom-nav-bar {
-  --van-nav-bar-background: #000000;
+  --van-nav-bar-background: var(--color-bg, #0B0E11);
   --van-nav-bar-title-text-color: #FFFFFF;
-  --van-nav-bar-icon-color: #FCD535;
+  --van-nav-bar-icon-color: var(--color-brand, #F0B90B);
   --van-nav-bar-height: 46px;
 }
 
 :deep(.custom-nav-bar .van-nav-bar__title) {
-  font-weight: 700 !important;
-  font-size: 18px !important;
-  font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif !important;
+  font-weight: 700;
+  font-size: 18px;
 }
 
-.earn-list-page,
-.earn-list-page *,
-.product-card,
-.product-card *,
-.data-value,
-.apy-value,
-.apy-bonus,
-.coin-name,
-.bonus-rate,
-.term-tag,
-.subscribe-btn {
-  font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif !important;
-}
-
-/* 工具栏容器包装器 */
 .tools-section-wrapper {
-  background-color: #000000;
+  background-color: var(--color-bg, #0B0E11);
   position: sticky;
   top: 46px;
   z-index: 99;
-  width: 100%;
-  box-sizing: border-box;
 }
 
-/* 金色分割线 */
 .divider-line {
   width: 100%;
   height: 1px;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(212, 175, 55, 0.3) 20%, 
-    rgba(212, 175, 55, 0.6) 50%, 
-    rgba(212, 175, 55, 0.3) 80%, 
-    transparent 100%
-  );
-  margin: 0 auto;
-  position: relative;
+  background: linear-gradient(90deg, transparent, rgba(240, 185, 11, 0.35), transparent);
 }
 
-.divider-line::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60%;
-  height: 1px;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    #D4AF37 20%, 
-    #FCD535 50%, 
-    #D4AF37 80%, 
-    transparent 100%
-  );
-  box-shadow: 0 0 4px rgba(212, 175, 55, 0.4);
-}
-
-/* 工具栏容器 */
 .tools-section {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 4px 16px 8px;
-  background-color: #000000;
-  width: 100%;
-  box-sizing: border-box;
 }
 
-/* 嵌入模式下的工具栏（在 Me.vue 中显示时） */
 .embedded-mode .tools-section-wrapper {
   position: relative;
   top: 0;
 }
 
-.embedded-mode .tools-section.embedded-tools {
-  position: relative;
-  top: 0;
-  padding-top: 8px;
-  padding-bottom: 8px;
-}
-
-/* 嵌入模式下移除导航栏占位 */
-.embedded-mode {
-  padding-top: 0;
-}
-
 .search-field {
   flex: 1;
-  background-color: #1E2329;
-  border-radius: 8px;
+  background-color: var(--color-bg-elevated, #1E2329);
+  border-radius: var(--radius-input, 12px);
 }
 
 :deep(.search-field .van-field__control) {
   color: #FFFFFF;
   font-size: 14px;
-  font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif !important;
-}
-
-:deep(.search-field .van-field__left-icon) {
-  color: #848E9C;
 }
 
 .search-actions {
   display: flex;
-  align-items: center;
   gap: 12px;
 }
 
 .action-icon {
   font-size: 20px;
-  color: #848E9C;
-  cursor: pointer;
-  transition: color 0.2s ease;
+  color: var(--color-text-secondary, #848E9C);
 }
 
-.action-icon:active {
-  color: #F0B90B;
-}
-
-/* Tab 栏 */
 .earn-tabs {
-  background-color: #000000;
+  background-color: var(--color-bg, #0B0E11);
   padding: 0 16px;
-  margin-top: 0;
-  width: 100%;
-  box-sizing: border-box;
 }
 
 :deep(.earn-tabs .van-tabs__wrap) {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
 }
 
 :deep(.earn-tabs .van-tab) {
   font-size: 14px;
   font-weight: 500;
   padding: 12px 0;
-  font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif !important;
 }
 
 :deep(.earn-tabs .van-tabs__line) {
-  background-color: #F0B90B;
+  background-color: var(--color-brand, #F0B90B);
   height: 2px;
 }
 
-/* 产品列表 */
+.marketplace-content {
+  padding: 0 16px 16px;
+}
+
+.market-section {
+  margin-top: 20px;
+}
+
+.section-title {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-primary, #EAECEF);
+  letter-spacing: 0.02em;
+}
+
 .products-list {
-  padding: 16px;
-  padding-top: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  width: 100%;
-  box-sizing: border-box;
 }
 
-/* 产品卡片 - 三层架构 */
 .product-card {
-  background-color: #1E2329;
-  border-radius: 8px;
-  padding: 16px 20px;
-  transition: all 0.2s ease;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 100%;
-  box-sizing: border-box;
+  background-color: var(--color-bg-elevated, #1E2329);
+  border-radius: var(--radius-card, 16px);
+  padding: 14px 16px;
+  border: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.05));
 }
 
-.product-card:active {
-  background-color: #252A32;
-  transform: scale(0.98);
-}
-
-/* Header: 币种信息 + 右侧标签 */
 .product-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  width: 100%;
-  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 8px;
 }
 
 .coin-info {
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex: 1;
+  gap: 8px;
+  min-width: 0;
 }
 
 .coin-icon {
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
-  background-color: rgba(255, 255, 255, 0.1);
-  display: block;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.coin-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #FFFFFF;
 }
 
 .coin-name-group {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.coin-name {
-  font-size: 16px;
-  font-weight: 700;
-  color: #FFFFFF;
-  line-height: 1.2;
+.mining-tag {
+  font-size: 11px;
+  color: var(--color-text-secondary, #848E9C);
 }
 
 .bonus-rate {
-  font-size: 12px;
-  color: #0ECB81;
-  background-color: rgba(14, 203, 129, 0.15);
+  font-size: 11px;
+  color: var(--color-earn, #0ECB81);
+  background: rgba(14, 203, 129, 0.12);
   padding: 2px 6px;
   border-radius: 4px;
-  font-weight: 600;
-  line-height: 1.2;
+  font-family: var(--font-number);
+  font-variant-numeric: tabular-nums;
 }
 
 .header-badge {
   font-size: 10px;
-  color: #B8BCC8;
-  background-color: rgba(255, 255, 255, 0.12);
-  padding: 4px 8px;
+  color: var(--color-text-secondary, #848E9C);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 3px 8px;
   border-radius: 4px;
   white-space: nowrap;
-  font-weight: 500;
-  font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif !important;
 }
 
-/* Body: APY 核心展示 */
-.product-body {
-  width: 100%;
+.product-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.mining-row {
+  align-items: center;
+}
+
+.rate-column {
+  flex-shrink: 0;
+  width: 72px;
   text-align: left;
 }
 
 .apy-main {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-bottom: 6px;
-  line-height: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  line-height: 1.1;
+}
+
+.est-apy-label {
+  font-size: 10px;
+  color: var(--color-text-secondary, #848E9C);
+  font-weight: 500;
 }
 
 .apy-value {
-  font-size: 32px;
+  font-size: 22px;
   font-weight: 700;
-  color: #0ECB81;
+  color: var(--color-earn, #0ECB81);
+  font-family: var(--font-number);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.5px;
-  line-height: 1;
-  font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif !important;
-}
-
-.apy-bonus {
-  font-size: 16px;
-  font-weight: 600;
-  color: #0ECB81;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif !important;
 }
 
 .apy-label {
-  font-size: 12px;
-  color: #848E9C;
-  font-weight: 400;
-  line-height: 1.4;
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--color-text-secondary, #848E9C);
+  line-height: 1.3;
 }
 
-/* Footer: 期限标签 + 申购按钮 */
-.product-footer {
+.meta-column {
+  flex: 1;
+  min-width: 0;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  margin-top: auto;
-  gap: 12px;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.term-tag {
-  padding: 4px 10px;
-  background-color: rgba(255, 255, 255, 0.1);
-  color: #848E9C;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-  white-space: nowrap;
-  line-height: 1.4;
-  font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif !important;
+.mining-meta {
+  gap: 8px;
 }
 
-.subscribe-btn {
-  width: 90px;
-  height: 32px;
-  background-color: #F0B90B;
-  color: #1E2329;
-  border: none;
-  border-radius: 18px;
-  font-weight: 700;
+.miner-model {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.meta-label {
+  font-size: 10px;
+  color: var(--color-text-secondary, #848E9C);
+}
+
+.meta-value {
   font-size: 13px;
-  transition: all 0.2s ease;
-  padding: 0;
-  margin: 0;
-  flex-shrink: 0;
-  margin-left: auto;
-  font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif !important;
+  font-weight: 600;
+  color: var(--color-text-primary, #EAECEF);
 }
 
-:deep(.subscribe-btn .van-button__content) {
-  padding: 0;
-  height: 100%;
+.tenure-chips {
   display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tenure-single {
+  display: flex;
+}
+
+.tenure-chip {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 3px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-text-secondary, #848E9C);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
-.subscribe-btn:active {
-  opacity: 0.85;
-  transform: scale(0.95);
+.tenure-chip.static {
+  cursor: default;
 }
 
-/* 空状态 */
-.empty-state {
-  padding: 60px 20px;
-  text-align: center;
+.tenure-chip.active {
+  border-color: var(--color-brand, #F0B90B);
+  background: rgba(240, 185, 11, 0.12);
+  color: var(--color-brand, #F0B90B);
 }
 
-:deep(.empty-state .van-empty__description) {
-  color: #848E9C;
+.chip-lock {
+  font-size: 10px;
 }
 
-/* 确保 Vant 图标字体不被全局字体覆盖 */
+.subscribe-btn,
+.rent-btn {
+  flex-shrink: 0;
+  min-width: 64px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-button, 8px) !important;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+:deep(.subscribe-btn .van-button__content),
+:deep(.rent-btn .van-button__content) {
+  padding: 0;
+}
+
+.empty-state.compact {
+  padding: 24px 0;
+}
+
 :deep(.van-icon),
-:deep([class*="van-icon"]),
-.van-icon,
-[class*="van-icon"] {
-  font-family: 'vant-icon', 'vant-iconfont', 'vant-icons', 'iconfont', 'vant', sans-serif !important;
-  font-style: normal !important;
-  font-weight: normal !important;
-  -webkit-font-smoothing: antialiased !important;
-  -moz-osx-font-smoothing: grayscale !important;
-}
-
-/* 导航栏图标 */
-:deep(.custom-nav-bar .van-nav-bar__arrow) {
-  font-family: 'vant-icon', 'vant-iconfont', 'vant-icons', 'iconfont', 'vant', sans-serif !important;
-}
-
-/* 搜索框图标 */
-:deep(.search-field .van-field__left-icon) {
-  font-family: 'vant-icon', 'vant-iconfont', 'vant-icons', 'iconfont', 'vant', sans-serif !important;
+:deep([class*='van-icon']) {
+  font-family: 'vant-icon', 'vant-iconfont', sans-serif !important;
 }
 </style>

@@ -833,7 +833,7 @@
     font-weight: 600; font-size: 14px; cursor: pointer;
     transition: all 0.3s ease;
   }
-  .primary-btn { background: #FCD535; color: #000; }
+  .primary-btn { background: var(--color-brand); color: #000; border-radius: var(--radius-button); }
   .primary-btn:active { opacity: 0.8; }
   .secondary-btn { background: #2B3139; color: #fff; }
   .secondary-btn:active { background: #363c45; }

@@ -301,13 +301,26 @@ const messages = {
       subscribe_success: 'Subscription successful',
       no_products: 'No products available',
       help_tooltip: 'Help',
-      insufficient_balance: 'Insufficient balance'
+      insufficient_balance: 'Insufficient balance',
+      section_simple_earn: 'Simple Earn',
+      section_cloud_mining: 'Cloud Mining',
+      rent_now: 'Rent Now',
+      est_apy: 'Est. APY',
+      miner_model: 'Miner Model',
+      days_short: 'D'
     },
 
     // Earn Center
     miner: {
       total_assets: 'Earn Total Assets',
       total_profit: 'Total Profit',
+      cloud_total_assets: 'Total Cloud Mining Assets',
+      cloud_total_earnings: 'Total Earnings',
+      marketplace: 'Marketplace',
+      my_miners: 'My Miners',
+      est_apy: 'Est. APY',
+      cycle_label: 'Cycle',
+      min_purchase_price: 'Min. Price',
       stable_earn: 'Stable Earn',
       revenue_record: 'Revenue Record',
       rules_center: 'Rules Center',
@@ -807,7 +820,7 @@ const messages = {
     daily_rate: '日收益率',
     cycle: '周期',
     min_price: '起购价',
-    rent_btn: '立即租赁矿机',
+    rent_btn: '立即租赁',
 
     // 钱包/资产页面
     wallet: {
@@ -962,13 +975,26 @@ const messages = {
       help_tooltip: '帮助',
       insufficient_balance: '余额不足',
       total_asset: '理财总资产',
-      cumulative_earnings: '累计收益'
+      cumulative_earnings: '累计收益',
+      section_simple_earn: '保本赚币',
+      section_cloud_mining: '云算力',
+      rent_now: '立即租赁',
+      est_apy: '预估年化',
+      miner_model: '矿机型号',
+      days_short: '天'
     },
 
     // 聚合赚币中心
     miner: {
       total_assets: '赚币账户总资产',
       total_profit: '累计收益',
+      cloud_total_assets: '云算力总资产',
+      cloud_total_earnings: '累计收益',
+      marketplace: '申购中心',
+      my_miners: '我的矿机',
+      est_apy: '预估年化',
+      cycle_label: '周期',
+      min_purchase_price: '起购价',
       stable_earn: '稳健理财',
       revenue_record: '收益记录',
       rules_center: '规则中心',

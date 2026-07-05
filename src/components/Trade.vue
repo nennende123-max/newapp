@@ -3906,20 +3906,20 @@ onUnmounted(() => {
 }
 
 .submit-btn.buy { 
-  background: linear-gradient(135deg, #00FFA3 0%, #00D98B 100%);
+  background: var(--color-brand);
   color: #000000;
-  box-shadow: 0 4px 20px rgba(0, 255, 163, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 16px rgba(240, 185, 11, 0.25);
 }
 
 .submit-btn.buy:hover:not(:disabled) {
-  box-shadow: 0 6px 30px rgba(0, 255, 163, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  box-shadow: 0 6px 20px rgba(240, 185, 11, 0.35);
   transform: translateY(-2px);
 }
 
 .submit-btn.sell { 
-  background: linear-gradient(135deg, #FF2E50 0%, #E63950 100%);
+  background: var(--color-loss);
   color: #FFFFFF;
-  box-shadow: 0 4px 20px rgba(255, 46, 80, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 16px rgba(246, 70, 93, 0.25);
 }
 
 .submit-btn.sell:hover:not(:disabled) {
@@ -5101,15 +5101,15 @@ onUnmounted(() => {
 }
 
 .position-side-badge.side-long {
-  background-color: #0ECB81; /* 绿底 */
-  color: #FFFFFF; /* 白字 */
-  box-shadow: 0 0 8px rgba(14, 203, 129, 0.3);
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--color-earn);
+  box-shadow: none;
 }
 
 .position-side-badge.side-short {
-  background-color: #F6465D; /* 红底 */
-  color: #FFFFFF; /* 白字 */
-  box-shadow: 0 0 8px rgba(246, 70, 93, 0.3);
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--color-loss);
+  box-shadow: none;
 }
 
 .position-leverage {

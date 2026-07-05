@@ -7,11 +7,7 @@
 
     <div class="app-header" v-if="showAppHeader">
       <div class="header-left">
-        <img 
-          src="https://cryptologos.cc/logos/binance-coin-bnb-logo.svg?v=026" 
-          alt="App Logo" 
-          class="app-logo"
-        />
+        <BinanceLogo :size="18" />
       </div>
 
       <div class="header-right">
@@ -57,7 +53,7 @@
     <van-tabbar 
       v-if="!isFullScreen"
       v-model="active" 
-      active-color="#FCD535" 
+      active-color="#EAECEF" 
       inactive-color="#8E8E93" 
       :border="false" 
       fixed 
@@ -65,10 +61,10 @@
       safe-area-inset-bottom 
       @change="onTabChange"
       style="
-        --van-tabbar-background: #1C1C1E;
+        --van-tabbar-background: #1E2329;
         --van-tabbar-item-active-background: transparent;
         --van-tabbar-height: 60px;
-        background-color: #1C1C1E;
+        background-color: #1E2329;
       "
     >
       <van-tabbar-item icon="wap-home-o" name="/">{{ $t('tab.home') }}</van-tabbar-item>
@@ -112,6 +108,7 @@ import DisconnectDialog from './components/DisconnectDialog.vue';
 import { useAssetStore } from '@/stores/assets';
 import { useMarketStore } from '@/stores/market';
 import { getCurrentUser } from '@/api/user';
+import BinanceLogo from '@/components/BinanceLogo.vue';
 
 const { t } = useI18n();
 
@@ -401,11 +398,11 @@ onMounted(async () => {
 
 <style>
 body, html, #app {
-  background-color: #000000;
+  background-color: var(--color-bg);
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  color: #ffffff;
+  color: var(--color-text-primary);
 }
 
 :root {
@@ -460,9 +457,13 @@ body, html, #app {
   padding: 0 16px;
   box-sizing: border-box;
   z-index: 2000;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
-.app-logo { height: 28px; width: auto; }
+.header-left {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
 .header-right { display: flex; align-items: center; gap: 16px; }
 
 /* 测试按钮样式 */
@@ -471,7 +472,7 @@ body, html, #app {
   color: #EAECEF;
   font-size: 18px;
   padding: 6px 10px;
-  border-radius: 4px;
+  border-radius: var(--radius-button);
   font-weight: 500;
   cursor: pointer;
   display: flex;
@@ -498,7 +499,7 @@ body, html, #app {
   color: #EAECEF; 
   font-size: 12px; 
   padding: 6px 12px; 
-  border-radius: 4px; 
+  border-radius: var(--radius-button); 
   font-weight: 500; 
   cursor: pointer; 
   display: flex;
@@ -511,8 +512,9 @@ body, html, #app {
   background-color: #424850;
 }
 .connect-wallet-btn.connected {
-  background-color: #0ECB81;
-  color: #FFFFFF;
+  background-color: #383E46;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-earn);
 }
 .connect-wallet-btn.loading {
   opacity: 0.7;
