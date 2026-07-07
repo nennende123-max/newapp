@@ -220,7 +220,7 @@
               size="12" 
               color="var(--color-brand-legacy)" 
               style="margin-left: 4px; cursor: pointer;" 
-              @click.stop="router.push('/deposit')" 
+              @click.stop="openDeposit('USDT')" 
             />
           </div>
           <div class="avail-item">
@@ -1054,6 +1054,7 @@ import { useI18n } from 'vue-i18n';
 import { showToast, Icon, Popup, Empty, ActionSheet, Tabs, Tab, showConfirmDialog, Slider } from 'vant';
 import { useAssetStore } from '@/stores/assets';
 import { useMarketStore } from '@/stores/market';
+import { useAssetActions } from '@/composables/useAssetActions';
 import { createOrder, getOrders, cancelOrder as cancelSpotOrderApi } from '@/api/trade';
 import { createFuturesOrder, getPositions as getFuturesPositionsApi, closePosition as closeFuturesPositionApi, getFuturesOrders, cancelFuturesOrder as cancelFuturesOrderApi } from '@/api/futures';
 import { formatAssetAmount } from '@/utils/format';
@@ -1095,6 +1096,7 @@ const router = useRouter();
 const { t } = useI18n(); 
 const assetStore = useAssetStore();
 const marketStore = useMarketStore();
+const { openDeposit } = useAssetActions();
 
 // 淇1锛氳绠楀睘鎬х粦瀹?pageTitle锛岃В鍐宠瑷€鍒囨崲闂
 const pageTitle = computed(() => t('trade.title'));

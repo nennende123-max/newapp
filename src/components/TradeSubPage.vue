@@ -219,7 +219,7 @@
                 size="12" 
                 color="var(--color-brand-legacy)" 
                 style="margin-left: 4px; cursor: pointer;" 
-                @click.stop="router.push('/deposit')" 
+                @click.stop="openDeposit('USDT')" 
               />
             </div>
             <div class="avail-item">
@@ -913,6 +913,7 @@ import { showToast, Icon, Popup, Empty, ActionSheet, Tabs, Tab, showConfirmDialo
 import { useAssetStore } from '@/stores/assets';
 import { useMarketStore } from '@/stores/market';
 import { useTradeStore } from '@/stores/trade';
+import { useAssetActions } from '@/composables/useAssetActions';
 import { createOrder, getOrders, cancelOrder as cancelSpotOrderApi } from '@/api/trade';
 import TradePanel from '@/components/trade/TradePanel.vue';
 import { createFuturesOrder, getPositions as getFuturesPositionsApi, closePosition as closeFuturesPositionApi, getFuturesOrders, cancelFuturesOrder as cancelFuturesOrderApi, setPositionTPSL } from '@/api/futures';
@@ -930,6 +931,7 @@ const langRef = ref(null);
 const assetStore = useAssetStore();
 const marketStore = useMarketStore();
 const tradeStore = useTradeStore();
+const { openDeposit } = useAssetActions();
 
 // 从URL参数获取交易对、方向和交易类型
 const symbol = ref(route.query.symbol || 'BTC');

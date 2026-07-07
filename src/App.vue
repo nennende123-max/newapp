@@ -427,6 +427,13 @@ body, html, #app {
   color: var(--color-text-primary);
 }
 
+/* 仅在非视口容器上裁剪横向溢出，杜绝页面左右露出底色（深色下的"棕/金"边缘感）。
+   使用 clip 而非 hidden，且不加在 html/body 上，避免为 fixed 顶栏/底栏创建包含块或
+   触发视口滚动传播，从而不会重现此前的整页右移问题。 */
+#app {
+  overflow-x: clip;
+}
+
 :root {
   --van-cell-vertical-padding: 18px;
   --van-cell-font-size: 16px;
@@ -495,11 +502,11 @@ body, html, #app {
 }
 
 .theme-toggle-btn {
-  width: 44px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border: 1px solid var(--color-border);
-  border-radius: 999px;
-  background: linear-gradient(180deg, var(--color-surface-2), var(--color-surface-1));
+  border-radius: 11px;
+  background: var(--color-surface-2);
   color: var(--color-text-primary);
   display: flex;
   align-items: center;
@@ -508,16 +515,16 @@ body, html, #app {
   cursor: pointer;
   box-shadow: var(--shadow-sm);
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-  flex: 0 0 44px;
+  flex: 0 0 34px;
 }
 
 .stock-market-btn {
-  width: 36px;
-  height: 32px;
-  border: 1px solid rgb(var(--color-primary-rgb) / 0.28);
-  border-radius: 12px;
-  background: rgb(var(--color-primary-rgb) / 0.1);
-  color: var(--color-primary);
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--color-border);
+  border-radius: 11px;
+  background: var(--color-surface-2);
+  color: var(--color-text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -525,7 +532,7 @@ body, html, #app {
   cursor: pointer;
   box-shadow: var(--shadow-sm);
   transition: transform 0.2s ease, border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
-  flex: 0 0 36px;
+  flex: 0 0 34px;
 }
 
 .stock-market-btn:active {
@@ -545,27 +552,27 @@ body, html, #app {
   display: block;
   width: 4px;
   border-radius: 999px;
-  background: var(--color-primary);
+  background: var(--color-text-primary);
 }
 
 .stock-market-glyph span:nth-child(1) {
   height: 8px;
-  background: var(--color-success);
+  background: var(--color-text-secondary);
 }
 
 .stock-market-glyph span:nth-child(2) {
-  height: 14px;
-  background: var(--color-primary);
+  height: 15px;
+  background: var(--color-text-primary);
 }
 
 .stock-market-glyph span:nth-child(3) {
   height: 11px;
-  background: var(--color-danger);
+  background: var(--color-text-secondary);
 }
 
 :global(html[data-theme='dark']) .stock-market-btn {
-  background: rgb(var(--color-primary-rgb) / 0.1);
-  border-color: var(--color-primary-border);
+  background: var(--color-surface-2);
+  border-color: var(--color-border);
 }
 
 .theme-toggle-btn:active {
@@ -598,8 +605,8 @@ body, html, #app {
 }
 
 :global(html[data-theme='dark']) .theme-toggle-btn {
-  background: rgb(var(--color-primary-rgb) / 0.12);
-  border-color: var(--color-primary-border);
+  background: var(--color-surface-2);
+  border-color: var(--color-border);
 }
 
 :global(html[data-theme='dark']) .theme-toggle-symbol {
@@ -645,6 +652,28 @@ body, html, #app {
   opacity: 0.7;
   cursor: not-allowed;
 }
+.lang-icon-box {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--color-border);
+  border-radius: 11px;
+  background: var(--color-surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  flex: 0 0 34px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.lang-icon-box:active {
+  transform: scale(0.95);
+}
+.lang-icon-box svg {
+  width: 18px;
+  height: 18px;
+}
 .loading-icon {
   animation: rotate 1s linear infinite;
 }
@@ -654,11 +683,12 @@ body, html, #app {
 }
 
 /* 主内容区域默认样式 */
-.main-content { 
-  padding-top: 52px; 
-  padding-bottom: 50px; 
-  min-height: 100vh; 
-  box-sizing: border-box; 
+.main-content {
+  padding-top: 52px;
+  padding-bottom: 50px;
+  min-height: 100vh;
+  box-sizing: border-box;
+  background-color: var(--color-bg);
 }
 
 .main-content.no-app-header {
@@ -943,5 +973,34 @@ body, html, #app {
 @keyframes notif-bounce {
   from { transform: translateY(-100%); }
   to { transform: translateY(0); }
+}
+
+/* ========== Figure-2 bottom nav: dark active item + short yellow top bar ========== */
+.van-tabbar-item {
+  position: relative !important;
+}
+
+.van-tabbar-item--active .van-tabbar-item__icon {
+  background-color: transparent !important;
+  color: var(--color-text-primary) !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+}
+
+.van-tabbar-item--active,
+.van-tabbar-item--active .van-tabbar-item__text {
+  color: var(--color-text-primary) !important;
+}
+
+.van-tabbar-item--active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 3px;
+  border-radius: 0 0 2px 2px;
+  background: var(--color-brand-legacy);
 }
 </style>

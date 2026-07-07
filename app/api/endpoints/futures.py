@@ -134,6 +134,17 @@ def create_futures_order(
     except HTTPException:
         raise
     except Exception as e:
+        # 不吞掉错误：把完整堆栈打印到服务端控制台，方便定位 500 真实原因
+        import traceback
+        print("\n" + "=" * 80)
+        print("[ERROR] 合约下单发生未捕获异常，完整堆栈如下：")
+        print(f"[ERROR] 请求参数: symbol={getattr(request, 'symbol', None)}, "
+              f"side={getattr(request, 'side', None)}, type={getattr(request, 'type', None)}, "
+              f"price={getattr(request, 'price', None)}, amount={getattr(request, 'amount', None)}, "
+              f"leverage={getattr(request, 'leverage', None)}")
+        traceback.print_exc()
+        print("=" * 80 + "\n")
+        # detail 中带上真实异常信息，前端可直接展示
         raise HTTPException(status_code=500, detail=f"合约下单失败: {str(e)}")
 
 

@@ -518,6 +518,7 @@ import QRCode from 'qrcode';
 import html2canvas from 'html2canvas';
 import BinanceLogo from '@/components/BinanceLogo.vue';
 import { getThemeColor } from '@/styles/theme';
+import { useAssetActions } from '@/composables/useAssetActions';
 
 defineOptions({
   name: 'ReferralIndex'
@@ -525,6 +526,7 @@ defineOptions({
 
 const router = useRouter();
 const { t, locale } = useI18n();
+const { openWithdraw } = useAssetActions();
 
 // 濡炪倗鏁诲鏉款嚕閺囩姵鏆忛柨娑樼墢閺併倖绂嶆惔銏㈡硦闁告柣鍔庡ú鍐触椤掑﹦绀?
 const pageRef = ref(null);
@@ -717,7 +719,7 @@ const handleCopyLink = async () => {
 
 // 闁告绮ぐ渚€鎮?
 const goToWithdraw = () => {
-  router.push('/withdraw');
+  openWithdraw('USDT');
 };
 
 // 鐎殿喖婀遍悰銉╁及閸撗佷粵闁绘鍩栭埀?

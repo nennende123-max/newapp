@@ -26,11 +26,11 @@
 
         <div class="security-badges">
           <div class="badge-item">
-            <van-icon name="passed" size="14" color="var(--color-earn)" />
+            <van-icon name="passed" size="14" color="var(--color-success)" />
             <span>{{ $t('treasury.security_level') }}：AAA</span>
           </div>
           <div class="badge-item">
-            <van-icon name="shield-o" size="14" color="var(--color-earn)" />
+            <van-icon name="shield-o" size="14" color="var(--color-success)" />
             <span>{{ $t('treasury.auditor') }}：CertiK</span>
           </div>
         </div>
@@ -43,8 +43,8 @@
           <svg class="trend-chart" viewBox="0 0 300 120" preserveAspectRatio="none">
             <defs>
               <linearGradient id="trendGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" style="stop-color:var(--color-earn);stop-opacity:0.3" />
-                <stop offset="100%" style="stop-color:var(--color-earn);stop-opacity:0" />
+                <stop offset="0%" style="stop-color:var(--color-success);stop-opacity:0.28" />
+                <stop offset="100%" style="stop-color:var(--color-success);stop-opacity:0" />
               </linearGradient>
             </defs>
             <!-- 面积图 -->
@@ -56,7 +56,7 @@
             <path 
               d="M 0 100 Q 50 80 100 70 T 200 50 T 300 40" 
               fill="none" 
-              stroke="var(--color-earn)" 
+              stroke="var(--color-success)" 
               stroke-width="2" 
               stroke-linecap="round"
             />
@@ -319,11 +319,12 @@ onUnmounted(() => {
 
 <style scoped>
 .treasury-detail-page {
-  background-color: var(--color-bg);
+  background-color: var(--color-surface-1);
   min-height: 100vh;
   color: var(--color-text-primary);
   display: flex;
   flex-direction: column;
+  font-variant-numeric: tabular-nums;
 }
 
 /* 顶部导航栏 */
@@ -331,14 +332,14 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 44px;
+  height: 52px;
   padding: 0 16px;
-  background-color: var(--color-bg);
+  background-color: var(--color-surface-2);
   position: sticky;
   top: 0;
   z-index: 100;
   flex-shrink: 0;
-  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .header-left, .header-right {
@@ -348,35 +349,30 @@ onUnmounted(() => {
 }
 
 .back-button {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-bg-input);
-  border: 1px solid rgb(var(--color-border-rgb) / 0.08);
+  background-color: var(--color-surface-1);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .back-button :deep(.van-icon) {
-  color: var(--color-accent);
-  transition: color 0.3s ease;
+  color: var(--color-text-primary);
+  transition: color 0.2s ease;
 }
 
 .back-button:active {
-  background-color: rgb(var(--color-brand-rgb) / 0.1);
-  border-color: rgb(var(--color-brand-rgb) / 0.3);
+  background-color: var(--color-surface-muted);
   transform: scale(0.95);
 }
 
-.back-button:active :deep(.van-icon) {
-  color: var(--color-brand-legacy);
-}
-
 .header-title {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--color-text-primary);
   display: flex;
@@ -394,52 +390,52 @@ onUnmounted(() => {
 
 /* 头部卡片 */
 .header-card {
-  background: var(--color-bg-card);
+  background: var(--color-surface-2);
   border-radius: 16px;
-  padding: 24px;
-  margin-bottom: 20px;
-  border: 1px solid rgb(var(--color-border-rgb) / 0.05);
+  padding: 22px;
+  margin-bottom: 14px;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
 }
 
 .treasury-amount {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .amount-label {
   font-size: 12px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   font-weight: 500;
 }
 
 .amount-value {
-  font-size: 36px;
+  font-size: 34px;
   font-weight: 800;
   color: var(--color-text-primary);
   font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
   font-variant-numeric: tabular-nums;
-  margin-bottom: 8px;
-  line-height: 1.2;
+  margin-bottom: 6px;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
 }
 
 .amount-change {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
 }
 
 .amount-change.positive {
-  color: var(--color-earn);
+  color: var(--color-success);
 }
 
 .amount-change.negative {
-  color: var(--color-loss);
+  color: var(--color-danger);
 }
 
 .security-badges {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
@@ -447,29 +443,30 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 12px;
-  background: rgb(var(--color-earn-rgb) / 0.1);
-  border: 1px solid rgb(var(--color-earn-rgb) / 0.2);
-  border-radius: 8px;
+  padding: 7px 12px;
+  background: var(--color-surface-1);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
   font-size: 12px;
-  color: var(--color-earn);
-  font-weight: 500;
+  color: var(--color-text-secondary);
+  font-weight: 600;
 }
 
 /* 图表区域 */
 .chart-section {
-  background: var(--color-bg-card);
+  background: var(--color-surface-2);
   border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 20px;
-  border: 1px solid rgb(var(--color-border-rgb) / 0.05);
+  padding: 18px;
+  margin-bottom: 14px;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
 }
 
 .chart-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--color-text-primary);
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .chart-container {
@@ -485,20 +482,21 @@ onUnmounted(() => {
 
 /* 记录列表 */
 .records-section {
-  background: var(--color-bg-card);
+  background: var(--color-surface-2);
   border-radius: 16px;
-  padding: 20px;
-  border: 1px solid rgb(var(--color-border-rgb) / 0.05);
+  padding: 18px;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
 }
 
 .section-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--color-text-primary);
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 .records-list {
@@ -507,12 +505,12 @@ onUnmounted(() => {
 }
 
 .record-item {
-  padding: 16px 0;
-  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
+  padding: 14px 0;
+  border-bottom: 1px solid var(--color-border-subtle);
   display: grid;
-  grid-template-columns: 80px 1fr auto;
+  grid-template-columns: 66px 1fr auto;
   grid-template-rows: auto auto;
-  gap: 8px 12px;
+  gap: 6px 12px;
   transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
@@ -521,7 +519,7 @@ onUnmounted(() => {
 }
 
 .record-item.new-record {
-  background-color: rgb(var(--color-earn-rgb) / 0.05);
+  background-color: rgb(var(--color-success-rgb) / 0.06);
   animation: slideIn 0.5s ease;
 }
 
@@ -541,7 +539,7 @@ onUnmounted(() => {
   grid-row: 1 / 3;
   font-size: 11px;
   color: var(--color-text-muted);
-  font-family: 'DIN Alternate', monospace;
+  font-variant-numeric: tabular-nums;
   display: flex;
   align-items: center;
 }
@@ -551,7 +549,7 @@ onUnmounted(() => {
   grid-row: 1;
   font-size: 13px;
   color: var(--color-text-primary);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .record-txid {
@@ -559,7 +557,7 @@ onUnmounted(() => {
   grid-row: 2;
   font-size: 11px;
   color: var(--color-text-muted);
-  font-family: 'DIN Alternate', monospace;
+  font-variant-numeric: tabular-nums;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -568,7 +566,7 @@ onUnmounted(() => {
 }
 
 .record-txid:active {
-  color: var(--color-brand-legacy);
+  color: var(--color-primary);
 }
 
 .copy-icon {
@@ -583,9 +581,9 @@ onUnmounted(() => {
 .record-amount {
   grid-column: 3;
   grid-row: 1 / 3;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
-  color: var(--color-earn);
+  color: var(--color-success);
   font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
   font-variant-numeric: tabular-nums;
   display: flex;
@@ -594,7 +592,7 @@ onUnmounted(() => {
 }
 
 .record-amount.positive {
-  color: var(--color-earn);
+  color: var(--color-success);
 }
 
 /* 滚动条样式 */
@@ -607,11 +605,7 @@ onUnmounted(() => {
 }
 
 .records-list::-webkit-scrollbar-thumb {
-  background: rgb(var(--color-border-rgb) / 0.1);
+  background: var(--color-border);
   border-radius: 2px;
-}
-
-.records-list::-webkit-scrollbar-thumb:hover {
-  background: rgb(var(--color-border-rgb) / 0.2);
 }
 </style>

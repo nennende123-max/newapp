@@ -39,7 +39,7 @@ const messages = {
       platform_transparency: 'Platform Transparency',
       audited_by_certik: 'Audited by CertiK',
       redirecting_certik: 'Redirecting to CertiK Scan...',
-      treasury_tvl: 'TREASURY TVL',
+      treasury_tvl: 'Reserve Assets',
       total_payout: 'TOTAL PAYOUT',
       '24h_txns': '24H TXNS',
       since_2025: 'Since 2025',
@@ -50,7 +50,7 @@ const messages = {
         prefix: '馃殌 Live On-Chain:',
         withdraw: 'User {user} just withdrew {amount} USDT (Tx: {tx})',
         battle: 'User {user} won Price Battle (+{amount} USDT)',
-        treasury: 'Treasury added {amount} assets today',
+        treasury: 'Reserve added {amount} today',
         audit: 'Audit Radar: IDO #{id} verified by CertiK'
       }
     },
@@ -658,8 +658,8 @@ const messages = {
 
     // 鍥藉簱璧勯噾鏄庣粏椤甸潰
     treasury: {
-      title: 'Treasury Details',
-      real_time_assets: 'Real-time Treasury Assets',
+      title: 'Reserve Details',
+      real_time_assets: 'Real-time Reserve Assets',
       security_level: 'Security Level',
       auditor: 'Audited by',
       net_inflow_30d: 'Last 30 Days Net Inflow',
@@ -879,11 +879,11 @@ const messages = {
       security_center: '安全中心'
     },
     home: {
-      slogan: '机构级透明资产平台',
+      slogan: '机构都在用的去中心化平台',
       platform_transparency: '平台透明度',
       audited_by_certik: 'Audited by CertiK',
       redirecting_certik: '正在跳转 CertiK Scan...',
-      treasury_tvl: '国库资产',
+      treasury_tvl: '资产储备',
       total_payout: '累计支出',
       '24h_txns': '24H 链上交易',
       since_2025: '自 2025 年起',
@@ -894,7 +894,7 @@ const messages = {
         prefix: '🚀 链上实况：',
         withdraw: '用户 {user} 刚刚提现 {amount} USDT (Tx: {tx})',
         battle: '用户 {user} 赢得价格战 (+{amount} USDT)',
-        treasury: '国库今日新增 {amount} 资产',
+        treasury: '资产储备今日新增 {amount}',
         audit: '审计雷达：IDO #{id} 已通过 CertiK 验证'
       }
     },
@@ -1241,8 +1241,8 @@ const messages = {
       }
     },
     treasury: {
-      title: '国库详情',
-      real_time_assets: '实时国库资产',
+      title: '储备详情',
+      real_time_assets: '实时资产储备',
       security_level: '安全等级',
       auditor: '审计方',
       net_inflow_30d: '近 30 日净流入',

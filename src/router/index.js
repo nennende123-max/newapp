@@ -25,6 +25,9 @@ import TradeSubPage from '../components/TradeSubPage.vue'
 import LaunchpadSubscribe from '../components/LaunchpadSubscribe.vue'
 import IEOAccount from '../components/IEOAccount.vue'
 import StockMarket from '../components/StockMarket.vue'
+import SpotAccountDetail from '../components/SpotAccountDetail.vue'
+import StockAccountDetail from '../components/StockAccountDetail.vue'
+import IeoAccountDetail from '../components/IeoAccountDetail.vue'
 
 const routes = [
   { path: '/', component: Home },
@@ -33,6 +36,9 @@ const routes = [
   { path: '/ieo-account', name: 'IEOAccount', component: IEOAccount, meta: { hideTabbar: true } },
   { path: '/ido/subscribe', name: 'LaunchpadSubscribe', component: LaunchpadSubscribe, meta: { hideTabbar: true } },
   { path: '/me', component: Me },
+  { path: '/asset/spot', name: 'SpotAccountDetail', component: SpotAccountDetail, meta: { hideTabbar: true } },
+  { path: '/asset/stock', name: 'StockAccountDetail', component: StockAccountDetail, meta: { hideTabbar: true } },
+  { path: '/asset/ieo', name: 'IeoAccountDetail', component: IeoAccountDetail, meta: { hideTabbar: true } },
   { path: '/deposit', name: 'Deposit', component: Deposit },
   { path: '/withdraw', name: 'Withdraw', component: Withdraw },
   { path: '/trade', name: 'Trade', component: Trade },

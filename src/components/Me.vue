@@ -1,195 +1,162 @@
 <template>
-    <div class="me-page">
-    <!-- 婵犵數濮烽弫鍛婃叏閻戣棄鏋侀柛娑橈攻閸欏繘鏌ｉ幋婵愭綗闁逞屽墮閸婂潡銆佸▎鎾村€锋い鎺戭槹缂嶆姊绘担鍛婃儓婵炲眰鍨藉畷褰掑捶椤撶儐妫滄繝鐢靛У绾板秹鎮″▎鎾崇骇闁割偅绻傞埛鏃堟煟閿濆牅鍚柣銉邯楠炲棜顦寸紒澶嬫そ閺屸€崇暆鐎ｎ剛鐦堥悗瑙勬礀閻栧吋淇婇悜钘壩ㄧ憸宀勬儉椤忓牊鈷掑ù锝勮閻掔偓銇勯幋婵囧殗閽樻繃銇勯弽顐粶闁绘挻锕㈤弻鐔告綇閸撗呮殸缂佺偓鍎抽崥瀣崲濠靛洨绡€闁稿本绋掑畷鎶芥⒑閸涘﹥鐓ラ柟鑺ョ矌濡叉劙骞掑Δ浣糕偓閿嬨亜閹哄棗浜鹃梺鍛婃煟閸婃牜鎹㈠☉姘厹濡炲娴烽惁鍫澪旈悩闈涗粶闁哥噥鍋夐悘鍐⒑閸涘﹣绶遍柛鐘崇墬缁傛帒煤椤忓應鎷哄┑顔炬嚀濞层倝鎮橀鈧弻娑氣偓锝呭缁夘噣鏌涢埞鎯т壕婵＄偑鍊栧濠氬磻閹剧粯鐓ラ柡鍥ュ妺闁垳鈧鍠涢褔鍩ユ径濠庢僵闁挎繂鎳嶆竟鏇㈡⒑閹稿海绠撳Δ鐘叉啞缁傚秴鈹戠€ｎ偄鈧爼鐓崶褔顎楃€规挸妫濋弻鈥崇暆閳ь剟宕版惔銊﹀仼闁跨喓濮甸崑瀣煕椤愶絿绠栭柣锝咁煼閺岋絾鎯旈妶搴㈢秷濠电偛寮堕敃銏ゅ极閸愵喖顫呴柕鍫濇噽娴煎姊洪幐搴㈢闁稿﹤鎽滅划濠氭晲婢跺鍘介梺鐟扮摠缁诲啴藟閻愭番浜滈柕澶堝劤鏁堝┑?-->
-      <div class="top-nav">
-        <div class="user-profile" @click="router.push('/profile')">
+  <div class="me-page">
+    <!-- 顶部固定区域：头像 + 用户名 + 功能图标 -->
+    <div class="top-nav">
+      <div class="user-profile" @click="router.push('/profile')">
         <div class="avatar-circle">
           <van-icon name="manager" color="#000" />
         </div>
-          <span class="username">User_8829</span>
-        </div>
-        <div class="top-icons">
-        <van-icon 
-          name="service-o" 
-          size="20" 
-          class="icon-right" 
-          @click="goToSupport"
-        />
-        <van-icon 
-          :name="isPrivacyMode ? 'eye-o' : 'eye'" 
-          size="20" 
-          class="icon-right" 
-          @click="togglePrivacyMode"
-        />
-        <van-icon 
-          name="setting-o" 
-          size="20" 
-          class="icon-right" 
-          @click="goToSettings"
-        />
-        </div>
+        <span class="username">User_8829</span>
       </div>
-  
-    <!-- Tab 闂?-->
-    <van-tabs 
-      v-model:active="activeTab" 
-      background="transparent" 
-      title-active-color="#1E293B" 
-      title-inactive-color="#64748B" 
-      line-width="20px" 
-      line-height="3px" 
-      color="#D4AF37" 
-      :border="false" 
+      <div class="top-icons">
+        <van-icon name="service-o" size="20" class="icon-right" @click="goToSupport" />
+        <van-icon
+          :name="isAmountHidden ? 'closed-eye' : 'eye-o'"
+          size="20"
+          class="icon-right"
+          @click="toggleAmountHidden"
+        />
+        <van-icon name="setting-o" size="20" class="icon-right" @click="goToSettings" />
+      </div>
+    </div>
+
+    <!-- 钱包连接横幅 -->
+    <div class="wallet-banner">
+      <div class="wallet-line">
+        <van-icon name="checked" class="wallet-check" />
+        <span class="wallet-text">钱包已连接</span>
+        <span class="wallet-switch" @click="handleSwitchWallet">切换钱包</span>
+      </div>
+      <div class="wallet-addr-row" @click="copyAddress">
+        <span class="wallet-addr-label">钱包地址</span>
+        <span class="wallet-addr">{{ shortAddress }}</span>
+        <van-icon name="records" class="copy-icon" />
+      </div>
+    </div>
+
+    <!-- 资产 Tab -->
+    <van-tabs
+      v-model:active="activeTab"
+      :ellipsis="false"
+      background="transparent"
+      title-active-color="#0F172A"
+      title-inactive-color="#64748B"
+      line-width="20px"
+      line-height="3px"
+      color="#F0B90B"
+      :border="false"
       class="asset-tabs"
     >
-      <van-tab :title="$t('assets.overview')"></van-tab>
-      <van-tab :title="$t('assets.spot')"></van-tab>
-      <van-tab :title="$t('assets.earn')"></van-tab>
-      </van-tabs>
-  
-    <!-- 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧湱鈧懓瀚崳纾嬨亹閹烘垹鍊為悷婊冪箻瀵娊鏁冮崒娑氬幈濡炪値鍘介崹鍨濠靛鐓曟繛鍡楃箳缁犳娊鏌嶈閸撴瑧绮诲澶婄？闂侇剙鍗曢崶顒夋晬婵犲﹤鎳愰悞濂告⒑閸涘﹤濮€闁哄倸鍊圭粋宥咁煥閸曗晙绨婚梺瑙勫礃濞夋盯寮告惔銊︾厽闊洢鍎崇粔顔锯偓娈垮枛閻栧ジ宕洪敓鐘茬；妞ゆ牭绲奸柇顖炴煕閳哄啫浠辨鐐差儔閹瑩鎳犻鍌涚€梻鍌氬€烽懗鍫曗€﹂崼銉︽櫇闁靛鏂傞埀顒€鍟村畷鍗炩槈濡偐鏉介梻渚€娼ц墝闁哄懏绋撻惀顏囶樄闁哄瞼鍠栭幃娆撴寠婢跺鐎存繝纰夌磿閸嬫鍒掑▎鎾澄ュù锝呭濞笺劑鏌嶈閸撶喖鐛崘銊㈡瀻闁规儳鍟块悗顓烆渻閵堝棗濮х紓宥呮瀹曨垱鎯旈妸锔规嫽闂佺鏈悷锔剧矈閻楀牏绠惧璺侯儐缁€瀣偓瑙勬磻閸楁娊鐛Ο灏栧亾濞戞顏勵嚕閸ф鈷戞慨鐟版搐閻忣喗銇勯鐐靛ⅵ闁诡喖娼￠幃娆擃敄閸欍儳鐩庨梻浣告贡閸庛倝宕归悽鍓叉晜妞ゅ繐鐗婇悡鐔兼煙閹呮憼缂佲偓鐎ｎ喗鐓涚€光偓鐎ｎ剛鐦堥悗瑙勬礀閻栧吋淇婇悜钘壩ㄩ柕澶樺枤閳ь剙鍟块埞鎴︽倷閼碱剚鎲肩紓渚囧枛閻楀繘宕氶幒鎴旀瀻闁规儳鐤囬幗?-->
-      <div class="asset-card">
-      <!-- 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁炬儳缍婇弻鐔兼⒒鐎靛壊妲紒鐐劤濠€閬嶅焵椤掑倹鍤€閻庢凹鍙冨畷宕囧鐎ｃ劋姹楅梺鍦劋閸ㄥ綊宕愰悙宸富闁靛牆楠告晶濠氭煕閹炬潙鍝洪柟顖氬椤㈡稑顫濇潏銊︻啎闂備胶绮濠氬煕閸儱鏋侀柛鎰靛枟閻撳繘鏌涢锝囩畺妞ゃ儳鍋為妵鍕籍閳ь剙煤濡崵鈹嶅┑鐘叉处閸婇攱銇勮箛鎾愁仱闁稿鎹囧浠嬵敃閿濆棙顔囬梻浣告贡閸庛倝銆冮崨顖氼棜鐟滅増甯楅悡鐔兼煏韫囧鐒洪柣鎺戝⒔閻ヮ亪骞嗚閻撳ジ鏌″畝鈧崰鏍嵁閹达箑绠涢梻鍫熺⊕椤斿嫰姊绘担瑙勫仩闁告柨鐭傚畷鎰亹閹烘嚦锕傛煕閺囥劌鐏犵紒鐘崇⊕閵囧嫰骞掑鍥獥濠碘槅鍋撶换婵嗩潖濞差亜绠归柣鎰絻椤姊烘潪鎵槮妞ゎ厾鍏樺畷瑙勩偅閸愨晜娅囬梺绋挎湰濮樸劑宕愰悙鐑樷拺闂傚牊涓瑰☉銏犲窛妞ゆ牗渚楀鎾寸節閻㈤潧校妞ゆ梹鐗犲畷鏉课旈崨顔芥珖闂佸啿鎼幊搴ㄥ磼閵娿儮鏀介柛灞剧矤閻掗箖鏌ｉ幒鎴犱粵闁靛洤瀚伴獮鎺楀箣濠靛啫浜鹃柟闂寸閸屻劑鏌熺紒銏犳灍闁绘挻鐩幃姗€鎮欏▓璺ㄥ姼婵犫拃鍡楃毢闁逞屽墮閻忔艾顭垮Ο灏栧亾濮樼厧娅嶉柛鈹惧亾濡炪倖甯掗敃锔剧矓闂堟耽鐟邦煥閸涱厺娌紓浣稿€圭敮鈥愁嚕閸洖绠ｆい鎾跺枎閻︽粓姊绘笟鈧褔鎮ч崱娆愬床婵☆垯璀﹂悗鑸点亜閺囨浜鹃梺鍝勭焿缂嶄線鐛鈧、娑樜旈埀顒佺妤ｅ啯鐓欏Λ棰佽兌閸斿秶绱撳鍛村弰婵﹥妞介獮鍡氼槾缂佺姷澧楃换婵嬪焵椤掍焦缍囬柍杞扮贰濡粓姊虹粙璺ㄧ闁告艾顑夊畷锝堢疀閺傚墽绠氶梺闈涚墕閸婂憡绂嶉幆褉鏀介柍钘夋娴滄繈鏌ｉ埡濠傜仩闁伙絽鍢查埞鎴犫偓锝庝簽椤旀劖绻涙潏鍓у埌闁告ɑ绮撻獮蹇涙惞閸︻厾锛濇繛鎾磋壘濞层倝鎮橀埄鍐闁告瑥顥㈤鍫濈厺鐎广儱顦獮銏＄箾閹寸偟鎳呴柛妯挎閳规垶骞婇柛濠冩礋瀹曨垶顢曢敃鈧悡婵嬫煕椤愮喐鍣伴柛瀣尵閹叉挳宕熼鍌ゆО婵犵绱曢崑妯煎垝濞嗗繒鏆︽繛宸簻閻?-->
-      <div v-if="!assetStore.isWalletConnected" class="wallet-status">
-        <div class="wallet-status-header">
-          <van-icon name="warning-o" />
-          <span>Wallet Not Connected</span>
-        </div>
-        <div class="wallet-address-display">
-          <span class="address-label">{{ $t('wallet.wallet_address') }}:</span>
-          <span class="address-value">Not Connected</span>
-        </div>
-        <button class="connect-wallet-btn" @click="handleConnectWallet">
-          <van-icon name="wallet-o" />
-          <span>{{ $t('connect') }}</span>
-        </button>
-      </div>
-      
-      <div v-else class="wallet-status connected">
-        <div class="wallet-status-header">
-          <van-icon name="success" color="#0ECB81" />
-          <span>{{ $t('wallet.wallet_connected') }}</span>
-        </div>
-        <div class="wallet-address-display">
-          <span class="address-label">{{ $t('wallet.wallet_address') }}:</span>
-          <span class="address-value">{{ formatAddress(assetStore.walletAddress) }}</span>
-        </div>
-      </div>
+      <van-tab title="总览" />
+      <van-tab title="现货" />
+      <van-tab title="理财" />
+      <van-tab title="合约" />
+      <van-tab title="IEO" />
+      <van-tab title="股票" />
+    </van-tabs>
 
-      <div class="total-assets-container">
-        <div class="assets-label">{{ $t('wallet.est_total_value') }}</div>
-        <div class="assets-main">
-          <span class="total-amount" :class="{ 'profit': isEquityProfit, 'loss': !isEquityProfit }">{{ displayEquity }}</span>
-          <span class="profit-badge" v-if="assetStore.isWalletConnected">{{ displayTodayPnL }} {{ displayTodayPnLPercent }}</span>
+    <!-- Tab 0: 总览 -->
+    <div v-if="activeTab === 0" class="overview-content">
+      <!-- 预估总资产 -->
+      <section class="summary-card">
+        <div class="summary-head">
+          <span class="summary-label">预估总资产</span>
+          <div class="unit-switch">
+            <button
+              v-for="u in units"
+              :key="u"
+              type="button"
+              class="unit-chip"
+              :class="{ active: activeUnit === u }"
+              @click="activeUnit = u"
+            >{{ u }}</button>
+          </div>
         </div>
-        <div class="legal-currency">闂?婵?{{ displayEquityCNY }}</div>
-        <div class="legal-currency-clean">≈ ¥ {{ displayEquityCNY }}</div>
-        <div v-if="assetStore.futuresUnrealizedPnl !== 0" class="futures-pnl-hint">
-          <span :class="{ 'pnl-profit': assetStore.futuresUnrealizedPnl > 0, 'pnl-loss': assetStore.futuresUnrealizedPnl < 0 }">
-            闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁惧墽鎳撻—鍐偓锝庝簼閹癸綁鏌ｉ鐐搭棞闁靛棙甯掗～婵嬫晲閸涱剙顥氬┑掳鍊楁慨鐑藉磻濞戔懞鍥偨缁嬫寧鐎梺鐟板⒔缁垶宕戦幇鐗堢厱闁归偊鍓欑痪褔鏌ｉ妶鍛仼闁宠鍨堕獮濠囨煕婵炑冩噹缁躲倕霉閻樺樊鍎忛柣銈庡枟閵囧嫰寮介顫捕缂佺偓鍎抽…鐑藉箖濡ゅ懏鏅查幖绮瑰墲閻忔捇姊洪崨濠勬噭闁圭懓娲璇测槈閵忕姈銊╂煥濠靛棙鍣规い顒€顦辩槐鎺楀箚瑜嶉埛鏃堟煛娴ｅ壊鐓肩€殿喛顕ч埥澶婎潩閿濆懍澹曢梺鎸庣箓妤犲憡绂嶅┑瀣€堕煫鍥ㄦ礃閺嗩剟鏌″畝鈧崰鏍х暦閿濆棗绶為悗锝庝簻閺€顓㈡煟鎼淬値娼愭繛鍙夌矒瀹曚即寮介婧惧亾娓氣偓瀵挳濮€閳ュ厖绨婚梻浣告啞缁哄潡宕曢幍顔垮С濞寸姴顑嗛埛鎺楁煕鐏炴崘澹橀柍褜鍓欓崲鏌ユ箒闂佹悶鍎洪崜锕傚极鐎ｎ喗鐓涚€广儱楠搁獮鏍煕閵娿儱鈧潡寮婚悢灏佹灁闁割煈鍠楅悘鈧梻浣侯焾椤戝棝骞愰幖渚婄稏婵犻潧顑愰弫鍥煟閺傛寧鎯堥柛銈嗗浮濮婄粯鎷呮搴濊缂備焦褰冨鈥崇暦濡も偓椤粓鍩€椤掑嫮宓侀柛鎰靛枛閻掓椽鏌涢幇銊︽珔闁告柨鎳庨—鍐Χ閸℃ǚ鎷归梺绋块閸熷潡顢氶敐澶婄闁兼亽鍎幏缁樼箾鏉堝墽鍒伴柟璇х節瀹曨垶鎮欑仦鍌楀亾閹烘埈娼╂い鎾楀嫮鏉归柣搴ゎ潐濞叉繈锝炴径宀€绱﹂柣锝呯灱閻瑩鏌熺粙鎸庡攭缂? {{ formatFuturesPnl }}
+        <div class="summary-total">{{ displayTotal }}</div>
+        <div class="summary-sub">
+          <span v-if="!isAmountHidden">≈ {{ approxLine }}</span>
+          <span v-else>≈ ****</span>
+        </div>
+        <div class="summary-pnl">
+          <span class="pnl-cap">今日收益</span>
+          <span :class="overview.todayPnl >= 0 ? 'up' : 'down'">
+            {{ signedMoney(overview.todayPnl) }}
+            <em v-if="!isAmountHidden">{{ signedPercent(overview.todayPnlPercent) }}</em>
           </span>
         </div>
-      </div>
-  
-        <div class="action-grid">
-        <div class="action-btn primary" @click="handleDeposit">
-          <span class="btn-text">{{ $t('wallet.deposit') }}</span>
-        </div>
-        <div class="action-btn secondary" @click="handleWithdraw">
-          <span class="btn-text">{{ $t('wallet.withdraw') }}</span>
-        </div>
-      </div>
-  
-      <!-- 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁炬儳缍婇弻鐔兼⒒鐎靛壊妲紒鎯у⒔閹虫捇鈥旈崘顏佸亾閿濆簼绨绘い鎺嬪灪閵囧嫰骞囬鍡欑厯闂佸搫琚崝鎴﹀箖閵忋倕浼犻柛鏇熷灟閸ㄤ粙寮诲☉姘勃閻犲洦褰冮～鍥⒑閸濆嫮鐏遍柛鐘崇墪椤繘鎳￠妶鍌氫壕闂傚牊绋戦ˉ蹇斾繆瀹割喖鏋ょ紒杈ㄥ浮閹瑩顢楅埀顒勫礉閵堝棎浜滄い鎾跺Т閸樺鈧鍠栭…鐑藉箖閵忋倖鍋傞幖杈剧秵濡插爼鏌ｉ悢鍝ョ煀缂佺粯甯″顐︻敊鐏忔牗顫嶉梺闈涢獜缁辨洟宕㈤柆宥嗙厽閹兼惌鍨抽崚鏉款熆瑜嶅ù椋庡垝閺冨牜鏁嬮柍褜鍓熷濠氭晬閸曨亝鍕冮梺鍛婃寙閸曨偄鐏℃繝鐢靛Х椤ｎ喚妲愰弴銏犵婵☆垳绮崣蹇涙煃瑜滈崜鐔煎蓟瀹ュ鐓涘ù锝呮啞濞堝爼鎮峰鍕凡婵☆偅绻傞～蹇曠磼濡顎撻梺鎯х箳閹虫挾绮敓鐘崇厽闁靛繆鏅涢悘锝夋煕閻樻煡鍙勯柛鈹垮灲瀵噣宕煎┑鍡楃ギ闂備胶绮摫闁告挻鑹鹃…鍥偄閸忓皷鎷洪梺闈╁瘜閸樺ジ宕濈€ｎ偅鍙忓┑鐘叉噹閸氱懓顭跨憴鍕鐎规洘顨婂鑽も偓闈涙憸閻ｇ偓淇婇悙顏勨偓鏍偋濡ゅ啯宕查柛鎰靛櫘閺佸倿鏌ｅΟ娆炬⒖鐟滅増甯楅崑鎰版煣韫囷絽浜滈柍褜鍓氶崝鏍箞?Banner -->
-      <div class="referral-banner referral-card" @click="toReferral">
+      </section>
+
+      <!-- 操作按钮：充值 / 提现 / 划转 -->
+      <section class="action-grid">
+        <button class="action-btn primary" type="button" @click="handleDeposit">充值</button>
+        <button class="action-btn dark" type="button" @click="handleWithdraw">提现</button>
+        <button class="action-btn light" type="button" @click="openTransfer('spot')">划转</button>
+      </section>
+
+      <!-- 邀请好友赚奖励 -->
+      <div class="referral-card" @click="toReferral">
         <div class="referral-visual">
           <van-icon name="friends-o" size="22" />
         </div>
         <div class="referral-info">
           <div class="ref-kicker">好友交易</div>
-          <div class="ref-title">{{ $t('wallet.referral_title') }}</div>
-          <div class="ref-desc">{{ $t('wallet.referral_desc') }} <span class="highlight">40%</span> {{ $t('wallet.referral_rebate') }}</div>
+          <div class="ref-title">邀请好友赚奖励</div>
+          <div class="ref-desc">好友交易，你最高可获得 <span class="highlight">40%</span> 返佣</div>
         </div>
         <div class="referral-action">
-          <span class="earned-label">{{ $t('wallet.referral_earned') }}</span>
-          <span class="earned-text">$120.50</span>
+          <span class="earned-label">已赚取</span>
+          <span class="earned-text">${{ formatNumber(overview.inviteEarned, 2) }}</span>
           <van-icon name="arrow" size="16" />
         </div>
       </div>
-    </div>
 
-    <!-- Tab 0: Overview (濠电姷鏁告慨鐑藉极閸涘﹥鍙忛柣鎴ｆ閺嬩線鏌涘☉姗堟敾闁告瑥绻橀弻锝夊閻樺樊妫岄梺杞扮閿曨亪寮婚垾鎰佸悑閹肩补鈧磭顔愮紓鍌欑劍閸旀牠銆冮崱妯尖攳濠电姴娲ゅ洿闂佸憡渚楅崢钘夆枔閺屻儲鈷戦柛婵嗗椤ョ偟绱掗鑺ュ磳鐎殿喖顭烽幃銏ゅ礂閻撳簶鍋撶紒妯诲弿婵°倐鍋撴俊顐ｇ懇閹箖宕滄担铏癸紲闂佽鍨庨崘锝嗗瘱闂備胶顢婂▍鏇㈠箲閸パ嶈€垮〒姘ｅ亾婵﹨娅ｇ槐鎺懳熻箛锝勭盎閾伙絽鈹戦悩鍙夋悙缁剧偓瀵х换婵囩節閸屾稑娅х紒? - 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧湱鈧懓瀚崳纾嬨亹閹烘垹鍊為悷婊冪箻瀵娊鏁冮崒娑氬幈濡炪値鍘介崹鍨濠靛鐓曟繛鍡楃箳缁犳娊鏌嶈閸撴瑧绮诲澶婄？闂侇剙鍗曢崶顒夋晬婵犲﹤鎳愰悞濂告⒑閸涘﹤濮€闁哄倸鍊圭粋宥咁煥閸曗晙绨婚梺瑙勫礃濞夋盯寮告惔銊︾厽闊洢鍎崇粔顔锯偓娈垮枛閻栧ジ宕洪敓鐘茬；妞ゆ牭绲奸柇顖炴煕閳哄啫浠辨鐐差儔閹瑩鎳犻鍌涚€梻鍌氬€烽懗鍫曗€﹂崼銉︽櫇闁靛鏂傞埀顒€鍟村畷鍗炩槈濡偐鏉介梻渚€娼ц墝闁哄懏绋撻惀顏囶樄闁哄瞼鍠栭幃娆撴寠婢跺鐎存繝纰夌磿閸嬫鍒掑▎鎾澄ュù锝呭濞笺劑鏌嶈閸撶喖鐛崘銊㈡瀻闁规儳鍟块悗顓烆渻閵堝棗濮х紓宥呮瀹曨垱鎯旈埦鈧弨浠嬫煟濡澧柛鐔风箻閺屾盯鎮╅幇浣圭杹闂佺偨鍎荤粻鎾崇暦閻撳簶鏀介柛鎰ㄦ櫇娴滄瑦绻濋悽闈涗沪闁割煈鍨跺畷鍦嫚閼碱剚娈兼繛鎾村焹閸嬫捇鏌＄仦鐐缂佺姵绋掔换娑㈠箚瑜屾竟鏇㈡⒑閼测斁鎷￠柛鎾寸洴閹箖鎮欓璺ㄧ畾闂佺粯鍔︽禍婊堝焵椤掍胶澧甸柟顔ㄥ吘鏃堝焵椤掑嫸缍栨繝闈涱儏鎯熼梺闈涱槹閸旀牜鏁敓鐘茬畺婵炲棙鎸婚崐缁樹繆椤栨粌甯舵鐐茬墦濮婅櫣鎷犻幓鎺戞瘣缂傚倸绉村Λ婵嗙暦閹达箑宸濇い鏍ㄧ懅閸撱劑姊虹憴鍕靛晱闁哥姵姘ㄦ竟鏇熺附閸涘﹦鍘遍柣蹇曞仜婢т粙鍩ユ径宀€纾兼俊鐑囩畱濞诧箓鎮￠崘顏呭枑婵犲﹤鐗嗙粈鍫ユ煏婵炑冩噽椤︻垶姊虹化鏇炲⒉缂佸鍨规竟鏇熺節濮橆厾鍘遍梺鍝勬储閸斿矂鎮橀悩鐢电＜闁逞屽墴瀹曞ジ濡烽敂鎯у箥闂備浇顕栭崹鍗烆熆濡鏆遍梻鍌欒兌缁垶骞愭ィ鍐ㄧ獥闁哄稁鍘惧畵渚€鏌″搴″箹缂佺姾顫夐妵鍕箻鐠鸿桨鎴锋繛瀵稿閸ㄥ磭妲愰幘瀛樺闁告挸寮舵闂備浇妗ㄧ粈渚€鈥﹀畡閭﹀殨閻犲洦绁村Σ鍫熸叏濮楀牏鍒板ù婊堢畺閺屻劌鈹戦崱娆忓毈缂備降鍔岄妶鎼佸蓟濞戙垺鏅查柛顐ｇ渤閹惧墎纾?-->
-    <div v-if="activeTab === 0" class="overview-content">
-      <!-- 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧湱鈧懓瀚崳纾嬨亹閹烘垹鍊為悷婊冪箻瀵娊鏁冮崒娑氬幈濡炪値鍘介崹鍨濠靛鐓曟繛鍡楃箳缁犲鏌″畝瀣М濠殿喒鍋撻梺闈涚箚閺呮繈宕濋崫銉х＝濞达絾褰冩禍鐐節閵忥絾纭鹃柡鍫墴瀹曚即骞囬悧鍫㈠幐闂佺鏈笟妤呭磿閵夛妇绠鹃柛蹇氬亹婢ь亪妫佹径鎰厽婵☆垳鍎ら埢鏇㈡煕鎼达紕绠崇紒杈ㄥ浮閸┾偓妞ゆ帒鍊甸崑鎾绘晲鎼粹€茬按婵炲瓨绮嶇划鎾诲蓟閳ユ剚鍚嬮柛鎰╁妼椤顪冮妶蹇曞埌鐎殿喛鍩栫粚杈ㄧ節閸屻倕鏅犲銈嗘⒒閸樠囷綖閳哄懏鈷戦悗鍦濞兼劙鏌涢妸銉﹀仴妤犵偛鍟埢搴ㄥ箻瀹曞洭鐛撻梻浣烘嚀椤曨厽鎱ㄩ崘宸禆闁规儳澧庣壕钘壝归敐鍛儓濞存粎鍋撶换婵嬪閳藉棛鍔风紓渚囧枟濡啴骞婂鍫熷仺婵炲牊瀵ч柨銈夋⒒娴ｅ憡鍟炵紒瀣灴閺佸啴濡烽埡浣猴紵闂佺粯鏌ㄩ崥瀣偂韫囨挴鏀介柣妯垮皺缁犵増銇勯埡濠傚⒋闁哄本绋戦～婊堝焵椤掍胶顩查悹杞拌濞兼牗绻涘顔荤盎濞磋偐濞€閺屾盯寮撮妸銉ヮ潻闂佺顑呯粔鐟邦潖濞差亜宸濆┑鐘插暟閸欏棗顪冮妶鍡楃仴妞わ箓娼ч锝嗙節濮橆剛鍊炲銈嗗笒椤︿即寮查鍕拺缂備焦锚婵洦銇勯弴銊ュ籍鐎规洏鍨介幐濠冨緞閸℃ɑ鏉搁梻浣虹帛閸旀牕顭囧▎鎾村€堕柨鏇炲€归悡鐔兼煟閺囩偛鈧鎮鹃柆宥嗙厽闁挎繂鎳庡Σ濠氭煟閿濆棛绠炵€规洜鍠栭、妤呭磼濮橆剛顔囬梻鍌欐祰椤曆呮崲閹烘纾绘繛鎴炵懄濞呯娀鏌﹀Ο渚＆闁惧繐鍘滈崑鎾斥槈濞嗘瑤绶靛┑鐐茬墔缁瑩寮婚敐澶婄疀妞ゆ挾鍠撶粙鍥р攽閻愬瓨鍎楅柛鐘愁殜閵嗗啴濡烽埡鍌氣偓椋庘偓鐟板閸犳牠宕滈崼鏇熲拺閻犲洠鈧櫕鐏嶇紓渚囧枟閹告悂鎮鹃悜钘夌闁绘垵妫欏娲⒑缁洖澧查柨鏇ㄥ亞濡叉劕螣閼测晝锛?-->
-      <div class="allocation-section">
-        <div class="allocation-title">{{ $t('wallet.account_breakdown') }}</div>
+      <!-- 资产分布：5 个账户卡片 -->
+      <section class="allocation-section">
+        <div class="allocation-title">资产分布</div>
         <div class="allocation-list">
-          <!-- 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁炬儳缍婇弻锝夊箣閿濆憛鎾绘煕閵堝懎顏柡灞剧洴楠炴﹢鎳犻澶嬓滈梻浣规偠閸斿秶鎹㈤崘顔嘉﹂柛鏇ㄥ灠閸愨偓闂侀潧臎閸涱垰甯庨梻鍌欑劍閹爼宕濆鍥ㄥ床闁告洦鍨伴悞鍨亜閹哄棗浜剧紓浣哄Т缁夌懓鐣烽弴銏犵闁绘劕绉电粙鎴ｇ亙闂佸憡渚楅崢濂告倵椤撱垺鈷戦柛婵嗗閳ь剙缍婇弫宥夊即鎺虫禍褰掓煙閻戞ɑ灏ù婊冪秺閹鎮烽弶娆炬闂佸摜濮甸悧鐘茬暦濠婂牆绠ユい鏂垮⒔閿涙繃绻涙潏鍓у埌闁圭⒈鍋勯弳鈺呮⒒娴ｈ姤銆冪紒鈧笟鈧垾锕€鐣￠柇锕€娈ㄦ繝鐢靛У閼圭偓鍎梻渚€娼чˇ顓㈠垂濞差亜妫橀柍褜鍓熷缁樻媴閾忓箍鈧﹪鏌涢幘瀵哥疄闁轰礁顑呴—鍐Χ韫囨艾鎮呴梺鍝勬噽婵炩偓鐎殿喖顭烽弫鎰板幢濡搫濡抽梻渚€娼ф蹇曞緤娴犲瑤澶娾攽閸♀晜瀵岄梺闈涚墕妤犳悂鐛鈧弻娑滅疀閺傚棭浜、姘舵晲閸℃瑧鐦堝┑顔斤供閸庣敻鍩￠崨顔惧帗闁哄鍋炴刊浠嬪礂瀹€鍕厽妞ゆ劑鍨归顓熸叏婵犲啯銇濇鐐寸墵閹瑩骞撻幒鎳躲倝姊绘担铏瑰笡闁瑰憡鎮傞幃褔宕卞鍙樼綍闂傚倷绀侀幉鈥趁洪敃鍌氬瀭闂侇剙绉撮悡?-->
-          <div class="allocation-item">
-            <div class="allocation-left">
-              <div class="allocation-icon spot-icon">
-                <van-icon name="balance-o" color="#000000" size="22" />
+          <div
+            v-for="acc in accounts"
+            :key="acc.key"
+            class="account-card"
+            @click="goToAccount(acc)"
+          >
+            <div class="account-top">
+              <div class="account-icon" :class="'ic-' + acc.color">
+                <van-icon :name="acc.icon" size="22" />
               </div>
-              <div class="allocation-info">
-                <span class="allocation-name">{{ $t('wallet.spot_account') }}</span>
-                <span class="allocation-desc">{{ $t('assets.spot') }}</span>
+              <div class="account-name-box">
+                <span class="account-name">{{ acc.name }}</span>
+                <span class="account-desc">{{ acc.desc }}</span>
               </div>
-            </div>
-            <div class="allocation-right">
-              <span class="allocation-amount">{{ displaySpotValue }}</span>
-            </div>
-          </div>
-
-          <!-- 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧湱鈧懓瀚崳纾嬨亹閹烘垹鍊為悷婊冪箻瀵娊鏁冮崒娑氬幈濡炪値鍘介崹鍨濠靛鐓曟繛鍡楃箳缁犳娊鏌嶈閸撴瑧绮诲澶婄？闂侇剙鍗曢崶顒夋晬婵犲﹤鎳愰悞濂告煟鎼搭垳绉甸柛瀣╃劍缁傚秴顭ㄩ崼鐔哄幐闂佸憡鍔戦崝宀勫焵椤掑倹鏆鐐茬箻閸╁嫰宕樿缁犳艾顪冮妶鍡楀闁稿﹥娲熷鎼佸籍閸屾粎锛滈柡澶婄墑閸斿秴鐣峰畝鈧埀顒冾潐濞叉鏁幒妤€鐓濋幖娣妼缁狅絾绻濋棃娑欙紞闁诲孩娼欓埞鎴︽偐閹颁礁鏅遍梺鍝ュУ閻楃娀寮崘顔嘉у璺烘閸嬫捇鏁冮埀顒勬偩閿熺姵鐒介柨鏇楀亾婵炲牄鍔岄—鍐Χ閸℃衼缂備胶濮甸崹鍦垝婵犳碍鍋￠柟鍐诧工缂嶅﹪寮幇鏉垮窛妞ゆ棁妫勯弸鎴炰繆閻愵亜鈧牠寮婚妸銉庢稑鈹戠€ｎ亞鐣洪悗鐟板閸嬪﹪鎮￠妷鈺傜厱婵炴垵宕楣冩煛閸♀晛寮柡宀嬬秮婵偓闁宠桨鑳舵禒顓烆渻閵堝啫濡奸柨鏇樺€濋、姘舵晲婢跺﹦顔岄梺鍦劋缁诲嫰宕ｉ崱娑欌拺闁告挻褰冩禍鐐烘煕閻樿櫕宕岀€规洩缍佸畷姗€濡搁姀鈩冩澑闂備礁鐤囧Λ鍕涘Δ鍛€堕柣鏂垮悑閸嬶綁鏌嶈閸撶喖寮崘顔肩劦妞ゆ巻鍋撶€规挸瀚埞鎴︽倷閸欏鏋欐繛瀛樼矋缁诲牓骞?-->
-          <div class="allocation-item">
-            <div class="allocation-left">
-              <div class="allocation-icon earn-icon">
-                <van-icon name="balance-o" color="#FFFFFF" size="22" />
-              </div>
-              <div class="allocation-info">
-                <span class="allocation-name">{{ $t('wallet.earn_account') }}</span>
-                <span class="allocation-desc">{{ $t('assets.earn') }}</span>
+              <div class="account-total">
+                <span class="account-value">{{ money(acc.value) }}</span>
+                <van-icon name="arrow" size="14" color="#94A3B8" />
               </div>
             </div>
-            <div class="allocation-right">
-              <span class="allocation-amount">{{ displayEarnValue }}</span>
-            </div>
-          </div>
-
-          <!-- IEO 闂傚倸鍊搁崐鎼佸磹閹间礁纾圭€瑰嫭鍣磋ぐ鎺戠倞妞ゆ帒顦伴弲顏堟偡濠婂啴鍙勯柕鍡楀暣婵＄兘鍩℃担渚晣濠电偠鎻徊鍧楀箠閹捐鐒垫い鎺戝暙閻撴劙鏌熸笟鍨妞ゎ偅绮撳畷鍗炍旈埀顒勫煕閹烘鈷戠紓浣股戦悡銉︿繆椤愶絿鎳囨鐐茬墦婵℃悂濡烽钘夌槣闂佽崵濮村ú鈺侇嚕閹惧鐝堕柡鍥╁枍缁诲棝鏌曢崼婵囨悙閸熸悂姊虹粙娆惧剱闁烩晩鍨跺顐﹀礃椤曞懏鏅滈梺鍓插亖閸ㄥ湱绮婇敃鈧埞鎴﹀煡閸℃浠╅梺鍛婅壘椤戝洭鍩€椤掍胶顣茬€光偓閹间礁钃熺€广儱顦悡娑樏归敐鍛暈婵炲牊鐓″鐑樺濞嗗浚娲梺绋款儍閸婃洟锝?-->
-          <div class="allocation-item">
-            <div class="allocation-left">
-              <div class="allocation-icon ido-icon">
-                <van-icon name="lock" color="#FFFFFF" size="22" />
+            <div class="account-metrics">
+              <div class="metric" v-for="(m, i) in acc.metrics" :key="i">
+                <span class="metric-label">{{ m.label }}</span>
+                <span class="metric-value" :class="m.tone">{{ metricText(m) }}</span>
               </div>
-              <div class="allocation-info">
-                <span class="allocation-name">{{ $t('wallet.ieo_locked') }}</span>
-                <span class="allocation-desc">{{ $t('assets.ido_pending_desc') }}</span>
-              </div>
-            </div>
-            <div class="allocation-right">
-              <span class="allocation-amount">{{ displayIDOValue }}</span>
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
 
-    <!-- Tab 1: Spot (闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁炬儳缍婇弻锝夊箣閿濆憛鎾绘煕閵堝懎顏柡灞剧洴楠炴﹢鎳犻澶嬓滈梻浣规偠閸斿秶鎹㈤崘顔嘉﹂柛鏇ㄥ灠閸愨偓闂侀潧臎閸涱垰甯庨梻鍌欑劍閹爼宕濆鍥ㄥ床闁告洦鍨伴悞鍨亜閹哄棗浜剧紓浣哄Т缁夌懓鐣烽弴銏犵闁绘劕绉电粙鎴ｇ亙闂佸憡渚楅崢濂告倵椤撱垺鈷戦柛婵嗗閳ь剙缍婇弫宥夊即鎺虫禍褰掓煙閻戞ɑ灏ù婊冪秺閹鎮烽弶娆炬闂佸摜濮甸悧鐘茬暦濠婂牆绠ユい鏂垮⒔閿? - 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌ｉ幋锝呅撻柛濠傛健閺屻劑寮撮悙娴嬪亾瑜版帒纾块柟瀵稿У閸犳劙鏌ｅΔ鈧悧鍡欑箔閹烘鐓涢柛鏇楁櫅閸旓箓鏌＄仦鍓ф创鐎殿喗鎸虫俊鎼佸Ψ瑜岄崫妤呮⒒娴ｈ鍋犻柛鏂跨焸瀹曟劘銇愰幒鎳筹箓鏌涢弴銊ョ仩闁告劏鍋撴俊鐐€栭崝锕€顭块埀顒佺箾瀹€濠侀偗婵﹥妞介獮鏍倷濞村浜鹃柡鍥╁Л閸嬫挸顫濋銏犵ギ閻庢鍠涢褔鍩ユ径鎰潊闁冲搫鍊瑰▍鍥⒒娴ｇ懓顕滅紒璇插€歌灋婵炴垯鍨归悡妯荤箾閹寸偞鐨戠痪鍙ョ矙閺屾稓浠﹂悙顒傛闁哄稄绻濆铏圭磼濮楀棙鐣兼繝鐢靛亹閸嬫捇鎮楀▓鍨灈妞ゎ厾鍏橀獮鍐閵堝懐顦ч梺缁樻尭缁ㄥ爼宕戦幘鍓佺＜婵☆垵顕у鍨攽鎺抽崐鎰板磻閹剧繝绻嗘い鎰剁悼閹冲洭鏌熼鈧粻鏍х暦濠婂嫭濯撮柧蹇曟缁卞啿鈹戦悙鑸靛涧缂佸弶宕橀妵鎰板礃閳哄喚娲告俊銈忕到閸燁垶鍩涢幋鐘电＜妞ゆ牗绋掔粈鈧繝鈷€鍕弨闁诡垰娲﹀鍕暆閳ь剛澹曟總鍛婂仯闁搞儜鍐獓濡炪們鍎崹浠嬪蓟閿涘嫪娌柣鎰靛墰椤︿即鎮楃憴鍕闁告鍥х厴闁硅揪绠戦悙濠勬喐鎼搭煈鏁傞柣妯哄帠缁诲棝鏌ｉ幇鍏哥盎闁逞屽墯濞叉粓骞戦姀銈呴唶闁靛鍎抽敍鐔兼⒑濮瑰洤鐏い顓炵墦閹?-->
-    <div v-if="activeTab === 1" class="spot-content">
-      <!-- 闂傚倸鍊搁崐鎼佸磹閹间礁纾圭€瑰嫭鍣磋ぐ鎺戠倞妞ゆ帒顦伴弲顏堟偡濠婂啰效闁挎繄鍋涢埞鎴犫偓锝庡亝濞呭洭姊虹粙璺ㄧ効濠碘€虫川缁瑨绠涢弮鍌滅槇闂侀潧楠忕徊浠嬫偂閹扮増鐓曢柡鍐ｅ亾婵炲弶绮庨崚鎺撶節濮橆剙鍞ㄥ銈嗘尵閸犳捇宕㈤崡鐑嗘富闁靛牆妫楁慨褏绱掗幓鎺戔挃缂侇喖鐗撻崺鈧い鎺戝€荤壕濂告煟閹伴潧澧柛鏂诲€栫换娑氫焊閺嶃倕浜鹃柟棰佺劍缂嶅骸鈹戦悙鍙夆枙濞存粌鐖煎顐﹀幢濞戞瑧鍘撻悷婊勭矒瀹曟粌鈽夊顒€鐏婇梺鍝勫暙閻楀棛绮荤紒妯镐簻闁哄啫娲﹂ˉ澶愭煕閹捐埖鍤€闁宠鍨堕獮濠囨煕婵犲啯绀嬫鐐诧龚缁犳稑鈽夊▎蹇庣暗闂備礁鎼ú銊︽叏閻㈢绐楅柟鐗堟緲缁犺绻涢敐搴″濠碘剝鎮傞弻宥堫檨闁告挻鐟╁畷顖炲级閹寸姵娈鹃梺闈浥堥弲娑氱棯瑜旈弻鐔衡偓鐢殿焾椤庡本淇婇煫顓炲祮婵?-->
+    <!-- Tab 1: 现货（保留原有资产列表） -->
+    <div v-else-if="activeTab === 1" class="spot-content">
       <div class="tools-bar">
         <div class="convert-bnb">
           <span>{{ $t('assets.convert_small') }}</span>
           <van-icon name="arrow" />
-      </div>
+        </div>
         <div class="history-btn" @click="goToHistory">
           <van-icon name="bill-o" />
           <span>{{ $t('history.title') }}</span>
         </div>
       </div>
 
-      <!-- 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁炬儳缍婇弻锝夊箣閿濆憛鎾绘煕閵堝懎顏柡灞剧洴椤㈡洟鏁愰崱娆樻К缂傚倷鑳舵慨閿嬬箾閳ь剟鏌″畝鈧崰鏍嵁閹达箑绠涢梻鍫熺⊕椤斿嫰姊洪懡銈呮瀾闁荤喕浜划濠氬箻鐠囪尙鐣哄┑掳鍊曢幊蹇涘疾閺屻儱绠圭紒顔煎帨閸嬫捇骞囨担閫涙唉闂傚倸鍊烽悞锕傚箖閸洖绀夌€广儱娲﹀畷鏌ユ煕椤愮姴鍔ょ€规挷绶氶弻鈥愁吋鎼达絼绮撻柟鍏兼儗閻撳牓寮崱娑欑厓鐟滄粓宕滃顓犫攳濠电姴娲﹂崵鍐煃閸濆嫬鏆為柨娑樼箻濮婅櫣鎷犻垾宕団偓璇裁归敐澶嬫珳闁告帗甯″缁樻媴閸涘﹥鍎撻梺鍝勭墱閸撴瑧鍙呭┑鈽嗗灠閸氬鐣烽崣澶岀闁瑰瓨鐟ラ悘顏堟煕婵犲洦鏁遍柕鍥у楠炴帒顓奸崼婵嗗腐闁荤喐绮嶅姗€骞婂Ο渚綎缂備焦蓱婵挳鏌涘☉姗堝伐闁哄棗鐗撳娲川婵犲啰鍙嗙紓浣虹帛閿氶柣?-->
       <div class="search-bar">
         <div class="hide-small" @click="toggleHideSmall">
           <div class="radio-circle" :class="{ checked: hideSmallBalances }"></div>
@@ -202,17 +169,16 @@
           left-icon="search"
         />
       </div>
-  
-      <!-- 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌ｉ幋锝呅撻柛濠傛健閺屻劑寮撮悙娴嬪亾瑜版帒纾块柟瀵稿У閸犳劙鏌ｅΔ鈧悧鍡欑箔閹烘鐓涢柛鏇楁櫅閸旓箓鏌＄仦鍓ф创鐎殿喗鎸虫俊鎼佸Ψ瑜岄崫妤呮⒒娴ｈ鍋犻柛鏂跨焸瀹曟劘銇愰幒鎳筹箓鏌涢弴銊ョ仩闁告劏鍋撴俊鐐€栭崝锕€顭块埀顒佺箾瀹€濠侀偗婵﹥妞介獮鏍倷濞村浜鹃柡鍥╁Л閸嬫挸顫濋銏犵ギ閻庢鍠涢褔鍩ユ径鎰潊闁冲搫鍊瑰▍鍥⒒娴ｇ懓顕滅紒璇插€歌灋婵炴垯鍨归悡妯荤箾閹寸偞鐨戠痪鍙ョ矙閺屾稓浠﹂悙顒傛闁哄稄绻濆铏圭磼濮楀棙鐣兼繝鐢靛亹閸嬫捇鎮楀▓鍨灈妞ゎ厾鍏橀獮鍐閵堝懐顦ч梺缁樻尭缁ㄥ爼宕戦幘鍓佺＜婵☆垵顕у鍨攽鎺抽崐鎰板磻閹剧繝绻嗘い鎰剁悼閹冲洭鏌熼鈧粻鏍х暦濠婂嫭濯撮柧蹇曟缁卞啿鈹戦悙鑸靛涧缂佸弶宕橀妵鎰板礃閳哄喚娲告俊銈忕到閸燁垶鍩涢幋鐘电＜妞ゆ牗绋掔粈鈧繝鈷€鍕弨闁诡垰娲﹀鍕暆閳ь剛澹曟總鍛婂仯闁搞儜鍐獓濡炪們鍎崹浠嬪蓟閿涘嫪娌柣鎰靛墰椤︿即鎮楃憴鍕闁告鍥х厴闁硅揪绠戦悙濠勬喐鎼搭煈鏁傞柣妯哄帠缁诲棝鏌ｉ幇鍏哥盎闁逞屽墯濞叉粓骞戦姀銈呴唶闁靛鍎抽敍鐔兼⒑濮瑰洤鐏い顓炵墦閹?-->
+
       <div class="coin-list">
         <div v-if="!assetStore.isWalletConnected && filteredAndSortedAssets.length === 0" class="empty-state">
-          <van-icon name="wallet-o" size="48" color="#8E8E93" />
-          <p class="empty-text">Connect wallet to view assets</p>
+          <van-icon name="wallet-o" size="48" color="#94A3B8" />
+          <p class="empty-text">连接钱包后查看资产</p>
         </div>
-        <div 
+        <div
           v-else
-          class="coin-item" 
-          v-for="asset in filteredAndSortedAssets" 
+          class="coin-item"
+          v-for="asset in filteredAndSortedAssets"
           :key="asset.symbol"
         >
           <div class="coin-left">
@@ -225,7 +191,6 @@
               <span class="coin-fullname">{{ getFullName(asset.symbol) }}</span>
             </div>
           </div>
-          
           <div class="coin-right">
             <span class="coin-balance">{{ displayBalance(asset.balance, asset.symbol) }}</span>
             <span class="coin-price">{{ displayValue(asset.value) }} USDT</span>
@@ -234,36 +199,231 @@
       </div>
     </div>
 
-    <!-- Earn 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁惧墽鎳撻—鍐偓锝庝簼閹癸綁鏌ｉ鐐搭棞闁靛棙甯掗～婵嬫晲閸涱剙顥氬┑掳鍊楁慨鐑藉磻閻愮儤鍋嬮柣妯荤湽閳ь兛绶氬鎾閻樻爠鍥ㄧ厱闁靛鍨哄▍鍥煕濡厧鈻堟慨濠勭帛閹峰懘宕ㄦ繝鍐ㄥ壍婵＄偑鍊х紓姘跺础閸愯尙鏆﹂梻鍫熶緱濞尖晜銇勯幋鐘蹭沪婵＄偘绮欓妴渚€寮崼婵堫槹闁圭厧鐡ㄨ摫婵炲懎锕弻锛勪沪閻ｅ睗褏鈧娲﹂崑濠傜暦閻斿吋鍤嬮柛顭戝亝濮ｅ酣姊婚崒娆戭槮闁圭⒈鍋婇獮濠傜暆閸曨偄鐎梺鑺ッˇ钘夘焽閺嶎偆纾藉ù锝堝亗閹寸偛鍨旈柟缁㈠枟閻撴洘绻濋棃娑橆仼闁告梹鐟╅弻褑绠涢幘娲烩偓妤併亜椤忓嫬鏆ｅ┑鈥崇埣瀹曞崬螖閸愌勬▕濠电姷鏁搁崑娑樜熸繝鍥х煑闁告劑鍔庨弳锔界箾瀹割喕绨绘い顐㈡嚇閺屾洟宕煎┑鍥ф闂佹椿鍋勭€氭澘顫忓ú顏勭闁圭粯甯婄花浠嬫⒑閸濄儱孝闂佸府缍佸畷娲焵椤掍降浜滈柟鐑樺灥閳ь剙缍婂鎶筋敆閸曨剛鍘搁柣蹇曞仩椤曆勪繆婵傚憡鐓冮悷娆忓閻忓鈧娲栧畷顒勫煡婢舵劕绠ュù锝夋櫜婢规洖鈹戞幊閸婃劙宕戦幘娣簻妞ゆ挴鈧啿濮峰銇卞倻绐旈柡灞剧洴婵℃悂濡疯閻撶喖鎮楀▓鍨灈妞ゎ厾鍏樺顐﹀箛椤撶偟绐為柣搴秵閸嬪懘鎮甸崘娴嬫斀闁绘﹩鍠栭悘杈ㄧ箾婢跺娲撮挊婵喢归崗鍏肩稇缂佹劖顨嗛幈銊ノ熼崹顔惧帿闂佹娊鏀遍崹鍧楀蓟濞戞ǚ鏀介柛鈩冾殢娴犳儳鈹戦悩顐壕婵炲鍘ч悺銊╂偂閻斿吋鐓冮柛婵嗗瀹搞儵鏌ｈ箛銉х暤闁哄矉绲介埥澶愬础閻愬褰庨柣搴ゎ潐濞叉牠鎮ユ總鎼炩偓浣肝旀担鍝ョ獮闁诲函缍嗛崑鍛存偟濠婂嫮绡€闁汇垽娼ф禒鈺呮煙濞茶绨界€垫澘锕ョ粋鎺斺偓锝庝簽閻ゅ懘姊虹捄銊ユ灁濠殿垼鍙冨顐﹀磼閻愬鍘藉┑鈽嗗灠閹碱偆鏁悩鐢电＜?-->
+    <!-- Tab 2: 理财 -->
     <div v-else-if="activeTab === 2" class="earn-content">
       <EarnList />
-      </div>
     </div>
-  </template>
-  
-  <script setup>
-import { ref, computed, onMounted, watch, onActivated, onDeactivated } from 'vue';
+
+    <!-- Tab 3: 合约 -->
+    <div v-else-if="activeTab === 3" class="module-content">
+      <section class="summary-card">
+        <div class="summary-label">合约账户权益 (USDT)</div>
+        <div class="summary-total">{{ money(futures.total) }}</div>
+        <div class="mini-stats">
+          <div class="mini">
+            <span class="mini-label">可用保证金</span>
+            <span class="mini-value">{{ money(futures.availableMargin) }}</span>
+          </div>
+          <div class="mini">
+            <span class="mini-label">持仓盈亏</span>
+            <span class="mini-value" :class="futures.positionPnl >= 0 ? 'up' : 'down'">{{ signedMoney(futures.positionPnl) }}</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="list-card">
+        <div class="list-title">当前持仓</div>
+        <div class="pos-row" v-for="p in futures.positions" :key="p.symbol">
+          <div class="pos-left">
+            <span class="pos-symbol">{{ p.symbol }}</span>
+            <span class="pos-tags">
+              <em class="tag" :class="p.side === '做多' ? 'long' : 'short'">{{ p.side }}</em>
+              <em class="tag lev">{{ p.leverage }}</em>
+            </span>
+          </div>
+          <div class="pos-right">
+            <span class="pos-pnl" :class="p.pnl >= 0 ? 'up' : 'down'">{{ signedMoney(p.pnl) }}</span>
+            <span class="pos-sub" :class="p.pnl >= 0 ? 'up' : 'down'">{{ signedPercent(p.pnlPercent) }}</span>
+          </div>
+        </div>
+      </section>
+
+      <button class="wide-btn" type="button" @click="router.push('/trade')">前往合约交易</button>
+    </div>
+
+    <!-- Tab 4: IEO -->
+    <div v-else-if="activeTab === 4" class="module-content">
+      <section class="summary-card">
+        <div class="ieo-hero">
+          <div class="ieo-stat">
+            <span class="mini-label">待解锁资产</span>
+            <span class="summary-total sm">{{ money(ieo.pendingUnlock) }}</span>
+          </div>
+          <div class="ieo-stat">
+            <span class="mini-label">已中签资产</span>
+            <span class="summary-total sm">{{ money(ieo.wonAssets) }}</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="list-card">
+        <div class="list-title">IEO 项目仓位</div>
+        <div class="ieo-row" v-for="p in ieo.projects" :key="p.id">
+          <div class="ieo-left">
+            <span class="ieo-name">{{ p.name }}</span>
+            <span class="ieo-sub">
+              <template v-if="p.status === 'won'">中签 {{ money(p.amount, 0) }}</template>
+              <template v-else-if="p.status === 'pending'">认购 {{ money(p.amount, 0) }}</template>
+              <template v-else>已退款 {{ money(p.refund) }}</template>
+            </span>
+          </div>
+          <span class="status-badge" :class="p.status">{{ ieoStatusLabel(p.status) }}</span>
+        </div>
+      </section>
+
+      <button class="wide-btn" type="button" @click="router.push('/asset/ieo')">查看 IEO 详情</button>
+    </div>
+
+    <!-- Tab 5: 股票 -->
+    <div v-else-if="activeTab === 5" class="module-content">
+      <section class="summary-card">
+        <div class="summary-label">股票总资产 (USDT)</div>
+        <div class="summary-total">{{ money(stock.total) }}</div>
+        <div class="summary-pnl">
+          <span class="pnl-cap">今日收益</span>
+          <span :class="stock.todayPnl >= 0 ? 'up' : 'down'">
+            {{ signedMoney(stock.todayPnl) }}
+            <em v-if="!isAmountHidden">{{ signedPercent(stock.todayPnlPercent) }}</em>
+          </span>
+        </div>
+      </section>
+
+      <section class="list-card">
+        <div class="list-title">股票持仓</div>
+        <div class="pos-row" v-for="s in stock.holdings" :key="s.symbol">
+          <div class="pos-left">
+            <span class="pos-symbol">{{ s.symbol }}</span>
+            <span class="ieo-sub">{{ money(s.amount, 0) }} 股</span>
+          </div>
+          <div class="pos-right">
+            <span class="pos-pnl">{{ money(s.value) }}</span>
+            <span class="pos-sub" :class="s.changePercent >= 0 ? 'up' : 'down'">{{ signedPercent(s.changePercent) }}</span>
+          </div>
+        </div>
+      </section>
+
+      <button class="wide-btn" type="button" @click="router.push('/asset/stock')">查看股票账户</button>
+    </div>
+
+    <!-- 划转弹窗 -->
+    <TransferModal v-model:show="showTransfer" :default-from="transferFrom" />
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onActivated } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { showToast } from 'vant';
 import { useAssetStore } from '@/stores/assets';
+import { formatAssetAmount, formatNumber } from '@/utils/format';
+import { useAmountPrivacy } from '@/composables/useAmountPrivacy';
+import { useAssetActions } from '@/composables/useAssetActions';
+import {
+  walletMock,
+  overviewMock,
+  accountsMock,
+  futuresSummaryMock,
+  ieoDetailMock,
+  stockDetailMock
+} from '@/data/assetMock';
 import EarnList from './EarnList.vue';
-import { formatAssetAmount } from '@/utils/format';
+import TransferModal from './TransferModal.vue';
 
-defineOptions({
-  name: 'Me'
-});
+defineOptions({ name: 'Me' });
 
 const router = useRouter();
 const route = useRoute();
 const assetStore = useAssetStore();
 const { t } = useI18n();
+const { isAmountHidden, toggleAmountHidden } = useAmountPrivacy();
+const { openDeposit, openWithdraw } = useAssetActions();
 
 const activeTab = ref(0);
-const isPrivacyMode = ref(false);
 const hideSmallBalances = ref(false);
 const searchQuery = ref('');
 
+// 划转弹窗
+const showTransfer = ref(false);
+const transferFrom = ref('spot');
+
+// Mock 数据（结构清晰，后续可接真实接口）
+const overview = overviewMock;
+const accounts = accountsMock;
+const futures = futuresSummaryMock;
+const ieo = ieoDetailMock;
+const stock = stockDetailMock;
+
+// 单位切换
+const units = ['USDT', 'BTC', 'CNY'];
+const activeUnit = ref('USDT');
+
+// ---------- 金额格式化 / 脱敏 ----------
+const money = (value, digits = 2) => (isAmountHidden.value ? '****' : formatNumber(value, digits));
+
+const signedMoney = (value, digits = 2) => {
+  if (isAmountHidden.value) return '****';
+  const sign = value >= 0 ? '+' : '-';
+  return `${sign}$${formatNumber(Math.abs(value), digits)}`;
+};
+
+const signedPercent = (value) => `${value >= 0 ? '+' : ''}${formatNumber(value, 2)}%`;
+
+const metricText = (m) => {
+  if (isAmountHidden.value) return '****';
+  if (m.signed) {
+    const sign = m.value >= 0 ? '+' : '-';
+    return `${sign}${formatNumber(Math.abs(m.value), 2)}`;
+  }
+  return formatNumber(m.value, 2);
+};
+
+const displayTotal = computed(() => {
+  if (isAmountHidden.value) return '****';
+  if (activeUnit.value === 'BTC') return `${formatNumber(overview.totalBtc, 4)} BTC`;
+  if (activeUnit.value === 'CNY') return `¥${formatNumber(overview.totalUsdt * overview.cnyRate, 2)}`;
+  return `$${formatNumber(overview.totalUsdt, 2)}`;
+});
+
+const approxLine = computed(() => {
+  if (activeUnit.value === 'BTC') return `$${formatNumber(overview.totalUsdt, 2)}`;
+  return `${formatNumber(overview.totalBtc, 4)} BTC`;
+});
+
+// ---------- 钱包 ----------
+const walletAddress = computed(() => assetStore.walletAddress || walletMock.address);
+
+const shortAddress = computed(() => {
+  const addr = walletAddress.value || '';
+  if (addr.length <= 12) return addr;
+  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+});
+
+const copyAddress = async () => {
+  const addr = walletAddress.value;
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(addr);
+    } else {
+      const el = document.createElement('textarea');
+      el.value = addr;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }
+    showToast('钱包地址已复制');
+  } catch (error) {
+    showToast('复制失败');
+  }
+};
+
+const handleSwitchWallet = () => {
+  showToast('切换钱包');
+  // TODO: 接入真实钱包切换逻辑
+};
+
+// ---------- 现货资产列表（保留原有逻辑，隐私改为全局） ----------
 const formatCurrency = (value, decimals = 2) => {
   const number = Number(value) || 0;
   return number.toLocaleString(undefined, {
@@ -271,26 +431,6 @@ const formatCurrency = (value, decimals = 2) => {
     maximumFractionDigits: decimals
   });
 };
-
-const privacyText = computed(() => isPrivacyMode.value ? '****' : null);
-
-const displayEquity = computed(() => {
-  if (privacyText.value) return privacyText.value;
-  return `${formatCurrency(assetStore.equity || assetStore.estimatedTotalValue || 0)} USDT`;
-});
-
-const displayEquityCNY = computed(() => {
-  if (privacyText.value) return privacyText.value;
-  return `${formatCurrency((assetStore.equity || assetStore.estimatedTotalValue || 0) * 7.2)} CNY`;
-});
-
-const isEquityProfit = computed(() => (assetStore.futuresUnrealizedPnl || 0) >= 0);
-
-const formatFuturesPnl = computed(() => {
-  const pnl = Number(assetStore.futuresUnrealizedPnl) || 0;
-  const sign = pnl >= 0 ? '+' : '';
-  return `${sign}${formatCurrency(pnl)} USDT`;
-});
 
 const filteredAndSortedAssets = computed(() => {
   const assets = [];
@@ -321,26 +461,17 @@ const filteredAndSortedAssets = computed(() => {
   return assets.sort((a, b) => b.value - a.value || a.symbol.localeCompare(b.symbol));
 });
 
-const togglePrivacyMode = () => {
-  isPrivacyMode.value = !isPrivacyMode.value;
-};
-
 const toggleHideSmall = () => {
   hideSmallBalances.value = !hideSmallBalances.value;
 };
 
-const formatAddress = (address) => {
-  if (!address) return t('wallet.not_connected') || 'Not Connected';
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
-};
-
 const displayBalance = (balance, symbol) => {
-  if (privacyText.value) return privacyText.value;
+  if (isAmountHidden.value) return '****';
   return formatAssetAmount ? formatAssetAmount(balance, symbol) : formatCurrency(balance, 6);
 };
 
 const displayValue = (value) => {
-  if (privacyText.value) return privacyText.value;
+  if (isAmountHidden.value) return '****';
   return formatCurrency(value);
 };
 
@@ -360,36 +491,39 @@ const getFullName = (symbol) => {
   return names[symbol] || symbol;
 };
 
-const handleConnectWallet = async () => {
-  try {
-    await assetStore.connectWallet();
-  } catch (error) {
-    showToast(error?.message || t('wallet.connect_failed') || 'Connect failed');
+// ---------- 导航 ----------
+const goToAccount = (acc) => {
+  if (acc.route) {
+    router.push(acc.route);
+  } else if (typeof acc.tab === 'number') {
+    activeTab.value = acc.tab;
   }
 };
 
-const handleDeposit = () => {
-  router.push('/deposit');
+const openTransfer = (from) => {
+  transferFrom.value = from || 'spot';
+  showTransfer.value = true;
 };
 
-const handleWithdraw = () => {
-  router.push('/withdraw');
+const handleDeposit = () => openDeposit('USDT');
+const handleWithdraw = () => openWithdraw('USDT');
+const goToHistory = () => router.push('/history');
+const goToSupport = () => router.push('/support');
+const goToSettings = () => router.push('/settings');
+const toReferral = () => router.push('/referral');
+
+const ieoStatusLabel = (status) => {
+  if (status === 'won') return '已中签';
+  if (status === 'pending') return '待中签';
+  return '未中签';
 };
 
-const goToHistory = () => {
-  router.push('/history');
-};
-
-const goToSupport = () => {
-  router.push('/support');
-};
-
-const goToSettings = () => {
-  router.push('/settings');
-};
-
-const toReferral = () => {
-  router.push('/referral');
+const applyTabFromQuery = () => {
+  const map = { overview: 0, spot: 1, earn: 2, futures: 3, ieo: 4, stock: 5 };
+  const tab = route.query.tab;
+  if (tab && map[tab] !== undefined) {
+    activeTab.value = map[tab];
+  }
 };
 
 const initializeData = async () => {
@@ -398,1057 +532,313 @@ const initializeData = async () => {
   }
 };
 
-
-// 婵犵數濮烽弫鍛婃叏閻戣棄鏋侀柛娑橈攻閸欏繘鏌ｉ幋锝嗩棄闁哄绶氶弻娑樷槈濮楀牊鏁鹃梺鍛婄懃缁绘劙婀侀梺绋跨箰閸氬绱為幋锔界厱闁靛鍎遍埀顒€娼″濠氭晲婢跺﹦顔掗悗瑙勬礀濞层倝宕ú顏呪拺闁告繂瀚烽崕鎰版煟濡や緡娈橀柟骞垮灩閳藉濮€閻樻鍚呴梻浣虹帛閸旀浜稿▎鎾崇濞寸厧鐡ㄩ埛鎴犵磼鐎ｎ偒鍎ラ柛搴㈠姍閺岀喖宕ㄦ繝鍐ㄢ偓鎰版煥濠靛牆浠滈柍瑙勫灩閳ь剨缍嗛崑鍕濡ゅ懏鐓欓柛蹇氬亹閺嗘﹢鏌涢妸锔筋潡闁靛洦鍔栭幆鏃堬綖椤撶姷鐣?PnL 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁惧墽鎳撻—鍐偓锝庝簼閹癸綁鏌ｉ鐐搭棞闁靛棙甯掗～婵嬫晲閸涱剙顥氬┑掳鍊楁慨鐑藉磻濞戔懞鍥偨缁嬫寧鐎梺鐟板⒔缁垶宕戦幇顓滀簻闁哄啫鍊归崵鈧繛瀛樼矒缁犳牠寮诲☉銏犵疀闂傚牊绋掗悘鍫㈢磽娴ｅ搫校缂佸甯℃俊鐢稿礋椤栨氨鐫勯梺绋挎湰缁秹骞夊Ο琛℃斀闁绘劘娉涙禍褰掓煕閻樺磭澧い顐㈢箰鐓ゆい蹇撳缁卞爼姊洪崨濠冨闁告挻鐟х划锝呪槈閵忊檧鎷洪梺鍛婄缚閸庤鲸鐗庨梻浣告啞濮婄懓煤閻旂厧鏄ラ柕蹇曞閸氬顭跨捄渚剰濞存粌婀辩槐鎾诲磼濞嗘垵濡藉銈庡幖濞差厼鐣烽姀銈呯濞达絿鎳撻埀顒€鐏氶〃銉╂倷閼碱兛铏庨梺鍛婃⒐閼规崘鐏冮梺缁橆焾濞呮洟宕愰幇鐗堢厽婵炴垵宕弸娑㈡懚閺嶎厽鐓曟繛鎴濆船閺嬨倝鏌涘Ο鍧楀摵缂佺粯绻堥幃浠嬫濞磋翰鍨介幃妤€顫濋悡搴♀拫閻庤娲忛崹浠嬬嵁濮椻偓椤㈡瑩鎮剧仦钘夌闂佽楠搁崢婊堝磻閹剧粯鍊甸柨婵嗛婢ф壆鎮敃鍌涒拻濞达絿鐡旈崵鍐煕閻樿櫕宕岀€规洖缍婇幐濠冨緞鐏炵偓顔曢梻渚€娼ч…顓熶繆閸モ晛濮柍褜鍓熷娲川婵犲啫顦╅梺绋款儏鐎氼剟鍩㈤幘璇参ㄩ柕澶堝灪閺傗偓闂備胶绮摫闁告挻宀稿畷顖濈疀濞戞瑧鍘遍梺鎸庣箓妤犳悂鎮橀敐鍥ｅ亾閸偅绶查柨鏇樺劤缁骞掗弬鍝勪壕闁挎繂楠告禍婵囩箾閸涱厽鎼愭い顏勫暣婵″爼宕ㄩ婊庡敹闂備胶绮〃鍛涘┑瀣闁硅揪闄勯崑鍕煕韫囨艾浜归柛姗嗕簼缁绘繈鎮介棃娑楃捕闂佽绻戠换鍫濈暦濠靛柈鏃€鎷呮搴ｇ暰闂備礁婀辩划顖滄暜閻愬瓨娅犳繛鎴炪€掓惔銊ョ倞鐟滄繈鐓浣典簻闁靛骏绱曢埥澶嬨亜椤撴粌濮傜€规洘锕㈡俊鎼佸Χ閸パ咁偧濠电姷顣槐鏇㈠磻閹达箑纾圭憸蹇擃嚗婵犲洤绠氱憸婊冦€掔拠瑁佸綊鎮╁顔煎壈缂備胶濮甸悧婊堝焵椤掑倹鍤€閻庢矮鍗冲畷鎴炵節閸ャ劌浜楅梺闈涱槴閺呮粓鎮￠弴鐔虹闁瑰瓨绻傞懜鍦偓娈垮櫍缁犳牠寮婚敓鐘插耿闁宠桨绀佺猾宥呪攽椤旂》榫氭繛鍜冪悼濡叉劙骞掗幊宕囧枔缁辨帒螣閸濆嫬顥掔紓鍌氬€搁崐鐑芥嚄閸撲礁鍨濇い鏍ㄧ矋瀹曟煡鏌涢鐘插姎缂佺姵鐗曢湁闁稿繐鍚嬮崕妤呮煛娴ｉ潻鍔熼柣銉邯瀵爼宕归鍨厴闂備浇顕栭崰妤呭垂閸撲焦宕叉繝闈涱儏椤懘鏌ㄥ┑鍡橆棤闁靛棙鍔欏娲箰鎼淬垻鈹涚紓浣哄У閹告悂鎮鹃悜钘夘潊闁靛牆鎳庣粣娑欑節閻㈤潧孝閻庢凹鍣ｉ、娆撳即閵忥紕鍘告繝銏ｆ硾閿曪附鏅堕弴鐑嗙唵鐟滃瞼鍒掑▎鎾跺祦闁告劏鏅濋梽鍕煕濞戞﹫鍔熼柛姗€浜堕弻鐔兼偂鎼达絾鎲肩紓浣割儐閸ㄥ潡宕洪埀顒併亜閹哄秶璐版繛鍫熒戞穱濠囧矗婢跺﹤顫掗梺璇″枟閻熲晛鐣峰Δ鍛窛濠电姴鍊搁蹇涙⒒閸屾瑧顦﹂柟璇х節楠炴劙宕卞☉妯汇仢婵炶揪绲介幉鈥斥枍濡ゅ懏鈷掗柛灞捐壘閳ь剛鍏橀幊妤呭醇閺囩偟鐤囬梺鍦亾濡炲潡寮€ｎ偁浜滈柟鎯у船閻忊晝鐥幆褜鐓奸柡宀嬬秮楠炲洭顢涘杈嚄闂備礁鎼Λ瀛樹繆閸ヮ剙鐒垫い鎺嗗亾闁告ɑ绮撳畷鎴﹀箻缂佹鍘撻悷婊勭矒瀹曟粌鈽夊Ο婊愮秮楠炲洭寮剁捄顭戝晪闂佽崵濮村ú鈺冧焊濞嗘挻鏅繝濠傚暊閺€浠嬫煟閹邦厽缍戦柣蹇ョ畵閺屻劌顫濋懜鐢靛幍闂佷紮绲介張顒勫汲椤掍焦鍙忓┑鐘叉噺椤忕娀鏌熸搴♀枅闁搞劑绠栭幖褰掝敃閵堝嫭鍠氱紓鍌氬€搁崐椋庢閿熺姴绐楁俊銈呮噹缁犳煡鏌涢妷鎴濊嫰濞堛劌顪冮妶鍡楀Ё缂佺姵鍨规竟鏇熺附閸涘﹦鍘介梺褰掑亰閸樼晫绱為幋鐐电闁割偁鍨归弸娑欐叏婵犲啯銇濇俊顐㈠暙閳藉娼忛妸鎰╁€濆铏圭矙閸ф鈧鏌熺喊鍗炰喊闁炽儻绠撳畷鍫曨敆婢跺娅栨繝鐢靛仦閸ㄥ爼銆冮崼銏笉婵鍩栭埛鎴犵磽娴ｅ顏呮叏閿曗偓闇夋繝濠傚閻帡鏌涢埞鎯т壕婵＄偑鍊栫敮濠囨嚄閼稿灚娅犳い蹇撴噷娴滄粓鏌￠崒婵囩《缂佺姾灏欑槐鎺旂磼濡偐鐣靛銈庡亝缁诲牓銆佸Δ鍛＜闁挎梹鍎抽懓鍧楁⒒閸屾艾鈧兘鎳楅崼鏇炵疇闁规儳鐡ㄥ▍鐘绘煟閿濆懓瀚伴柛銊︾箖閵囧嫰寮介顫勃闂佺顑呴崐鍧楀蓟閿熺姴鐐婇柕澶堝劤娴犻箖姊虹紒妯诲碍闁哥喐娼欓锝夊醇閺囩喎鈧兘鏌℃径瀣劸闁逞屽墯缁捇寮诲☉婊呯杸闁规儳澧庨崝顖炴⒑閸濆嫮鐒跨紓宥佸亾缂備胶濮电粙鎴﹀煡婢跺á鏃€鎷呴崨濠勪壕闂傚倸鍊风粈渚€骞栭锔藉剶濠靛倻顭堢粣妤呮煙閺夊灝褰勯柛銉墯閸嬪鏌涢銈呮瀻闁告柨鎳樺娲箮閼恒儲娈伴梺绋款儐閹瑰洭寮婚敍鍕ㄥ亾閿濆簼绨奸柛銈呮处閹便劍绻濋崟顐㈠濠电偟鈷堟禍顏堢嵁瀹ュ鏁嬮柛娑卞暕濠婂牊鈷掑ù锝勮閻掗箖鏌ㄩ弴妯衡偓婵嬪箖濡　鏀介悗锝庡亜娴犲ジ鎮楅悷鏉款伃闁稿锕幃锟犲Ψ閳哄倻鍘遍梺鎶芥暜閸嬫捇鏌￠崨顔剧煉闁诲海鍏樺濠氬磼濮橆兘鍋撻悜鑺ュ殑闁告挷绀侀崹婵囥亜閺嶎偄浠滅紒鐘卞嵆閺屾稑鈹戦崟顐㈠闂佺顑嗛幐鎼侊綖濠靛鍋傞幖杈剧磿椤旀垹绱撻崒娆戭槮闁活厺鐒﹂妵鏃堝传閵夛箑搴婂┑鐘绘涧椤戝懘鎮欐繝鍥ㄧ厪濠电偛鐏濋崝妤呮煕鐎ｎ偅宕岄柡灞诲妿閳ь剨绲婚崝瀣姳婵犳碍顥婃い鎰╁灪婢跺嫰鏌熼崨濠冨€愭い銏℃婵¤埖寰勭€ｎ剙骞堥梺璇插嚱缂嶅棝宕戦崨顖欑剨妞ゆ挶鍨洪幊姘舵煛瀹ュ骸骞楅柣鎾存礃缁绘盯骞嬪┑鍡氬煘濡ょ姷鍋為〃濠囧蓟閿濆棙鍎熸い鏃傚帶閳峰姊洪崫鍕効缂傚秳绶氶獮鍐煛閸涱厾鐓戞繝銏ｆ硾椤戝棝宕愰柨瀣瘈缁剧増蓱椤﹪鏌涢妸銈呭祮闁轰礁鍟撮、鏃堝醇濠靛牏鏆梻浣虹帛閸旀宕曢妶鍥ｅ亾閻㈤潧孝妞ゎ叀娉曢幉鎾礋椤撶姷鏆ょ紓鍌氬€哥粔鎾晝椤忓牏宓侀柛鎰靛枛閻掓椽鏌涢幇銊︽珔闁告柨鎳樺娲箰鎼达絿鐣靛┑鈽嗗亝閻熲晛鐣锋导鏉戝唨妞ゆ挾鍟块幏?
-const handlePnLCardClick = () => {
-  // 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁惧墽鎳撻—鍐偓锝庝簼閹癸綁鏌ｉ鐐搭棞闁靛棙甯掗～婵嬫晲閸涱剙顥氬┑掳鍊楁慨鐑藉磻濞戔懞鍥偨缁嬫寧鐎梺鐟板⒔缁垶宕戦幇鐗堢厱闁归偊鍨扮槐锕傛煟閵忋垻甯涘ǎ鍥э躬閹瑩顢旈崟銊ヤ壕闁哄稁鍘介崑瀣節婵犲倻澧曠痪鍓х帛缁绘盯骞嬪▎蹇曚患闂佹悶鍔岄崐鍧楀蓟濞戞矮娌柛鎾椻偓濡劍绻涚€涙鐭嬬紒顔芥崌瀵鍨鹃幇浣告倯闂佸憡鍔戦崝宀勨€栫€ｎ喗鈷戦梻鍫熺⊕椤ョ偤鎮介娑辨疁濠碉紕鏁诲畷鐔碱敍濮樺崬骞愰梻浣侯焾閺堫剛鍒掔仦绛嬪殨闁靛ň鏅滈埛鎴︽煕濠靛棗顏柣蹇涗憾閺屾盯鎮╁畷鍥р拰濡ょ姷鍋涢崯顐︹€﹂妸鈺佺闁告挆鍐╃亪闂佽鍠楃划鎾诲春閿熺姴纾兼慨姗€妫跨槐鈺呮⒒閸屾瑦绁版い鏇嗗喚娼╅柨鏇炲亰缂嶆牕顭跨捄琛″婵炲樊浜滈崘鈧銈嗘尭鐎氼剙煤椤撱垹绠栭柣锝呯灱閻瑩鎮归幁鎺戝闁哄棭鍋呯换婵嗩嚗闁垮绶查柍褜鍓氬ú鐔肩嵁婵犲啯鍎熼柕濞垮劤椤斿姊洪悡搴㈡喐闁稿绲剧粋宥咁煥閸喓鍘甸梺纭咁潐閸旀牜娑垫ィ鍐╃厓鐟滄粓宕滈敃鍌氱；濠电姴娲ら弸渚€鏌熼悧鍫熺凡闁绘劕锕弻宥夊传閸曨偅鐏曠紓浣介哺瑜板啴鍩為幋锔藉€烽悗娑櫭棄宥夋⒑閼归偊娼愰柛搴＄－閸欏懘姊洪棃娑氬闁瑰啿顦靛绋款吋閸ワ絽浜炬鐐茬仢閸旀碍銇勯敂鍨祮闁诡喒鈧枼妲堥柕蹇娾偓鏂ュ亾閸洘鐓熼柟閭﹀幖缁插鏌嶉柨瀣拹缂佺粯鐩獮鎾诲箳閺冣偓閹茬厧顪冮妶鍐ㄥΩ闁稿海鏁婚獮鍐ㄢ枎閹惧磭楠囬梺鐟邦嚟閸嬬娀鎯傛担閫涚箚闁靛牆娲ゅ暩闂佺顑囬崑銈夊极閸愵喖顫呴柕鍫濇搐缁侊箓姊洪幖鐐插姌闁告柨绉甸崚濠囧箻椤旂晫鍘电紓鍌欑劍閿氱紒妤€鍊搁…璺ㄦ喆閸曨剛顦ラ梺瀹狀潐閸ㄥ潡骞冮埡鍐╁珰鐟滃秵瀵奸幇鐗堢厽閹兼番鍨归幖鎼佹煕閺傝法肖缂侇喖顑呴濂稿椽娴ｅ搫寮抽梻浣稿閸嬪棝宕伴幘璇插偍闁归棿鐒﹂埛鎴︽煙閼测晛浠滈柛鏃€顨婇弻锟犲川椤旂偓鍒涢悗娈垮枟閹倸顕ｉ鈧畷濂告偄閸濆嫬濡囬梻鍌欒兌绾爼宕滃┑瀣櫔缂傚倷鐒﹂妵鍡涘川椤栨粣绱查梺鍝勵槸閻楀嫰宕濆畝鈧划顓烆潩椤撶姷顔曢梺缁樻尭濞撮绮荤拠娴嬫斀闁斥晛鍟崐鎰攽閿涘嫬鍘撮柡浣稿暞閹峰懘鎮滃鍡忓亾閸ヮ剚鈷掑ù锝囩摂閸ゆ瑦鎱ㄥ鍫㈢暤闁挎繄鍋炲鍕箾閹烘挻銇濈€殿喖鈧噥妲鹃梺鍝勬４闂勫嫰濡甸崟顖氱闁瑰瓨绻嶆禒濂告⒑缂佹ɑ灏扮紒璇茬墦閻涱噣寮介‖銉ラ叄椤㈡鍩€椤掍椒绻嗛柤娴嬫櫇绾惧ジ鏌ｅΟ铏癸紞闁愁垱娲熼弻鏇㈠炊瑜嶉顓犫偓娈垮櫘閸ｏ絽鐣烽崼鏇椻偓鏍敊閼恒儱闉嶉梺闈涙搐鐎氭澘顕ｉ鍌涘磯闁靛ě灞芥櫔濠电姵顔栭崰鏍晝閵堝鈧箑鐣￠幍顔芥闂佸湱鍎ら崹鐔煎几鎼淬劍鐓欓柣鎴灻悘銉╂偨椤栵絽鐏︽慨濠勭帛閹峰懏绗熼婊冨Ъ婵犵數鍋涢顓㈠礂濡警鍤曟い鎰╁€栫€氭氨鈧懓澹婇崰鏍р枔閵娾晜鈷戦柛锔诲幘鐢稓鈧鐡曢褍宓勯梺鍓插亖閸庢煡鎮¤箛娑氬彄闁搞儺鐏掗崼銉ョ；闁规崘顕х粈鍌炴煕濞戝崬鐏ｇ紒澶婃健濮婂宕掑顑藉亾妞嬪海鐭嗗〒姘ｅ亾妤犵偛顦甸崺鍕礃椤忓棙鍤屾繝寰锋澘鈧洟骞婃惔銊ュ瀭闁稿瞼鍋為悡鏇熴亜椤撶喎鐏ュù婊勭箞閺屾稑鈻庤箛鏇狀啋闂佸搫鐫欓崱娆戞澑闂佹寧绻傞幊宥囪姳鐎涙绠鹃悗娑欘焽閻绱掗鑺ュ磳鐎殿喖顭烽幃銏ゆ偂鎼达絿鏆伴柣鐔哥矊缁夊綊骞婂鍡愪汗闁圭儤鎸鹃崢浠嬫椤愩垺鎼愰柨鏇樺劚閳诲秹宕堕埡鍐紲闁哄鐗勯崝灞矫归鈧弻娑㈠煘閹傚濠碉紕鍋戦崐鏍暜閹烘柡鍋撳鐓庡⒋闁绘侗鍣ｆ慨鈧柨娑樺椤旀洟姊洪悷閭﹀殶闁稿鍠栭獮濠囧川鐎涙鍘卞┑顔姐仜閸嬫挸霉濠婂棙纭炬い顐㈢箰鐓ゆい蹇撳椤ユ繈姊洪棃娑辨闂傚嫬瀚伴幃鐢稿籍閸啿鎷洪梺鍛婄缚閸庤鲸鐗庨柣搴″帨閸嬫捇鏌熼梻瀵割槮缂佺姵鐗犻弻锝夊箛椤掑娈跺銈傛櫇閸忔﹢骞冨Δ鍛櫜閹肩补鈧尙鏁栭梻浣告啞钃遍柟鐟版喘楠炲啫鐣￠柇锔惧弳闂佸憡娲﹂崢楣冩偂婢舵劖鍊甸悷娆忓缁€鍐磼椤旇偐鐒搁柛鈺冨仱楠炲鏁冮埀顒勬倷婵犲洦鐓忓┑鐐茬仢閸旀艾霉閻撳酣鍙勬慨濠勭帛缁楃喖鍩€椤掆偓椤洩顦归柟顔ㄥ洤骞㈡繛瀛樻緲濞差參銆佸☉妯锋閺夊牄鍔嶉弳鐐烘⒒閸屾艾鈧悂宕愭搴ｇ焼濞撴埃鍋撴鐐差樀閸ㄥ墽鎼炬担瑙勩仢闁轰礁鍟村畷鎺戭潩椤掑倵鍋撻銏♀拻濞撴艾娲ゆ晶顔剧磼婢跺鍤熷瑙勬礃缁绘繂顫濋鐘插妇濠电姷鏁搁崑鐔煎磻閹炬枼鏋嶉柛鈩冪⊕閻撶喖鏌熼幆褏鎽犵紒鈧崘顏嗙＜缂備焦顭囧ú瀛橆殽閻愬樊鍎旈柟顔界矒瀹曟儼顦茬憸鏉挎濮婄粯鎷呮慨鎰ㄥ亾閳ь剟鏌涚€ｎ偅灏柍瑙勫灴閹晛鐣烽崶鑸垫闂?
-  // router.push('/pnl-detail');
-};
-
-// 婵犵數濮烽弫鍛婃叏閻戣棄鏋侀柛娑橈攻閸欏繘鏌ｉ幋锝嗩棄闁哄绶氶弻鐔兼⒒鐎靛壊妲紒鐐劤椤兘寮婚敐鍛傜喎鈻庨幆褎顔勭紓鍌欒兌婵挳鎮樺璺何﹂柛鏇ㄥ枤閻も偓闂佸湱鍋撻幆灞轿涢妶鍥╃＝濞达絾褰冩禍鐐節閻㈤潧孝婵炶绠撻幃锟犲礃椤忓懎鏋戝┑鐘诧工閻楀棛绮堥崼鐔稿弿婵☆垰娼￠崫铏光偓瑙勬礀瀵墎鎹㈠☉銏犵闁绘劕鐏氶崳褏绱撴担绋款暢闁稿鍊濋獮鍐ㄎ旈崨顔芥珳闁硅偐琛ラ埀顒冨皺閺佹牗淇婇悙顏勨偓褏绱撳璺虹闁规儼妫勭粻?Store 婵犵數濮烽弫鍛婃叏閻戣棄鏋侀柛娑橈攻閸欏繘鏌ｉ幋锝嗩棄闁哄绶氶弻鐔兼⒒鐎靛壊妲紒鐐劤椤兘寮婚敐澶婄疀妞ゆ帊鐒﹂崕鎾绘⒑閹肩偛濡奸柛濠傛健瀵鈽夐姀鈺傛櫇闂佹寧绻傚Λ娑⑺囬妷褏纾藉ù锝呮惈瀛濈紓鍌氱Т閿曨亜顕ｇ拠宸悑濠㈣泛锕ｇ槐鍫曟⒑閸涘﹥澶勯柛鎾寸懃閳诲秹鏁愭径瀣ф嫼缂備礁顑堥崕濠氾綖閿曞倹鐓曢柡鍐ｅ亾闁搞劌鐏濋锝嗙節濮橆厼浜滅紒鐐妞存悂寮查鍕拺缂侇垱娲嶉崑鎾崇暦閸モ晩鍞跺┑鐐茬摠缁挾绮婚弽褜娼栨繛宸簻娴肩娀鏌涢弴銏℃锭闁告挸宕埞鎴﹀煡閸℃ぞ绨婚梺鍝ュ枑濞兼瑩顢氶敐鍡欑瘈婵﹩鍘兼禍婊堟煟閻愬鈻撻柍褜鍓欓崢鏍ㄧ珶閺囥垺鈷戞慨鐟版搐閻忣亝銇勯弮鈧悧鐘诲箖閻愭番鍋呴柛鎰╁妿閺屽牓姊洪崨濠勭細闁稿骸纾竟鏇熺附閸涘﹦鍘介梺閫涘嵆濞佳勬櫠椤曗偓閺屾盯寮拠娴嬪亾濠靛钃熼柡鍥ュ灩闁卞洭鏌ｉ弮鍌ょ劸闁逞屽墯閸旀鍩€椤掍緡鍟忛柛鐘崇墵閳ワ箓鎮滈挊澶嬬€梺褰掑亰閸樿偐娆㈤悙娴嬫斀闁绘ɑ褰冮弸銈嗕繆椤愩倕鏋涙慨濠勭帛閹峰懐绮欏▎鐐棏闂備胶绮幐鎼佹偋閹惧磭鏆﹂柟鍓佺摂閺佸鏌嶈閸撴瑩顢氶敐澶婄闁芥ê顦藉濠囨⒑缂佹鎲块柛瀣尰缁绘盯骞橀幇浣哄悑闂佸搫鏈ú鐔风暦閻撳簶鏀介柛銉戝嫷浠辩紓鍌氬€烽懗鑸垫叏妤ｅ喚鏁嬬憸鏂匡耿娴ｇ硶鏀介柣妯款嚋瀹搞儵鏌涢悢璺哄祮鐎规洘妞介弫鎰板幢閳哄偆鍟嶉梻浣虹帛閸旀牞銇愰崘顔兼辈闁绘柨鍚嬮悡娆撴煕濞嗗浚妲归悘蹇ュ閳ь剝顫夊ú婊堝窗閺嶎厹鈧礁顫滈埀顒勫箖閳哄懎绀冮柛娆忣槺閺夎姤绻濋悽闈浶ラ柡浣告啞閹便劑鎮滈挊澶嬬€梺鍛婄☉閿曘儵宕ｈ箛娑欏€甸柣銏㈡暩閵嗗﹪鏌涚€ｎ偅灏い顐ｇ箞閹剝鎯旈姀銏犵秵闂傚倷娴囧銊х矆娴ｈ櫣鐭撶憸鐗堝笒缁犳牠鏌曡箛瀣偓鏇犵矆閸岀偞鍊堕煫鍥ㄦ⒒婢ь剟鎮楀鍗炲付闁宠鍨块幃娆戔偓娑欘焽缁嬪洭姊洪崨濠呭妞ゆ垵顦甸獮鍐偪椤栵絾鈻岄柣搴ゎ潐濞叉ê鐣濋幖浣哥畺鐟滄柨鐣烽悡搴樻婵°倕鍟板▔鍨攽閿涘嫬浜奸柛濠冪墵楠炴劙鎮欓浣稿伎闂佸湱铏庨崰鏍磼閵娾晜鍊甸柣銏㈡暩閵嗗﹪鏌涚€ｎ偅灏柍缁樻崌瀹曞綊顢欓悾灞奸偗濠碉紕鍋戦崐銈夊储婵傜搴婇柡灞诲劜閸嬧晠鏌ｉ幋锝嗩棄閹喖姊虹€圭姵銆冮柤瀹犲煐椤ㄣ儵宕堕浣叉嫼闂佽崵鍠愭竟鍡涘箺閻樼數纾奸悹鍥ㄥ絻閳ь剙娼￠悰顕€骞囬弶璇狙冾熆鐠轰警鍎岄柟椋庣帛缁绘繈鎮介棃娴躲垹螖閻樺弶鍟炵紒鍌氱Т椤劑宕熼鐙€鍟庨梺鑽ゅТ濞壯囧川椤栨稒顔忛梻浣虹帛閹稿爼宕愬┑瀣摕闁炽儲鍓氶崥瀣箹缁厜鍋撻懠顒佹櫦闂傚倷绀侀幉锟犮€冮崱娑欏殞濡わ絽鍟悡姗€鏌熸潏鍓х暠缁炬儳鍚嬮幈銊ヮ潨閸℃绠归梺鍝勬閻楁挸顫忓ú顏勭闁兼亽鍎查弳鐘绘⒑閹肩偛濡兼繛灏栤偓鎰佸殨濠电姵纰嶉崑鍕煣韫囨挻璐￠柣鎾存崌濮婃椽宕烽褏鍔搁柣搴㈢▓閺呮盯鎮鹃悜钘夌闁兼亽鍎幏娲煟鎼粹剝璐″┑顔炬暬钘熷璺侯儍娴滄粓鏌ㄩ弮鍌氫壕闁哄棭鍓涢埀顒侇問閸犳牠鈥﹂悜钘夋瀬闁归偊鍘肩欢鐐翠繆椤栨粎甯涙繛鍛焸濮婄粯绗熼埀顒勫焵椤掑倸浠滈柤娲诲灡閺呭爼寮堕幋鏃€鏂€闂佺偨鍎辩壕顓㈠春閿濆棭娈介柣鎰嚟婢ь剟鏌熷畡鐗堝櫧缂侇喗鐟ч幑鍕Ω閵忕姳澹曞銈嗘尪閸ㄦ椽鍩涢幋锔藉仯闁搞儻绲洪崑鎾崇暦閸ワ妇绀冮梻鍌欐祰椤曆呮崲閹达附鍎庢い鏍仜缁犳牠鏌曡箛瀣偓鏇犵矆閸岀偞鐓熼柟鎯у暱椤掋垺銇勯幘鐐藉仮婵﹦绮粭鐔煎焵椤掆偓椤洩顦归柟顔ㄥ洤骞㈡繛鎴烆焽閿涙瑩鎮峰鍛暭閻㈩垱甯″鍛婄瑹閳ь剟寮诲☉鈶┾偓锕傚箣濠靛懐鏁栫紓鍌欒濡狙囧磻閹剧粯鈷掑ù锝呮贡濠€浠嬫煕閵娿劍顥夋い顓炴穿椤﹀綊鏌涢埞鍨伈鐎规洖銈搁幃銏ゆ惞鐠団€虫櫗婵犵數鍋犻幓顏嗗緤娴犲鐤柛褎顨呴崒銊╂煙椤栵絿浜规繛宸憾閺佸倿鏌涘☉鍗炴灍闁绘繃鐗犲缁樼瑹閳ь剟鍩€椤掑倸浠滈柤娲诲灡閺呭爼骞橀鐣屽幈闂佸磭鎳撻悘婵嬫倶閸欏娈介柣鎰儗閻掍粙鏌熸搴♀枅鐎殿喖顭锋俊鐑藉Ψ閿旇姤鐦戦梻鍌氬€搁崐椋庣矆娓氣偓楠炴牠顢曢埛姘そ婵℃悂鍩℃担铏瑰炊闂備浇顫夊畷姗€顢氳瀹曟帡濡搁埡鍌滃幗闂侀潧绻掓慨鐢稿疮閻愮儤鐓熼柟鎹愭硾閺嬫盯鏌″畝瀣埌閾伙綁鏌涘┑鍡楊伀濡ょ姴娲ㄧ槐鎾存媴閹绘帊澹曢柣搴″帨閸嬫捇鏌涢弴銊ュ闁告ɑ鎹囬幃宄邦煥閸曨厾鐓夐悗瑙勬礃缁矂鍩為幋锕€骞㈤煫鍥ㄦ⒒閳ь剚妞藉娲传閸曨剙鍋嶉梺鎼炲妽濡炶棄鐣烽幇鏉块唶闁哄洨鍠撻崢閬嶆⒑閺傘儲娅呴柛鐔跺嵆楠炲﹪宕ㄩ婊勶紡闂佺顫夐崝鏍夋径鎰梿濠㈣埖鍔栭悡銉︾節闂堟稒顥犲褑椴哥换娑㈠礂閻撳骸顫掗梺鍝勮嫰缁夊綊寮婚妸褉鍋撻敐搴濈盎妞ゎ偅甯″娲传閸曨厾浼囬梺鍝ュУ閻楁洟鎮鹃悜钘壩╅柨鏂垮⒔閻﹀牓姊虹粙鎸庢拱妞ゃ劌妫濋幃姗€宕卞Ο鍦畾闂侀潧鐗嗗ú銈呮毄闂備胶顭堥鍡涙儎椤栫偛鏋侀柛鎰靛枛鍥存繝銏ｆ硾閿曪箓宕ｉ埀顒€鈹戦悩顔肩伇婵炲鐩垾锕傤敆閳ь剟鈥﹂崶顒€鐓涢柛娑卞枤閸欏棗鈹戦悩缁樻锭婵☆偅鐟╁畷宕囩矙濞嗗墽鍞甸柣鐔哥懃鐎氼厾绮堥埀顒勬⒑鐎圭媭娼愰柛銊ユ健楠炲啫鈻庨幘宕囬獓闂佺懓顕慨鍐差浖閹剧繝绻嗛柣鎰典簻閳ь剚娲栭湁婵娉涚粣妤呮煛瀹ュ骸寮跨紓宥嗙墬缁绘繈妫冨☉姘杸閻庤娲栭ˇ鐢稿蓟瑜戠粻娑㈠即閻曚椒鎴风紓?
-const spotAccountValue = computed(() => {
-  return assetStore.spotAccountValue;
-});
-
-const earnAccountValue = computed(() => {
-  return assetStore.earnAccountValue;
-});
-
-const idoPendingValue = computed(() => {
-  return assetStore.idoPendingValue;
-});
-
-// 婵犵數濮烽弫鍛婃叏閻戣棄鏋侀柛娑橈攻閸欏繘鏌ｉ幋锝嗩棄闁哄绶氶弻鐔兼⒒鐎靛壊妲紒鎯у⒔缁垳鎹㈠☉銏犵婵炲棗绻掗崝鎾⒑鏉炴壆顦︽い鎴濇婵＄敻宕熼姘鳖啋闁荤姾娅ｉ崕銈夋倵妤ｅ啯鈷戦柛娑橈功閹冲啰绱掔紒姗堣€跨€殿喖顭烽幃銏ゆ惞閸︻叏绱查梻渚€娼х换鎺撴叏閻㈠憡鍊剁€广儱顦伴埛鎴︽煕濠靛棗顏柛锝堟缁辨帞鎷犻懠顒€鈪甸悗娈垮枛椤嘲顕ｉ幘顔藉亜濡炲娴烽悰顕€姊绘担绋款棌闁稿鎳愰幑銏ゅ磼濞戞氨褰鹃梺鍝勫€哥花閬嶅绩娴犲鐓熼柟閭﹀幗缂嶆垿鏌ｈ箛鏇炴灈闁哄本鐩俊鎼佸Ψ瑜忔闂備浇顕栭崰鎺楀焵椤掍焦鐏辨俊鎻掔墦閺屾洝绠涢妷褏锛熼梺鍛娒畷顒勫煘閹达附鍊烽柡澶嬪灩娴犳挳鎮楃憴鍕闁告挾鍠庨锝囩矙鎼存挻顫嶉梺闈涢獜缁辨洟宕㈤柆宥嗏拺闁荤喐澹嗘禒銏ゆ煕閻曚礁浜滈柍璇茬Т椤撳ジ宕卞Ο鍝勪紟濠电姷鏁告慨鎾疮椤栫偛桅婵犻潧鐗冮崑鎾舵喆閸曨剛顦ㄧ紓渚囧枟閹瑰洭鎮伴鈧獮妯兼嫚閼碱剦鍞洪柣搴＄畭閸庡崬煤閵堝鍚规い鎺戝€荤壕浠嬫煕鐏炴崘澹橀柍褜鍓熼ˉ鎾斥枎閵忋倖鏅搁柣妯垮皺閻涖儵姊洪崫鍕枆闁诲繑鍔橀妵鎰板箳閹炬枼鍋撴繝姘參婵☆垯璀﹀Σ娲煟濞戞牕鍔滅紒缁樼箞閹粙妫冨ù韬插灲閺屾稓鈧綆浜濋ˉ銏⑩偓瑙勬磸閸庢娊鍩€椤掑﹦绉靛ù婊冪埣閹垽宕卞☉娆忎化闁哄鍋炴刊浠嬵敆閻斿吋鐓曢幖娣灩閻忔挳鏌＄仦鍓р槈闁宠姘︾粻娑㈠籍閹寸儐妫ч梻鍌欑閻ゅ洭锝炴径鎰瀭闁秆勵殔缁犳牗绻涢崱妯诲碍缂佺嫏鍥ㄧ厵閻庣數顭堝皬濠碘剝顨嗛幐缁樼┍婵犲洦鍊锋い蹇撳閸嬫捇濡舵径濠傚亶闂佺粯鎸哥弧鍐洪鍛珖闂佺鏈銊╁蓟瑜旈弻锝夋偐閼姐倗绐楅梺闈涙閸嬫挸鈹戦埄鍐ㄧ祷闁绘鎹囧濠氬即閿涘嫮鏉告繝鐢靛仦閸庤櫕绂嶆ィ鍐╃叄闊浄绲芥禍鐐烘煛閸♀晛鐏︽慨濠傤煼瀹曟帒鈻庨幋顓熜滈梻浣告憸閸犲骸顭囬敓鐘靛祦闁哄稁鍙庨弫鍐煥閺囨浜剧紓浣哄Х婵炩偓闁绘搩鍋婂畷鍫曞Ω瑜夋慨鍥⒑缁嬫鍎忛柛濠傛贡閹广垹鈽夐姀鐘茶€垮┑掳鍊撻懗鍫曘€呴弶搴撴斀闁绘劕鐡ㄧ亸顓熴亜椤撶姴鍘存鐐插暙铻栭柛娑卞枟濞呮粓鏌熼悡搴ｆ憼缂佽鐗撳畷鎴澪旈埀顒勨€旈崘顔嘉ч柛娑卞弾閸斿顪冮妶鍐ㄥ闁挎洦浜滈锝嗙節濮橆厽娅栭梺鍛婃磸閸斿本绂嶆ィ鍐╃叆婵犻潧妫濋妤€霉濠婂嫮鐭掗柡宀嬬秬缁犳盯寮埀顒備焊閿曞倹鐓涢悘鐐电《閸嬫挸鐣烽崶銊︾暦闂佽鍑界紞鍡涘礈濞戙垺鍎婇柛顐犲劜閸婄敻鎮峰▎蹇擃仾缂佲偓閳ь剟鎮楃憴鍕闁告挾鍠栧畷娲閳╁啫鍔呴梺闈涚墕濞层劑寮堕幖浣光拺闁告繂瀚弳娆撴煕婵犲嫬鍘撮柡灞芥喘椤㈡稑顫濋敐鍡樻澑闂佸湱鍎ゆ繛濠傜暦閹邦儵鏃€鎷呴悷鏉夸紟闂備胶绮崹鐓幬涢崟顓烆棜濠电姵纰嶉悡鐔兼煙闁箑澧柟顖氱墦閺屾盯濡搁妷銉㈠亾閸ф钃熸繛鎴炵矤濡插ジ姊洪棃娑欏缂侇喗鎹囧畷娲焵椤掍降浜滈柟杈剧稻绾埖銇勯敂濂告闁靛洤瀚伴、鏇㈡晲閸モ晝鏆梻浣告贡閹虫挾鈧碍婢橀悾鐑筋敃閿曗偓缁€瀣亜閺冨倹鍤€濞存粓绠栭弻娑⑩€﹂幋婵囩亐闂佽　鍋撳ù鐘差儐閻撶喖鏌熼柇锕€澧紒鐙欏嫨浜滈柕澹啩妲愰梺鍝勬湰閻╊垶宕洪埄鍐╁闁告繂瀚烽弳顐︽⒑?
-const todayPnL = computed(() => {
-  // 濠电姷鏁告慨鐑藉极閸涘﹥鍙忛柣鎴ｆ閺嬩線鏌涘☉姗堟敾闁告瑥绻橀弻锝夊箣濠垫劖缍楅梺閫炲苯澧柛濠傛健楠炴劖绻濋崘顏嗗骄闂佸啿鎼鍥╃矓椤旈敮鍋撶憴鍕８闁告梹鍨甸锝夊醇閺囩偟顓哄┑鐘绘涧閻楀啴宕戦幘娲绘晣闁绘垵妫欑€靛矂姊洪棃娑氬闁硅櫕鍔楃划缁樺鐎涙鍘藉┑掳鍊愰崑鎾翠繆椤愶絿銆掗柛鎺撳浮瀹曞ジ濡烽妷鈺佹暪闂備胶绮Λ浣糕枍閿濆鍎婇柛顐犲劜閳锋帡鏌涚仦鐐殤濠⒀勭〒缁辨帞鈧綆鍋呯亸浼存煛閸涱厾鍩ｆ鐐叉喘閹囧醇閵忕姴绠為梻浣筋嚙閸戠晫绱為崱娑樼；闁告侗鍨悞濠冦亜閹捐泛鏋傚ù婊勭矋閵囧嫰骞囬崜浣瑰仹缂備胶濮烽崑鐐哄Φ閸曨垰顫呴柍钘夋嚀閳ь剙娼￠弻鐔碱敊鐟欏嫭鐝氶悗瑙勬礃閿曘垹鐣烽敐鍡楃窞閻忕偠妫勯惃銏㈢磽閸屾艾鈧悂宕愰幖浣哥９闁归棿绀佺壕鐟邦渻鐎ｎ亝鎹ｉ柣顓炴閵嗘帒顫濋敐鍛闁诲氦顫夊ú姗€宕濆▎蹇曟殾闁绘垹鐡旈弫鍥煟閺傛寧鍟炴い鏂挎处缁绘繂顕ラ柨瀣凡闁逞屽墯濞茬喎鐣烽鐑嗘晬婵椴稿▓楣冩⒑閸涘﹦鎳冩い锕佷含瀵囧焵椤掑嫭鈷掗柛灞炬皑婢ф稑銆掑顓ф疁鐎规洘娲濈粻娑㈠即閻樼绱查梻渚€鈧偛鑻晶瀵糕偓瑙勬礃閿曘垽銆佸▎鎾村仼閻忕偠妫勭粭姘舵⒒閸屾瑧顦﹂柟璇х磿閹广垽宕掑┃鎯т壕婵ê宕崢瀵糕偓瑙勬礃濞茬喖鐛€ｎ喗鍋愰柣銏㈩暜缁辨煡姊绘笟鈧埀顒傚仜閼活垱鏅剁€电硶鍋撶憴鍕鐎规洦鍓熼崺銉﹀緞婵炵偓鐎婚柣蹇曞仦閸庢娊顢旈悜妯肩瘈闁汇垽娼ф禒鈺呮煙濞茶绨界€垫澘锕ョ粋鎺斺偓锝庝簽椤旀劕顪冮妶鍡楀Ё缂佺姵鍨圭划鍫熷緞閹邦厾鍙嗛梺鍝勬川閸嬫盯鍩€椤掆偓缂嶅﹪骞冮垾鏂ユ闁靛骏绱曢崢鍗炩攽閻愭潙鐏ョ€规洦鍓熷鎼佸Χ閸℃瑧顔曢梺鍛婄懃椤︽壆浜搁敃鍌涚厸鐎光偓閳ь剟宕伴弽顓溾偓浣糕枎閹炬緞鈺呮煏婢舵盯妾柟顔界懇閹鎮烽悧鍫濇殘缂備浇顕ч崯瀛樹繆閻㈢绀嬫い鏍ㄨ壘閸炪劑姊洪棃娴ゆ盯宕ㄩ娑欘啌闂備浇顕х换鎰崲閹邦喗宕查柟瀵稿仧閳瑰秴鈹戦悩鍙夊闁稿﹪鏀遍妵鍕疀閹炬剚浠遍梺绋款儐閹瑰洤顕ｆ禒瀣垫晣闁绘劖顔栭崬鍫曟⒒娴ｇ顥忛柛瀣噹鐓ら柡宥庡幖閸ㄥ倿鏌涚仦鍓с€掔紒鐘插⒔閳ь剛鎳撴竟濠囧窗閺囩姾濮冲┑鐘崇閻?420.50 USDT
-  return 420.50;
-});
-
-const todayPnLPercent = computed(() => {
-  // 濠电姷鏁告慨鐑藉极閸涘﹥鍙忛柣鎴ｆ閺嬩線鏌涘☉姗堟敾闁告瑥绻橀弻锝夊箣濠垫劖缍楅梺閫炲苯澧柛濠傛健楠炴劖绻濋崘顏嗗骄闂佸啿鎼鍥╃矓椤旈敮鍋撶憴鍕８闁告梹鍨甸锝夊醇閺囩偟顓哄┑鐘绘涧閻楀啴宕戦幘娲绘晣闁绘垵妫欑€靛矂姊洪棃娑氬闁硅櫕鍔楃划缁樺鐎涙鍘藉┑掳鍊愰崑鎾翠繆椤愶絿銆掗柛鎺撳浮瀹曞ジ濡烽妷鈺佹暪闂備胶绮Λ浣糕枍閿濆鍎婇柛顐犲劜閳锋帡鏌涚仦鐐殤濠⒀勭〒缁辨帞鈧綆鍋呯亸浼存煛閸涱厾鍩ｆ鐐叉喘閹囧醇閵忕姴绠為梻浣筋嚙閸戠晫绱為崱娑樼；闁告侗鍨悞濠冦亜閹捐泛鏋傚ù婊勭矋閵囧嫰骞囬崜浣瑰仹缂備胶濮烽崑鐐哄Φ閸曨垰顫呴柍钘夋嚀閳ь剙娼￠弻鐔碱敊鐟欏嫭鐝氶悗瑙勬礃閿曘垹鐣烽敐鍡楃窞閻忕偠妫勯惃銏㈢磽閸屾艾鈧悂宕愰幖浣哥９闁归棿绀佺壕鐟邦渻鐎ｎ亝鎹ｉ柣顓炴閵嗘帒顫濋敐鍛闁诲氦顫夊ú姗€宕濆▎蹇曟殾闁绘垹鐡旈弫鍥煟閺傛寧鍟炴い鏂挎处缁绘繂顕ラ柨瀣凡闁逞屽墯濞茬喎鐣烽鐑嗘晬婵椴稿▓楣冩⒑閸涘﹦鎳冩い锕佷含瀵囧焵椤掑嫭鈷掗柛灞炬皑婢ф稑銆掑顓ф疁鐎规洘娲濈粻娑㈠即閻樼绱查梻渚€鈧偛鑻晶瀵糕偓瑙勬礃閿曘垽銆佸▎鎾村仼閻忕偠妫勭粭姘舵⒒閸屾瑧顦﹂柟璇х磿閹广垽宕掑┃鎯т壕婵ê宕崢瀵糕偓瑙勬礃濞茬喖鐛€ｎ喗鍋愰柣銏㈩暜缁辨煡姊绘笟鈧埀顒傚仜閼活垱鏅剁€电硶鍋撶憴鍕鐎规洦鍓熼崺銉﹀緞婵炵偓鐎婚柣蹇曞仦閸庢娊顢旈悜妯肩瘈闁汇垽娼ф禒鈺呮煙濞茶绨界€垫澘锕ョ粋鎺斺偓锝庝簽椤旀劕顪冮妶鍡楀Ё缂佺姵鍨圭划鍫熷緞閹邦厾鍙嗛梺鍝勬川閸嬫盯鍩€椤掆偓缂嶅﹪骞冮垾鏂ユ闁靛骏绱曢崢鍗炩攽閻愭潙鐏ョ€规洦鍓熷鎼佸Χ閸℃瑧顔曢梺鍛婄懃椤︽壆浜搁敃鍌涚厸鐎光偓閳ь剟宕伴弽顓溾偓浣糕枎閹炬緞鈺呮煏婢舵盯妾柟顔界懇閹鎮烽悧鍫濇殘缂備浇顕ч崯瀛樹繆閻㈢绀嬫い鏍ㄨ壘閸炪劑姊洪棃娴ゆ盯宕ㄩ娑欘啌闂備浇顕х换鎰崲閹邦喗宕查柟瀵稿仧閳瑰秴鈹戦悩鍙夊闁稿﹪鏀遍妵鍕疀閹炬剚浠遍梺绋款儐閹瑰洤顕ｆ禒瀣垫晣闁绘劖顔栭崬鍫曟⒒娴ｇ顥忛柛瀣噹鐓ら柡宥庡幖閸ㄥ倿鏌涚仦鍓с€掔紒鐘插⒔閳ь剛鎳撴竟濠囧窗閺囩姾濮抽柤濮愬€楀Λ顖炴煙鐟欏嫬濮堢痪顓炵埣閺屽秷顧侀柛鎾寸懇瀹曘垹顭ㄩ崼婵堬紱闂佺懓澧界划顖炴偂閺囥垺鐓涢柛銉ｅ劚婵＄厧顭胯閸楁娊寮诲☉姗嗘建闁逞屽墮椤洩顦归柍銉︽瀹曟﹢顢欓崲澹洦鐓曢柍鈺佸暟閹冲啴鏌嶉鍡樺殌闁宠鍨块崺銉╁幢濡炲墽鍑规俊鐐€戦崝宀勬晝閵堝鍋╅柣鎴犵摂閺佸秵绻涢幋鐑囦緵闁搞們鍊濆娲传閸曞灚效闂佹悶鍔岀紞濠傜暦濠靛鏅濋柍褜鍓熼垾鏃堝礃椤斿槈褔鏌涢埄鍐炬畼闁荤喆鍔戝铏圭矙閸栵繝绶撮悗瑙勬礈閺佽顕ｉ锔绘晩閻忓繑鐗楅～宥夋⒑闂堟盯鐛滅紒杈ㄦ礋瀹曘垽宕归銈囶啎闂佺懓澧介ˉ鎰珶濮椻偓閺岋綀绠涢弮鍌滅暫闂侀€涚┒閸旀垵鐣烽幒妤佸€烽悗鐢殿焾楠炴劕鈹戦悙鑸靛涧缂佹彃娼￠獮濠囧箻鐎涙ê寮块悗骞垮劚濞茬娀宕戦幘鑸靛枂闁告洦鍓涢ˇ銉╂倵鐟欏嫭澶勯柛鎾跺枛閺佹劙鎮欏顔惧弳闂佸壊鍋呯换鍌炴嚀閸喒鏀芥い鏃傜摂濞堟梹淇婇锝囨噰閽樼喖鏌曡箛瀣伄缁?1.25%
-  return 1.25;
-});
-
-// 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁惧墽鎳撻—鍐偓锝庝簼閹癸綁鏌ｉ鐐搭棞闁靛棙甯掗～婵嬫晲閸涱剙顥氬┑掳鍊楁慨鐑藉磻閻愮儤鍋嬮柣妯荤湽閳ь兛绶氬鎾閻樻爠鍥ㄧ厱閻忕偛澧介悡顖氼熆鐟欏嫭绀€闁宠鍨块、娆戠驳鐎ｎ剙濮洪梻浣告啞椤棝宕熼浣哄娇婵＄偑鍊栭悧婊堝磻閻愮儤鍋傛繛鎴欏灪閻撴洘绻涢幋鐐垫噭缂佽埖鐓￠弻锝夊箻閺夋垵顫庣紓浣介哺鐢€崇暦閹烘垟妲堟俊顖溾拡閸庡矂姊绘笟鈧埀顒傚仜閼活垱鏅堕崜褏纾界€广儱鎳忛ˉ銏ゆ煕閳规儳浜炬俊鐐€栫敮鎺椝囬姘煎殨闁秆勵殕閳锋帡鏌涢弴銊ヤ簻妞ゅ浚鍘介〃銉╂倷閼碱剙鈪垫繝纰樺墲閹倹淇婇悜绛嬫晩闁芥ê顦辩槐锕傛⒒閸屾瑨鍏岀痪顓炵埣瀹曟粌鈹戠€ｃ劉鍋撻崘顔煎窛妞ゆ牗绮堢粭澶愭煟閻樺弶鎼愭俊顖氾工閵嗘帗绻濆顓犲帾闂佸壊鍋呯换鍌炲焵椤掑倹鍤€闁宠绉瑰畷銊р偓娑欘焽閸橀亶姊洪棃娑㈢崪缂佽鲸娲熷畷锝夊焵椤掑嫭鈷戠紒顖涙礃濞呭洭鏌涚€ｃ劌鈧繈鎮伴閿亾閿濆骸鏋熼柡鍛矒閺岋箑螣娓氼垱啸濠殿喛顫夐〃濠傤潖缂佹ɑ濯撮柛娑橈龚绾偓缂傚倷绶￠崳顕€宕归幎钘夋瀬妞ゆ柨妲堥弮鍫濈劦妞ゆ帒瀚悡婵嬫煙閹规劦鍤欓柦鍐枛閺屾洘寰勫☉婊冩倕闂佸綊鏀卞钘夘潖濞差亜鎹舵い鎾楀懎濮兼繝鐢靛仜椤曨參宕楀鈧畷娲Ψ閿曗偓缁剁偤鎮楅敐鍐ㄥ缂併劌顭峰娲箰鎼粹懇鎷婚梺绋款儐閹瑰洤顕ｉ幎绛嬫晢闁稿本顨呮禍鐐箾閸繄浠㈤柡瀣⊕閵囧嫰顢橀悩鎻掑箣閻庢鍣崑濠囩嵁閸ヮ剦鏁囬柣鎰暩閻涱喖鈹戦悩鍨毄濠殿喖顕埀顒佸嚬閸撶喖鎮伴鈧獮鍥敄閼恒儲鏉搁梻浣虹帛閸旀﹢宕洪弽顑句汗鐟滃繒妲愰幒妤冨彄妞ゆ挾濮烽悡鎾澄旈悩闈涗沪闁绘濞€閵嗕線寮撮姀鈩冩珕闁荤偞绋堥埀顒€鍘栨竟鏇㈡⒑缁嬭法鐏遍柛瀣洴楠炴垿鎳滈悙閫涚盎闂佽宕樺▔娑樻毄闂?
-const displayTodayPnL = computed(() => {
-  if (!assetStore.isWalletConnected) {
-    return '---';
-  }
-  if (isPrivacyMode.value) {
-    return '****';
-  }
-  const sign = todayPnL.value >= 0 ? '+' : '';
-  return `${sign}$${Math.abs(todayPnL.value).toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  })}`;
-});
-
-// 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁惧墽鎳撻—鍐偓锝庝簼閹癸綁鏌ｉ鐐搭棞闁靛棙甯掗～婵嬫晲閸涱剙顥氬┑掳鍊楁慨鐑藉磻閻愮儤鍋嬮柣妯荤湽閳ь兛绶氬鎾閻樻爠鍥ㄧ厱閻忕偛澧介悡顖氼熆鐟欏嫭绀€闁宠鍨块、娆戠驳鐎ｎ剙濮洪梻浣告啞椤棝宕熼浣哄娇婵＄偑鍊栭悧婊堝磻閻愮儤鍋傛繛鎴欏灪閻撴洘绻涢幋鐐垫噭缂佽埖鐓￠弻锝夊箻閺夋垵顫庣紓浣介哺鐢€崇暦閹烘垟妲堟俊顖溾拡閸庡矂姊绘笟鈧埀顒傚仜閼活垱鏅堕崜褏纾界€广儱鎳忛ˉ銏ゆ煕閳规儳浜炬俊鐐€栫敮鎺椝囬姘煎殨闁秆勵殕閳锋帡鏌涢弴銊ヤ簻妞ゅ浚鍘介〃銉╂倷閼碱剙鈪垫繝纰樺墲閹倹淇婇悜绛嬫晩闁芥ê顦辩槐锕傛⒒閸屾瑨鍏岀痪顓炵埣瀹曟粌鈹戠€ｃ劉鍋撻崘顔煎窛妞ゆ牗绮堢粭澶愭煟閻樺弶鎼愭俊顖氾工閵嗘帗绻濆顓犲帾闂佸壊鍋呯换鍌炲焵椤掑倹鍤€闁宠绉瑰畷銊р偓娑欘焽閸橀亶姊洪棃娑㈢崪缂佽鲸娲熷畷锝夊焵椤掑嫭鈷戠紒顖涙礃濞呭洭鏌涚€ｃ劌鈧繈鎮伴閿亾閿濆骸鏋熼柡鍛矒閺岋箑螣娓氼垱啸濠殿喛顫夐〃濠傤潖缂佹ɑ濯撮柛娑橈龚绾偓缂傚倷绶￠崳顕€宕归幎钘夋瀬妞ゆ柨妲堥弮鍫濈劦妞ゆ帒瀚悡婵嬫煙閹规劦鍤欓柦鍐枛閺屾洘寰勫☉婊冩倕闂佸綊鏀卞钘夘潖濞差亜鎹舵い鎾楀懎濮兼繝鐢靛仜椤曨參宕楀鈧畷娲Ψ閿曗偓缁剁偤鎮楅敐鍐ㄥ缂併劌顭峰娲箰鎼粹懇鎷婚梺绋款儐閹瑰洤顕ｉ幎绛嬫晢闁稿本顨呮禍鐐箾閸繄浠㈤柡瀣⊕閵囧嫰顢橀悩鎻掑箣閻庢鍣崑濠囩嵁閸ヮ剦鏁囬柣鎰暩閻涱喖鈹戦悩鍨毄濠殿喖顕埀顒佸嚬閸撶喖鎮伴鈧獮鍥敄閼恒儲鏉搁梻浣虹帛閸旀﹢宕洪弽顑句汗鐟滃繒妲愰幒妤冨彄妞ゆ挾濮烽悡鎾澄旈悩闈涗沪闁绘濞€閵嗕線寮撮姀鈩冩珕闁荤偞绋堥埀顒€鍘栨竟鏇㈡⒑缁嬭法鐏遍柛瀣洴楠炴垿鎳滈悙閫涚盎闂佽宕樺▔娑樻毄闂備焦瀵х粙鎺旀崲閸愵亝宕叉繛鎴欏灩缁犺崵鐥幆褜鍎忔い銉︾箓閳规垿鎮欓懠顒佸嬀闂佸憡姊归崹鐢告偩閻戣棄顫呴柣姗嗗亝椤秹姊洪棃娑㈢崪缂佽鲸娲熷畷銏ゅ础閻愨晜鏂€闂佺粯鍔曞鍫曀夊鍛＜缂備焦锚婵秶鈧鍠楁繛濠囧极閹版澘骞㈤柍鍝勫亞閸熷秹姊绘担铏瑰笡闁告梹娲栭锝夊醇閺団偓婢舵劕顫呴柍鍨涙櫅娴滈箖鎮峰▎蹇擃仾缂佲偓閸愵喗鍋ㄦい鏍ュ€楃弧鈧Δ鐘靛仜閸燁偊鍩㈡惔銊ョ闁哄鍨堕缁樹繆閻愵亜鈧牜鏁幒妤€纾归柣鐔兼緩閹烘挻鍎熼柕濠忚吂閹锋椽姊洪悡搴綗闁稿﹥娲熷鎼佸箣閻樼數锛滃銈嗘閸嬫劙鎮樻潏鈺冪＜妞ゆ棁濮らˉ鍡涙煏閸ャ劌濮嶆鐐村浮楠炲鎮╅崹顐ｇ槖婵犵數濮撮惀澶愬级鎼存挸浜鹃柡鍥ュ灩閻ゎ噣鏌熷▓鍨灈妞ゃ儲宀搁弻娑滅疀濞戞瑱绱电紓浣筋嚙濡瑩濡甸崟顖氬唨闁靛ě鍜佸悑闂備焦鎮堕崐鏍偡瑜旈崺鈧?
-const displayTodayPnLPercent = computed(() => {
-  if (!assetStore.isWalletConnected) {
-    return '';
-  }
-  if (isPrivacyMode.value) {
-    return '';
-  }
-  const sign = todayPnLPercent.value >= 0 ? '+' : '';
-  return `${sign}${Math.abs(todayPnLPercent.value).toFixed(2)}%`;
-});
-
-// 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁惧墽鎳撻—鍐偓锝庝簼閹癸綁鏌ｉ鐐搭棞闁靛棙甯掗～婵嬫晲閸涱剙顥氬┑掳鍊楁慨鐑藉磻閻愮儤鍋嬮柣妯荤湽閳ь兛绶氬鎾閻樻爠鍥ㄧ厱閻忕偛澧介悡顖氼熆鐟欏嫭绀€闁宠鍨块、娆戠驳鐎ｎ剙濮洪梻浣告啞椤棝宕熼浣哄娇婵＄偑鍊栭悧婊堝磻閻愮儤鍋傛繛鎴欏灪閻撴洘绻涢幋鐐垫噭缂佽埖鐓￠弻锝夊箻閺夋垵顫庣紓浣介哺鐢€崇暦閹烘垟妲堟俊顖溾拡閸庡矂姊绘笟鈧埀顒傚仜閼活垱鏅堕崜褏纾界€广儱鎳忛ˉ銏ゆ煕閳规儳浜炬俊鐐€栫敮鎺椝囬姘煎殨闁秆勵殕閳锋帡鏌涢弴銊ヤ簻妞ゅ浚鍘介〃銉╂倷閼碱剙鈪垫繝纰樺墲閹倹淇婇柨瀣劅闁挎繂鎳忛悘鍫ユ倵鐟欏嫭绀€缂傚秴锕妴浣糕枎閹惧磭鐣鹃悷婊冪Ф缁辨挸顫濋懜纰樻嫽闂佺鏈悷銊╁礂鐏炰勘浜滄い鎾跺仧婢э附銇勯姀锛勫⒌鐎规洖宕埢搴ㄥ箛椤掆偓缁ㄣ儵姊绘担绋款棌闁稿绶氬畷鏇㈡焼瀹ュ棗鐝旈梺缁樻煥閸氬鎮￠悢鍏肩厸闁告劑鍔庢晶杈ㄤ繆椤愶絽鐏撮柡宀嬬節瀹曞崬螖婵犲倸澹庨梻浣告惈閻寰婇崐鐔轰簷闂備線鈧偛鑻晶鎾煙椤斻劌瀚弧鈧梺鎼炲劀閸滀礁鏁搁梻鍌氬€风欢锟犲礈濞嗘垹鐭撻柣銏㈩焾绾惧鏌嶉埡浣告殶缂佲檧鍋撳┑鐘垫暩婵挳宕愯ぐ鎺戦棷閻熸瑥瀚ㄦ禍婊堟煥濠靛棙鍣烽柛瀣ㄥ灲閺屸€崇暆鐎ｎ剛袦闂佺硶鏂侀崜婵堟崲濠靛纾兼繝濞惧亾婵℃鎸绘穱濠囧Χ閸ヮ灝銉╂煕鐎ｎ偆娲寸€规洦鍨堕獮搴ㄦ寠婢光晪绠撻弻鐔兼偋閸喓鍑＄紓浣哄У婵炲﹪寮婚悢琛″亾閻㈡鐒鹃崯鎼佹⒑閸濆嫷妲归柟顔煎€搁～蹇曠磼濡顎撶紓浣割儐椤戞瑥螞瀹€鍕拺缂佸顑欓崕蹇涙煙閸愬弶鎹ｉ柛娆忔噹閳规垿顢欐慨鎰捕闂佺顑嗛幐濠氬Φ閸曨垰顫呴柍鈺佸暙绾板秴顪冮妶鍡樺碍闁告艾顑呴銉╁礋椤撴稑浜鹃柨娑樺船鐎氼剟顢旈崷顓犵＝闁稿本鑹鹃埀顒勵棑濞嗐垽鏁撻悩鎻掔€梺鍛婎殘娴兼繈宕崟搴ｅ枔閹即鍩勯崘顏佸亾濞差亝鈷戠紒顖涙礀婢ф煡鏌ｉ悢婵嗘噹椤ユ艾鈹戦崒姘暈闁稿﹦鏁婚弻銊モ攽閸℃侗鈧霉濠婂嫮鐭岀紒杈ㄥ笒椤啴鏁冮埀顒勫箠閹邦喖顥氶柛蹇曨儠娴滄粓鏌￠崘銊モ偓鐢稿箯閿熺姵鐓曢幖娣灪閳锋劖銇勯妸锝呭姦闁诡喗鐟╁鍫曞箣閻愬墎妾ㄥ┑掳鍊楁慨鐑藉磻濞戙埄鏁勫鑸靛姇缁犳牠鏌嶉崫鍕櫤闁诡垳鍋為妵鍕箛閳轰讲鍋撻弽褜鐔嗛柟鍓х帛閳锋帡鏌涚仦鎹愬闁逞屽墴椤ユ挾鍒掗崼鐔稿闁惧繐婀遍ˇ顖涚節閻㈤潧孝闁稿妫濋幃鐐烘偩鐏炴儳鏋戦梺鍝勫€藉▔鏇㈠汲閿斿浜滈柡宥庡亜娴犳粎绱掗悩鍗炲祮妤犵偞鐗楀蹇涘礈瑜忔牎婵?
-const displaySpotValue = computed(() => {
-  if (!assetStore.isWalletConnected) {
-    return '---';
-  }
-  if (isPrivacyMode.value) {
-    return '****';
-  }
-  return spotAccountValue.value.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }) + ' USDT';
-});
-
-// 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁惧墽鎳撻—鍐偓锝庝簼閹癸綁鏌ｉ鐐搭棞闁靛棙甯掗～婵嬫晲閸涱剙顥氬┑掳鍊楁慨鐑藉磻閻愮儤鍋嬮柣妯荤湽閳ь兛绶氬鎾閻樻爠鍥ㄧ厱閻忕偛澧介悡顖氼熆鐟欏嫭绀€闁宠鍨块、娆戠驳鐎ｎ剙濮洪梻浣告啞椤棝宕熼浣哄娇婵＄偑鍊栭悧婊堝磻閻愮儤鍋傛繛鎴欏灪閻撴洘绻涢幋鐐垫噭缂佽埖鐓￠弻锝夊箻閺夋垵顫庣紓浣介哺鐢€崇暦閹烘垟妲堟俊顖溾拡閸庡矂姊绘笟鈧埀顒傚仜閼活垱鏅堕崜褏纾界€广儱鎳忛ˉ銏ゆ煕閳规儳浜炬俊鐐€栫敮鎺椝囬姘煎殨闁秆勵殕閳锋帡鏌涢弴銊ヤ簻妞ゅ浚鍘介〃銉╂倷閼碱剙鈪垫繝纰樺墲閹倹淇婇柨瀣劅闁挎繂鎳忛悘鍫ユ倵鐟欏嫭绀堟い顓炵墣閻忓啴姊洪柅鐐茶嫰婢у瓨顨ラ悙鎼疁闁诡喕绮欏畷銊︾節閸曨偄绠洪梻鍌氼煬閸嬪嫬煤閿曞倸绠伴柛鎾楀懍绗夋繛瀵稿帶閻°劑宕愰崹顐ょ闁瑰鍋涚粭姘箾閸涱叏鏀绘い銊ｅ劦閹瑩鎳犻鈧埅鍨節绾版ê澧查柟顔煎€规穱濠囨倻缁涘鏅╅梺鑺ッˇ杈╂閿曞倹鈷掗柛灞剧懆閸忓瞼鐥鐐靛煟鐎规洘绮岄埞鎴犫偓锝冨妷閸嬫捇宕橀鐓庣獩闁哄鐗嗘晶鐣岀矙韫囨搩娓婚柕鍫濇婵倿鏌涢埡浣割仼闁靛棙甯楃换婵嗩潩椤撶姴甯鹃梻浣稿閸嬪懐鎹㈤崘顔奸棷闁伙絽鐬肩壕濂告煟濡櫣锛嶉柛娆屽亾闂備礁鎼惌澶岀礊娓氣偓閻涱喖鈻庨幘宕囶槹濡炪倖鎸炬慨宄拔ｉ崶銊ょ箚闁靛牆娲ゅ暩闂佺顑嗛惄顖氱暦椤栫偛绠柦妯猴級閿曞倹鐓欓柣妤€鐗婄欢鑼磼閻樺啿鈻曢柡宀€鍠撻埀顒傛暩椤牆鏆╅梻浣告惈椤︿即骞冮崒姘兼綎缂備焦蓱婵绱掔€ｎ偒鍎ユ俊顐㈢焸濮婅櫣绮欏▎鎯у壈闂佺懓鍟垮ù鐑藉矗閸涱厸鏀芥い鏂款潟娴犳粓鏌涚€ｎ偅灏伴柕鍥у婵偓闁斥晛鍟喊宥咁渻閵堝棙灏柛姘儏椤曘儵宕熼娑樹壕闁挎稑宕€氼剟顢旈崷顓犵＝闁稿本鑹鹃埀顒勵棑濞嗐垽鏁撻悩鎻掔€梺鍛婎殘娴兼繈宕崟搴ｅ枔閹即鍩勯崘顏佸亾濞差亝鈷戠紒顖涙礀婢ф煡鏌ｉ悢婵嗘噹椤ユ艾鈹戦崒姘暈闁稿﹦鏁婚弻銊モ攽閸℃侗鈧霉濠婂嫮鐭岀紒杈ㄥ笒椤啴鏁冮埀顒勫箠閹邦喖顥氶柛蹇曨儠娴滄粓鏌￠崘銊モ偓鐢稿箯閿熺姵鐓曢幖娣灪閳锋劖銇勯妸锝呭姦闁诡喗鐟╁鍫曞箣閻愬墎妾ㄥ┑掳鍊楁慨鐑藉磻濞戙埄鏁勫鑸靛姇缁犳牠鏌嶉崫鍕櫤闁诡垳鍋為妵鍕箛閳轰讲鍋撻弽褜鐔嗛柟鍓х帛閳锋帡鏌涚仦鎹愬闁逞屽墴椤ユ挾鍒掗崼鐔稿闁惧繐婀遍ˇ顖涚節閻㈤潧孝闁稿妫濋幃鐐烘偩鐏炴儳鏋戦梺鍝勫€藉▔鏇㈠汲閿斿浜滈柡宥庡亜娴犳粎绱掗悩鍗炲祮妤犵偞鐗楀蹇涘礈瑜忔牎婵?
-const displayEarnValue = computed(() => {
-  if (!assetStore.isWalletConnected) {
-    return '---';
-  }
-  if (isPrivacyMode.value) {
-    return '****';
-  }
-  return earnAccountValue.value.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }) + ' USDT';
-});
-
-// 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁惧墽鎳撻—鍐偓锝庝簼閹癸綁鏌ｉ鐐搭棞闁靛棙甯掗～婵嬫晲閸涱剙顥氬┑掳鍊楁慨鐑藉磻閻愮儤鍋嬮柣妯荤湽閳ь兛绶氬鎾閻樻爠鍥ㄧ厱閻忕偛澧介悡顖氼熆鐟欏嫭绀€闁宠鍨块、娆戠驳鐎ｎ剙濮洪梻浣告啞椤棝宕熼浣哄娇婵＄偑鍊栭悧婊堝磻閻愮儤鍋傛繛鎴欏灪閻撴洘绻涢幋鐐垫噭缂佽埖鐓￠弻锝夊箻閺夋垵顫庣紓浣介哺鐢€崇暦閹烘垟妲堟俊顖溾拡閸庡矂姊绘笟鈧埀顒傚仜閼活垱鏅堕崜褏纾界€广儱鎳忛ˉ銏ゆ煕閳规儳浜?IEO 闂傚倸鍊搁崐鎼佸磹閹间礁纾圭€瑰嫭鍣磋ぐ鎺戠倞妞ゆ帒顦伴弲顏堟偡濠婂啴鍙勯柕鍡楀暣婵＄兘鍩℃担渚晣濠电偠鎻徊鍧楀箠閹捐鐒垫い鎺戝暙閻撴劙鏌熸笟鍨妞ゎ偅绮撳畷鍗炍旈埀顒勫煕閹烘鈷戠紓浣股戦悡銉︿繆椤愶絿鎳囨鐐茬墦婵℃悂濡烽钘夌槣闂佽崵濮村ú鈺侇嚕閹惧鐝堕柡鍥╁枍缁诲棝鏌曢崼婵囨悙閸熸悂姊虹粙娆惧剱闁烩晩鍨跺顐﹀礃椤曞懏鏅滈梺鍓插亖閸ㄥ湱绮婇敃鈧埞鎴﹀煡閸℃浠╅梺鍛婅壘椤戝洭鍩€椤掍胶顣茬€光偓閹间礁钃熺€广儱顦悡娑樏归敐鍛暈婵炲牊鐓″鐑樺濞嗗浚娲梺绋款儍閸婃洟锝炶箛鏃傜瘈婵﹩鍓涢敍婊冣攽椤旀枻渚涢柛蹇旓耿瀹曟垿骞樼拠鑼啇婵炶揪绲介幗婊堟晬濞嗘劒绻嗛柣鎰▕閸庡繑绻涚€电鍘撮柟顖氱焸瀹曞崬顪冪亸鏍т壕闁圭儤鍩堝鈺呮煥濠靛棙鍣稿瑙勬礀閳规垿鎮╁▓鎸庢缂備胶绮换鍌炩€﹂崶顏嶆▉闂佽绻戠敮妤冩崲濞戙垹绠婚柡澶嬪灥濮ｅ牓姊洪幖鐐插濞存粠鍓熼崺鈧い鎺戝濞懷囨煟椤撶偛鈧悂锝炶箛鎾佹椽顢旈崟顒€绁舵俊鐐€栭幐楣冨磻濞戞瑤绻嗛柛婵嗗濞撳鏌曢崼婵嗘殭濠碘€冲悑娣囧﹪顢曢敐鍥╃暤闂佷紮绲块崗姗€鐛€ｎ亖鏀介柛鎰ㄦ櫆閺夋悂姊绘担瑙勫仩闁稿寒鍨跺畷鏇㈠箥椤斿灝小婵犵數濮电喊宥夊煕閹达附鐓曟繝闈涙椤忣偊鏌嶇拠宸█闁哄本绋撻埀顒婄秵娴滄粓顢旈鍡欑＜闁稿本绋戠粭鎺撱亜椤撴粌濮傜€规洏鍔戦、娑樷槈瀹曞洨顢?
-const displayIDOValue = computed(() => {
-  if (!assetStore.isWalletConnected) {
-    return '---';
-  }
-  if (isPrivacyMode.value) {
-    return '****';
-  }
-  return idoPendingValue.value.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }) + ' USDT';
-});
-
-// 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁惧墽鎳撻—鍐偓锝庝簼閹癸綁鏌ｉ鐐搭棞闁靛棙甯掗～婵嬫晲閸涱剙顥氬┑掳鍊楁慨鐑藉磻閻愮儤鍋嬮柣妯荤湽閳ь兛绶氬鎾閻樻爠鍥ㄧ厱闁靛鍨哄▍鍥煕濡厧鈻堟慨濠勭帛閹峰懘鎼归悷鎵偧闂備焦鎮堕崝宀勬偉閻撳寒鍤曢柟闂寸劍閸ゆ帡鏌曢崼婵囧窛妞わ富鍨跺娲传閸曨喚妾ㄩ悗鍏夊亾闁逞屽墴瀹曨剟鎮介崨濠勫幗闂佺粯顭囬崕銈夘敂閻樼粯鍊堕煫鍥ь儏婵倻鈧娲樼换鍫ュ箖閵忋倕绀傞柤娴嬫櫅楠?query 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁惧墽鎳撻—鍐偓锝庝簼閹癸綁鏌ｉ鐐搭棞闁靛棙甯掗～婵嬫晲閸涱剙顥氬┑掳鍊楁慨鐑藉磻濞戔懞鍥偨缁嬫寧鐎梺鐟板⒔缁垶宕戦幇鐗堢厱闁归偊鍨扮槐锕傛煟閵忕媭鐓兼慨濠勭帛缁楃喖鍩€椤掆偓椤洩顦归挊婵囥亜閹板墎鐣遍柣銈囧亾缁绘盯骞嬮悙璺侯棟濡炪們鍎插畝鎼佸蓟濞戙垺鏅滈悹鍥ㄥ絻缁犳椽姊洪崫銉バｉ柛鏃€鐟╁濠氭晲閸涘倹妫冮崺鈧い鎺戝閸嬪鏌涢埄鍐噮缂佺姵妫冮弻鐔兼倻濡闉嶉梺鍛婄懃缁绘﹢骞冨畡鎵虫瀻闊洦鎼╂导鈧梻浣告啞閻熴垽宕戦幘缁樷拻濞达絽鎲￠幆鍫ユ煟椤撶儐妲虹紒杈╁仦閹峰懘宕滈幓鎺擃吙婵＄偑鍊栫敮鎺斺偓姘煎墴瀹曞綊宕掑☉鏍︾盎闂佸搫鍟ú锕偹夋径鎰厓鐟滄粓宕滈敃鍌氬瀭閻犺桨璀﹀鏍ㄧ箾瀹割喕绨荤紒鐘茬秺閺岋綁骞囬鐘仦闂佺顑嗛幑鍥ь嚕閹绢喖顫呴柍鈺佸暞閻濇牠姊绘笟鈧褔藝椤愶箑鐤炬繛鎴炵懐閺€浼存⒒閸屾瑧顦﹂柟娴嬧偓瓒佹椽鏁冮崒姘辩崶濠殿喗顭堥崺鏍磻椤忓牊鐓冪憸婊堝礈閻斿娼栨繛宸簻閹硅埖銇勯幘璺轰粧濠㈣娲熷娲川婵犲啫闉嶇紒鐐緲缁夊墎鍒掔€ｎ喖绠抽柟鎯х埣濡绢噣姊洪崨濠勨槈闁挎洏鍊栫粋鎺楀煛娴ｅ弶鏂€濡炪倖姊婚悡顐︻敂閸曨厽娈惧銈嗗笒鐎氼剟宕欓悩宕囩闁瑰鍋熼幊鍕煕濞嗗繒绠伴柍瑙勫灴閹晠骞撻幒鎾搭唹闂備線娼уú锔炬崲閸曨垰鐒垫い鎺戝枤濞兼劖绻涢幓鎺旂鐎规洘绻傞濂稿炊閵娿儱绨ユ繝鐢靛█濞佳囶敄閸涱垰顥氶柛蹇氬亹缁♀偓婵犵數濮撮崐褰掑闯濞差亝鐓曢柨婵嗛閻忕娀鏌嶇憴鍕伌闁诡喒鏅犲畷褰掝敃閿濆棛妲戦梻鍌欒兌椤牓顢栭崶銊х闁逞屽墯閵囧嫰濮€闄囨竟妯汇亜椤撴粌濮傜€规洏鍔戦、娑樷枎閹寸姵鍠掗梻鍌氬€烽懗鍫曘€佹繝鍥х妞ゅ繐鐗婇埛鏃堟煕閺囥劌鐏犵痪?Tab 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁炬儳缍婇弻锝夊箣閿濆憛鎾绘煕婵犲倹鍋ラ柡灞诲姂瀵挳鎮欏ù瀣壕鐟滅増甯掔壕鍧楁煙鐎电校闁哥姵鍔欓弻锝呂旈埀顒勬偋閸℃瑧绠旈柟鐑樻⒒绾惧ジ鏌嶈閸撴艾顕ラ崟顓濇勃缂佸銇樻竟鏇㈡⒑缁嬭法绠版い锔诲灡缁傚秵銈ｉ崘鈹炬嫼闂備緡鍋嗛崑娑㈡嚐椤栨稒娅犻柟缁㈠枟閻撴洟鏌嶇憴鍕姢濞存粎鍋撴穱濠囨倷椤忓嫧鍋撻弽顐ｆ殰濠电姴瀚惌鍡椼€掑锝呬壕閻庤娲滈弫濠氥€佸Δ鍛妞ゆ帒鍊搁獮鍫ユ⒒娴ｇ瓔娼愮€规洘锚閳绘柨鈽夐姀鐘插殤闁瑰吋鐣崝宥夋偂閻斿吋鐓ユ繝闈涙閹兼劙鏌涘Ο缁樺唉闁哄瞼鍠栭、娆撴嚒閵堝洨鍘柣搴ゎ潐濞插繘宕濆鍥ㄥ床婵犻潧顑呯粈瀣亜閹般劍鍤曢柨鏇炲€归埛鎴︽偣閸ャ劎鍙€妞ゅ孩顨堢槐鎺楁偐閼碱儷褏鈧娲樺ú鐔煎蓟閸℃鍚嬮柛娑卞灣閺嬪啴姊绘繝搴′簻婵炶濡囩划娆撳箳濡も偓绾?
-const applyTabFromQuery = () => {
-  if (route.query.tab === 'earn') {
-    activeTab.value = 2; // Tab 2 闂?闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁炬儳婀遍埀顒傛嚀鐎氼參宕崇壕瀣ㄤ汗闁圭儤鍨归崐鐐烘偡濠婂啰绠荤€殿喗濞婇弫鍐磼濞戞艾骞楅梻渚€娼х换鍫ュ春閸曨垱鍊块柛鎾楀懏锛忛梺鍛婃寙閸涱厾顐肩紓鍌欒兌缁垶鎯勯鐐靛祦閻庯綆鍠楅崐濠氭煕閳╁啰鎳冨┑顔块哺缁绘繈鎮介棃娑楁勃闂佹悶鍔岄悥濂稿极閸愵喖鐓涢柛娑卞枛娴滄姊洪棃娑辨Т闁哄懏绮撻幃锟犲即閻旂繝绨婚梺瑙勬緲婢у酣骞冮懖鈺冪＜闁绘顒查懓鍧楁煛?Tab
-  } else if (route.query.tab === 'spot') {
-    activeTab.value = 1; // Tab 1 闂?闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁炬儳缍婇弻锝夊箣閿濆憛鎾绘煕閵堝懎顏柡灞剧洴楠炴﹢鎳犻澶嬓滈梻浣规偠閸斿秶鎹㈤崘顔嘉﹂柛鏇ㄥ灠閸愨偓闂侀潧臎閸涱垰甯庨梻鍌欑劍閹爼宕濆鍥ㄥ床闁告洦鍨伴悞鍨亜閹哄棗浜剧紓浣哄Т缁夌懓鐣烽弴銏犵闁绘劕绉电粙鎴ｇ亙闂佸憡渚楅崢濂告倵椤撱垺鈷戦柛婵嗗閳ь剙缍婇弫宥夊即鎺虫禍褰掓煙閻戞ɑ灏ù婊冪秺閹鎮烽弶娆炬闂佸摜濮甸悧鐘茬暦濠婂牆绠ユい鏂垮⒔閿?Tab
-  } else if (route.query.tab === 'overview') {
-    activeTab.value = 0; // Tab 0 闂?濠电姷鏁告慨鐑藉极閸涘﹥鍙忛柣鎴ｆ閺嬩線鏌涘☉姗堟敾闁告瑥绻橀弻锝夊閻樺樊妫岄梺杞扮閿曨亪寮婚垾鎰佸悑閹肩补鈧磭顔愮紓鍌欑劍閸旀牠銆冮崱妯尖攳濠电姴娲ゅ洿闂佸憡渚楅崢钘夆枔閺屻儲鈷戦柛婵嗗椤ョ偟绱掗鑺ュ磳鐎殿喖顭烽幃銏ゅ礂閻撳簶鍋撶紒妯诲弿婵°倐鍋撴俊顐ｇ懇閹箖宕滄担铏癸紲闂佽鍨庨崘锝嗗瘱闂備胶顢婂▍鏇㈠箲閸パ嶈€垮〒姘ｅ亾婵﹨娅ｇ槐鎺懳熻箛锝勭盎閾伙絽鈹戦悩鍙夋悙缁剧偓瀵х换婵囩節閸屾稑娅х紒?Tab
-  }
-};
-
-// 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁炬儳缍婇弻锝夊箣閿濆憛鎾绘煕閵堝懎顏柡灞剧洴椤㈡洟鏁愰崱娆樻К缂備胶鍋撻崕鍐差焽閿熺姴钃熼柨婵嗩槸椤懘鏌曡箛濠冩珖闁告梹鎮傚鍝勑ч崶褉鍋撳Δ鍛；闁规崘鍩栧畷鍙夌節闂堟稒宸濈紒鈾€鍋撻梻浣侯焾閺堫剛鍒掑畝鍕┾偓鍌毭洪鍛嫼闂佺鍋愰崑娑欎繆婵傚憡鐓曞┑鐘插€归崑銉р偓娈垮枛椤兘寮幇顓炵窞濠电姴瀛╃紞鍌炴⒒娓氣偓濞佳呮崲閸℃稑鐤炬繝闈涱儏缁€澶愭煕濠靛嫬鍔ょ痪鎹愭闇夐柨婵嗘噺閹牓寮介敓鐘斥拺闁绘挸娴风粔铏圭磼閻樺磭澧甸柛銊╃畺閺佸倿鎮欓鈧壕顖炴⒑闂堟侗鐓紒鐘冲灩婢规洟顢涢悙绮规嫼缂傚倷鐒﹂敋闁诲骏绠撻幏鎴︽焼瀹ュ棛鍘甸梺缁樺灦閸ㄦ繈骞夋ィ鍐╃厵妞ゆ梻鐡斿▓姗€鏌熼崣澶嬪唉鐎规洜鍠栭、妤呭磼閵堝柊姘攽閿涘嫬浜奸柛濞у懐纾芥慨妯挎硾绾偓闂佹儳娴氶崑鍌滄崲閸℃稒鐓熼柕蹇嬪焺閻掑墽绱掗埀顒傗偓锝庡亖娴滄粓鏌″鍐ㄥ濠㈣锕㈤弻娑㈡倷椤忓嫬顫囧┑顔硷攻濡炶棄螞閸愵煁褰掑Χ閸℃瑦鍒涢悗瑙勬磸閸旀垿銆佸☉姗嗘僵妞ゆ帒鍊婚幊鍡涙⒒閸屾艾鈧悂宕愰幖浣哥９濡炲娴烽惌鍡椼€掑锝呬壕濡ょ姷鍋為悧鐘汇€侀弴銏犵厬闁兼亽鍎抽埥澶愭煃閽樺妲搁柍璇查叄楠炲鎮埀顒勫疮鎼淬劍鈷掑〒姘ｅ亾闁逞屽墰閸嬫盯鎳熼娑欐珷闁圭虎鍠楅悡娑氣偓鍏夊亾閻庯綆鍓涢敍鐔哥箾鐎电顎撶紒鐘虫尭閻ｅ嘲顭ㄩ崱鈺傂ユ繝纰樺墲瑜板啴鎮ч幘鎰佹綎闁惧繐鍘滈崑鎾诲捶椤撶儐鈧矂鏌涢妶鍡欐噰婵﹨娅ｉ弫顕€顢欓崜顬粓姊虹紒妯圭繁闁革綇绲介悾鐑藉础閻愬秶鍠愮缓浠嬪川婵犲簶鍋撳鍛斀闁绘﹩鍠栭悘杈ㄧ箾婢跺娲撮挊婵嬫⒑椤掆偓缁夋挳寮告笟鈧弻鈥愁吋鎼粹€崇闂佹娊鏀遍崹鍨潖濞差亶鏁冮柕鍫濇噸缁爼姊洪崗鍏笺仧闁搞劑浜跺鏌ュ醇閺囥劍鏅梺閫炲苯澧寸€殿喖顭烽弫鎰板醇閵忋垺婢戦梻浣告惈閸婃悂鎮樺┑瀣闁汇垹鎲￠埛鎴︽偣閸ワ絺鍋撻搹顐ゅ讲缂傚倷鑳剁划顖滄崲閸繍鍤曟い鎰剁畱缁犺崵绱撴担濮戭亝绂嶈ぐ鎺撯拺闁告稑锕﹂幊鍐┿亜閿曞倷鎲鹃柛鈹惧亾濡炪倖甯掗ˇ顖涙櫠閹绢喗鐓欐い鏃傜摂濞堟粓鏌ｅ☉鍗炴珝鐎规洖缍婇、娆撴偂鎼搭喗缍撻梻鍌氬€烽懗鍫曘€佹繝鍌楁瀺闁哄洢鍨圭粈澶嬬箾閸℃绂嬮柛銈嗘礋閺岀喖骞嗛悧鍫濡ょ姷鍋戦崹铏规崲濞戙垹绠ｉ柣鎰仛閸ｎ噣姊洪崨濠忚€垮ù婊嗘硾椤繐煤椤忓嫪绱堕梺鍛婃处閸撴瑩宕戝澶嬧拺闁告稑锕ラ悡銉╂煟椤撶偛鈧悂鎮惧畡鎵虫斀閻庯絽鐏氶弲顏堟⒑闁偛鑻晶瀵糕偓娈垮枦椤曆囶敇閸忕厧绶炲┑鐘辫兌閻愬﹪姊绘担鍛婂暈婵炶绠撳畷鎴﹀焵椤掑嫭鐓曢悗锝庡亝瀹曞嫰鏌曢崶銊ュ妤犵偞甯￠獮瀣偐闂堟稑绠戦梻鍌氬€搁…顒勫磻閸曨個娲晝閳ь剟锝炶箛娑欏殥闁靛牆鎳庤ⅲ闂備線鈧偛鑻晶瀛樻叏婵犲偆鐓肩€规洘甯掗～婵嬪础閻戝棙婢戠紓鍌氬€风粈渚€顢栭崱娑樺瀭闁秆勩仠閳ь兛绶氬顕€宕煎┑鍫濆箰闂備礁鎲℃笟妤呭窗濮樿泛鍌ㄥù鐘差儐椤ュ﹥銇勯幇鈺佺仾闁瑰吋鍔欓弻銊╁即濡搫濮庨梺瀹狀嚙缁夌懓鐣烽崡鐐╂瀻闁瑰濯寸槐鑼磽閸屾艾鈧兘鎮為敃鍌椻偓锕傚炊閳哄啩绗夐梺缁樺姉閸庛倝鎮￠弴銏＄厓閻熸瑥瀚崝銈吤瑰鍛壕濞ｅ洤锕幃娆擃敂閸曘劌浜鹃柡宥庡亝閺嗘粓鏌熼悜妯荤厸闁稿鎸搁～婵嬪础閻愭彃绠ｉ柣搴㈩問閸ｎ噣宕戞繝鍌滄殾闁圭儤顨嗛崐鐑芥倵閻㈡鐒炬鐐茬墦濮婄粯绗熼埀顒€顭囪绡撻柍褜鍓涚槐鎺楃叓椤撶姷鐓撻悗瑙勬礃缁诲倿鍩㈡惔銊ョ疀妞ゆ挾鍋涙导搴ㄦ⒑閼姐倕鏋戦柣鐔村劤閳ь剚鑹鹃崲鏌ュ煝閹炬剚鐓ラ柛鏇ㄥ墮瀵寧绻濋悽闈浶㈤柟鍐茬箻椤㈡棃鎮╃紒妯煎幍闂佸憡鐟ラˇ鎵焊閿旈敮鍋撶憴鍕闁哥姵鐗犻妴渚€寮撮姀鐙€娼婇梺缁樕戣摫闁搞劌鐏濋～蹇曠磼濡顎撻梺鍛婄☉閿曘儵宕伴幇鐗堚拺闁告縿鍎卞瓭婵°倗濮甸幃鍌炲灳閿曞倸鐐婃い鎺嶇贰閳ь剚鍔欏鍝劽虹拠鎻掔睄缂備胶濮甸悧鏇綖韫囨拋娲敂閸曨偆鐛╁┑鐘垫暩婵娊鎳楅崜浣瑰床濞撴埃鍋撴慨濠冩そ瀹曘劍绻濋崟顒€娅戝┑掳鍊楁慨鐢稿箖閸屾稐绻嗛柟缁㈠枛缁犳娊鏌熼幆褍顣抽柣锕€鐗嗛埞鎴︻敊閺傘倓绶甸梺鍛婏耿缁犳牕鐣烽姀銈庢晜闁割偆鍟块幏娲⒑閸涘﹥灏扮憸鏉垮暞缁傚秴鈹戦崼銏紲闁荤姴娲﹁ぐ鍐焵椤掆偓濞硷繝濡存笟鈧顕€宕奸锝嗘珖闂備線娼ч悧鍡椕洪妸鈺傛櫖婵犲﹤瀚粻楣冨级閸繂鈷旈柛鎺嶅嵆閺岀喓鍠婇崡鐐板枈閻庤娲忛崹浠嬬嵁濮椻偓椤㈡瑩鎮剧仦钘夌闂佽楠搁崢婊堝磻閹剧粯鍊甸柨婵嗛婢ф壆鎮敂鎴掔箚闁靛牆娲ゅ暩闂佺顑嗛惄顖炪€侀弽銊ョ窞闁规壋鏂侀崑鎾存媴缁洘顫嶉梺闈涚箚閳ь剚鏋奸崑鎾绘倻閼恒儳鍘电紒鐐緲瀹曨剟鐛幇鐗堢厱閻庯綆鍋呯亸顓熴亜閹剧偨鍋㈢€规洏鍔戦、鏃堝川椤旇姤绶梻鍌氬€烽懗鍓佸垝椤栫偛绀夋俊銈呮噷閳ь剙鍊圭粋鎺斺偓锝庝簽椤斿棝姊洪悙钘夊姤缂佸鍣ｉ幃鐑芥焽閿旀儳寮抽梺鍦帶閻°劎鎹㈤崼銉ョ；婵°倕鎳忛埛鎴︽⒒閸喓鈯曟い銉︾懅缁辨帡鍩€椤掍焦濯撮柣锝呭缁ㄩ攱绻濋悽闈涗哗闁规椿浜炲濠囧锤濡も偓缁犵娀鏌熼悙顒併仧闁轰椒绶氶弻鐔煎礈瑜忕敮娑㈡煟閹捐泛鏋涢柡宀嬬到铻ｉ柛婵嗗妤犲洨绱撴担鎻掍壕閻庡厜鍋撻柛鏇ㄥ墰閸橀亶姊虹憴鍕姢妞ゆ洦鍘剧划璇差潩閼哥數鍘撳銈呯箰濞诧妇娑垫ィ鍐╃厓閻熸瑥瀚悘鎾煙椤旇娅婄€规洖缍婇、鏇㈡晲閸℃瑦顫栭梻鍌氬€烽懗鍫曗€﹂崼銉晞闁搞儺鍓欑壕濠氭煏閸繃鍣介柡鍡閹叉悂鎮ч崼婵堢懆闂備礁宕ú顓㈠蓟閿熺姴鐐婇柍杞版閹村嘲顪冮妶鍡樼叆婵炲樊鍘奸～蹇撁洪鍕獩婵犵數濮寸€氼喚妲愭导瀛樷拺缂佸鐏濋銏犫攽閻愯韬鐐叉閻ｆ繈宕熼銈庡晪缂傚倸鍊烽悞锕佸綔闂佺懓鍢查…宄邦潖濞差亜绀堥柟缁樺笂缁ㄤ粙姊洪崫銉バｆ繛鑼枛瀹曟椽鍩€椤掍降浜滈柟鐑樺灥閺嗙偞銇勯妷銉█闁诡噯绻濇俊鍫曞幢閹邦亞鐩庨梻濠庡亜濞诧箓骞愰幖渚囨晜妞ゆ挶鍨洪悡娑樏归敐鍛础闁活厼锕弻宥囨喆閸曨偆浠稿Δ鐘靛仜閿曨亪寮诲☉娆戠瘈闁告劑鍔岄～鎺楁倵鐟欏嫭绀冮柛銊ユ健閻涱喖螣閼测晝顦╅梺缁橆焽閺佹悂鎮?
-watch(() => route.query.tab, (newTab) => {
-  if (newTab) {
-    applyTabFromQuery();
-  }
-});
-
-// 婵犵數濮烽弫鍛婃叏閻戣棄鏋侀柛娑橈攻閸欏繘鏌ｉ幋锝嗩棄闁哄绶氶弻娑樷槈濮楀牊鏁鹃梺鍛婄懃缁绘﹢寮婚敐澶婄婵犲灚鍔栫紞妤呮⒑闁偛鑻晶顕€鏌涙繝鍌涜础缂侇喖顑夐獮鎺楀棘閸濆嫪澹曢梺鎸庣箓缁ㄨ偐鑺辨禒瀣厱闁哄啯鎸鹃悾杈ㄣ亜椤忓嫬鏆ｅ┑鈥崇埣瀹曞崬螖閳ь剙顭囬幋锔解拺缂佸顑欓崕鎰版煙閻熺増鍠樼€殿喛顕ч埥澶愬閳ュ厖绨婚梻鍌欑閻忔繈顢栭崨顔绢浄闁圭虎鍠楅埛鎴犵磼椤栨稒绀冮柡澶婄秺閺屾稓鈧綆鍋呯亸顓熴亜椤忓嫬鏆ｅ┑鈥崇埣瀹曞崬螖閳ь剙顭囬幋锔解拺缂佸顑欓崕鎰版煙缁嬪灝鈷旀俊鍙夊姍楠炴﹢骞囨担鍛婂€梻浣告啞缁矂宕幎钘夎Е妞ゆ劏鎳￠弮鍫熷亹闂傚牊绋愮划鍫曟⒑閸濄儱娅忛柛瀣樀閹﹢骞掑Δ浣哄幗闂佺粯锚瀵墎绮氶崸妤佸€堕煫鍥ㄦ⒒閹冲懐绱掗鍡欑М闁诡喗鐟╅幃婊兾熼悡搴＄闂備胶鎳撻崥瀣箚瀹€鍕瀭鐎规洖娲ㄩ惌鎾绘煟閵忕姵鍟為柣鎾存礋閹鏁愭惔婵堢泿濡炪倕娴氶崢浠嬪Φ閸曨垰顫呴柍鈺佸暙绾惧啿螖閻橀潧浠︽い顓炴川濡叉劙骞掗幊宕囧枛閹剝鎯旈敍鍕靛晥闂傚倸鍊搁崐鐑芥嚄閸撲礁鍨濇い鏍仦閺咁亪姊绘担鍛婂暈閽冮亶鏌ｅΔ鍐ㄢ枅妤犵偛锕ら…銊╁醇椤愶絾娅嗛梻浣稿閸嬪棝宕伴幘璇插偍闂侇剙绉甸埛鎴︽煕濠靛棗顏╅柍褜鍓濆Λ鍕煝閺冨牆鍗抽柣鏂挎啞閻濓繝姊绘担绛嬪殭閻庢稈鏅犻、娆撳冀椤撶偟鐛ラ梺鍝勭▉閸樹粙宕戦鍫熺厱闁靛鍨哄▍鍥р槈閹惧磭校缂佺粯鐩獮瀣枎韫囨洑鎮ｇ紓?keep-alive闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁炬儳缍婇弻锝夊箣閿濆憛鎾绘煕婵犲倹鍋ラ柡灞诲姂瀵噣宕奸悢鍛婎唶闂備胶顭堥鍡涘箰閸撗冨灊妞ゆ挾鍋愬Σ鍫熶繆椤栨繍鍤欐繛鍛囧洦鈷戞繛鑼额嚙楠炴鏌ｉ悢鍙夋珚鐎殿喖顭烽幃銏ゅ川婵犲嫮肖濠德板€х徊浠嬪疮椤栫儐鏁佺€广儱顦伴埛鎴犵磼鐎ｎ亞浠㈡い鎺嬪灪閵囧嫰濡搁妷顖濆惈閻庢鍠涢褔鍩ユ径濠庢僵妞ゆ劧绲芥刊浼存⒒娴ｇ瓔鍤冮柛銊ラ叄瀹曠喖顢楅埀顒勫礉鎼淬劍鈷掗柛灞剧懅缁愭棃鏌嶈閸撴盯宕戝☉銏″殣妞ゆ牗绋掑▍鐘炽亜閺嶎偄浠﹂柛瀣ㄥ妽閵囧嫰寮介妸锝勭捕闂佺顑嗛幐鎼佹偩閻戣棄鐐婇柕濠忓瘜閸熷骸鈹戦悩鍨毄濠殿喗鎸抽弫鍐Χ閸ワ絽浜炬慨妯煎帶楠炴鏌涢幒鎴含妤犵偞锕㈤、娆撴偩鐏炶棄绠洪梻鍌欒兌缁垶寮婚妸鈺佺妞ゆ劧璐熼埀顒€鍊垮畷妤呭礂閻撳骸浼庨梻浣瑰缁诲倿骞婅箛娑樼闁规壆澧楅悡鍐偡濞嗗繐顏╅柣蹇旀尦閺岀喖顢欓悾灞惧櫚闂佺娅曠划鎾澄涢崘銊㈡婵炲棙鎸婚弳妯肩磽閸屾艾鈧悂宕愬畡鎳婂綊宕惰閸ゆ洟鏌熼幑鎰【闁搞劍绻冪换娑㈠幢濡鏆楅悗瑙勬尫缁€渚€鈥﹂崸妤佸殝闂傚牊绋戦～宥夋⒑閸濆嫭鍣洪柟顔煎€垮濠氭晲閸滀焦寤洪梺閫炲苯澧い顓炴穿椤﹀爼鏌曢崶銊ュ鐎规洖宕灃濠电姴鍟惁婊堟⒒娓氣偓濞佳囨偋閸℃あ娑樜旈崘顏嗙暥闂佺鐬奸崑鐐烘偂閻樼粯鐓曢柟閭﹀幖缁茬粯銇勯敐鍛紞闁逞屽墯椤旀牠宕锕€鐐婄憸蹇涘礉閿曗偓椤啴濡堕崱妤冪懆闂佺锕ㄥ畷鍨珶閺囩喓闄勯柛娑橈功閸橀亶姊洪崷顓炰壕妞ゃ劌鎳樺畷鏉款潩鐠虹儤杈堝銈嗘尪閸ㄦ椽鍩涢幋锔界厵缂佸瀵ч崬澶婎熆鐟欏嫸鑰挎俊顐＄劍瀵板嫮鈧綆鍓涢惁鍫熺節閻㈤潧孝闁稿﹥鎮傞、鏃堝煛閸涱喚鍘遍梺鍝勫€介褔鍩€椤掍胶绠炵€殿喛顕ч濂稿炊閵娿儲鐎梻浣告啞濞诧箓宕戦崱妯侯嚤鐎光偓閸曨兘鎷洪柣鐘叉礌閳ь剝娅曢悘宥夋⒑閼姐倕鏆€闁搞儜鍜佸敼闂備礁鎲″ú锕傚垂闁秴绠氶柣鎰劋閸嬧剝绻涢崱妤冪妞ゅ繑鎸抽弻娑㈠Χ閸涱収浼€缂備浇椴搁幑鍥х暦閹烘埈娼╂い鎴ｆ娴滄儳顪冪€ｎ亜顒㈡い鎰矙閺屻劑鎮㈤崫鍕戙垽姊婚崒銈呯仭闁靛洤瀚板鏉懳旈埀顒佺妤ｅ啯鍊甸悷娆忓缁€澶嬨亜椤愩埄妲洪柍褜鍏涚徊濠氬磻閹版澘绀嗛柟鐑橆殔缁€鍌氼熆鐠虹尨姊楀瑙勬礋濮婃椽宕崟顐ｆ闂佺粯顨呭Λ娑氬垝閸儱绀冮柍鐟般仒缁ㄥ姊洪崫鍕殭婵炲眰鍊栫粋宥堛亹閹烘挾鍙嗗┑鐐村灦閻熝囨儗婵犲洦鐓冮悷娆忓閻忔挳鏌熼鐣屾噰鐎殿喖鐖奸獮瀣偐鏉堫煈鏁囬梻鍌氬€烽懗鍓佹兜閸洖鐤炬繛鎴欏灩閻ゎ噣鏌℃径瀣劸闁搞倖娲滅槐鎺斺偓锝庝簽濮樸劑鏌＄€ｎ亪鍙勯柡宀€鍠栧畷婊嗩樁閽樼喖姊洪崷顓熺効婵炲拑绲垮Σ鎰板箻鐠囪尙锛滃┑鐐叉閸ㄥ灚淇婃禒瀣參闁告劦鍠曢幉楣冩煛瀹€瀣М妤犵偞锕㈠畷锟犳倷閹绘帩娼涘┑锛勫亼閸娿倝宕㈤悡搴劷闁跨喓濮寸粻鏍ь渻鐎ｎ亜顒㈤柡鍡樼矋閵囧嫰寮崼鐕傜吹缂備焦鍞荤徊鐐┍婵犲洦鍊锋い蹇撳閸嬫捇濡舵径濠勶紱闂佸憡娲﹂崢钘夌暦閺屻儲鐓欓弶鍫濆⒔閻ｉ亶宕堕幘顔解拺闁圭娴风粻鎾淬亜閿旇鐏ｇ紒顔肩墦瀹曟﹢顢欓悾灞藉笚闂備礁鎲＄换鍌溾偓姘煎墴瀵啿鈻庨幇鍨啍闂佺粯鍔栧娆愭叏瀹ュ棙鍙忓┑鐘叉噺椤忕娀鏌熸搴♀枅闁瑰磭濞€椤㈡宕掗妶鍛毌闂傚倸鍊烽懗鍫曗€﹂崼銉晞闁搞儯鍔庣粻楣冩煃瑜滈崜姘跺Φ閸曨垰顫呴柍銉ㄥ紦鐎涒晛顪冮妶蹇曠暠婵犫偓闁秴鐒垫い鎺戝枤濞兼劖绻涢崣澶樼劷闁瑰箍鍨藉畷鎺楁倻閸モ晝鈼ゆ繝鐢靛█濞佳囶敄閸℃稑鍚归悗锝庡枟閻撶喖鏌曡箛瀣偓鏍р槈瑜庨〃銉╂倷鏉堟崘鈧寧鎱ㄦ繝鍕笡闁瑰嘲鎳樺畷顐﹀礋椤愶紕甯涘┑锛勫亼閸娿倝宕戦崨顒兼椽鎮㈡搴㈡闂佸湱澧楀姗€宕￠幎鑺ョ厪闊洦娲栧瓭闂佹悶鍊栭崹鐢稿煘閹达附鍊烽柡澶嬪灩娴犳悂姊虹化鏇熸珔闁哥喐娼欓悾鐑藉箣閿曗偓缁犲鏌ら幖浣规锭闁哄鍊垮娲川婵犲啫顦╅梺鍛婃尰閻╊垵妫熼梺闈浥堥弲婊堝磹閻㈠憡鐓曢煫鍥ㄦ惄濡茬霉濠婂牏鐣烘慨濠囩細閵囨劙骞掗幙鍕惞缂傚倷璁查崑鎾炽€掑锝呬壕闂佸綊鏀遍崹鍧楀箖閵忋倕绀傞柤娴嬫櫅鐢儳鈹戦悩鍨毄闁稿鍨堕崺鈧い鎺戝绾惧鏌熼崜褏甯涢柣鎾存礋閹鏁愭惔鈥茬凹閻庤娲栭惌鍌炲蓟閳╁啯濯撮柣鐔告緲椤秹姊虹拠鈥崇仭婵☆偄鍟村畷瑙勩偅閸愨晛娈ゅ銈嗗笂閻掞箑鈻嶉敃鍌涒拻闁稿本鑹鹃埀顒勵棑缁牊绗熼埀顒勭嵁婢舵劖顎愰梺鍦摂閸嬪﹤顫忓ú顏勫窛濠电姴鍟犻幏褰掓⒑閼姐倕鏋傞柛搴ｆ暬閺佹劙鎮欓崜浣烘澑濠电偞鍨堕悷銉╁焵椤掑倻甯涘ǎ鍥э躬椤㈡稑鈹戦幇顒侇唲婵＄偑鍊ら崑鎾舵崲濠靛棭娼栨繛宸簼閸嬶繝鏌℃径瀣嚋娴滄盯姊绘担绋挎倯婵＄偛娼″畷鍦崉閾忚娈鹃梺闈涚箞閸婃洟鎮炲ú顏呯厱闁规澘鍚€缁ㄤ粙鏌ｉ敃鈧悧鎾愁潖濞差亜绀冮柤纰卞墯椤斿牓姊虹粙娆惧剱闁圭懓娲璇测槈閵忕姴宓嗛梺缁樺姇閸氣偓缂侇喚鏁诲鐑樺濞嗘垵鍩岄梺缁樼墱閸樠囷綖?
 onActivated(async () => {
   applyTabFromQuery();
-  // 婵犵數濮烽弫鍛婃叏閻戣棄鏋侀柛娑橈攻閸欏繘鏌ｉ幋婵愭綗闁逞屽墮閸婂潡銆佸▎鎾村€锋い鎺戭槹缂嶆姊绘担鍛婃儓婵炲眰鍨藉畷褰掑捶椤撶儐妫滄繝鐢靛У绾板秹鎮″▎鎾崇骇闁割偅绻傞埛鏃堟煟閿濆牅鍚柣銉邯楠炴垿骞囬崹顐ょХ濠电儑绲藉ú銈夋晝椤忓懍绻嗛柛顐ｆ礀瀹告繃銇勯弬鍨倯妞ゅ繒濞€濮婄粯鎷呴崨濠冨創濡炪倖鍨电€氼喖鈻庨姀鐙€娼╅悹楦挎閻ｆ椽鎮峰鍛暭閻㈩垱甯￠幃娆愮節閸曨剙鏋戦柟鍏肩暘閸斿矂鎮″┑瀣厸闁搞儯鍎遍悘顏堟煟閹捐泛鏋涢柡宀€鍠栧畷顐﹀礋椤撳鍊濋弻锝夘敇閻旂儤鍣伴梺鍝勭焿缁辨洘绂掗敂鍓х煓闁割煈鍠掗幏銈夋煟鎼达紕浠涙繝銏☆焽閳ь剚鍑归崢楣冨箲閵忕姭鏀介悗锝庝簽椤︽澘顪冮妶鍡楃瑨闁稿﹤缍婇、妯荤節濮橆厸鎷婚梺绋挎湰閻燂妇绮婃导瀛樼厪闁糕€崇箰娴滈箖姊绘担渚劸妞ゆ垵妫濋獮鎰板箹娴ｅ湱鐣抽梻鍌欒兌缁垶鏁嬪┑鈽嗗灠閿曨亜鐣烽弴銏犵疀闁绘鐗忛崢浠嬫⒑鐟欏嫬鍔ら柛鐔锋健瀵娊鎮㈤崗鑲╁幍闂佽偐鈷堥崜锕傛倿閻愵兙浜滄い鎾寸矊婵倻鈧娲滈崢褔鍩為幋锕€閱囨い鎰跺強閵堝應鏀介柣妯虹仛閺嗏晠鏌涚€ｎ偆鈽夐摶鐐寸箾閸℃ɑ灏柛銊ュ€垮濠氬醇閻斿墎绻侀梺鎼炲€栧ú鐔煎蓟閵堝洤鏋堥柛妤冨仜椤偆绱掗幆褍缍栫紒顔界懇瀵鈽夊顐ｅ媰闂佺顫夐崝鏇⑺夊┑瀣拺闂侇偆鍋涢懟顖涙櫠娴煎瓨鐓曢煫鍥ㄦ閼版寧顨ラ悙鎻掓殻闁诡喗鐟╅幃婊兾熺紒妯煎絿婵犵數鍋犻幓顏嗙礊閳ь剚銇勯銏╂█鐎规洖鍟块悾锟犲箥閾忣偅鏉搁梻浣瑰缁嬫垹鈧凹鍓氱粋宥夋偂楠炵喎缍婇幃鈩冩償閵忕姵顏￠梻浣烘嚀閸㈡煡骞婂Ο铏规殾闁靛濡囩弧鈧梺绋胯閸婃牞鈪搁梻鍌氬€搁崐鐑芥嚄閸撲礁鍨濇い鏍仜缁犱即鎮归崶顏嶆⒖婵炲樊浜濋崑鍕煟閹捐櫕鍞夐柟鑺ユ礋濮婅櫣绱掑Ο鑽ゅ弳闂佸憡鑹鹃澶婄暦閹邦喚纾兼俊顖濐嚙瀵灝鈹戞幊閸婃劙宕戦幘缈犵箚妞ゆ劧绲块幊鍥煙椤曗偓缁犳牠骞冨鍫熷殟闁靛鍨虹€氬ジ姊洪崫鍕垫Ш闁稿鍋炵粩鐔煎幢濞嗘垹骞撻梺鍝勫€归敍鏇㈡偡闁妇鍙嗛梺鍛婂姦娴滄粓鎮￠悢鍏煎€垫繛鍫濈仢閺嬫稒銇勯鐘插幋鐎殿噮鍋勯鍏煎緞婵犲嫷妲规俊鐐€曠换鎰板箠鎼淬垹鍨斿ù鐓庣摠閳锋帒霉閿濆懏鍟為柟顖氱墦閺屾稒绻濋崒婊冪厽閻庤娲橀崝娆忣嚕閹绢喗鍋勭紒瀣仢娴煎孩绻濋悽闈涗沪闁割煈鍨跺畷鐟懊洪鍕幈闂佺鎻梽鍕偂閺囥垺鐓ラ柡鍐ㄦ祩閸ゆ瑧鈧鍠氶崑鎾舵崲濞戙垹绀傞柣鎾冲鐠囩偤姊洪崫鍕拱闁烩晩鍨辨穱濠囨倻閽樺顓哄┑鐘绘涧濞层倝顢撳☉妯锋斀闂勫洨浜搁鍫稏濠㈣泛顑囬埞宥呪攽閻樺弶澶勯柛濠囨敱閵囧嫯绠涢幘鎰佷槐闂佺顑嗛幑鍥ь嚕閹绢喗鍋愰柛鎰絻缁ㄣ儵姊绘担绛嬫綈濠㈢懓妫欓弲璺何旈崨顓狅紱闁诲函缍嗛崰姘跺矗閹剧粯鐓曢柕澶涚到婵′粙鎮樿箛鏇熸毈闁哄矉绻濆畷閬嶎敇閵忊槅鈧秶绱撴担铏瑰笡缂佽鍟伴幑銏犫攽鐎ｎ亞锛滃┑鐘诧工閸犳岸寮堕幖浣光拻濞达絿鎳撻埢鏇㈡煛閳ь剟鏌嗗鍛€梺鍓茬厛閸ｎ噣宕甸弴銏＄厱妞ゆ劧绲剧粈鍐煕婵犲嫬鍘撮柡灞稿墲瀵板嫮鈧綆浜為崝鎼佹⒑闁偛鑻晶顖滅磼椤旇姤宕岀€殿喛顕ч埥澶婎煥閸涱垱婢戦梻浣烘嚀婢т粙骞婇幘娲绘晜妞ゆ挾鍎愬〒濠氭煏閸繈顎楃€殿喓鍔戦弻娑欐償閳藉棛鍚嬮柦妯荤箞閺屟嗙疀閿濆懍绨存繛瀛樼矋缁捇寮婚弴鐔虹闁割煈鍠栨慨鏇㈡⒑閹肩偛鈧洖煤椤撱垹钃熼柣鏃傗拡閺佸鏌嶈閸撴稓鍒掓繝姘唨鐟滃繘寮抽敂鐐枑闁绘鐗嗘穱顖炴煛娴ｇ鏆ｉ柡灞炬礋瀹曠厧鈹戦崶褜妲遍梻浣规偠閸婃洟鎯岄崒姘兼綎缂備焦顭囬悷褰掓煃瑜滈崜鐔煎春閳ь剚銇勯幒鎴濃偓鍛婄濠婂牊鐓犳繛鑼额嚙閻忥繝鏌￠崨顓烆暢闁逞屽墰閺佸摜娑甸崼鏇炵；闁圭偓鏋奸弸鏃堟煕椤垵鏋熼柣婵愬櫍濮婅櫣绮欏▎鎯у壈闁诲孩鐭崡鎶藉Υ娴ｅ壊娼ㄩ柍褜鍓欓悾宄拔旈崨顔间簵闁硅壈鎻徊鍧楁偘椤斿皷鏀介柣妯虹仛閺嗏晛鈹戦鑺ョ稇閻撱倝鏌曢崼婵愭Ц闁哄绶氶幃宄扳枎韫囨搩浼€缂備讲妾ч崑鎾绘⒒娴ｅ湱婀介柛銊ㄦ椤洩顦查柣鈽嗗弮濮婄粯鎷呯粵瀣缂備胶绮崹鐢告偩濠靛牏鐭欓悹鎭掑妽濞堟儳鈹戦悩缁樻锭妞ゆ垵鎳樺畷姗€鍩€椤掆偓椤啴濡堕崱妯烘殫闂佺顑囬崰鏍€佸▎鎾崇疀闁绘鐗冮幏娲煟閻斿摜鎳冮悗姘煎墴钘熼悗锝庝憾閻斿棛鎲告惔銊ｂ偓鍐╃節閸パ勬К濠电偞鍨崹鍦不閿濆鐓ラ柡鍐ㄥ€瑰▍鏇㈡煕濡搫鑸归柍瑙勫灴閹晝绱掑Ο濠氭暘婵犵妲呴崑鍛淬€冩繝鍥モ偓渚€寮崼婵堫啋濡炪倖姊婚弲顐﹀储闁秵鐓欓柛蹇氬亹閺嗘﹢鏌涢妸顭戞綈闁逛究鍔嶅鍕暆閳ь剛澹曟總绋跨骇闁割偅绋戞俊鍏肩箾閹碱厼鏋熼柕鍥у婵偓闁挎稑瀚崳浼存⒑閻熸壆锛嶉柛瀣ㄥ€栨穱濠囨倻閽樺）銊ф喐濠靛牊顫曢柨鏇楀亾闁宠鍨堕獮濠囨煕婵犲喚娈曢柟渚垮姂閹粓鎸婃径宀嬬幢闂備胶绮崝鏇㈠箹椤愩倗鐭嗗璺侯儑缁犻箖鏌涢埄鍐炬畼缂佺姵濞婇弻锟犲幢椤撶姷鏆犻梺瀹狀潐閸ㄥ灝鐣烽幒鎴叆閹艰揪绲芥慨濂告⒒娴ｅ憡鍟炴い銊ユ缁绘稒绻濋崶褑鎽曢梺鎸庣箓椤︻垳绮诲☉娆嶄簻闁圭偓顨呴崯顖氣枍濞戞瑧绡€缁剧増菤閸嬫捇宕橀懠顒勭崜婵犵绱曢崑鐘参涢崟顖ょ稏闊洦娲滅壕鍏间繆椤栨繍鍤欐い搴㈡崌濮婃椽宕ㄦ繝鍕ㄦ闂佹寧娲忛崐婵嗩嚕閹惰棄閱囬柣鏃囨椤旀洟姊虹憴鍕姢妞ゆ洦鍙冮妴鍌炲矗婢跺牅绨婚梺闈涱焾閸庤顔忛妷鈺傜厽闁挎繂娲ら崢鏉戔攽椤旂懓浜鹃梻浣瑰缁嬫垹鈧碍婢橀‖濠囶敊閸撗咃紳婵炶揪绲芥竟濠囧磿韫囨稒鐓熼煫鍥ㄦ⒒缁犵偞顨ラ悙鍙夘棦闁诡喗鐟╅幃婊兾熼柨瀣伖闂傚倷绶氬鑽も偓闈涚焸瀹曘垺绺界粙璺槷闁诲函缍嗛崑浣圭濠婂牊鐓忓┑鐐茬仢閸旀粓鏌涢敐鍕煓闁哄矉缍佹俊鐑筋敊缂佹ɑ宕虫俊鐐€х粻鎴犵礊婵犲洤钃熼柨娑樺濞岊亪鏌ｉ敐鍛健鐟滃繘鍩€椤掑喚娼愭繛璇х畵瀹曟垶绻濋崒婊勬闂佺粯姊婚埛鍫ュ极閸愵喗鐓ユ繝闈涙閿涘秹鏌涢悙鎻掔骇缂佺粯绻堥幃浠嬫濞戞鎹曟俊鐐€栧ú锕傚储娴犲绀嗗┑鐘插閸嬫捇妫冨☉娆愬枑婵炴垶鎸哥粔褰掑蓟閻旂厧绠查柟浼存涧濞堫厾绱撴担鍝勑ｉ柣妤佹礋濠€渚€姊虹紒妯忣亜螣婵犲洤纾挎繛鎴欏灪閻撴稑霉閿濆懏鎲搁弽锛勭磽娴ｈ櫣甯涢柣鈺婂灦閻涱喚鈧綆鍠楅崐鐑芥煕椤垵浜滄繛鍛灴濮婄粯鎷呴崨濠冨枑闂佺顑嗛惄顖濇闂傚倸鐗婃笟妤€顭?
   await initializeData();
 });
-    </script>
-  
-  <style scoped>
-  /* 婵犵數濮烽弫鍛婃叏閻戣棄鏋侀柛娑橈攻閸欏繘鏌ｉ幋婵愭綗闁逞屽墮閸婂潡銆佸▎鎾村€锋い鎺戭槹缂嶆姊绘担鍛婃儓婵炲眰鍨藉畷褰掑捶椤撶儐妫滄繝鐢靛У绾板秹鎮″▎鎾崇骇闁割偅绻傞埛鏃堟煟閿濆牅鍚柣銉邯楠炴垿骞囬崹顐ょХ濠电儑绲藉ú銈夋晝椤忓懍绻嗛柛顐ｆ礀瀹告繃銇勯弬鍨倯妞ゅ繒濞€濮婄粯鎷呴崨濠冨創濡炪倖鍨电€氼喖鈻庨姀鐙€娼╅悹楦挎閻ｆ椽鎮峰鍛暭閻㈩垱甯￠幃娆愮節閸曨剙鏋戦柟鍏肩暘閸斿矂鎮″┑瀣厸闁搞儯鍎遍悘顏堟煟閹捐泛鏋涢柡宀€鍠栧畷顐﹀礋椤撳鍊濋弻锝夘敇閻旂儤鍣伴梺鍝勫閳ь剙纾弳鍡涙煃瑜滈崜鐔风暦閻楀牊鍎熼柕濞垮劤閸樻椽姊虹憴鍕妞ゆ泦鍥у瀭闁稿本绋忔禍婊堟煛閸愩劌鈧懓鈻嶉弴鐏荤懓顭ㄩ崟顐㈩潚濠殿喖锕︾划顖炲箯閸涱喚鐟规い鏍ㄧ矊婵吋淇婇悙顏勨偓鏍垂闂堟党娑樷攽鐎ｎ剙绁﹂梺纭呮彧缁犳垿鎮欐繝鍕枑闊洦绋戝Ч鏌ユ煥閺囩偛鈧綊鎮￠悢鍏肩厵閻庣數顭堝暩闂佺妫勯崐鍧楀蓟閳╁啯濯撮柛娑橈工閺嬬娀姊洪崫鍕効缂傚秳绀侀锝夘敋閳ь剙鐣锋總鍛婂亜闁告稑锕ラ蹇涙⒒閸屾瑦顦风紒槌栧枤缁辩偤宕卞☉妯碱槶濠殿喗顭堟ご绋跨暦?*/
-  .me-page {
-  background-color: #000000;
-    min-height: 100vh;
-  padding-bottom: 80px;
-  color: #FFFFFF;
-    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Segoe UI, Arial, Roboto, 'PingFang SC', 'miui', 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;
-  }
-  
-  /* 1. 婵犵數濮烽弫鍛婃叏閻戣棄鏋侀柛娑橈攻閸欏繘鏌ｉ幋婵愭綗闁逞屽墮閸婂潡銆佸▎鎾村€锋い鎺戭槹缂嶆姊绘担鍛婃儓婵炲眰鍨藉畷褰掑捶椤撶儐妫滄繝鐢靛У绾板秹鎮″▎鎾崇骇闁割偅绻傞埛鏃堟煟閿濆牅鍚柣銉邯楠炲棜顦寸紒澶嬫そ閺屸€崇暆鐎ｎ剛鐦堥悗瑙勬礀閻栧吋淇婇悜钘壩ㄧ憸宀勬儉椤忓牊鈷掑ù锝勮閻掔偓銇勯幋婵囧殗閽樻繃銇勯弽顐粶闁绘挻锕㈤弻鐔告綇閸撗呮殸缂佺偓鍎抽崥瀣崲濠靛洨绡€闁稿本绋掑畷鎶芥⒑閸涘﹥鐓ラ柟鑺ョ矌濡叉劙骞掑Δ浣糕偓閿嬨亜閹哄棗浜鹃梺鍛婃煟閸婃牜鎹㈠☉姘厹濡炲娴烽惁鍫澪旈悩闈涗粶闁哥噥鍋夐悘鍐⒑閸涘﹣绶遍柛鐘崇墬缁傛帒煤椤忓應鎷哄┑顔炬嚀濞层倝鎮橀鈧弻娑氣偓锝呭缁夘噣鏌涢埞鎯т壕婵＄偑鍊栧濠氬磻閹剧粯鐓ラ柡鍥ュ妺闁垳鈧鍠涢褔鍩ユ径濠庢僵闁挎繂鎳嶆竟鏇㈡⒑閹稿海绠撳Δ鐘叉啞缁傚秴鈹戠€ｎ偄鈧爼鐓崶褔顎楃€规挸妫濋弻鈥崇暆閳ь剟宕版惔銊﹀仼闁跨喓濮甸崑瀣煕椤愶絿绠栭柣锝咁煼閺岋絾鎯旈妶搴㈢秷濠电偛寮堕敃銏ゅ极閸愵喖顫呴柕鍫濇噽娴煎姊洪幐搴㈢闁稿﹤鎽滅划濠氭晲婢跺鍘介梺鐟扮摠缁诲啴藟閻愭番浜滈柕澶堝劤鏁堝┑?*/
-  .top-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 16px 10px;
-  }
-  .user-profile {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    transition: opacity 0.3s ease;
-  }
-  .user-profile:active {
-    opacity: 0.7;
-  }
-  .avatar-circle {
-    width: 28px;
-    height: 28px;
-  background-color: #FCD535;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  .username {
-    font-weight: 600;
-    font-size: 16px;
-  color: #FFFFFF;
-  }
-  .top-icons {
-    display: flex;
-    gap: 16px;
-  color: #FFFFFF;
-}
-.icon-right {
-  cursor: pointer;
-  transition: opacity 0.3s ease;
-}
-.icon-right:active {
-  opacity: 0.7;
-  }
-  
-  /* 2. Tabs */
-  .asset-tabs {
-    margin-bottom: 10px;
-  }
-  :deep(.van-tab) {
-    font-size: 15px;
-    font-weight: 500;
-    padding: 0 10px;
-  }
-  
-  /* 3. 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧湱鈧懓瀚崳纾嬨亹閹烘垹鍊為悷婊冪箻瀵娊鏁冮崒娑氬幈濡炪値鍘介崹鍨濠靛鐓曟繛鍡楃箳缁犳娊鏌嶈閸撴瑧绮诲澶婄？闂侇剙鍗曢崶顒夋晬婵犲﹤鎳愰悞濂告⒑閸涘﹤濮€闁哄倸鍊圭粋宥咁煥閸曗晙绨婚梺瑙勫礃濞夋盯寮告惔銊︾厽闊洢鍎崇粔顔锯偓娈垮枛閻栧ジ宕洪敓鐘茬；妞ゆ牭绲奸柇顖炴煕閳哄啫浠辨鐐差儔閹瑩鎳犻鍌涚€梻鍌氬€烽懗鍫曗€﹂崼銉︽櫇闁靛鏂傞埀顒€鍟村畷鍗炩槈濡偐鏉介梻渚€娼ц墝闁哄懏绋撻惀顏囶樄闁哄瞼鍠栭幃娆撴寠婢跺鐎存繝纰夌磿閸嬫鍒掑▎鎾澄ュù锝呭濞笺劑鏌嶈閸撶喖鐛崘銊㈡瀻闁规儳鍟块悗顓烆渻閵堝棗濮х紓宥呮瀹曨垱鎯旈妸锔规嫽闂佺鏈悷锔剧矈閻楀牏绠惧璺侯儐缁€瀣偓瑙勬磻閸楁娊鐛Ο灏栧亾濞戞顏勵嚕閸ф鈷戞慨鐟版搐閻忣喗銇勯鐐靛ⅵ闁诡喖娼￠幃娆擃敄閸欍儳鐩庨梻浣告贡閸庛倝宕归悽鍓叉晜妞ゅ繐鐗婇悡鐔兼煙閹呮憼缂佲偓鐎ｎ喗鐓涚€光偓鐎ｎ剛鐦堥悗瑙勬礀閻栧吋淇婇悜钘壩ㄩ柕澶樺枤閳ь剙鍟块埞鎴︽倷閼碱剚鎲肩紓渚囧枛閻楀繘宕氶幒鎴旀瀻闁规儳鐤囬幗?*/
-  .asset-card {
-    padding: 0 16px 12px 16px;
-    margin-bottom: 20px;
-  }
+</script>
 
-/* 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁炬儳缍婇弻鐔兼⒒鐎靛壊妲紒鐐劤濠€閬嶅焵椤掑倹鍤€閻庢凹鍙冨畷宕囧鐎ｃ劋姹楅梺鍦劋閸ㄥ綊宕愰悙宸富闁靛牆楠告晶濠氭煕閹炬潙鍝洪柟顖氬椤㈡稑顫濇潏銊︻啎闂備胶绮濠氬煕閸儱鏋侀柛鎰靛枟閻撳繘鏌涢锝囩畺妞ゃ儳鍋為妵鍕籍閳ь剙煤濡崵鈹嶅┑鐘叉处閸婇攱銇勮箛鎾愁仱闁稿鎹囧浠嬵敃閿濆棙顔囬梻浣告贡閸庛倝銆冮崨顖氼棜鐟滅増甯楅悡鐔兼煏韫囧鐒洪柣鎺戝⒔閻ヮ亪骞嗚閻撳ジ鏌″畝鈧崰鏍嵁閹达箑绠涢梻鍫熺⊕椤斿嫰姊绘担瑙勫仩闁告柨鐭傚畷鎰亹閹烘嚦锕傛煕閺囥劌鐏犵紒鐘崇洴濮婂宕奸悢琛℃闂佸啿鍢查ˇ闈涱潖濞差亝鐒婚柣鎰蔼鐎氭澘顭胯閸犳鎹㈠☉姘厹濡炲娴烽惁鍫ユ倵濞堝灝鏋涙い顓犲厴楠炲啴濮€閵忕姵鐎抽柡澶婄墑閸斿秴鈻嶉幘缁樷拺闁煎鍊曢弸鎴︽煟閻旀潙鍔ら柍褜鍓氶崙褰掑矗閸愵喖绠栭梻鍫熶緱濞尖晠鏌ら崫銉毌闁圭柉娅ｇ槐鎺旂磼閵忕姴绠归梺鐟板暱缁绘﹢骞冮悽鍓叉晜闁糕剝鐟ч敍婊冾渻閵堝棙鐓ラ柕鍫熸倐瀹曪綁宕熼娑樹壕閻熸瑥瀚粈鍫濐熆瑜庨〃鍫ュ箲閵忕姭鏀介悗锝庝簽閿涙盯姊烘导娆戝埌闁兼椿鍨跺鎼佸箣閻愮數顔曠紒鐐緲瑜板鏌囬婧惧亾濞堝灝鏋︽繛澶嬬洴閸┿垺鎯旈妸锕€鈧攱銇勯幒鎴Ч闁挎稑鎳庨埞鎴︽偐閸偅姣勬繝娈垮枤閸忔ê顕ｉ锕€绠瑰ù锝呮憸閿涙盯姊虹紒姗嗙劸妞ゆ泦鍛笉闁割煈鍋佹禍婊堢叓閸ャ劍灏版い銉уХ缁辨帡鍩€椤掍胶绡€闁搞儯鍔庨崢鎾绘偡濠婂嫮鐭掔€规洘绮岄～婵堟崉娴ｆ洩绠撻弻娑㈠即閵娿儳浼囬梺杞扮閸熸挳寮婚弴锛勭杸濠电姴鍟悵鏇㈡⒑鐎圭媭鍤欓柣妤佹尭椤繘鎼归悷鏉款嚙闂佸搫娲ㄩ崰鎰熆閹剧粯鈷戦柟鑲╁仜婵偓濠碘槅鍋勭€氫即銆佸鑸垫櫜濠㈣埖蓱閺咁亪姊洪柅鐐茶嫰婢ь噣鏌ｉ敐鍥у幋妤犵偞甯￠獮瀣敇閻樻彃姹查梻鍌欑閹诧紕鍒掑畝鍕柈闁绘鐗婇崕鐔封攽閻樺弶澶勯柍?*/
-.wallet-status {
-  background: #1C1C1E;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.wallet-status.connected {
-  border-color: rgba(14, 203, 129, 0.3);
-  background: rgba(14, 203, 129, 0.05);
-}
-
-.wallet-status-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #FFFFFF;
-}
-
-.wallet-status-header .van-icon {
-  font-size: 18px;
-}
-
-.wallet-address-display {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  font-size: 12px;
-}
-
-.address-label {
-  color: #8E8E93;
-}
-
-.address-value {
-  color: #FFFFFF;
-  font-family: 'DIN Alternate', monospace;
-  font-variant-numeric: tabular-nums;
-}
-
-.connect-wallet-btn {
-  width: 100%;
-  height: 44px;
-  background: #FCD535;
-  color: #000000;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 15px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.3s ease;
-}
-
-.connect-wallet-btn:active {
-  opacity: 0.8;
-}
-
-.connect-wallet-btn .van-icon {
-  font-size: 18px;
-  }
-  /* 婵犵數濮烽弫鍛婃叏閻戣棄鏋侀柛娑橈攻閸欏繘鏌ｉ幋婵愭綗闁逞屽墮閸婂潡骞愭繝鍐彾闁冲搫顑囩粔顔锯偓瑙勬磸閸旀垵顕ｉ崼鏇炵闁绘瑥鎳愰獮銏ゆ⒒閸屾瑧顦﹂柟娴嬪墲缁楃喎螖閸涱厾鐓戦柟鍏肩暘閸斿秹宕戦崟顖涚厱闁斥晛鍘鹃懖鈺傚床闁糕剝菧娴滄粓鏌″鍐ㄥ闁汇劍鍨堕幈銊╂晲閸パ傛闂佸搫鏈粙鎾诲焵椤掑﹦绉甸柛瀣噽娴滄悂顢橀悢缈犵盎濡炪倖鍔х徊璺ㄧ不閻愬瓨鍙忓┑鐘插亞閻撳吋顨ラ悙杈捐€挎い銏＄懇濮婅崵鈧潧鎽滈獮鎾绘⒒閸屾瑦绁版い鏇嗗喚娼╅柨鏇炲亰缂嶆牕顭跨捄琛″婵炲樊浜滈悡娑㈡煕閹扳晛濡跨紒娑樼箻濮婃椽宕ㄦ繝鍐ㄧ樂闂佸憡娲﹂崑鍕姳閵夛妇绡€闁汇垽娼ч埢鍫熺箾娴ｅ啿娴傞弫鍕煕濞戞鎽犻柛濠傚槻閳规垿鎮╅幓鎺濅痪闂佸摜濮甸崝娆撴偂椤愶箑鐐婇柕濞р偓婵洭姊虹粙娆惧剬闁哄懐濮撮～蹇撁洪宥嗘櫌闂侀€炲苯澧扮紒顔芥閹晫绮欑捄銊ュ箞闂備胶顢婇幓顏堟⒔閸曨垱鍋傞柡鍥╁枔缁♀偓闂傚倸鐗婄粙鎺椝夊鍕╀簻闊洤锕ュ▍鍡涙煏閸パ冾伂缂佺姵绋掔换婵嬪礃閳哄啫绲跨紓鍌氬€峰ù鍥ㄣ仈閸濄儲鏆滈柣鎰仛椤洟鏌熼悜妯烘闁绘柨鍚嬮崐缁樹繆椤栨繃纭舵俊淇卞妽缁绘繈鎮介棃娴躲儲銇勯敐鍕煓闁糕斁鍋撳銈嗗坊閸嬫挾鐥紒銏犲籍鐎规洘妞介弫鎰板幢閹邦亞鐩庨梻渚€娼х换鍡涘礈濠靛牏鐭嗛悗锝庡枟閻撴洟鏌嶉崫鍕偓濠氬煡婢跺浜滄い鎰剁悼缁犳牗绻涢悡搴ｇ濠碘剝鎮傛俊鐑芥晜閻愵剚顔呴梻鍌氬€搁崐椋庣矆娴ｅ搫顥氭い鎾卞灩缁犵娀鏌熼幑鎰靛殭闁汇値鍣ｉ弻鐔虹磼閵忕姵鐏堢紓浣哄У閻楃娀寮诲澶婁紶闁告洦鍓欏▍锝囩磽娴ｅ搫啸闁轰礁顭峰濠氭偄閸忕厧鈧粯淇婇婵愬殭闁哄棙顨嗙换娑氣偓娑欘焽閻帞绱掗悩宕囧ⅹ妞ゎ偄绻掔槐鎺懳熺拠宸偓鎾绘⒑閸涘﹦鈽夐柨鏇樺劦瀹曚即骞囬悧鍫氭嫼闂佸憡绺块崕鍗炵摥濠德板€楁慨鎾箺濠婂牆鐭楅柛娑卞弾濞撳鏌曢崼婵囶棡閻忓浚浜弻娑㈠Ω閵壯呅ㄩ梺?*/
-  .total-assets-container {
-    margin-bottom: 12px;
-  }
-
-  .assets-label {
-    color: #8E8E93;
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
-  }
-
-  .assets-main {
-    display: flex;
-    align-items: baseline;
-    gap: 0;
-    margin-bottom: 4px;
-  }
-
-  .total-amount {
-    font-size: 32px;
-    font-weight: bold;
-    font-family: 'DIN Alternate', sans-serif;
-    font-variant-numeric: tabular-nums;
-    color: #FFFFFF;
-    line-height: 1.2;
-    display: inline-block;
-    transition: color 0.3s ease;
-  }
-  
-  .total-amount.profit {
-    color: #0ECB81; /* 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁炬儳缍婇弻锝夊箣閿濆憛鎾绘煕閵堝懎顏柡灞剧洴椤㈡洟鏁愰崱娆樻К缂備胶鍋撻崕鍐差焽閿熺姴钃熼柨婵嗩槸椤懘鏌曡箛濠冩珖闁告梹鎮傚鍝勑ч崶褉鍋撳Δ鍛；闁规崘鍩栧畷鍙夌箾閹存瑥鐏╃紒鐙呯稻缁绘盯宕卞Δ鍐唺婵炲濞€缁犳牕顫忛搹鍦煓婵炲棙鍎抽崜鏉款渻閵堝棗鐏ユい锕傛涧椤曪絿鎷犲ù瀣潔闂侀潧绻掓慨鐑藉礉閹绢喗鈷戦柛娑橈工婵箑霉濠婂嫮澧崡閬嶆煕椤愮姴鍔滈柍閿嬪灴閺屾稑鈹戦崱妤婁患濡炪倕绻堥崕鐢稿蓟濞戞瑦鍎熼柨婵嗘濮ｅ牓鎮楀▓鍨灕妞ゆ泦鍥х叀濠㈣埖鍔曢～鍛存煟濡绲荤紒渚囧櫍濮婄粯绗熼埀顒€顭囪閳ワ箓宕奸妷銉э紵闂佹儳娴氶崑鍡涖€呴悜鑺ョ厓闁告繂瀚弳鐔虹棯閹规劖顥夐柕鍡樺笒椤繈顢楁担瑙勫€峰┑鐐茬摠缁秶鍒掓惔锝嗩潟闁圭儤鎸哥欢鐐测攽閻樻彃顏Δ鏃堟煟鎼淬埄鍟忛柛鐘崇墵閳ワ箓鏌ㄧ€ｂ晝绠氶梺鍓插亝濞叉牠鎮欐繝鍥ㄧ厓闁告繂瀚弳鐔兼煕濮楀棗鐏︽慨濠冩そ閹筹繝濡堕崨鍜冪到闇夋繝濞惧亾缂侇喗鐟ラ悾宄扳攽閸艾浜鹃柨婵嗛婢ь噣鏌涢妸锔剧疄闁哄矉缍佹慨鈧柣妯哄暱閺嗗牓姊洪幎鑺ユ暠闁搞劌缍婇崺鈧い鎺戝枤濞兼劖绻涢崣澶屽ⅹ閻撱倝鏌曟繛褍瀚▓鏉库攽閻愭潙鐏﹂柣鐕傜畵瀹曪綀绠涢幘顖涙杸闂佺粯锚瀵爼宕宠ぐ鎺撶厱婵ɑ鍓氬鎰庨崶褝韬€规洩绲惧鍕節閸屻倖缍掑┑掳鍊楁慨鐑藉磻閻愬灚鏆滈柟鐑樻礈娴滄瑩姊绘笟鈧埀顒傚仜閼活垱鏅堕幘顔界厵妞ゆ梹鍎虫禒杈┾偓瑙勬礀缂嶅﹪銆侀弴銏″亹閺夊牃鏅濆▔鍧楁⒒閸屾瑧顦︽繝鈧柆宥呯？闁靛牆顦崹鍌炴煟閵忕姴顥忛柡浣稿€归妵鍕疀閹捐泛顤€闂佺粯鎸婚悷锕傚Φ閸曨垰鍐€闁靛ě鍛帎濠电偛顕慨宥夊炊閵娧冨箺闂備線娼чˇ浠嬪窗閺囥垺鐒芥い鏍ㄧ◤娴滄粓鏌曡箛濠冾潐闁兼澘娼￠弻鐔碱敊閻ｅ本鍣伴悗娈垮枛閻栧ジ鐛€ｎ喗鍊烽柛顭戝亝閻︽挸鈹戦悩鍨毄濠殿喚鍏樺顐﹀箹娴ｅ摜锛涢梺缁樺姇濡﹪鎮為懞銉х闁糕剝蓱鐏忎即鏌涙惔銏╂疁闁哄本绋撴禒锕傚箚瑜嶅В鍫濃攽?*/
-  }
-  
-  .total-amount.loss {
-    color: #FF453A; /* 婵犵數濮烽弫鍛婃叏閻戣棄鏋侀柛娑橈攻閸欏繘鏌ｉ幋锝嗩棄闁哄绶氶弻鐔兼⒒鐎靛壊妲紒鎯у⒔缁垳鎹㈠☉銏犵婵炲棗绻掓禒楣冩⒑缁嬫鍎嶉柛濠冪箞瀵寮撮悢铏诡啎閻熸粌绉瑰畷顖烆敃閿旇棄鈧泛鈹戦悩鍙夊闁稿﹦鏁婚弻娑滅疀閹垮啯笑婵炲瓨绮撶粻鏍ь潖濞差亝鐒婚柣鎰蔼鐎氭澘顭胯閻°劑銆冮妷鈺傚€烽柡澶嬪灩娴煎本绻濆▓鍨灀闁稿鎹囧娲濞戞艾顣洪梺纭呮珪閸旀瑩銆佸鈧畷顐﹀礋閵婏附鏉搁梻浣虹帛椤洨鍒掗姘ｆ鐟滄棃寮婚敐鍛傛棃鍩€椤掑嫭鏅濋柕鍫濐槸閻撴繈鏌熼幑鎰靛殭缂佺姵姘ㄩ幉绋款煥閸愶腹鍋撻幒鎾剁瘈婵﹩鍘鹃崢顏堟⒑閸撴彃浜濈紒璇插暣钘熼柣妯烘▕閻斿棛鎲搁弮鈧粋宥夊醇閺囩偠鎽曞┑鐐村灦閸╁啴宕戦幘缁樻櫜閹肩补鈧尙鏁栭梻渚€娼уΛ娆戞暜閿熺姴钃熼柨婵嗘媼濞尖晜銇勯幘璺轰粶濠殿喓鍨归—鍐Χ閸℃ê纰嶉梺鍛婅壘椤戝懘顢氶妷鈺佺妞ゆ挻绋戞禍楣冩煥濠靛棝顎楀褜鍠楅〃銉╂倷閹碱厾鍔风紓浣介哺閹瑰洤鐣烽幒鎴旀瀻闁规惌鍘借ⅵ濠碉紕鍋戦崐鏍垂閻㈠憡鍋嬮柛鈩冪☉閻撴繈鏌￠崘銊у闁告濞婇弻锝夊棘閹规劦鍔呭┑鐐存綑鐎氼剟鍩為幋锔藉€烽柡澶嬪灩娴犙囨⒑閹肩偛濡芥俊鐐扮矙楠炲啴鏁撻悩鑼槰濡炪倕绻愬Λ娑㈡晬濠靛洨绠鹃弶鍫濆⒔缁夘剟鏌涚€ｎ亜鈧潡鐛€ｎ喗鏅濋柍褜鍓熼幃锟犲即閵忥紕鍘甸梺缁樺灦钃遍柍閿嬪笧閻ヮ亪骞嗚閸嬨垻鈧鍠栭悥鐓庣暦閻撳簶妲堟俊顖欒閻庤櫕绻濋悽闈涗沪闁诡垰鐭傚畷鎶芥晲婢跺﹨鎽曞┑鐐村灟閸ㄥ綊鎮″鈧弻鐔碱敍閸℃鈧悂藟濮橆厾绡€缁炬澘顦辩壕鍧楁煕鐎ｎ偄鐏寸€规洘鍔欏浠嬵敃閿濆棙顔囬梻浣告贡閸庛倝寮婚敓鐘茬；闁圭偓鍓氬鈺呮煟閹炬娊顎楃紒顐㈢Т铻栭柣姗€娼ф禒婊勪繆椤愶絿绠炴鐐插暙閳诲酣骞橀弶鎴斿亾缂佹ü绻嗘い鏍ㄧ矊鐢埖顨ラ悙鎼疁婵﹦绮幏鍛存惞閻熸壆顐兼繝娈垮枛閿曘倝鈥﹀畡鎵殾闁靛骏缍嗗Σ鑲╃磽娴ｇ鈧摜绮旈悽纰樺亾娴ｅ啫浜归柍褜鍓氱粙鎺椻€﹂崶顒€鍌ㄩ梺顒€绉甸埛鎴︽煕濠靛棗顏╅柍褜鍓欑紞濠囥€侀弽褉鏋庣€甸偊鍋嗛崰鏍春閳ь剚銇勯幒鍡椾壕闂?*/
-  }
-  
-  .futures-pnl-hint {
-    margin-top: 8px;
-    font-size: 12px;
-  }
-  
-  .futures-pnl-hint .pnl-profit {
-    color: #0ECB81;
-  }
-  
-  .futures-pnl-hint .pnl-loss {
-    color: #FF453A;
-  }
-
-  .profit-badge {
-    font-size: 13px;
-    font-weight: 600;
-    color: #0ECB81;
-    margin-left: 12px;
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-    display: inline-block;
-    vertical-align: baseline;
-  }
-
-  .legal-currency {
-    color: #848E9C;
-    font-size: 14px;
-    margin-top: 4px;
-  }
-  
-  /* 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁惧墽鎳撻—鍐偓锝庝簼閹癸綁鏌ｉ鐐搭棞闂囧鏌ㄥ┑鍡╂Ч濞存嚎鍊濋弻銈夊级閹稿骸浠村┑顔硷攻濡炰粙銆佸Δ鍛劦妞ゆ帒鍊婚惌鎾淬亜閺囨浜鹃梺绯曟杹閸嬫挸顪冮妶鍡楃瑨闁挎洩绠撻幃楣冩偨绾版ê浜鹃悷娆忓缁€鈧梺闈涚墕閹测剝绌辨繝鍐炬Ч閹煎瓨锚娴滈箖鏌ㄥ┑鍡欏嚬缂併劌銈搁弻娑㈡偐缁涚鈧潡鏌″畝鈧崰鏍€佸▎鎾村€锋い鎺嶈兌瑜把呯磽閸屾瑧璐伴柛鐘愁殜閹柉顦规鐐村灴瀹曠喖顢涘璇蹭壕闁挎洖鍊哥粻锝嗙節闂堟稒澶勬慨锝呮濮婂宕掑▎鎰偘濡炪倖娉﹂崘鐐兊闂佹寧娲栭崑濠勭礊閺嵮岀唵閻犻缚銆€婵洦绻涘顔荤盎闁告劏鍋撴俊鐐€ら崗姗€宕滃┑鍡╂富闁兼亽鍎扮换鍡樻叏濠靛棛鐒炬俊鑼额嚙椤?*/
-  .action-grid {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    width: 100%;
-    margin-top: 0;
-  }
-  .action-btn {
-    flex: 1;
-    height: 44px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 4px;
-  border-radius: 8px;
-    font-weight: 600;
-    font-size: 15px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-.action-btn:active {
-  opacity: 0.8;
-}
-.action-btn:disabled,
-.action-btn[disabled] {
-  opacity: 0.4;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-/* 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁炬儳缍婇弻鐔兼⒒鐎靛壊妲紒鎯у⒔閹虫捇鈥旈崘顏佸亾閿濆簼绨绘い鎺嬪灪閵囧嫰骞囬鍡欑厯闂佸搫琚崝鎴﹀箖閵忋倕浼犻柛鏇熷灟閸ㄤ粙寮诲☉姘勃閻犲洦褰冮～鍥⒑閸濆嫮鐏遍柛鐘崇墪椤繘鎳￠妶鍌氫壕闂傚牊绋戦ˉ蹇斾繆瀹割喖鏋ょ紒杈ㄥ浮閹瑩顢楅埀顒勫礉閵堝棎浜滄い鎾跺Т閸樺鈧鍠栭…鐑藉箖閵忋倖鍋傞幖杈剧秵濡插爼鏌ｉ悢鍝ョ煀缂佺粯甯″顐︻敊鐏忔牗顫嶉梺闈涢獜缁辨洟宕㈤柆宥嗙厽閹兼惌鍨抽崚鏉款熆瑜嶅ù椋庡垝閺冨牜鏁嬮柍褜鍓熷濠氭晬閸曨亝鍕冮梺鍛婃寙閸曨偄鐏℃繝鐢靛Х椤ｎ喚妲愰弴銏犵婵☆垳绮崣蹇涙煃瑜滈崜鐔煎蓟瀹ュ鐓涘ù锝呮啞濞堝爼鎮峰鍕凡婵☆偅绻傞～蹇曠磼濡顎撻梺鎯х箳閹虫挾绮敓鐘崇厽闁靛繆鏅涢悘锝夋煕閻樻煡鍙勯柛鈹垮灲瀵噣宕煎┑鍡楃ギ闂備胶绮摫闁告挻鑹鹃…鍥偄閸忓皷鎷洪梺闈╁瘜閸樺ジ宕濈€ｎ偅鍙忓┑鐘叉噹閸氱懓顭跨憴鍕鐎规洘顨婂鑽も偓闈涙憸閻ｇ偓淇婇悙顏勨偓鏍偋濡ゅ啯宕查柛鎰靛櫘閺佸倿鏌ｅΟ娆炬⒖鐟滅増甯楅崑鎰版煣韫囷絽浜滈柍褜鍓氶崝鏍箞?Banner */
-.referral-banner {
-  margin: 16px;
-  padding: 16px;
-  background: linear-gradient(90deg, #1C1C1E 0%, #2C2C2E 100%);
-  border-radius: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: 1px solid rgba(252, 213, 53, 0.1);
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.referral-banner:active {
-  opacity: 0.8;
-  transform: scale(0.98);
-}
-
-.referral-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.ref-title {
-  color: #FFFFFF;
-  font-size: 15px;
-  font-weight: 700;
-  margin: 0;
-}
-
-.ref-desc {
-  color: #848E9C;
-  font-size: 12px;
-  margin: 0;
-}
-
-.ref-desc .highlight {
-  color: #FCD535;
-  font-weight: 700;
-}
-
-.referral-action {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.earned-text {
-  color: #FCD535;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.primary {
-  background-color: #FCD535;
-    color: #1E2329;
-  }
-  .secondary {
-  background-color: #2B3139;
-    color: #EAECEF;
-  }
-
-/* Overview 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁惧墽鎳撻—鍐偓锝庝簼閹癸綁鏌ｉ鐐搭棞闁靛棙甯掗～婵嬫晲閸涱剙顥氬┑掳鍊楁慨鐑藉磻濞戔懞鍥偨缁嬫寧鐎梺鐟板⒔缁垶宕戦幇鐗堢厾缁炬澘宕晶缁樹繆閼碱剙鍘存慨濠勭帛閹峰懘宕ㄦ繝鍐ㄥ壍婵犵數鍋涢惇浼村垂閽樺鏆︾憸鐗堝笒閹硅埖銇勯幘璺盒＄紒妤€顦靛铏圭磼濮楀棛鍔稿銈嗘肠閸涱垯绗夐悷婊呭鐢鎮″▎鎴犳／闁哄鐏濋懜瑙勵殽閻愯揪鑰块柡灞剧☉铻ｉ柤濮愬€栭崚娑㈡⒑閸濆嫬顦柛鎾寸箞楠炲繘宕ㄧ€涙﹩妫冮梺鍐叉惈鐎氼剟骞嗛崼銉︹拻濞达絽鎲￠幆鍫ユ煟椤掆偓閵堢鐣锋导鏉戝唨妞ゆ挾鍋熼悾娲偡濠婂嫭鐓ラ柣锝夋敱缁轰粙宕ㄦ繝鍌欑盎闂備礁鎲＄换鍌溾偓姘煎墮閳绘捇濡疯绾句粙鏌涚仦鎹愬闁逞屽墴椤ユ捇骞忕€ｎ喖钃熼柕澶堝劤閿涙盯姊虹憴鍕姢闁诲繐鐗撳畷鎴﹀箻鐠囪尙顦ф繝銏ｆ硾閿曪絾绔熼弴銏♀拻濞达絽鎲￠崯鐐寸箾鐠囇呯暤鐎规洘绮岄埥澶愬閻樻彃浜堕梻浣告啞椤ㄥ牓宕戦幇鏉跨哗濞寸姴顑嗛悡鐔镐繆椤栨繂浜归悽顖涚⊕缁绘盯骞婂畡鏉款仹缂佽妫欓妵鍕箛閸撲胶校濠电偛鐗婄划宥夊Φ閸曨垰顫呴柍鈺佸枤濡啫顪冮妶鍐ㄧ仾婵炶尙鍠栧顐﹀磼閻愭潙浠奸柣蹇曞仩濡嫮绮?*/
-.overview-content {
-  padding: 0 16px 20px;
-}
-
-/* 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁炬儳缍婇弻锝夊箣閿濆憛鎾绘煕閵堝懎顏柡灞剧洴椤㈡洟鏁愰崱娆樻К缂備胶鍋撻崕鍐差焽閿熺姴钃熼柨婵嗩槸椤懘鏌曡箛濠冩珖闁告梹鎮傚鍝勑ч崶褉鍋撳Δ鍛；闁规崘鍩栧畷鍙夌箾閹存瑥鐏╃紒鐙呯稻缁绘盯宕卞Δ鍐唺婵炲濞€缁犳牕顫忛搹鍦煓婵炲棙鍎抽崜鏉款渻閵堝棗鐏ユい锕傛涧椤曪絿鎷犲ù瀣潔濠碘槅鍨堕弨閬嶏綖瀹ュ鈷戦柛娑橆煬濞堟﹢鏌涚€ｎ剙鏋戠紒鍌涘笧閳ь剚绋掗…鍥╁姬閳ь剙鈹戦悙鑼闁诲繑绻堝鎼佹晜閻ｅ瞼顔曢梺鍛婁緱閸犳绮堢€ｎ亖鏀介柨娑樺閺嗩剛鈧娲滈崰鏍€佸☉姗嗘僵濡插本鐗曢弲顏堟⒒閸屾瑧顦﹂柟璇х節閵嗗啴宕奸妷銉э紱闂佺粯鏌ㄩ幗婊堛€呴悜鑺ョ厾婵炴潙顑嗗▍鍥╃棯閹规劖顥夐棁澶愭煥濠靛棙顥滅紒鑼额嚙闇夋繝濠傜墢閻ｇ儤鎱ㄦ繝鍛仩闁告牗鐗犲鎾倷濞村瀚熺紓鍌氬€风粈渚€顢栭崱娆愭殰闁跨喓濮寸粻鏍煥閻斿搫孝闁告濞婇弻鏇＄疀閵壯咃紵闂佸憡蓱閹瑰洤顫忛搹鍏夊亾閸︻厼校闁靛棗鍟扮槐鎺楀焵椤掍胶鐟归柍褜鍓欓锝夊箹娴ｈ倽褍顭跨捄渚剳闁告ü绮欏娲偡閻楀牊鍎撶紓浣割槸閻栧ジ骞嗙仦瑙ｆ瀻闁规儳顕崢鎼佹煟韫囨洖浠ч柡鍜佸亜閺嗏晜淇婇悙顏冪礃闁稿本绮庨悰銏ゆ⒑閸濆嫭婀扮紒瀣墱缁鈽夐姀鐘电潉闂佺鏈彜闁稿鎹囬獮鎺懳旀担鍝勫箞闂備礁婀遍崕銈夊箰閸濄儳绠旈柟鐑橆殕閻撳啴鎮归崶褍绾ч柛鐐差槺缁辨帡鎮╁畷鍥ㄥ垱閻庢鍠楅幐鎶藉箖閵忋倕绀堥柟缁樺笚濞呮姊婚崒姘偓鎼佸磹瀹勬噴褰掑炊瑜夐弸鏍煛閸ャ儱鐏╃紒鎰殜閺岀喖骞嗚閹界娀鏌涘▎蹇曠闁哄矉缍佹慨鈧柕蹇婃櫇閸旀悂姊哄Ч鍥р偓妤呭磻閹捐桅闁告洦鍨扮粻鎶芥煙鐎涙绠ュù鐘荤畺濮婅櫣绱掑Ο璇查瀺濠电偠灏欓崰鏍ь嚕婵犳碍鏅搁柣妯垮皺閸婄偤姊洪棃娑辨Ф闁稿酣浜堕垾鏍醇閻旇櫣顔曢柣搴㈢⊕椤洭鎯岄崱娆戠＜妞ゆ梻鏅幊鍥┾偓?*/
-.pnl-card {
-  /* 婵犵數濮烽弫鍛婃叏閻戣棄鏋侀柛娑橈攻閸欏繘鏌ｉ幋锝嗩棄闁哄绶氶弻鐔兼⒒鐎靛壊妲紒鐐劤濞硷繝寮婚悢琛″亾閻㈡鐒剧€涙繄绱撴担鐣屽牚闁稿﹥绻堝濠氭晝閳ь剝鐏掓繛鎾村嚬閸ㄩ亶鏁嶉崱妞绘斀闁绘劕寮堕埢鏇灻瑰鍕疄鐎殿喗褰冮…銊╁醇閻斿搫骞楅梻渚€鈧稑宓嗘繛浣冲嫭娅犳い鏇楀亾妤犵偞鐗犲鍫曞箣椤栨繂鎯堟繝娈垮枛閿曘儱顪冮挊澶屾殾闁靛濡囩弧鈧梺鍛婂姦閻撳牆危闁秵鈷掑ù锝堫潐閸嬬娀鏌涢弬璺ㄐ㈡い顓炵仢铻ｇ紓浣股戦悵锟犳⒒閸屾瑧顦﹂柟纰卞亞閹噣顢曢敃鈧壕鍧楁煛鐏炶鍔滈柛瀣€块弻娑㈠箛閸忓摜鍑归梺鍝ュУ閸旀牜鎹㈠┑鍥╃瘈闁稿本绮岄。铏圭磽娴ｆ彃浜鹃梺鍓插亖閸庢煡鎮￠悢鍏肩厸闁告劑鍔岄埀顒€鎽滈弫顕€宕奸弴鐔哄弮闂佸憡鍔︽禍婊堝几閹寸姷纾肩紓浣诡焽濞插瓨顨ラ悙宸剶闁诡喗绮撳畷鍗炩枎韫囨挃鐔兼⒒閸屾瑨鍏岀紒顕呭灦瀵濡搁埡浣叫曢柣搴秵閸犳牜澹曟繝姘厱鐎光偓閳ь剟宕戝☉姘变笉閻熸瑥瀚粻楣冩煥濠靛棝顎楀褜鍣ｉ弻锝堢疀閿濆懏鐝濋梺鍝勮嫰缁夌兘篓娓氣偓閺屾盯骞橀弶鎴濇懙閻庤娲樺ú鐔肩嵁鎼淬劍瀵犲璺鸿嫰楠炲姊绘担渚敯闁规椿浜浠嬪礋椤栨氨锛涢梺褰掑亰閸樿绂嶅鍫熺厵闁哄娉曟禒娑氱磼閼镐絻澹樻い顓℃硶閹叉挳宕熼鍌ゆК闂備礁鐤囬～澶愬垂閸ф绠栨繛鍡樺灍閸嬫挸鈽夊▍顓т邯濡嫬顓兼径瀣ф嫼缂備緡鍨卞ú妯衡枍閸涘瓨鐓曢柣鏂挎啞缂嶆垿鏌ｉ敐鍥у幋妤犵偛顑夐弫鍐焵椤掑倻涓嶉柤濮愬€楃壕钘壝归敐鍫殐闁绘帊绮欓弻娑橆潨閳ь剙顭囪閳ユ棃宕橀鍢壯囨煕閳╁啰鎳冩い顐庡洦鈷戦柣鎾虫捣缁夎櫣绱掗悩宕囧ⅹ妞ゆ洩缍侀獮搴ㄦ嚍閵夛附鐝抽梻浣规偠閸庤崵寰婇懞銉ь洸濡わ絽鍟崑鈩冪箾閸℃绠版い蹇ｄ簽缁辨帡鍩€椤掑嫬閱囬柕澶涘閸橀亶姊虹紒妯忣亞澹曢鐔告珷闁汇垹鎲￠悡蹇涙煕閳╁啯绀堢紒鎰⒒閳ь剚顔栭崰妤呭箰閾忣偅鍙忛柍褜鍓熼弻锝呂熼懡銈呯仼闂佹悶鍎滈崪浣告櫍闂備浇顕х€涒晝绮欓幒妞烩偓锕傚炊閳哄啩绗夊┑鈽嗗灥閸嬫劗澹曟總鍛婄厓鐟滄粓宕滃顒夊殫闁告洦鍨扮粻娑欍亜閹惧鈯曢悗姘虫閳规垿鎮欓懜闈涙锭缂備焦褰冨锟犲箖濞差亜绫嶉柛顐ｇ箓閹偛鈹戦悙鍙夘棡闁搞劌婀辨竟鏇㈡嚃閳哄啰锛濇繛杈剧到椤牠顢旈崝钘夌秺椤㈡瑩鏌ㄩ姘闁荤喐鐟ョ€氼厾绮堥崘顔界厱闁靛鍎查崑銉╂煟濞戝崬娅嶇€规洖鐖奸、妤呭焵椤掑倻妫憸鏃堝箖鐟欏嫮鐟规い鏍ㄧ矊鐢劎绱撴笟鈧禍鑸电鐠轰警娼栫紓浣股戞刊鎾煟閹寸伝顏勨枔鐏炲墽绡€闁冲皝鍋撻柛娑卞枟閻濐亪姊洪崨濠傜瑲閻㈩垽绻濋妴浣糕槈閵忊€斥偓鐑芥煠绾板崬澧剧紒槌栧櫍濮婄粯鎷呯粙娆炬闂佺顑呴幊搴ｅ弲濠殿喗銇涢崑鎾绘煙椤曞棛绡€闁诡喓鍨藉畷妤呮嚃閳轰礁绠ラ梻鍌欐祰椤顢欓弽顓炵獥闁哄稁鍘归埀顒€鍊垮畷妤呮嚃閳哄喚鍟庨梻浣烘嚀閸熷潡宕查弻銉ュ偍闁硅鍔戞禍褰掓煙閻戞ɑ灏ù婊冦偢濮婃椽宕ㄦ繝浣虹箒闂佹悶鍔嶆繛濠傤嚕閹惰棄围濠㈣泛顑傞幏?*/
-  border-radius: 12px;
-  padding: 24px 20px;
-  margin-bottom: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  overflow: hidden;
-  
-  /* 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁惧墽鎳撻—鍐偓锝庝簼閹癸綁鏌ｉ鐐搭棞闁靛棙甯掗～婵嬫晲閸涱剙顥氬┑掳鍊楁慨鐑藉磻閻愮儤鍋嬮柣妯荤湽閳ь兛绶氬鎾閳╁啯鐝栭梻渚€鈧偛鑻晶鏉款熆鐟欏嫭绀夐柕鍥ㄥ姍楠炴帡骞橀崗鍛暰濠电姷鏁搁崑娑樜涘Δ鍐╁床闁逛即鍋婇弫鍌涖亜閹板爼妾柣鎾跺枑缁绘繈妫冨☉娆樻￥闂佺硶鏅紞渚€寮婚敍鍕勃闁告挆鍕灡闂備胶纭堕弲娑氣偓姘緲閻ｅ嘲顫滈埀顒勫极閸屾粍宕夐柕濠忕畱缁€瀣⒒閸屾艾鈧绮堟笟鈧獮鏍敃閿旂粯鏅為梺绯曞墲閵囧倸鈽夐姀鐘殿槰濡炪倖妫佹竟鍫ュ箺閺囥垺鈷戠紓浣股戦悡銉╂煙鐠囇呯？缂佽京鍋ゅ畷鍫曗€栭浣诡棃闁轰焦鍔欏畷銊╊敇閻斿壊鍞瑰┑锛勫亼閸婃洘顨ラ崫銉х煋闁荤喖鍋婂鏍ㄧ箾瀹割喕绨荤紒鐘茬秺閺岋綁骞囬鐘仦闂佺顑嗛幑鍥ь嚕閹绢喗鍋愭い鎰垫線婢规洖鈹戦鏂や緵闁稿瀚悾鐢稿幢濮楀棙顔旈梺缁樺姈瑜板啴寮冲▎鎰╀簻妞ゆ劧绲块惌鎺楁煕閳规儳浜炬俊鐐€栫敮鎺斺偓姘煎墰缁寮介妸褏顔曢梺绯曞墲钃遍悘蹇曞閵囧嫰濡烽妷褍顤€缂備胶绮惄顖炵嵁鐎ｎ喗鍊婚柛鈩冾焽閺嗐儲淇婇悙顏勨偓鎴﹀磿閹绘帞鏆嗙紒瀣儥濞兼牜绱撴担鑲℃垶鍒婇幘顔界叄闊洦娲橀崵鈧紓浣诡殣缁辨洜妲愰幘瀛樺缂佹稑顑呭▓顓犵磽娴ｅ壊妲洪柟铏崌閹箖鎮块妯规睏闂佸湱鍎ら崹鍧楀船閸洘鈷戦柛婵嗗瀹告繈鏌涚€ｎ剙鏋涢柟顔藉劤鐓ゆい蹇撴噽閸樹粙姊虹紒妯荤叆闁硅姤绮撻獮濠囧礃椤旇棄鈧灚鎱ㄥΟ鐓庡付妤犵偞顨婇弻娑㈠箳閹搭垰濮涢梺閫炲苯澧存繛浣冲洤绠烘繝濠傛噹椤ユ艾鈹戦崒姘暈闁稿﹦鏁婚弻銊モ攽閸℃瑥鍤紓浣靛姀婵倝骞堥妸銉庣喓绮欓崹顕呮綆闂備礁鎼惉濂稿窗閹捐泛鍨濇繛鍡樻尭閸ㄥ倹銇勯弮鍥撴い鏃€甯楃换婵嗏枔閸喗鐏堥梺鎸庢磸閸婃繈鐛弽顓ф晝闁挎繂妫欓悵锟犳⒒閸屾瑧鍔嶉柟顔肩埣瀹曟洖顭ㄩ崼婵堝姦濡炪倖甯掔€氼剛澹曟繝姘厵闁硅鍔﹂崵娆撴煕濡や礁鈻曢柡宀嬬秮楠炲洭顢楅崒鍌︾悼缁辨帞鈧綆鍋勯悘鎾煕閳哄啫浠辨鐐差儔閹晠顢曢～顓烆棜闂備焦瀵х换鍌滆姳閼测晞濮冲┑鍌氭啞閻撶喖骞栭幖顓炴灈濠⒀勬尦閺岀喖顢欑粵瀣杹闂佺粯渚楅崳锝呯暦瑜版帩鏁婇柣鎾冲瘨濞兼盯姊婚崒娆掑厡闁硅櫕鎹囧畷鏌ュ蓟閵夘喗鏅為梺鍛婄〒鐞涖儵鍩€椤掑﹦鐣电€规洖鐖奸、妤呭焵椤掑嫭鍋傛繛鎴欏灪閻撴洟鎮橀悙鎵暯闁兼祴鏅炴慨鍐测攽閻樺磭顣查柍閿嬪灴閹嘲鈻庤箛鎿冧患缂備讲鍋撻柛鎰ㄦ櫇缁犳儳顭跨捄渚剳妞ゎ剙銈搁弻宥夘敂閸涱喖鍞夊┑顔硷功缁垶骞忛崨顔剧懝妞ゆ牗绮屾慨鍏间繆閻愵亜鈧牠宕归棃娴虫稑鈹戠€ｎ剙绁﹂梺纭呮彧缁犳垿鎮欐繝鍐︿簻闁硅揪闄勯弳婊堟煕鐎ｎ偅灏伴柟宄版嚇閹虫牕鈹戦崶顭戞閻庤娲忛崝鎴︺€佸鈧幃顏堝川椤栨氨鍝庡┑鐘垫暩婵兘寮崨濠冨弿缁炬儳顑呴·鍌炴⒒娴ｄ警鐒炬い鎴濇楠炴劙宕滆椤洟鏌熼悜妯烘闁哄啫鐗嗛悞鍨亜閹烘垵顎氶柛銉墯椤ュ牊绻涢幋锝夊摵缂傚秴楠搁埞鎴︽倷閸欏鏋欐繛瀛樼矋缁诲牓骞冮悙瀵哥瘈婵﹩鍘鹃崢浠嬫⒑瑜版帒浜伴柛銊ゅ嵆閹锋洘绺介崨濠傗偓鍨叏濮楀棗骞楃紒璺哄级閵囧嫰顢橀垾鍐插Х濡炪倧绠撴禍鍫曞蓟濞戞鏃€鎷呯化鏇熺亞闁诲孩顔栭崰鏍€﹂悜钘夋瀬闁归偊鍘肩欢鐐测攽閻戝棙濞囬柛鏂跨Ч婵＄敻宕熼姘棟濠电偛妫楁晶浠嬪触鐎ｎ喗鈷戠紒瀣儥閸庢劖銇勯妸銉﹀殌闁诲繐鍟村铏圭磼濮楀牐鈧寧绻涙担鍐插椤╃兘鏌ㄩ弴鐐测偓褰掓偂閺囥垺鐓涢柛鎰剁到娴滈箖姊虹紒姗嗘畼濠电偐鍋撻梺缁樹緱閸ｏ絽鐣烽崡鐐╂婵☆垵鍋愬澶愭⒒娴ｇ顥忛柛瀣噽閹广垹顓奸崪浣哄姺婵犵數濮村ú锕傚煕閹达附鐓欑紒瀣閹癸絿绱掗悩铏鞍濞ｅ洤锕、鏇㈡晲鎼淬垻鏉规俊?*/
-  background-color: #1C1C1E; /* 婵犵數濮烽弫鍛婃叏閻戣棄鏋侀柛娑橈攻閸欏繘鏌ｉ幋锝嗩棄闁哄绶氶弻鐔兼⒒鐎靛壊妲紒鐐劤濞硷繝寮婚悢琛″亾閻㈡鐒剧€涙繄绱撴担鐣屽牚闁稿﹥绻堝濠氭晝閳ь剝鐏掓繛鎾村嚬閸ㄩ亶鏁嶉崱妞绘斀闁绘劕寮堕埢鏇灻瑰鍕疄鐎殿喗褰冮…銊╁醇閻斿搫骞楅梻渚€鈧稑宓嗘繛浣冲嫭娅犳い鏇楀亾妤犵偞鐗犲鍫曞箣椤栨繂鎯堟繝娈垮枛閿曘儱顪冮挊澶屾殾闁靛濡囩弧鈧梺绋挎湰椤曟挳寮撮悢铏诡啎闁诲孩绋掗…鍥儗鐎ｎ喗鐓熸俊銈呭暙瀛濋梺浼欑悼閸忔﹢鐛€ｎ喗鏅濋柍褜鍓涚划缁樼節濮橆厼浠梺鎼炲劘閸斿瞼寰婃繝姘厽閹兼惌鍠栭獮鏍ㄣ亜椤忓嫬鏆ｅ┑鈥崇埣瀹曞崬螖閳ь剝銆栫紓鍌氬€风粈浣割嚕鐠轰警娓诲ù鐘差儑瀹撲線鐓崶銊ユ惛濞存粌缍婇弻鐔兼倻濡鐨戦梺褰掓敱濡炰粙寮婚敐澶嬪亹闁告瑥顦遍ˇ閬嶆⒑闁偛鑻晶顔剧棯缂併垹骞楃紒鍌涘浮椤㈡﹢鎮欓埡鍌涙澑闂備礁鐤囧Λ鍕涘Δ浣侯洸婵犲﹤鐗婇悡鏇㈡煟閺囨氨顦﹀ù婊呭閵囧嫰濮€閳ュ啿鎽甸梺杞扮劍閸旀牕顕ラ崟顒傜瘈闁告洟娼ч弲顏勨攽閿涘嫬浜奸柛濠冪墪铻炲〒姘ｅ亾鐎规洘鍨块獮鍥敇閻戝棗娈奸梺璇插嚱缂嶅棝宕板Δ鍛厱闁瑰濮甸崰鎰版煟濡も偓閻楀棙绌遍鐐寸厸闁糕剝锚濞搭噣鏌″畝瀣М妤犵偞甯￠幃娆撴偨閸偅顔撻梻?*/
-  
-  /* 婵犵數濮烽弫鍛婃叏閻戣棄鏋侀柛娑橈攻閸欏繘鏌ｉ幋锝嗩棄闁哄绶氶弻鐔兼⒒鐎靛壊妲紒鐐劤椤兘寮婚敐鍛傜喎鈻庨幆褎顔勭紓鍌欒兌婵挳鎮樺璺何﹂柛鏇ㄥ枤閻も偓闂佸湱鍋撻幆灞轿涢妶鍥╃＝濞达絾褰冩禍鐐節閻㈤潧孝婵炶绠撻幃锟犲礃椤忓懎鏋戝┑鐘诧工閻楀棛绮堥崼鐔稿弿婵☆垰娼￠崫铏光偓瑙勬礀瀵墎鎹㈠☉銏犵闁绘劕鐏氶崳褏绱撴担绋款暢闁稿鍊濋獮鍐ㄎ旈崨顔芥珳闁硅偐琛ラ埀顒冨皺閺佹牗淇婇悙顏勨偓褏绱撳璺虹闁规儼妫勭粻鏍ㄤ繆閵堝倸浜鹃梺宕囩帛閹瑰洤鐣疯ぐ鎺濇晩闁伙絽鑻拏瀣⒒閸屾瑨鍏屾い顓炵墦椤㈡牠宕ㄧ€涙ɑ娅囬梺闈涱檧婵″洭鍩炲鍛斀闁绘ê寮堕幖鎰版⒑閸楃偞鍠橀柡宀嬬節瀹曞爼鍩℃担閿嬪煕闂備胶顭堥敃锕傚磻閵堝拋娼栨繛宸簻缁€鍐煕濞嗗浚妲归柛搴㈡崌濮婅櫣绮欏▎鎯у壈闂佹寧娲╃粻鎴濆祫闂佸湱澧楀姗€鎮炲ú顏呯厱闁规澘鑻幊鎰版偩妤ｅ啯鈷掑ù锝堟鐢盯鏌涢弮鎾绘缂佸倸绉撮…銊╁醇濠靛牆濮︽俊鐐€栫敮濠囨嚄閼稿灚娅犻柣銏犳啞閻撴瑦銇勯弬璇插闁告碍锕㈠顕€宕煎┑鍫О闂備線娼ч…鍫ュ磿閾忣偆顩插ù鐓庣摠閳锋垿鎮归崶顏勭毢缂佺姵濞婇弻娑氣偓锝庡墮闉嬪銈忕秮缁犳牕顫忓ú顏勪紶闁告洟娼ч崜鍗炩攽閳藉棗浜滈柛鐔告綑椤曪絾绻濆顓熸珳闂佸憡绋戦崐濠氬窗閺嶎厼绠犻柡宥庡幖閻撴稑霉閿濆嫯顒熼柛瀣斿洦鈷?SVG (Stroke only, No fill) */
-  background-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' viewBox='0 0 400 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 45 C40 45 60 25 100 30 C150 35 180 15 230 20 C280 25 320 5 400 10' fill='none' stroke='%230ECB81' stroke-width='2' stroke-opacity='0.3' stroke-linecap='round' /%3E%3C/svg%3E");
-  
-  background-repeat: no-repeat;
-  background-position: bottom center;
-  background-size: 100% 100%; /* 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁炬儳缍婇弻锝夊箣閿濆憛鎾绘煕閵堝懎顏柡灞剧洴椤㈡洟鏁愰崱娆樻К缂傚倷鑳舵慨閿嬬箾閳ь剟鏌″畝鈧崰鏍嵁閹达箑绠涢梻鍫熺⊕椤斿嫰姊洪悷鏉挎倯婵炲吋鐟╅弫鍐敂閸繆鎽曢梺鎸庣☉鐎氼亜鈻介鍫熷仯闁搞儯鍔岀徊璇差熆鐟欏嫬濮嶆慨濠冩そ楠炴牠鎮欓幓鎺懶ら梻浣告啞閹碱偆绮婚幘鎰佸殨妞ゆ劑鍊愰崑鎾绘晲鎼粹剝鐏嶉梺缁樻尭閸熶即骞夌粙娆剧叆闁割偅绻勯ˇ顓炩攽閻愬弶顥為柟绋款煼瀹曟垿鍩￠崘锝呬壕闁荤喐婢橀顏勵熆閻熼偊鍎旂€殿喖鎲￠幆鏃堝Ω閿旀儳骞嶉梻浣虹帛閸旓箓宕滃杈╃闁瑰瓨绶烽悷閭︾叆闁告劦浜炴闂備浇顕栭崰妤呫€冮崼銉ョ疅闁圭虎鍠栫粈瀣亜閹烘垵浜炴俊宸墯缁绘繈鎮介棃娑楁勃濠电偛鍚嬮悷鈺佺暦閹版澘绠瑰ù锝呮贡閻ｆ娊姊婚崒娆戭槮闁规祴鈧秮娲晝閸屾艾鐎梻渚囧墮缁夋挳鎮￠弴銏＄厵閺夊牓绠栧顕€鏌嶉柨瀣诞闁哄本鐩、鏇㈠Χ閸涱喚鈧櫣绱撴担鐟板姸濡炴潙鎲＄粚杈ㄧ節閸パ呯厬婵犮垼娉涢鍛村船婢舵劖鈷戦柛婵嗗閻掕法绱掔紒妯肩畵闁伙絿鍏橀獮鎺楀箣閺冣偓閻庡姊洪悷閭﹀殶濠殿喖鍢查悾鐑藉蓟閵夛妇鍘介柟鍏肩暘閸娿倕顭囬幇顓犵闁告瑥顧€閼拌法鈧娲栫紞濠傜暦缁嬭鏃堝礃閵娧佸亰濠电姷顣藉Σ鍛村垂娴兼潙瑙﹂悗锝庡厴閸嬫挸顫濋鐐叉懙闂佸搫琚崐妤呭窗婵犲洤纭€闁绘劖绁撮幐鍕磽閸屾瑧顦︾€规洦鍓欓锝夊礈娴ｇ懓搴婂┑鐘绘涧濡矂寮搁弮鍫熺厱妞ゎ厽鍨甸弸鐔兼煟韫囨挾效婵﹥妞介獮鎰償閵忋垺顓婚梻渚€鈧偛鑻晶鍙夈亜椤愩埄妲搁悡銈夋煥閺囩偛鈧摜绮堥崼銉︾厽闁哄啫鍊哥敮鍓佺磼閻樺磭澧摶鏍煥濠靛棙鍣归柡鍡樼懇楠炲棝鎮㈤崗灏栨嫼闂佸憡鍔曞鍫曞箚閸儲鐓曞┑鐘插閺嗩剚顨ラ悙鑼閻撱倖銇勮箛鎾村櫝闁归攱妞藉娲川婵犲嫧妲堥梺鎸庢穿缁犳捇宕洪妷锕€绶為悗锝冨妺缁ㄨ顪冮妶鍡樺瘷闁告劦鐓堝濠氭⒒娴ｅ摜锛嶇紒顕呭灦楠炴垿宕堕鈧弸渚€鏌熼悧鍫熺凡闁绘劕锕弻宥夊传閸曨偅鐏曠紓浣介哺閻撯€愁潖濞差亜浼犻柛鏇炵仛绗戦梻浣虹帛椤ㄥ懐鈧碍婢橀悾宄扳攽閸♀晛鎮戦梺鎼炲劗閺呮繈鎮炴總鍛娾拺闁告稑锕ゆ慨锕傛煕閻樻剚娈滈柟顔光偓鏂ユ闁靛骏绱曢崢鍗炩攽閻愭潙鐏ョ€规洦鍓熼悰顔碱潨閳ь剟寮诲☉銏犵厸閻庯綆鍓氶崑褔姊洪柅鐐茶嫰婢ь垱銇勯弮鈧悧鐘茬暦娴兼潙鍗抽柣妯诲絻閻忓﹤鈹戦悙鍙夘棡闁圭鐖奸崺鈧い鎴ｆ硶缁愭梻鈧鍠楅幐铏叏閳ь剟鏌嶉妷銉ュ笭缂併劌顭峰缁樻媴閸濆嫪澹曢梺鐓庣秺缁犳牕鐣烽幇鏉跨濞达絺鍋撳璺侯煬濞尖晠寮堕崼姘珖闁挎稒绻冪换娑欐綇閸撗呅滅紓鍌氬€归懝楣冣€栨繝鍥х濞达絽婀遍崢鍗炩攽閳藉棗鐏″ù婊€绮欏畷鎴﹀閳藉棙顔旈梺缁樺姌椤曟粍螞濮樿京纾奸柣妯虹－閳藉妫佹径鎰厸濠㈣泛顑愰崕銉︿繆閹绘帗璐￠柍褜鍓欓悘姘熆濡皷鍋撳顐㈠祮闁绘侗鍣ｅ畷鍫曨敆婢跺娅嶉梻浣虹帛閸斿繘寮插☉娆戭洸?*/
-}
-
-.pnl-card:active {
-  background-color: #252A32;
-  transform: scale(0.98);
-}
-
-.pnl-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.pnl-label {
-  font-size: 13px;
-  color: #8E8E93;
-  font-weight: 500;
-}
-
-.pnl-content {
-  position: relative;
-  z-index: 1;
-}
-
-.pnl-value {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  position: relative;
-  z-index: 1;
-}
-
-.pnl-value.positive .pnl-amount {
-  color: #0ECB81;
-}
-
-.pnl-value.positive .pnl-percentage {
-  color: #0ECB81;
-}
-
-.pnl-amount {
-  font-size: 28px;
-  font-weight: 700;
-  font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif !important;
-  font-variant-numeric: tabular-nums;
-}
-
-.pnl-percentage {
-  font-size: 16px;
-  font-weight: 600;
-  font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif !important;
-  font-variant-numeric: tabular-nums;
-}
-
-/* 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧湱鈧懓瀚崳纾嬨亹閹烘垹鍊為悷婊冪箻瀵娊鏁冮崒娑氬幈濡炪値鍘介崹鍨濠靛鐓曟繛鍡楃箳缁犲鏌″畝瀣М濠殿喒鍋撻梺闈涚箚閺呮繈宕濋崫銉х＝濞达絾褰冩禍鐐節閵忥絾纭鹃柡鍫墴瀹曚即骞囬悧鍫㈠幐闂佺鏈笟妤呭磿閵夛妇绠鹃柛蹇氬亹婢ь亪妫佹径鎰厽婵☆垳鍎ら埢鏇㈡煕鎼达紕绠崇紒杈ㄥ浮閸┾偓妞ゆ帒鍊甸崑鎾绘晲鎼粹€茬按婵炲瓨绮嶇划鎾诲蓟閳ユ剚鍚嬮柛鎰╁妼椤顪冮妶蹇曞埌鐎殿喛鍩栫粚杈ㄧ節閸屻倕鏅犲銈嗘⒒閸樠囷綖閳哄懏鈷戦悗鍦濞兼劙鏌涢妸銉﹀仴妤犵偛鍟埢搴ㄥ箻瀹曞洭鐛撻梻浣烘嚀椤曨厽鎱ㄩ崘宸禆闁规儳澧庣壕钘壝归敐鍛儓濞存粎鍋撶换婵嬪閳藉棛鍔风紓渚囧枟濡啴骞婂鍫熷仺婵炲牊瀵ч柨銈夋⒒娴ｅ憡鍟炵紒瀣灴閺佸啴濡烽埡浣猴紵闂佺粯鏌ㄩ崥瀣偂韫囨挴鏀介柣妯垮皺缁犵増銇勯埡濠傚⒋闁哄本绋戦～婊堝焵椤掍胶顩查悹杞拌濞兼牗绻涘顔荤盎濞磋偐濞€閺屾盯寮撮妸銉ヮ潻闂佺顑呯粔鐟邦潖濞差亜宸濆┑鐘插暟閸欏棗顪冮妶鍡楃仴妞わ箓娼ч锝嗙節濮橆剛鍊炲銈嗗笒椤︿即寮查鍕拺缂備焦锚婵洦銇勯弴銊ュ籍鐎规洏鍨介幐濠冨緞閸℃ɑ鏉搁梻浣虹帛閸旀牕顭囧▎鎾村€堕柨鏇炲€归悡鐔兼煟閺囩偛鈧鎮鹃柆宥嗙厽闁挎繂鎳庡Σ濠氭煟閿濆棛绠炵€规洜鍠栭、妤呭磼濮橆剛顔囬梻鍌欐祰椤曆呮崲閹烘纾绘繛鎴炵懄濞呯娀鏌﹀Ο渚＆闁惧繐鍘滈崑鎾斥槈濞嗘瑤绶靛┑鐐茬墔缁瑩寮婚敐澶婄疀妞ゆ挾鍠撶粙鍥р攽閻愬瓨鍎楅柛鐘愁殜閵嗗啴濡烽埡鍌氣偓椋庘偓鐟板閸犳牠宕滈崼鏇熲拺閻犲洠鈧櫕鐏嶇紓渚囧枟閹告悂鎮鹃悜钘夌闁绘垵妫欏娲⒑缁洖澧查柨鏇ㄥ亞濡叉劕螣閼测晝锛?*/
-.allocation-section {
-  margin-top: 8px;
-}
-
-.allocation-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #FFFFFF;
-  margin-bottom: 12px;
-  padding: 0 4px;
-}
-
-.allocation-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.allocation-item {
-  background-color: #1C1C1E;
-  border-radius: 12px;
-  padding: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.allocation-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: 12px;
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.05) 0%, transparent 100%);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  pointer-events: none;
-}
-
-.allocation-item:active {
-  background-color: #252A32;
-  opacity: 0.85;
-  transform: scale(0.98);
-  border-color: rgba(212, 175, 55, 0.2);
-}
-
-.allocation-item:active::before {
-  opacity: 1;
-}
-
-.allocation-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-}
-
-.allocation-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  position: relative;
-  overflow: hidden;
-}
-
-.allocation-icon.spot-icon {
-  background: linear-gradient(135deg, #FCD535 0%, #F7B500 100%);
-  box-shadow: 0 2px 8px rgba(252, 213, 53, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
-}
-
-/* 缂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁炬儳缍婇弻锝夊箣閿濆憛鎾绘煕閵堝懎顏柡灞剧洴椤㈡洟鏁愰崱娆樻О闂備浇顕栭崹鎶藉磻閵堝宓侀柡宥庣仈鎼搭煈鏁嗛柍褜鍓氭穱濠冪附閸涘﹦鍘藉銈嗘尵閸ｃ儱鈻撳鍕垫闁绘劕顕晶顏堟嚕閹邦厹浜滈柟鍝勬娴滅偓绻濆鏋€曟禍鍦磼鏉堛劌娴鐐叉喘椤㈡顦抽柣銈勭窔濮婃椽宕崟顓犲姽缂備胶绮换鍌炴偩閻戣棄閱囬柡鍥╁仧閸樺憡绻涙潏鍓у埌婵炴潙瀚濠囧锤濡も偓閻?Vant 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁炬儳缍婇弻锝夊箣閿濆憛鎾绘煕婵犲倹鍋ラ柡灞诲姂瀵挳鎮欏ù瀣壕闁告縿鍎虫稉宥夋煛瀹ュ骸骞楅柣鎾存礃閵囧嫰骞囬崜浣荷戠紓浣插亾闁逞屽墰缁辨帡鎮欓鈧崝銈嗙箾绾绡€鐎殿喖顭烽幃銏ゆ偂鎼达絿鏆伴梻浣虹帛椤ㄥ懘鎮у鍏炬盯宕熼鐘碉紲闂佺粯鍔﹂崜娆撳礉閵堝棎浜滄い鎾跺Т閸樺鈧鍠栭…鐑藉箖閵忋倖鍋傞幖杈剧秵濡插爼鏌ｉ悢鍝ョ煀缂佺粯甯″顐︻敊鐏忔牗顫嶉梺闈涢獜缁辨洟宕㈤柆宥嗙厽閹兼惌鍨崇粔闈浢瑰鍡樼【閾伙綁鏌嶈閸撶喎顫忓ú顏勪紶闁告洦鍣鍫曟⒑閸涘﹥鐓ラ柣顓炲€垮畷娲倷閸濆嫮顓洪梺鎸庢磵閸嬫挻顨ラ悙顏勭仾濞ｅ洤锕、娑樷攦閻愵剙鐝辨繝纰樷偓鍐茬骇婵＄偠妫勯～蹇曠磼濡顎撴繛鎾村嚬閸ㄦ娊宕濈粙娆炬富闁靛牆妫楅悘銉︿繆椤愶絿绠為柣娑卞櫍楠炲洭寮剁捄顭戝晣濠电偠鎻徊浠嬪箺濠婂牆鐭楅柍褜鍓欓埞鎴︽偐椤旇偐浼囧┑鐐差槹缁嬫牗鏅跺┑瀣拺闁告繂瀚烽崕蹇旂箾鐎电鍘撮柛鈹惧亾濡炪倖宸婚崑鎾剁磼閻樿尙效鐎规洘娲樺蹇涘煘閹傚濠殿喗顭囬崢褍顕ｉ閿亾鐟欏嫭绀堥柛鐘崇墪閻ｅ嘲顫滈埀顒勩€侀弮鍫濆耿婵炲棙鐟ч梻顖炴⒒閸屾瑨鍏屾い顓炵墦瀵敻顢楅崟顒€娈炴俊銈忕到閸燁偊鎮為崹顐犱簻闁瑰搫妫楁禍楣冩⒑绾懎袚缂侇喖閰ｅ畷姘跺箳濡も偓缁秹鏌涢锝囩畼妞ゆ梹甯掗—鍐Χ閸℃顦ラ梺鐟板暱缁绘ê顕ｉ弻銉﹀€烽柣鎴炃氶幏娲⒑閸涘﹦鈽夐柨鏇畵閳ユ牗绺介崨濠勫幍濠电偠灏濠勮姳閻ｅ瞼纾奸弶鍫氭櫅娴犺京鈧鍠曠划娆撱€佸鈧幃銏ゅ传閸曨偄顩梻鍌氬€搁…顒勫磻閸曨個娲Χ婢舵ɑ鏅為梺鍛婄⊕濞兼瑩鎮為崹顐犱簻闁瑰搫绉烽崗灞筋熆瑜忛弫鎼佸焵椤掍緡鍟忛柛鐘愁殜閹繝鍨鹃幇浣告婵犵數濮甸懝鎯ф暜闂備焦瀵у褰掑磿閹剁晫宓侀柛顐犲劜閳锋帒銆掑锝呬壕濠电偘鍖犻崶浣告处缁傛帞鈧綆浜滈悗顓㈡⒑閸涘﹤濮岄悘蹇旂懇瀵娊宕卞Ο鑲╊啎闂佺懓鐡ㄩ悷銉╂倶椤忓牊鐓熼柟鎯х摠缁€瀣煙椤旂瓔娈滈柡浣瑰姈閹棃鍨鹃懠顒€鍤梻浣筋嚙缁绘劕霉濮樿泛鍌ㄥù鐘差儏妗呴梺鍛婃处閸ㄥジ寮崘顔界叆婵犻潧妫欏婵嬫煟閹炬剚妯€婵﹨娅ｉ崠鏍即閻斿憡绶梻浣侯焾椤戝棝骞愰幖浣测偓鏃堝礃椤斿槈褔鏌涢埄鍐炬當婵炲吋鍨垮铏圭矙濞嗘儳鍓遍梺鍦嚀濞差厼顕ｆ繝姘櫜濠㈣泛顑嗗▍婊堟⒑閸涘﹣绶遍柛妯诲灊缁ㄦ椽姊婚崒娆戭槮闁汇倕娲敐鐐村緞閹邦剙鐎悷婊呭鐢帡鎮為崹顐犱簻闁圭儤鍩婇崝鐔虹磼婢跺本鏆柡灞剧〒閳ь剨缍嗘禍婊堫敂椤忓棛纾奸柛灞炬皑鍟搁梺闈涙处閸旀瑩鐛幒妤€绠绘い鏍ㄧ☉椤忓湱绱撻崒姘偓鎼佸磹閻戣姤鍊块柨鏇炲€归弲顏堟⒒娴ｇ瓔鍤欏Δ鐘茬箻濮婁粙宕熼姣硷箓鏌涢弴銊ョ伇闁轰礁娲弻锝夊箛椤撶喓绋囬梺鍝勵儑婵數鎹?*/
-.allocation-icon :deep(.van-icon),
-.allocation-icon :deep([class*="van-icon"]) {
-  font-family: 'vant-icon', 'vant-iconfont', 'vant-icons', 'iconfont', 'vant', sans-serif !important;
-  font-style: normal !important;
-  font-weight: normal !important;
-  -webkit-font-smoothing: antialiased !important;
-  -moz-osx-font-smoothing: grayscale !important;
-}
-
-.allocation-icon.earn-icon {
-  background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
-}
-
-.allocation-icon.ido-icon {
-  background: linear-gradient(135deg, #FF6B6B 0%, #FF4757 100%);
-  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
-}
-
-.allocation-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-  justify-content: center;
-}
-
-.allocation-name {
-  font-size: 15px;
-  font-weight: 600;
-  color: #FFFFFF;
-}
-
-.allocation-desc {
-  font-size: 12px;
-  color: #8E8E93;
-}
-
-.allocation-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px; /* 缂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁炬儳缍婇弻锝夊箣閿濆憛鎾绘煕閵堝懎顏柡灞剧洴椤㈡洟鏁愰崱娆樻О闂備浇顕栭崹鎶藉磻閵堝宓侀柡宥庣仈鎼搭煈鏁嗛柍褜鍓氭穱濠冪附閸涘﹦鍘藉銈嗘尵閸ｃ儱鈻撳鍕垫闁绘劕顕晶顏堟嚕閹邦厹浜滈柟鍝勬娴滅偓绻濆鏋€曟禍鍦磼鏉堛劌娴鐐叉喘椤㈡顦抽柣銈勭窔濮婃椽宕崟顓犲姽缂備胶绮换鍌炴偩閻戣棄閱囬柡鍥╁仧閸樺憡绻涙潏鍓у埌婵炴潙瀚濠囧锤濡も偓閻掑灚銇勯幒鎴濇灓婵炲吋鍔栫换娑㈠矗婢跺苯鈪瑰銈嗘穿缂嶄礁鐣锋總绋垮嵆闁绘劗鏁搁弶浠嬫⒒娓氣偓濞佳団€﹂崼銉ョ？闁告繂瀚烽悞浠嬫煏婵炵偓娅嗛柣鎾存礋閺屽秹鍩℃担鍛婄亾濠电偛鐗婂鑽ゆ閹烘鍋愮€瑰壊鍠氶崥瀣攽椤旂》宸ラ柟纰卞亰閹箖鎮滈挊澶屽€為梺瀹犳〃閼冲爼顢曢崗鑲╃瘈缁剧増蓱椤﹪鏌涚€ｎ亜顏€规洦鍨堕獮姗€顢欓挊澶夌钵婵＄偑鍊栧ú宥夊磻閹惧灈鍋撳▓鍨灆缂侇喗鐟╅妴渚€寮撮姀鐙€娼婇梺缁樏崥鈧柛鐘诧躬濮婂宕掑▎鎺戝帯濡炪値鍘奸悧蹇涘箲閵忋倕绠涢柛蹇ｅ亜濞差參銆佸☉妯锋婵ê鍚嬮柨銈呪攽鎺抽崐褏寰婃禒瀣柈妞ゆ牜鍋為崑鍌炴煟濡吋鏆╂俊顐灦閺屸剝寰勬繝鍕檸闂佺厧鎽滈幊鎾烩€﹂懗顖ｆЩ濡炪値鍘鹃崗妯侯嚕鐠囨祴妲堥柕蹇娾偓鏂ュ亾閻戣姤鐓熼柟瀵稿€栭幋锔界叆妞ゆ挶鍨洪埛鎴︽倵閸︻厼顎屾繛鍏煎姍閺屾盯濡搁妷锕€浠村Δ鐘靛仜閸燁偊鍩㈡惔銊ョ闁哄倸銇樻竟鏇炩攽閻愭潙鐏︽い蹇ｄ邯椤㈡棃宕奸悤浣诡棄闁诲骸绠嶉崕閬嵥囨导鏉戠厱闁瑰鍋為崣蹇涙煟閻斿搫顣奸柟鍏煎姇閳规垿鏁嶉崟顒佺彧缂備浇椴哥敮锟犮€佸▎鎾村殟闁靛鍎抽。鏌ユ⒒娴ｉ涓茬紒韫矙瀹曟煡寮婚妷顖滅◤濠电姴锕ら悧鍡涙倿閸偁浜滈柟鐑樺灥椤忊晠鏌￠崟鈺佸姦闁哄被鍔戦幃銏ゅ传閸曟垯鍨荤槐鎺楀焵椤掑嫬绀冩い鏃傛櫕閸樹粙姊洪柅娑樺祮婵炰匠鍕珷濞寸厧鐡ㄩ悡娑㈡倶閻愬灚娅曞褝闄勯幈銊︾節閸屻倗鍚嬮悗瑙勬礃鐢帡锝炲┑瀣垫晞闁芥ê顦竟鏇熶繆閻愬樊鍎忔繛瀵稿厴閹矂宕卞灏栧亾閹烘埈娼╅柨婵嗘噸婢规洘淇婇妶鍥ラ柛瀣仱閹囨偐濮瑰洠鍋撴笟鈧鎾閻樻爠鍥ㄧ厱闁靛鍨哄▍鍥煕濡厧鈻堟慨濠勭帛閹峰懘宕ㄦ繝鍐ㄥ壍婵＄偑鍊х紓姘跺础閸愯尙鏆﹂梻鍫熶緱濞尖晜銇勯幋鐘蹭沪婵＄偘绮欓妴渚€寮▎鎯ф倯闂佺硶鍓濊摫闁绘繃绻堝濠氬磼濞嗘垹鐛㈠┑鐐板尃閸涱喖搴婇梺绯曞墲缁嬫垿鎮為崹顐犱簻闁瑰搫妫楁禍楣冩⒑閸涘鎴︽偋閻樿崵宓侀悗锝庡枟閻撱儵鎮楅敐鍌涙珖缂佺姵宀稿铏圭磼濡搫袝婵炲瓨绮嶇划鎾诲春閳ь剚銇勯幒宥堝厡濠⒀屼邯閹藉爼鎮欑憗浣哥秺閺佹劙宕奸锝囩Х闂備礁鎲￠悷銉ф崲濮椻偓瀵寮撮姀鐘诲敹濠电姴鐏氶崝鏍懅缂傚倷鑳堕崑鎾诲磿閸愬樊鐒介柨鐔哄Т閽冪喖鏌ㄥ┑鍡╂Ц婵☆偅锕㈤弻娑⑩€﹂幋婵囩亶闂佺顭崹璺侯潖閾忓湱纾兼俊顖濐嚙閽勫ジ姊虹粙鎸庢崳闁轰浇顕ч锝嗙節濮橆厽娅㈤梺缁橆焾鐏忔瑩宕愰悙宸富闁靛牆楠搁獮妤呮煕閵娿儳鍩ｉ柟顕€绠栭幊婊堟偨閻㈡鍟庨梺璇插缁嬫帡鈥﹂崶顒佸剹閻庯綆鍠楅悡鏇㈠箹濞ｎ剙鐏╅柍缁樻礋閺屽秹濡烽敂绛嬫閻庤娲橀敃銏ゃ€佸▎鎾冲簥濠㈣鍨板ú锕傛偂閺囥垺鐓冮柍杞扮楠炴ɑ銇勮箛鎾跺悋闁搞儺鍓欓悡娑㈡煕濞戝崬鏋撻柟閿嬫そ濮婃椽宕ㄦ繝鍕窗闂佺姘︽ご鎼佹偋鎼搭澀绻嗛柣鎰典簻閳ь剚鍨垮畷婵嗙暆閸曨剚娅囧銈呯箰閻楀棝宕?*/
-  flex: 1;
-  justify-content: flex-end;
-}
-
-.allocation-amount {
-  font-size: 16px;
-  font-weight: 700;
-  color: #FFFFFF;
-  font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif !important;
-  font-variant-numeric: tabular-nums;
-}
-
-
-/* Spot 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁惧墽鎳撻—鍐偓锝庝簼閹癸綁鏌ｉ鐐搭棞闁靛棙甯掗～婵嬫晲閸涱剙顥氬┑掳鍊楁慨鐑藉磻濞戔懞鍥偨缁嬫寧鐎梺鐟板⒔缁垶宕戦幇鐗堢厾缁炬澘宕晶缁樹繆閼碱剙鍘存慨濠勭帛閹峰懘宕ㄦ繝鍐ㄥ壍婵犵數鍋涢惇浼村垂閽樺鏆︾憸鐗堝笒閹硅埖銇勯幘璺盒＄紒妤€顦靛铏圭磼濮楀棛鍔稿銈嗘肠閸涱垯绗夐悷婊呭鐢鎮″▎鎴犳／闁哄鐏濋懜瑙勵殽閻愯揪鑰块柡灞剧☉铻ｉ柤濮愬€栭崚娑㈡⒑閸濆嫬顦柛鎾寸箞楠炲繘宕ㄧ€涙﹩妫冮梺鍐叉惈鐎氼剟骞嗛崼銉︹拻濞达絽鎲￠幆鍫ユ煟椤掆偓閵堢鐣锋导鏉戝唨妞ゆ挾鍋熼悾娲偡濠婂嫭鐓ラ柣锝夋敱缁轰粙宕ㄦ繝鍌欑盎闂備礁鎲＄换鍌溾偓姘煎墮閳绘捇濡疯绾句粙鏌涚仦鎹愬闁逞屽墴椤ユ捇骞忕€ｎ喖钃熼柕澶堝劤閿涙盯姊虹憴鍕姢闁诲繐鐗撳畷鎴﹀箻鐠囪尙顦ф繝銏ｆ硾閿曪絾绔熼弴銏♀拻濞达絽鎲￠崯鐐寸箾鐠囇呯暤鐎规洘绮岄埥澶愬閻樻彃浜堕梻浣告啞椤ㄥ牓宕戦幇鏉跨哗濞寸姴顑嗛悡鐔镐繆椤栨繂浜归悽顖涚⊕缁绘盯骞婂畡鏉款仹缂佽妫欓妵鍕箛閸撲胶校濠电偛鐗婄划宥夊Φ閸曨垰顫呴柍鈺佸枤濡啫顪冮妶鍐ㄧ仾婵炶尙鍠栧顐﹀磼閻愭潙浠奸柣蹇曞仩濡嫮绮?*/
-.spot-content {
-  padding: 0;
-}
-
-/* Earn 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁惧墽鎳撻—鍐偓锝庝簼閹癸綁鏌ｉ鐐搭棞闁靛棙甯掗～婵嬫晲閸涱剙顥氬┑掳鍊楁慨鐑藉磻濞戔懞鍥偨缁嬫寧鐎梺鐟板⒔缁垶宕戦幇鐗堢厾缁炬澘宕晶缁樹繆閼碱剙鍘存慨濠勭帛閹峰懘宕ㄦ繝鍐ㄥ壍婵犵數鍋涢惇浼村垂閽樺鏆︾憸鐗堝笒閹硅埖銇勯幘璺盒＄紒妤€顦靛铏圭磼濮楀棛鍔稿銈嗘肠閸涱垯绗夐悷婊呭鐢鎮″▎鎴犳／闁哄鐏濋懜瑙勵殽閻愯揪鑰块柡灞剧☉铻ｉ柤濮愬€栭崚娑㈡⒑閸濆嫬顦柛鎾寸箞楠炲繘宕ㄧ€涙﹩妫冮梺鍐叉惈鐎氼剟骞嗛崼銉︹拻濞达絽鎲￠幆鍫ユ煟椤掆偓閵堢鐣锋导鏉戝唨妞ゆ挾鍋熼悾娲偡濠婂嫭鐓ラ柣锝夋敱缁轰粙宕ㄦ繝鍌欑盎闂備礁鎲＄换鍌溾偓姘煎墮閳绘捇濡疯绾句粙鏌涚仦鎹愬闁逞屽墴椤ユ捇骞忕€ｎ喖钃熼柕澶堝劤閿涙盯姊虹憴鍕姢闁诲繐鐗撳畷鎴﹀箻鐠囪尙顦ф繝銏ｆ硾閿曪絾绔熼弴銏♀拻濞达絽鎲￠崯鐐寸箾鐠囇呯暤鐎规洘绮岄埥澶愬閻樻彃浜堕梻浣告啞椤ㄥ牓宕戦幇鏉跨哗濞寸姴顑嗛悡鐔镐繆椤栨繂浜归悽顖涚⊕缁绘盯骞婂畡鏉款仹缂佽妫欓妵鍕箛閸撲胶校濠电偛鐗婄划宥夊Φ閸曨垰顫呴柍鈺佸枤濡啫顪冮妶鍐ㄧ仾婵炶尙鍠栧顐﹀磼閻愭潙浠奸柣蹇曞仩濡嫮绮?*/
-.earn-content {
-  padding: 0;
-  margin-top: 0;
-  width: 100%;
-  display: block;
-}
-:deep(.van-empty) {
-  color: #8E8E93;
-}
-:deep(.van-empty__description) {
-  color: #8E8E93;
-  }
-  
-  /* 4. 闂傚倸鍊搁崐鎼佸磹閹间礁纾圭€瑰嫭鍣磋ぐ鎺戠倞妞ゆ帒顦伴弲顏堟偡濠婂啰效闁挎繄鍋涢埞鎴犫偓锝庡亝濞呭洭姊虹粙璺ㄧ効濠碘€虫川缁瑨绠涢弮鍌滅槇闂侀潧楠忕徊浠嬫偂閹扮増鐓曢柡鍐ｅ亾婵炲弶绮庨崚鎺撶節濮橆剙鍞ㄥ銈嗘尵閸犳捇宕㈤崡鐑嗘富闁靛牆妫楁慨褏绱掗幓鎺戔挃缂侇喖鐗撻崺鈧い鎺戝€荤壕濂告煟閹伴潧澧柛鏂诲€栫换娑氫焊閺嶃倕浜鹃柟棰佺劍缂嶅骸鈹戦悙鍙夆枙濞存粌鐖煎顐﹀幢濞戞瑧鍘撻悷婊勭矒瀹曟粌鈽夊顒€鐏婇梺鍝勫暙閻楀棛绮荤紒妯镐簻闁哄啫娲﹂ˉ澶愭煕閹捐埖鍤€闁宠鍨堕獮濠囨煕婵犲啯绀嬫鐐诧龚缁犳稑鈽夊▎蹇庣暗闂備礁鎼ú銊︽叏閻㈢绐楅柟鐗堟緲缁犺绻涢敐搴″濠碘剝鎮傞弻宥堫檨闁告挻鐟╁畷顖炲级閹寸姵娈鹃梺闈浥堥弲娑氱棯瑜旈弻鐔衡偓鐢殿焾椤庡本淇婇煫顓炲祮婵?*/
-  .tools-bar {
-    padding: 0 16px;
-    margin-bottom: 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-  }
-  .convert-bnb {
-    background-color: #1C1C1E;
-    padding: 10px 12px;
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: #EAECEF;
-    font-size: 13px;
-    flex: 1;
-  }
-  .history-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    color: #FCD535;
-    cursor: pointer;
-    padding: 10px 14px;
-    background-color: rgba(252, 213, 53, 0.1);
-    border-radius: 8px;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-  }
-  .history-btn:active,
-  .referral-btn:active {
-    opacity: 0.8;
-    background-color: rgba(252, 213, 53, 0.15);
-  }
-  .history-btn .van-icon,
-  .referral-btn .van-icon {
-    font-size: 16px;
-  }
-  
-  .referral-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    color: #FCD535;
-    cursor: pointer;
-    padding: 10px 14px;
-    background-color: rgba(252, 213, 53, 0.1);
-    border-radius: 8px;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-  }
-  
-  /* 5. 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁炬儳缍婇弻锝夊箣閿濆憛鎾绘煕閵堝懎顏柡灞剧洴椤㈡洟鏁愰崱娆樻К缂傚倷鑳舵慨閿嬬箾閳ь剟鏌″畝鈧崰鏍嵁閹达箑绠涢梻鍫熺⊕椤斿嫰姊洪懡銈呮瀾闁荤喕浜划濠氬箻鐠囪尙鐣哄┑掳鍊曢幊蹇涘疾閺屻儱绠圭紒顔煎帨閸嬫捇骞囨担閫涙唉闂傚倸鍊烽悞锕傚箖閸洖绀夌€广儱娲﹀畷鏌ユ煕椤愮姴鍔ょ€规挷绶氶弻鈥愁吋鎼达絼绮撻柟鍏兼儗閻撳牓寮崱娑欑厓鐟滄粓宕滃顓犫攳濠电姴娲﹂崵鍐煃閸濆嫬鏆為柨娑樼箻濮婅櫣鎷犻垾宕団偓璇裁归敐澶嬫珳闁告帗甯″缁樻媴閸涘﹥鍎撻梺鍝勭墱閸撴瑧鍙呭┑鈽嗗灠閸氬鐣烽崣澶岀闁瑰瓨鐟ラ悘顏堟煕婵犲洦鏁遍柕鍥у楠炴帒顓奸崼婵嗗腐闁荤喐绮嶅姗€骞婂Ο渚綎缂備焦蓱婵挳鏌涘☉姗堝伐闁哄棗鐗撳娲川婵犲啰鍙嗙紓浣虹帛閿氶柣?*/
-  .search-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 16px;
-    margin-bottom: 16px;
-  gap: 12px;
-  }
-  .hide-small {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #8E8E93;
-    font-size: 13px;
-  cursor: pointer;
-  transition: opacity 0.3s ease;
-}
-.hide-small:active {
-  opacity: 0.7;
-  }
-  .radio-circle {
-  width: 16px;
-  height: 16px;
-  border: 2px solid #5E5E5E;
-    border-radius: 50%;
-  position: relative;
-  transition: all 0.3s ease;
-}
-.radio-circle.checked {
-  border-color: #FCD535;
-  background-color: #FCD535;
-}
-.radio-circle.checked::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 6px;
-  height: 6px;
-  background-color: #1E2329;
-    border-radius: 50%;
-  }
-.search-field {
-  flex: 1;
-  background: #1C1C1E;
-  border-radius: 8px;
-  height: 40px;
-}
-:deep(.search-field .van-field__control) {
-  color: #FFFFFF;
-  font-size: 14px;
-  background: transparent;
-}
-:deep(.search-field .van-field__control::placeholder) {
-  color: #8E8E93;
-}
-:deep(.search-field .van-field__left-icon) {
-  color: #8E8E93;
-  }
-  
-  /* 6. 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁惧墽鎳撻—鍐偓锝庝簼閹癸綁鏌ｉ鐐搭棞闁靛棙甯掗～婵嬫晲閸涱剙顥氬┑掳鍊楁慨鐑藉磻濞戔懞鍥偨缁嬫寧鐎悗骞垮劚椤︻垳绮堢€ｎ偁浜滈柟鍝勭Ф閸斿秵銇勯弬鎸庡缂佺粯绻傞銉╂煥鐎ｎ偆鍑￠梺閫炲苯澧繛鑼枛閻涱喗绻濋崒婊勬畷闂佸憡娲﹂崑鍡涘礉閿曗偓椤啴濡堕崱妤€娼戦梺绋款儐閹瑰洭寮诲☉銏″亞濞达絽鎽滄禒鈺侇渻閵堝棙纾搁柛搴ㄦ涧閻ｇ兘鎮㈢喊杈ㄦ櫖濠殿喗顭堟禍顒勫级閸涘﹣绻嗛柣鎰典簻閳ь剚鐗犲畷褰掓偄閻撳孩顥濋梺绋跨灱閸嬫稓澹曢崸妤佺厽闁靛繈鍩勯悞楣冩煢閸愵亜鏋戠紒缁樼洴楠炲鈻庤箛鏇氭偅缂傚倷鑳舵慨鐢告儎椤栨凹娼栧┑鐘宠壘闁卞洭鏌ｉ弮鍥モ偓鈧┑顔兼喘濮婅櫣鎷犻懠顒傤唶闂佺粯顨嗛幐鎼侊綖韫囨拋娲敂閸曨偆鐛╁┑鐘垫暩婵挳宕愰幖渚婄稏闁告稑鐡ㄩ埛鎴犵磼鐎ｎ偒鍎ラ柛搴㈠姍閺岀喖鎮烽悧鍫濇灎閻庢鍠栭…鐑藉极閹版澘骞㈡俊顖氭惈婵℃娊姊绘担鐟邦嚋缂佽鍊歌灋婵°倐鍋撻柍缁樻尭閻ｆ繈宕熼鍌氬箺闂佺懓鍚嬮悾顏堝垂瑜版帒鍚规い鎺戝閻撴洘淇婇姘倯婵炲懏娲滅槐鎺楊敊鐟欏嫭鐝氶梺璇″枔閸ㄤ粙骞冮埄鍐╁劅闂勫洭鍩€椤掆偓閻忔繈鍩為幋锔藉€烽柛娆忣樈濡繝姊洪崨濠冣拹婵炶尙鍠庨悾鐑藉閿濆啩姹楅梺鍦劋閹告挳骞?*/
-  .coin-list {
-    display: flex;
-    flex-direction: column;
-  }
-
-/* 缂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌熼梻瀵割槮缁炬儳缍婇弻鐔兼⒒鐎靛壊妲紒鎯у⒔閹虫捇鈥旈崘顏佸亾閿濆簼绨奸柟鐧哥秮閺岋綁顢橀悙鎼闂侀潧妫欑敮鎺楋綖濠靛鏅查柛娑卞墮椤ユ岸姊婚崒娆愮グ妞ゆ洘鐗犲畷瑙勫閺夋垵鐝樺銈嗗笒鐎氼剛绮婚鐐寸厱婵炴垵宕悘鐘绘倵閸偆鍙€闁哄矉绻濆畷鍫曞煛娴ｅ湱浜栭梻渚€鈧偛鑻晶顖涗繆閻愯埖顥夋い顐㈢箰鐓ゆい蹇撳椤斿洭鏌熼懝鐗堝涧缂佹彃娼￠幃楣冩濞戞帗鏂€闂佸疇妫勫Λ妤佺濠靛鐓熼柣鏂垮级濞呭懘鏌ｉ敐鍥у幋闁轰焦鍔欏畷濂稿閵忊剝绶┑鐘垫暩閸嬬偤宕归崼鏇熷仭鐟滄柨鐣烽姀銈嗗仺闁告稑艌閹峰姊虹粙鎸庢拱闁煎綊绠栭崺鈧い鎺嶇劍閸婃劖銇勯姀鈥冲摵妞ゃ垺锕㈤崺妤呭传閸曨剙鏋犻梺杞扮閸婂灝鐣峰鍡╂Ь闂?*/
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-}
-
-.empty-state .van-icon {
-  margin-bottom: 16px;
-  opacity: 0.6;
-}
-
-.empty-text {
-  color: #8E8E93;
-  font-size: 14px;
-  margin: 0;
-  }
-  .coin-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px;
-  border-bottom: 1px solid #141414;
-  transition: background-color 0.2s ease;
-}
-.coin-item:active {
-  background-color: rgba(255, 255, 255, 0.05);
-  }
-  .coin-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .coin-icon {
-  width: 40px;
-  height: 40px;
-    border-radius: 50%;
-  background-color: #2B3139;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: bold;
-  font-size: 16px;
-  color: #FFFFFF;
-  overflow: hidden;
-}
-.coin-icon img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-/* 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸绾惧綊鏌ｉ幋锝呅撻柛濠傛健閺屻劑寮撮悙娴嬪亾瑜版帒纾块柟瀵稿У閸犳劙鏌ｅΔ鈧悧鍡欑箔閹烘鐓涢柛鏇楁櫅閸旓箓鏌＄仦鍓ф创鐎殿喗鎸虫俊鎼佸Ψ瑜岄崫妤呮⒒娴ｈ鍋犻柛鏂跨焸瀹曟劘銇愰幒鎳筹箓鏌涢弴銊ョ仩闁告劏鍋撴俊鐐€栭崝锕€顭块埀顒佺箾瀹€濠侀偗婵﹥妞介獮鏍倷濞村浜鹃柡鍥╁Л閸嬫挸顫濋銏犵ギ閻庢鍠涢褔鍩ユ径鎰潊闁冲搫鍊瑰▍鍥⒒娴ｇ懓顕滅紒璇插€歌灋婵炴垯鍨归悡妯荤箾閹寸偞鐨戠痪鍙ョ矙閺屾稓浠﹂悙顒傛闁哄稄绻濆铏圭磼濮楀棙鐣兼繝鐢靛亹閸嬫捇鎮楀▓鍨灈妞ゎ厾鍏橀獮鍐閵堝懐顦ч梺缁樻尭缁ㄥ爼宕戦幘鍓佺＜婵☆垵顕у鍨攽鎺抽崐鎰板磻閹剧繝绻嗘い鎰剁悼閹冲洭鏌熼鈧粻鏍х暦婵傜鍗抽柣鏂垮级鐎氳偐绱撻崒姘偓鐑芥倿閿曞倹鏅┑鐘愁問閸犳牕煤椤撱垹钃熼柕濞炬櫅閸楁娊鏌曟繛鍨偓婵嬪磻濡ゅ懏鍊垫繛鍫濈仢閺嬫稒銇勯鐘插幋鐎殿噮鍋婇獮鍥敇閻愮數鐛┑鐘垫暩婵鈧凹鍣ｅ鍫曞箹娴ｅ厜鎷婚梺绋挎湰閼归箖鍩€椤掍焦鍊愰柟顔ㄥ嫮绡€闁告洦鍘鹃悡鎾绘⒑绾懏褰ч悹渚婄悼缁辩偤寮介妸锝勭盎闂佽婢橀悥鐓庮瀶椤曗偓閺屽秹鏌ㄧ€ｎ亞浼岄梺鍝勭灱閸犳牠骞婇弽顓炵厸濞达綁顥撻幑鏇炩攽閻樻鏆柍褜鍓濆▍鏇㈠磻閵夆晜鐓涢悘鐐插⒔閳藉鎽堕敐澶嬬厽婵☆垰鎼痪褎銇勯妷褍孝闂囧绻濇繝鍌滃闁硅尙鍋撻幈銊︾節閸曨厼绗￠梺鐟板槻閹虫﹢骞栬ぐ鎺撳仭闁规鍣崑褍鈹戦敍鍕杭闁稿﹥鍨垮畷婵嗙暆閸曨偆鐤囧┑顔姐仜閸嬫挻顨ラ悙鎻掓殺妞わ箑澧庣槐鎺楁偐瀹曞洠妲堥梺瀹犳椤︻垶鍩㈡惔銈囩杸闁圭偓鍓氬Λ妤呮⒒閸屾瑨鍏屾い銏狅躬瀹曟垿骞囬钘変粧闂侀潧顦崕娆撴晲婢跺﹤绐涢柣搴㈢⊕閿氬ù?*/
-  .coin-icon.usdt { background: #26A17B; }
-  .coin-icon.btc { background: #F7931A; }
-.coin-icon.beat { background: #FF6B6B; }
-.coin-icon.zec { background: #ECB244; }
-.coin-icon.aic { background: #4ECDC4; }
-.coin-icon.meme { background: #95E1D3; }
-  
-  .coin-info {
-    display: flex;
-    flex-direction: column;
-  gap: 4px;
-  }
-  .coin-name {
-    font-size: 16px;
-    font-weight: 500;
-    color: #EAECEF;
-  font-variant-numeric: tabular-nums;
-  }
-  .coin-fullname {
-    font-size: 12px;
-  color: #8E8E93;
-  }
-  .coin-right {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-  gap: 4px;
-  }
-  .coin-balance {
-    font-size: 16px;
-    color: #EAECEF;
-    font-weight: 500;
-  font-family: 'DIN Alternate', sans-serif;
-  font-variant-numeric: tabular-nums;
-  }
-  .coin-price {
-    font-size: 12px;
-  color: #8E8E93;
-  font-family: 'DIN Alternate', sans-serif;
-  font-variant-numeric: tabular-nums;
-  }
-/* Light asset page overrides */
+<style scoped>
 .me-page {
-  background: #F4F7FB;
-  color: #1E293B;
   min-height: 100vh;
-  padding-bottom: 96px;
+  background: #f4f7fb;
+  color: #1e293b;
+  padding-bottom: 88px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, Roboto, 'PingFang SC', 'Microsoft Yahei', sans-serif;
 }
 
+/* 顶部导航 */
 .top-nav {
-  background: #FFFFFF;
-  border-bottom: 1px solid #E6EBF2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px 10px;
+  background: #ffffff;
 }
 
-.username,
-.top-icons,
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.avatar-circle {
+  width: 32px;
+  height: 32px;
+  background: #fcd535;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.username {
+  font-weight: 700;
+  font-size: 16px;
+  color: #0f172a;
+}
+
+.top-icons {
+  display: flex;
+  gap: 18px;
+  color: #334155;
+}
+
 .icon-right {
-  color: #1E293B;
+  cursor: pointer;
 }
 
+/* 钱包横幅 */
+.wallet-banner {
+  margin: 0 16px 12px;
+  padding: 12px 14px;
+  background: #eafaf2;
+  border: 1px solid #bdecd4;
+  border-radius: 12px;
+}
+
+.wallet-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wallet-check {
+  color: #10b981;
+  font-size: 16px;
+}
+
+.wallet-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f7a52;
+  flex: 1;
+}
+
+.wallet-switch {
+  font-size: 12px;
+  color: #0f7a52;
+  font-weight: 600;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.wallet-addr-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+.wallet-addr-label {
+  font-size: 12px;
+  color: #6b8e7d;
+}
+
+.wallet-addr {
+  font-size: 12px;
+  color: #0f172a;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.copy-icon {
+  font-size: 14px;
+  color: #0f7a52;
+}
+
+/* Tabs */
 .asset-tabs {
-  background: #FFFFFF;
-  margin-bottom: 0;
-  padding-top: 8px;
+  background: #ffffff;
+  margin-bottom: 12px;
 }
 
 :deep(.asset-tabs .van-tabs__wrap) {
-  height: 50px;
+  height: 46px;
 }
 
 :deep(.asset-tabs .van-tab) {
-  color: #64748B;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 0 14px;
 }
 
 :deep(.asset-tabs .van-tab--active) {
-  color: #1E293B;
+  font-weight: 800;
+}
+
+/* 通用 up / down */
+.up { color: #00b976; }
+.down { color: #ef4444; }
+
+/* 总览内容 */
+.overview-content {
+  padding: 0 16px 24px;
+}
+
+.module-content {
+  padding: 0 16px 24px;
+}
+
+/* 预估总资产卡片 */
+.summary-card {
+  padding: 18px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+  margin-bottom: 14px;
+}
+
+.summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.summary-label {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.unit-switch {
+  display: flex;
+  gap: 4px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  padding: 2px;
+}
+
+.unit-chip {
+  border: none;
+  background: transparent;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
   font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
 }
 
-.asset-card {
-  margin: 0 0 18px;
-  padding: 16px 20px 18px;
-  background: #FFFFFF;
-  border-radius: 0 0 16px 16px;
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+.unit-chip.active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
 }
 
-.wallet-status {
-  background: #FFF7E6;
-  border: 1px solid #FFD88A;
+.summary-total {
+  font-size: 30px;
+  font-weight: 800;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
 }
 
-.wallet-status.connected {
-  background: #F0FDF8;
-  border-color: #8DECC5;
+.summary-total.sm {
+  font-size: 22px;
 }
 
-.wallet-status-header,
-.address-value,
-.total-amount,
-.ref-title,
-.allocation-title,
-.allocation-name,
-.allocation-amount,
-.coin-name,
-.coin-balance {
-  color: #0F172A;
-}
-
-.wallet-status.connected .wallet-status-header {
-  color: #059669;
-}
-
-.address-label,
-.assets-label,
-.allocation-desc,
-.coin-fullname,
-.coin-price,
-.empty-text,
-.hide-small,
-:deep(.van-empty),
-:deep(.van-empty__description) {
-  color: #64748B;
-}
-
-.total-amount.profit {
-  color: #00B976;
-}
-
-.total-amount.loss {
-  color: #EF4444;
-}
-
-.legal-currency {
-  display: none;
-}
-
-.legal-currency-clean {
-  color: #64748B;
-  font-size: 14px;
+.summary-sub {
   margin-top: 4px;
+  font-size: 13px;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
 }
 
+.summary-pnl {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pnl-cap {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.summary-pnl em {
+  font-style: normal;
+  margin-left: 6px;
+}
+
+.mini-stats {
+  display: flex;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.mini {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mini-label {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.mini-value {
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ieo-hero {
+  display: flex;
+  gap: 16px;
+}
+
+.ieo-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* 操作按钮 */
 .action-grid {
-  margin-top: 16px;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
 .action-btn {
-  height: 56px;
-  border-radius: 8px;
-  font-size: 16px;
-  box-shadow: none;
-}
-
-.primary {
-  background: #FCD535;
-  color: #111827;
-}
-
-.secondary {
-  background: #29313D;
-  color: #FFFFFF;
-}
-
-.referral-banner {
-  margin: 18px 0;
+  flex: 1;
+  height: 48px;
+  border: none;
   border-radius: 12px;
-  background: linear-gradient(135deg, #171717 0%, #292929 100%);
-  border: 0;
-  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-.referral-banner.referral-card {
+.action-btn.primary { background: #fcd535; color: #111827; }
+.action-btn.dark { background: #29313d; color: #ffffff; }
+.action-btn.light { background: #ffffff; color: #334155; border: 1px solid #e2e8f0; }
+.action-btn:active { opacity: 0.85; }
+
+/* 邀请卡片 */
+.referral-card {
   position: relative;
   display: grid;
   grid-template-columns: 46px minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
-  min-height: 92px;
-  margin: 18px 0 4px;
   padding: 16px;
+  margin-bottom: 18px;
+  border-radius: 14px;
   overflow: hidden;
-  color: #111827;
-  background: linear-gradient(135deg, #FFFBEB 0%, #FFFFFF 55%, #F8FAFC 100%);
-  border: 1px solid #F3D48A;
-  box-shadow: 0 12px 26px rgba(180, 126, 13, 0.14);
-}
-
-.referral-banner.referral-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 12% 12%, rgba(252, 213, 53, 0.22), transparent 28%),
-    radial-gradient(circle at 100% 0%, rgba(14, 203, 129, 0.12), transparent 30%);
-  pointer-events: none;
-}
-
-.referral-banner.referral-card > * {
-  position: relative;
-  z-index: 1;
+  background: linear-gradient(135deg, #fffbeb 0%, #ffffff 55%, #f8fafc 100%);
+  border: 1px solid #f3d48a;
+  box-shadow: 0 12px 26px rgba(180, 126, 13, 0.12);
+  cursor: pointer;
 }
 
 .referral-visual {
@@ -1459,143 +849,523 @@ onActivated(async () => {
   height: 46px;
   border-radius: 12px;
   color: #111827;
-  background: linear-gradient(135deg, #FCD535 0%, #F0B90B 100%);
-  box-shadow: 0 8px 18px rgba(240, 185, 11, 0.25);
+  background: linear-gradient(135deg, #fcd535 0%, #f0b90b 100%);
 }
 
-.ref-kicker {
-  margin-bottom: 3px;
-  color: #B7791F;
-  font-size: 11px;
-  font-weight: 800;
-  line-height: 1;
+.referral-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
-.referral-card .ref-title {
-  color: #111827;
-  font-size: 15px;
-  font-weight: 800;
-  line-height: 1.25;
-}
+.ref-kicker { color: #b7791f; font-size: 11px; font-weight: 800; }
+.ref-title { color: #111827; font-size: 15px; font-weight: 800; }
+.ref-desc { color: #64748b; font-size: 12px; }
+.ref-desc .highlight { color: #d97706; font-weight: 800; }
 
-.referral-card .ref-desc {
-  margin-top: 4px;
-  color: #64748B;
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.referral-card .highlight {
-  color: #D97706;
-  font-weight: 800;
-}
-
-.referral-card .referral-action {
+.referral-action {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  justify-content: center;
   gap: 4px;
   min-width: 78px;
 }
 
-.earned-label {
-  color: #94A3B8;
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1;
-}
+.earned-label { color: #94a3b8; font-size: 11px; font-weight: 600; }
 
-.referral-card .earned-text {
-  max-width: 92px;
-  padding: 5px 8px;
-  overflow: hidden;
-  color: #B7791F;
+.earned-text {
+  padding: 4px 8px;
+  color: #b7791f;
   font-size: 12px;
   font-weight: 800;
-  line-height: 1;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  background: #FFF4D6;
-  border: 1px solid #F3D48A;
+  background: #fff4d6;
+  border: 1px solid #f3d48a;
   border-radius: 999px;
 }
 
-.referral-card .referral-action .van-icon {
-  color: #B7791F;
-}
+.referral-action .van-icon { color: #b7791f; }
 
-@media (max-width: 360px) {
-  .referral-banner.referral-card {
-    grid-template-columns: 42px minmax(0, 1fr);
-    gap: 10px;
-    padding: 14px;
-  }
-
-  .referral-visual {
-    width: 42px;
-    height: 42px;
-  }
-
-  .referral-card .referral-action {
-    grid-column: 2;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    min-width: 0;
-  }
-}
-
-.overview-content {
-  padding: 0 20px 28px;
-}
+/* 资产分布 */
+.allocation-section { margin-top: 4px; }
 
 .allocation-title {
-  padding: 0 4px;
-  margin-bottom: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 12px;
+  padding: 0 2px;
 }
 
 .allocation-list {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
-.allocation-item {
-  background: #FFFFFF;
-  border: 1px solid #E6EBF2;
+.account-card {
+  background: #ffffff;
+  border: 1px solid #e6ebf2;
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.account-card:active { transform: scale(0.99); background: #f8fafc; }
+
+.account-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.account-icon {
+  width: 42px;
+  height: 42px;
   border-radius: 12px;
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  flex-shrink: 0;
 }
 
-.allocation-item:active {
-  background: #F8FAFC;
+.ic-spot { background: linear-gradient(135deg, #fcd535 0%, #f0b90b 100%); color: #7a5b00; }
+.ic-earn { background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); }
+.ic-futures { background: linear-gradient(135deg, #3b82f6 0%, #f97316 100%); }
+.ic-ieo { background: linear-gradient(135deg, #ff6b6b 0%, #ef4444 100%); }
+.ic-stock { background: linear-gradient(135deg, #10b981 0%, #8b5cf6 100%); }
+
+.account-name-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
 }
 
-.tools-bar,
+.account-name { font-size: 15px; font-weight: 700; color: #0f172a; }
+.account-desc { font-size: 12px; color: #94a3b8; }
+
+.account-total {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.account-value {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+
+.account-metrics {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.metric {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metric-label { font-size: 11px; color: #94a3b8; }
+
+.metric-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #334155;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-value.up { color: #00b976; }
+.metric-value.down { color: #ef4444; }
+
+/* 列表卡片（合约/IEO/股票） */
+.list-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+  margin-bottom: 14px;
+}
+
+.list-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.pos-row, .ieo-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.pos-row:last-child, .ieo-row:last-child { border-bottom: none; }
+
+.pos-left { display: flex; flex-direction: column; gap: 6px; }
+.pos-symbol { font-size: 15px; font-weight: 700; }
+.pos-tags { display: flex; gap: 6px; }
+
+.tag {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+.tag.long { background: #e6f9f1; color: #00b976; }
+.tag.short { background: #fdecec; color: #ef4444; }
+.tag.lev { background: #fff7e0; color: #b7791f; }
+
+.pos-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.pos-pnl { font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.pos-sub { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.ieo-left { display: flex; flex-direction: column; gap: 4px; }
+.ieo-name { font-size: 14px; font-weight: 700; }
+.ieo-sub { font-size: 12px; color: #94a3b8; }
+
+.status-badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.status-badge.won { background: #e6f9f1; color: #00b976; }
+.status-badge.pending { background: #fff3e0; color: #f59e0b; }
+.status-badge.failed { background: #f1f5f9; color: #94a3b8; }
+
+.wide-btn {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 12px;
+  background: #fcd535;
+  color: #111827;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* 现货 Tab */
+.spot-content { padding-bottom: 8px; }
+
+.tools-bar {
+  padding: 0 16px;
+  margin-bottom: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.convert-bnb {
+  background: #ffffff;
+  border: 1px solid #e6ebf2;
+  padding: 10px 12px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #334155;
+  font-size: 13px;
+  flex: 1;
+}
+
+.history-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #b7791f;
+  cursor: pointer;
+  padding: 10px 14px;
+  background: #fff7e0;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
 .search-bar {
-  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  margin-bottom: 14px;
+  gap: 12px;
 }
 
-.convert-bnb,
+.hide-small {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.radio-circle {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #cbd5e1;
+  border-radius: 50%;
+  position: relative;
+}
+
+.radio-circle.checked {
+  border-color: #f0b90b;
+  background: #f0b90b;
+}
+
+.radio-circle.checked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  background: #ffffff;
+  border-radius: 50%;
+}
+
 .search-field {
-  background: #FFFFFF;
-  border: 1px solid #E6EBF2;
-  color: #1E293B;
+  flex: 1;
+  background: #ffffff;
+  border: 1px solid #e6ebf2;
+  border-radius: 10px;
+  height: 40px;
 }
 
 :deep(.search-field .van-field__control) {
-  color: #1E293B;
+  color: #1e293b;
+  font-size: 14px;
+  background: transparent;
 }
+
+:deep(.search-field .van-field__control::placeholder) { color: #94a3b8; }
+:deep(.search-field .van-field__left-icon) { color: #94a3b8; }
+
+.coin-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0 16px;
+  background: #ffffff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.empty-state .van-icon { margin-bottom: 16px; opacity: 0.6; }
+.empty-text { color: #94a3b8; font-size: 14px; margin: 0; }
 
 .coin-item {
-  background: #FFFFFF;
-  border-bottom: 1px solid #E6EBF2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
 }
+.coin-item:last-child { border-bottom: none; }
 
-.coin-item:active {
-  background: #F8FAFC;
-}
+.coin-left { display: flex; align-items: center; gap: 12px; }
 
 .coin-icon {
-  color: #FFFFFF;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 16px;
+  color: #ffffff;
+  overflow: hidden;
+}
+
+.coin-icon img { width: 100%; height: 100%; object-fit: cover; }
+.coin-icon.usdt { background: #26a17b; }
+.coin-icon.btc { background: #f7931a; }
+.coin-icon.eth { background: #627eea; }
+.coin-icon.beat { background: #ff6b6b; }
+.coin-icon.zec { background: #ecb244; }
+.coin-icon.aic { background: #4ecdc4; }
+.coin-icon.meme { background: #95e1d3; }
+
+.coin-info { display: flex; flex-direction: column; gap: 4px; }
+.coin-name { font-size: 16px; font-weight: 600; color: #0f172a; }
+.coin-fullname { font-size: 12px; color: #94a3b8; }
+
+.coin-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.coin-balance { font-size: 16px; color: #0f172a; font-weight: 600; font-variant-numeric: tabular-nums; }
+.coin-price { font-size: 12px; color: #94a3b8; font-variant-numeric: tabular-nums; }
+
+/* 理财 Tab */
+.earn-content { padding: 0; width: 100%; }
+:deep(.van-empty), :deep(.van-empty__description) { color: #94a3b8; }
+
+/* =====================================================================
+   深色模式适配 —— 「我的/资产」页此前为硬编码浅色，深色下重映射为主题变量
+   （绿/红/金等语义色保持不变）
+   ===================================================================== */
+:global(html[data-theme='dark']) .me-page {
+  background: var(--color-surface-1) !important;
+  color: var(--color-text-primary) !important;
+}
+
+/* 白色卡片 / 面板 → 深色表面 */
+:global(html[data-theme='dark']) .me-page .top-nav,
+:global(html[data-theme='dark']) .me-page .asset-tabs,
+:global(html[data-theme='dark']) .me-page .summary-card,
+:global(html[data-theme='dark']) .me-page .account-card,
+:global(html[data-theme='dark']) .me-page .list-card,
+:global(html[data-theme='dark']) .me-page .convert-bnb,
+:global(html[data-theme='dark']) .me-page .search-field,
+:global(html[data-theme='dark']) .me-page .coin-list {
+  background: var(--color-surface-2) !important;
+  border-color: var(--color-border) !important;
+  box-shadow: none !important;
+}
+
+/* 主文字 */
+:global(html[data-theme='dark']) .me-page .username,
+:global(html[data-theme='dark']) .me-page .summary-total,
+:global(html[data-theme='dark']) .me-page .account-value,
+:global(html[data-theme='dark']) .me-page .account-name,
+:global(html[data-theme='dark']) .me-page .allocation-title,
+:global(html[data-theme='dark']) .me-page .list-title,
+:global(html[data-theme='dark']) .me-page .pos-symbol,
+:global(html[data-theme='dark']) .me-page .ieo-name,
+:global(html[data-theme='dark']) .me-page .coin-name,
+:global(html[data-theme='dark']) .me-page .coin-balance,
+:global(html[data-theme='dark']) .me-page .mini-value {
+  color: var(--color-text-primary) !important;
+}
+
+/* 次级文字 */
+:global(html[data-theme='dark']) .me-page .top-icons,
+:global(html[data-theme='dark']) .me-page .summary-label,
+:global(html[data-theme='dark']) .me-page .summary-sub,
+:global(html[data-theme='dark']) .me-page .mini-label,
+:global(html[data-theme='dark']) .me-page .metric-value:not(.up):not(.down),
+:global(html[data-theme='dark']) .me-page .convert-bnb,
+:global(html[data-theme='dark']) .me-page .hide-small,
+:global(html[data-theme='dark']) .me-page .unit-chip:not(.active) {
+  color: var(--color-text-secondary) !important;
+}
+
+/* 弱化文字 */
+:global(html[data-theme='dark']) .me-page .pnl-cap,
+:global(html[data-theme='dark']) .me-page .earned-label,
+:global(html[data-theme='dark']) .me-page .account-desc,
+:global(html[data-theme='dark']) .me-page .metric-label,
+:global(html[data-theme='dark']) .me-page .ieo-sub,
+:global(html[data-theme='dark']) .me-page .coin-fullname,
+:global(html[data-theme='dark']) .me-page .coin-price,
+:global(html[data-theme='dark']) .me-page .empty-text {
+  color: var(--color-text-muted) !important;
+}
+
+/* 分隔线 / 边框 */
+:global(html[data-theme='dark']) .me-page .account-metrics,
+:global(html[data-theme='dark']) .me-page .pos-row,
+:global(html[data-theme='dark']) .me-page .ieo-row,
+:global(html[data-theme='dark']) .me-page .coin-item {
+  border-color: var(--color-border) !important;
+}
+
+/* 单位切换分段 */
+:global(html[data-theme='dark']) .me-page .unit-switch {
+  background: var(--color-surface-1) !important;
+}
+:global(html[data-theme='dark']) .me-page .unit-chip.active {
+  background: var(--color-surface-2) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: none !important;
+}
+
+/* 卡片按下态 */
+:global(html[data-theme='dark']) .me-page .account-card:active {
+  background: var(--color-surface-1) !important;
+}
+
+/* 浅色操作按钮 */
+:global(html[data-theme='dark']) .me-page .action-btn.light {
+  background: var(--color-surface-2) !important;
+  color: var(--color-text-primary) !important;
+  border-color: var(--color-border) !important;
+}
+
+/* 钱包横幅（保留绿色语义，降低明度） */
+:global(html[data-theme='dark']) .me-page .wallet-banner {
+  background: rgb(16 185 129 / 0.12) !important;
+  border-color: rgb(16 185 129 / 0.28) !important;
+}
+:global(html[data-theme='dark']) .me-page .wallet-text,
+:global(html[data-theme='dark']) .me-page .wallet-switch,
+:global(html[data-theme='dark']) .me-page .copy-icon {
+  color: #34d399 !important;
+}
+:global(html[data-theme='dark']) .me-page .wallet-addr-label {
+  color: var(--color-text-muted) !important;
+}
+:global(html[data-theme='dark']) .me-page .wallet-addr {
+  color: var(--color-text-primary) !important;
+}
+
+/* 邀请卡片（深色金调） */
+:global(html[data-theme='dark']) .me-page .referral-card {
+  background: linear-gradient(135deg, rgb(252 213 53 / 0.10) 0%, var(--color-surface-2) 60%) !important;
+  border-color: rgb(240 185 11 / 0.28) !important;
+  box-shadow: none !important;
+}
+:global(html[data-theme='dark']) .me-page .ref-title {
+  color: var(--color-text-primary) !important;
+}
+:global(html[data-theme='dark']) .me-page .ref-desc {
+  color: var(--color-text-secondary) !important;
+}
+:global(html[data-theme='dark']) .me-page .earned-text {
+  background: rgb(240 185 11 / 0.14) !important;
+  border-color: rgb(240 185 11 / 0.28) !important;
+}
+
+/* 失败/未中签标签 */
+:global(html[data-theme='dark']) .me-page .status-badge.failed {
+  background: var(--color-surface-muted) !important;
+  color: var(--color-text-muted) !important;
+}
+
+/* 历史记录 / 金调按钮 */
+:global(html[data-theme='dark']) .me-page .history-btn {
+  background: rgb(240 185 11 / 0.14) !important;
+  color: #f0b24a !important;
+}
+
+/* 搜索框内文字 */
+:global(html[data-theme='dark']) .me-page :deep(.search-field .van-field__control) {
+  color: var(--color-text-primary) !important;
 }
 </style>

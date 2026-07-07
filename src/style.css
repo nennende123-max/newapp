@@ -1197,3 +1197,116 @@ select {
   background: var(--color-surface-2) !important;
   box-shadow: var(--shadow-sm) !important;
 }
+
+/* =====================================================================
+   深色模式 —— 资产详情子页（现货/股票/IEO）统一适配
+   这些页面共用 .detail-page 结构且此前为硬编码浅色
+   ===================================================================== */
+html[data-theme='dark'] .detail-page {
+  background: var(--color-surface-1) !important;
+  color: var(--color-text-primary) !important;
+}
+
+html[data-theme='dark'] .detail-page .detail-header {
+  background: var(--color-surface-2) !important;
+  border-bottom-color: var(--color-border) !important;
+}
+html[data-theme='dark'] .detail-page .icon-btn {
+  color: var(--color-text-primary) !important;
+}
+
+html[data-theme='dark'] .detail-page .hero-card,
+html[data-theme='dark'] .detail-page .balance-item,
+html[data-theme='dark'] .detail-page .list-section {
+  background: var(--color-surface-2) !important;
+  border: 1px solid var(--color-border) !important;
+  box-shadow: none !important;
+}
+
+/* 次级 / 弱化文字 */
+html[data-theme='dark'] .detail-page .hero-label,
+html[data-theme='dark'] .detail-page .bal-label,
+html[data-theme='dark'] .detail-page .stat-label,
+html[data-theme='dark'] .detail-page .coin-value,
+html[data-theme='dark'] .detail-page .stock-sub,
+html[data-theme='dark'] .detail-page .bill-row span {
+  color: var(--color-text-secondary) !important;
+}
+html[data-theme='dark'] .detail-page .coin-name,
+html[data-theme='dark'] .detail-page .stock-name,
+html[data-theme='dark'] .detail-page .ieo-sub,
+html[data-theme='dark'] .detail-page .history-time,
+html[data-theme='dark'] .detail-page .empty-hint {
+  color: var(--color-text-muted) !important;
+}
+
+/* 分隔线 */
+html[data-theme='dark'] .detail-page .asset-row,
+html[data-theme='dark'] .detail-page .stock-row,
+html[data-theme='dark'] .detail-page .ieo-row,
+html[data-theme='dark'] .detail-page .history-row,
+html[data-theme='dark'] .detail-page .bill-row {
+  border-bottom-color: var(--color-border) !important;
+}
+
+/* 过滤 / 区间 chip */
+html[data-theme='dark'] .detail-page .filter-chip:not(.active),
+html[data-theme='dark'] .detail-page .range-chip:not(.active) {
+  background: var(--color-surface-1) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-secondary) !important;
+}
+
+/* 底部操作条 */
+html[data-theme='dark'] .detail-page .bottom-actions {
+  background: var(--color-surface-2) !important;
+  border-top-color: var(--color-border) !important;
+}
+html[data-theme='dark'] .detail-page .act-btn.ghost {
+  background: var(--color-surface-muted) !important;
+  color: var(--color-text-primary) !important;
+}
+
+/* 弹层账单明细 */
+html[data-theme='dark'] .detail-page .bill-detail,
+html[data-theme='dark'] .bill-detail {
+  background: var(--color-surface-2) !important;
+  color: var(--color-text-primary) !important;
+}
+
+/* 未中签 / 失败标签 */
+html[data-theme='dark'] .detail-page .status-badge.failed {
+  background: var(--color-surface-muted) !important;
+  color: var(--color-text-muted) !important;
+}
+
+/* =====================================================================
+   深色模式 —— 页面根背景统一
+   问题：多个页面根用了品牌暖色顶部渐变（rgb(primary)/0.06~0.08），
+   叠在深色底上会呈现"棕色/金色"观感；交易页根还硬编码了 #ffffff。
+   方案：深色模式下把这些页面根拍平为纯深色表面，杜绝暖色边缘与白屏。
+   （浅色模式不受影响，暖色渐变仅在浅色下保留）
+   ===================================================================== */
+html[data-theme='dark'] .ido-page,
+html[data-theme='dark'] .chain-monitor-page,
+html[data-theme='dark'] .earn-page {
+  background: var(--color-surface-1) !important;
+}
+html[data-theme='dark'] .trade-page,
+html[data-theme='dark'] .futures-trade-page {
+  background: var(--color-bg) !important;
+  background-color: var(--color-bg) !important;
+}
+html[data-theme='dark'] .trade-page .futures-trade-container,
+html[data-theme='dark'] .futures-trade-page .futures-trade-container {
+  background: var(--color-surface-1) !important;
+}
+
+/* 交易页最新价卡片：此前渐变以 #ffffff 收尾，深色下必须改深色底 */
+html[data-theme='dark'] .trade-page .orderbook-side .last-price,
+html[data-theme='dark'] .trade-page .futures-orderbook-side .last-price,
+html[data-theme='dark'] .orderbook-side .last-price,
+html[data-theme='dark'] .futures-orderbook-side .last-price {
+  background: var(--color-surface-2) !important;
+  border-color: var(--color-border) !important;
+}

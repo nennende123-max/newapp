@@ -37,6 +37,10 @@
         <span class="pair-name">{{ symbol }}/USDT</span>
         <van-icon name="arrow-down" size="12" color="var(--color-text-primary)" style="margin-left: 4px" />
       </div>
+      <div class="zero-fee-badge">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>
+        <span>限时0资金费率</span>
+      </div>
       <div class="price-change" :class="{ positive: priceChange >= 0 }">
         {{ priceChange >= 0 ? '+' : '' }}{{ priceChange.toFixed(2) }}%
       </div>
@@ -197,7 +201,7 @@
               size="12" 
               color="var(--color-brand-legacy)" 
               style="margin-left: 4px; cursor: pointer;" 
-              @click.stop="router.push('/deposit')" 
+              @click.stop="openDeposit('USDT')" 
             />
           </div>
           <div class="avail-item">
@@ -374,7 +378,8 @@
               class="input-field market-price-input"
             />
             </template>
-            <span class="input-suffix">USDT</span>
+            <!-- 市价单时价格框显示“按市场最优价成交”，隐藏 USDT 单位，避免与提示文字重叠 -->
+            <span v-if="orderType === 'limit'" class="input-suffix">USDT</span>
           </div>
 
           <div class="input-row">
@@ -542,16 +547,16 @@
           class="position-tabs"
         >
           <!-- 持有仓位Tab：仅在合约模式下显示 -->
-          <van-tab v-if="!isSpotMode" :title="t('trade.positions_tab', { count: positions.length })">
+          <van-tab v-if="!isSpotMode" :title="t('trade.positions_tab', { count: displayPositions.length })">
             <div class="positions-list">
-              <div v-if="positions.length === 0" class="empty-state">
+              <div v-if="displayPositions.length === 0" class="empty-state">
                 <div class="empty-icon">
                   <van-icon name="orders-o" size="48" color="var(--color-text-secondary)" />
                 </div>
                 <div class="empty-text">{{ t('trade.no_positions') }}</div>
               </div>
               <div 
-                v-for="(position, index) in positions" 
+                v-for="(position, index) in displayPositions" 
                 :key="index"
                 class="position-card"
               >
@@ -590,21 +595,16 @@
 
                   <div class="position-right">
                     <div class="position-info-row">
-                      <span class="info-label">{{ t('trade.entry_price') }}:</span>
-                      <span 
-                        class="info-value entry-price-value" 
-                        :class="isLongPosition(position) ? 'side-long' : 'side-short'"
-                      >
-                        {{ formatPrice(position.entryPrice) }}
-                      </span>
+                      <span class="info-label">{{ t('trade.entry_price') }}</span>
+                      <span class="info-value">{{ formatPrice(position.entryPrice) }}</span>
+                    </div>
+                    <div class="position-info-row">
+                      <span class="info-label">{{ t('trade.margin_amount') }} (USDT)</span>
+                      <span class="info-value">{{ formatPrice(position.margin) }}</span>
                     </div>
                     <div class="position-info-row">
                       <span class="info-label">标记价格</span>
-                      <span class="info-value liquidation-price">{{ formatPrice(position.markPrice || markPrice) }}</span>
-                    </div>
-                    <div class="position-info-row">
-                      <span class="info-label">{{ t('trade.margin_amount') }}:</span>
-                      <span class="info-value">{{ formatPrice(position.margin) }} USDT</span>
+                      <span class="info-value">{{ formatPrice(position.markPrice || markPrice) }}</span>
                     </div>
                   </div>
                 </div>
@@ -991,6 +991,7 @@ import { useI18n } from 'vue-i18n';
 import { showToast, Icon, Popup, Empty, ActionSheet, Tabs, Tab, showConfirmDialog, Slider } from 'vant';
 import { useAssetStore } from '@/stores/assets';
 import { useMarketStore } from '@/stores/market';
+import { useAssetActions } from '@/composables/useAssetActions';
 import { createOrder, getOrders, cancelOrder as cancelSpotOrderApi } from '@/api/trade';
 import { createFuturesOrder, getPositions as getFuturesPositionsApi, closePosition as closeFuturesPositionApi, getFuturesOrders, cancelFuturesOrder as cancelFuturesOrderApi } from '@/api/futures';
 import { formatAssetAmount } from '@/utils/format';
@@ -1032,6 +1033,7 @@ const router = useRouter();
 const { t } = useI18n(); 
 const assetStore = useAssetStore();
 const marketStore = useMarketStore();
+const { openDeposit } = useAssetActions();
 
 // 修复1：计算属性绑定 pageTitle，解决语言切换问题
 const pageTitle = computed(() => t('trade.title'));
@@ -1989,145 +1991,117 @@ const updatePositionsPnl = () => {
   });
 };
 
-const handleLong = async () => {
+// 提取后端返回的“真实”错误信息，避免只显示 axios 的 "Request failed with status code 500"
+// 优先级：FastAPI detail(字符串) > detail(数组/校验错误) > message > 纯字符串 body > error > 兜底文案
+const extractApiError = (error, fallback = '下单失败，请稍后重试') => {
+  const data = error?.response?.data;
+  if (data) {
+    const { detail } = data;
+    if (typeof detail === 'string' && detail.trim()) return detail;
+    if (Array.isArray(detail) && detail.length) {
+      const first = detail[0];
+      if (first && first.msg) return first.msg;
+      try { return JSON.stringify(detail); } catch { /* ignore */ }
+    }
+    if (typeof data.message === 'string' && data.message.trim()) return data.message;
+    if (typeof data === 'string' && data.trim()) return data;
+    if (data.error) return typeof data.error === 'string' ? data.error : JSON.stringify(data.error);
+  }
+  // 只有在完全拿不到后端信息时才使用兜底文案（不直接暴露 "status code 500"）
+  return fallback;
+};
+
+// 统一打印下单 payload，方便定位 500 等问题（不吞掉任何信息）
+const logOrderPayload = (label, params) => {
+  console.groupCollapsed(`📤 [合约下单] ${label}`);
+  console.log('side       :', params.side);
+  console.log('orderType  :', orderType.value);
+  console.log('symbol     :', params.symbol);
+  console.log('price      :', params.price, '(', typeof params.price, ')');
+  console.log('amount     :', params.amount, '(', typeof params.amount, ')');
+  console.log('leverage   :', params.leverage, '(', typeof params.leverage, ')');
+  console.log('margin(估) :', futuresMargin.value);
+  console.log('marginMode :', marginMode?.value ?? 'ISOLATED');
+  console.log('payload    :', JSON.parse(JSON.stringify(params)));
+  console.groupEnd();
+};
+
+// 统一打印接口错误（完整 status + body），不隐藏后端返回的 message / detail / data
+const logOrderError = (label, error) => {
+  console.group(`❌ [合约下单失败] ${label}`);
+  console.error('HTTP status :', error?.response?.status);
+  console.error('后端 body   :', error?.response?.data);
+  console.error('原始 error  :', error);
+  console.groupEnd();
+};
+
+// 提交合约订单（开多 / 开空共用逻辑），side: 'BUY' | 'SELL'
+const submitFuturesOrder = async (side, failLabel) => {
   if (!isFuturesFormValid.value) {
-    showToast({ message: t('trade.fill_all_fields'), duration: 2000 });
+    showToast({ message: t('trade.fill_all_fields'), position: 'top', duration: 2000 });
     return;
   }
-  
+
   isLoading.value = true;
-  
+
   try {
     const orderPrice = orderType.value === 'market' ? markPrice.value : parseFloat(futuresPrice.value);
-    
+
     const params = {
       symbol: `${symbol.value}/USDT`,
-      side: 'BUY',
+      side,
       type: orderType.value.toUpperCase(),
-      price: orderPrice,
+      // 市价单也需要传价格给后端（用于估算），但执行价以后端市场价为准
+      price: Number(orderPrice) || 0,
       amount: parseFloat(futuresAmount.value),
       leverage: currentLeverage.value
     };
-    
-    
+
+    logOrderPayload(failLabel, params);
+
     const response = await createFuturesOrder(params);
     const responseData = response.data || response;
-    
+    console.log('📥 [合约下单] 接口返回:', responseData);
+
     if (responseData && responseData.code === 200) {
       showToast({
         message: responseData.message || t('trade.order_submitted'),
         icon: 'success',
+        position: 'top',
         duration: 2000
       });
-      
+
       // 刷新持仓列表和资产余额
       await fetchFuturesPositions();
       await assetStore.initData();
-      
+
       // 刷新当前委托订单列表（合约）
       console.log('下单成功，正在强制刷新合约委托列表...');
       await fetchFuturesOrders();
-      
+
       // 清空输入框
       futuresAmount.value = '';
       futuresPrice.value = '';
       selectedFuturesPercent.value = null;
       futuresSliderValue.value = 0;
-      
     } else {
-      throw new Error(responseData?.message || t('trade.order_failed'));
+      // 业务失败（HTTP 200 但 code 非 200）：优先显示后端 message
+      const bizMessage = responseData?.message || t('trade.order_failed') || '下单失败，请稍后重试';
+      showToast({ message: bizMessage, icon: 'fail', position: 'top', duration: 3500 });
     }
   } catch (error) {
-    console.error('❌ 合约开多失败:', error);
-    
-    let errorMessage = t('trade.order_failed') || '开仓失败，请重试';
-    if (error.response?.data?.detail) {
-      errorMessage = error.response.data.detail;
-    } else if (error.response?.data?.message) {
-      errorMessage = error.response.data.message;
-    } else if (error.message) {
-      errorMessage = error.message;
-    }
-    
-    showToast({
-      message: errorMessage,
-      icon: 'fail',
-      duration: 3000
-    });
+    logOrderError(failLabel, error);
+    // 顶部轻量提示，优先展示后端真实错误（detail / message），不再只显示 "status code 500"
+    const errorMessage = extractApiError(error, t('trade.order_failed') || '下单失败，请稍后重试');
+    showToast({ message: errorMessage, icon: 'fail', position: 'top', duration: 3500 });
   } finally {
     isLoading.value = false;
   }
 };
 
-const handleShort = async () => {
-  if (!isFuturesFormValid.value) {
-    showToast({ message: t('trade.fill_all_fields'), duration: 2000 });
-    return;
-  }
-  
-  isLoading.value = true;
-  
-  try {
-    const orderPrice = orderType.value === 'market' ? markPrice.value : parseFloat(futuresPrice.value);
-    
-    const params = {
-      symbol: `${symbol.value}/USDT`,
-      side: 'SELL',
-      type: orderType.value.toUpperCase(),
-      price: orderPrice,
-      amount: parseFloat(futuresAmount.value),
-      leverage: currentLeverage.value
-    };
-    
-    
-    const response = await createFuturesOrder(params);
-    const responseData = response.data || response;
-    
-    if (responseData && responseData.code === 200) {
-      showToast({
-        message: responseData.message || t('trade.order_submitted'),
-        icon: 'success',
-        duration: 2000
-      });
-      
-      // 刷新持仓列表和资产余额
-      await fetchFuturesPositions();
-      await assetStore.initData();
-      
-      // 刷新当前委托订单列表（合约）
-      console.log('下单成功，正在强制刷新合约委托列表...');
-      await fetchFuturesOrders();
-      
-      // 清空输入框
-      futuresAmount.value = '';
-      futuresPrice.value = '';
-      selectedFuturesPercent.value = null;
-      futuresSliderValue.value = 0;
-      
-    } else {
-      throw new Error(responseData?.message || t('trade.order_failed'));
-    }
-  } catch (error) {
-    console.error('❌ 合约开空失败:', error);
-    
-    let errorMessage = t('trade.order_failed') || '开仓失败，请重试';
-    if (error.response?.data?.detail) {
-      errorMessage = error.response.data.detail;
-    } else if (error.response?.data?.message) {
-      errorMessage = error.response.data.message;
-    } else if (error.message) {
-      errorMessage = error.message;
-    }
-    
-    showToast({
-      message: errorMessage,
-      icon: 'fail',
-      duration: 3000
-    });
-  } finally {
-    isLoading.value = false;
-  }
-};
+const handleLong = () => submitFuturesOrder('BUY', '开多');
+
+const handleShort = () => submitFuturesOrder('SELL', '开空');
 
 const handleTakeProfitStopLoss = (position, index) => {
   currentTPSLPosition.value = { position, index };
@@ -2658,6 +2632,37 @@ const fetchFuturesPositions = async () => {
     positions.value = [];
   }
 };
+
+/**
+ * ⚠️ 仅开发环境（import.meta.env.DEV）用于预览「持仓卡片」UI 的 mock 数据。
+ * - 只有在开发环境 且 真实持仓为空 时才会显示。
+ * - 生产环境（打包后 import.meta.env.DEV === false）永远不会显示。
+ * - 不覆盖、不污染真实接口数据（positions 仍是唯一真实数据源）。
+ */
+const DEV_MOCK_POSITION = {
+  symbol: 'BTC',            // 模板会拼成 BTCUSDT
+  side: 'long',
+  quantity: 0.005,
+  entryPrice: 108400.00,
+  leverage: 20,
+  margin: 433.65,
+  liquidationPrice: 0,
+  unrealizedPnl: 75.18,
+  unrealizedPnlPercent: 17.34,
+  markPrice: 92000.00,
+  __mockPreview: true       // 标记：仅用于本地预览
+};
+
+// 持仓列表的“展示层”：真实有数据时用真实数据；仅在开发环境且真实持仓为空时回退到 mock 预览
+const displayPositions = computed(() => {
+  if (positions.value && positions.value.length > 0) {
+    return positions.value;
+  }
+  if (import.meta.env.DEV) {
+    return [DEV_MOCK_POSITION];
+  }
+  return [];
+});
 
 const handleSubmitOrder = async () => {
   // 第一步：表单校验
@@ -7020,5 +7025,1404 @@ onUnmounted(() => {
   .futures-form-side .market-price-input {
     font-size: 10.5px !important;
   }
+}
+
+/* =====================================================================
+   FIGURE-2 HIGH-FIDELITY REDESIGN (futures / 合约 view)
+   Pure visual layer: clean white surfaces, light borders, soft shadows,
+   consistent radii + typography. No markup / logic changes.
+   Kept last so it wins the cascade over earlier tuning passes.
+   ===================================================================== */
+
+/* ---- Page shell ---- */
+.trade-page {
+  background: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Helvetica Neue', sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.trade-page .futures-trade-container {
+  background: #ffffff !important;
+}
+
+/* ---- 现货 / 合约 tabs ---- */
+.trade-page .trade-tabs {
+  padding: 0 16px !important;
+  gap: 28px !important;
+  border-bottom: 1px solid #eaecef !important;
+}
+
+.trade-page .trade-tabs .tab-item {
+  padding: 12px 0 !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  color: #6b7280 !important;
+}
+
+.trade-page .trade-tabs .tab-item.active {
+  color: #111827 !important;
+  font-weight: 700 !important;
+}
+
+.trade-page .trade-tabs .tab-item.active::after {
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
+  width: 32px !important;
+  height: 3px !important;
+  border-radius: 2px !important;
+  background: var(--color-brand-legacy) !important;
+}
+
+/* ---- Trade page in-app header (title + kline) ---- */
+.trade-page .trade-header {
+  height: 52px !important;
+  background: #ffffff !important;
+  border-bottom: 1px solid #eaecef !important;
+}
+
+/* ---- Pair info row ---- */
+.trade-page .pair-info {
+  padding: 14px 16px !important;
+  min-height: 60px !important;
+  border-bottom: 1px solid #eaecef !important;
+}
+
+.trade-page .pair-name {
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.4px !important;
+  color: #111827 !important;
+}
+
+.trade-page .price-change {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  padding: 6px 12px !important;
+  border-radius: 8px !important;
+}
+
+.trade-page .price-change.positive {
+  color: #16a34a !important;
+  background: rgb(22 163 74 / 0.10) !important;
+}
+
+.trade-page .price-change.negative {
+  color: #ef4444 !important;
+  background: rgb(239 68 68 / 0.10) !important;
+}
+
+/* ---- Two-column trade area ---- */
+.trade-page .futures-trade-main {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  gap: 12px !important;
+  padding: 12px 16px !important;
+  align-items: stretch !important;
+  background: transparent !important;
+}
+
+.trade-page .futures-orderbook-side,
+.trade-page .futures-form-side {
+  width: auto !important;
+  min-width: 0 !important;
+  height: 472px !important;
+  min-height: 472px !important;
+  max-height: 472px !important;
+  box-sizing: border-box !important;
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.04) !important;
+  overflow: hidden !important;
+}
+
+/* ---- Order-book card ---- */
+.trade-page .futures-orderbook-side {
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 12px !important;
+}
+
+.trade-page .futures-orderbook-side .orderbook-header {
+  height: 26px !important;
+  min-height: 26px !important;
+  padding: 0 6px 6px !important;
+  color: #6b7280 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  border-bottom: 0 !important;
+}
+
+.trade-page .futures-orderbook-side .asks-list,
+.trade-page .futures-orderbook-side .bids-list {
+  flex: 0 0 auto !important;
+  height: 170px !important;
+  overflow: hidden !important;
+}
+
+.trade-page .futures-orderbook-side .order-row {
+  height: 34px !important;
+  line-height: 34px !important;
+  padding: 0 6px !important;
+  border-radius: 6px !important;
+}
+
+.trade-page .futures-orderbook-side .order-row .price,
+.trade-page .futures-orderbook-side .order-row .quantity {
+  font-family: var(--font-number) !important;
+  font-size: 13px !important;
+  line-height: 34px !important;
+  letter-spacing: -0.2px !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+.trade-page .futures-orderbook-side .order-row .quantity {
+  color: #6b7280 !important;
+  font-weight: 500 !important;
+}
+
+.trade-page .futures-orderbook-side .ask-price { color: #ef4444 !important; text-shadow: none !important; }
+.trade-page .futures-orderbook-side .bid-price { color: #16a34a !important; text-shadow: none !important; }
+
+.trade-page .futures-orderbook-side .ask-depth {
+  background: linear-gradient(90deg, transparent 0%, rgb(239 68 68 / 0.12) 100%) !important;
+}
+.trade-page .futures-orderbook-side .bid-depth {
+  background: linear-gradient(90deg, transparent 0%, rgb(22 163 74 / 0.12) 100%) !important;
+}
+
+.trade-page .futures-orderbook-side .last-price {
+  height: 78px !important;
+  min-height: 78px !important;
+  margin: 2px 0 !important;
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.35) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(180deg, rgb(var(--color-brand-rgb) / 0.08), #ffffff) !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+
+.trade-page .futures-orderbook-side .price-main {
+  color: #16a34a !important;
+  font-size: 30px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.8px !important;
+  text-shadow: none !important;
+}
+
+.trade-page .futures-orderbook-side .price-fiat {
+  color: #6b7280 !important;
+  font-size: 12px !important;
+  margin-top: 5px !important;
+}
+
+/* ---- Order panel card ---- */
+.trade-page .futures-form-side {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  padding: 12px !important;
+  overflow: hidden !important;
+}
+
+.trade-page .futures-form-side .futures-asset-panel { display: none !important; }
+
+/* order-type + leverage buttons row */
+.trade-page .futures-form-side .form-tools-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 96px !important;
+  gap: 10px !important;
+  width: 100% !important;
+}
+
+.trade-page .futures-form-side .form-tools-row .order-type-selector {
+  width: 100% !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  padding: 0 14px !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: none !important;
+  color: #111827 !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
+.trade-page .leverage-inline-btn {
+  width: 96px !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: none !important;
+  color: #111827 !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+/* inputs */
+.trade-page .futures-form-side .input-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  height: 50px !important;
+  min-height: 50px !important;
+  padding: 0 14px !important;
+  gap: 8px !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: none !important;
+}
+
+.trade-page .futures-form-side .input-row:focus-within {
+  border-color: rgb(var(--color-brand-rgb) / 0.55) !important;
+  box-shadow: 0 0 0 3px rgb(var(--color-brand-rgb) / 0.10) !important;
+}
+
+.trade-page .futures-form-side .input-field {
+  min-width: 0 !important;
+  width: 100% !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  color: #111827 !important;
+  font-family: var(--font-number) !important;
+}
+
+.trade-page .futures-form-side .input-field::placeholder,
+.trade-page .futures-form-side .market-price-input {
+  color: #9ca3af !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  -webkit-text-fill-color: #9ca3af !important;
+}
+
+.trade-page .futures-form-side .input-suffix {
+  flex: 0 0 auto !important;
+  max-width: none !important;
+  color: #9ca3af !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+/* slider */
+.trade-page .futures-form-side .slider-wrapper {
+  height: auto !important;
+  min-height: 44px !important;
+  padding: 8px 4px 0 !important;
+  margin: 0 !important;
+}
+
+.trade-page .futures-form-side .custom-slider-button {
+  width: 26px !important;
+  height: 26px !important;
+  line-height: 26px !important;
+  font-size: 9px !important;
+}
+
+.trade-page .futures-form-side .slider-marks {
+  display: flex !important;
+  justify-content: space-between !important;
+  grid-template-columns: none !important;
+  padding: 10px 2px 0 !important;
+  margin: 0 !important;
+}
+
+.trade-page .futures-form-side .mark-item {
+  min-width: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #6b7280 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+
+/* fee + total rows */
+.trade-page .futures-form-side .fee-estimate-row,
+.trade-page .futures-form-side .total-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  height: 24px !important;
+  min-height: 24px !important;
+  padding: 0 2px !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.trade-page .futures-form-side .fee-estimate-label,
+.trade-page .futures-form-side .total-label {
+  color: #6b7280 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+}
+
+.trade-page .futures-form-side .fee-estimate-value,
+.trade-page .futures-form-side .total-value {
+  max-width: none !important;
+  color: #111827 !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  font-family: var(--font-number) !important;
+}
+
+/* margin row (soft yellow strip) */
+.trade-page .futures-form-side .estimated-received-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  padding: 0 12px !important;
+  border-radius: 8px !important;
+  background: rgb(var(--color-brand-rgb) / 0.10) !important;
+  border: 0 !important;
+}
+
+.trade-page .futures-form-side .received-label {
+  color: #6b7280 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+}
+
+.trade-page .futures-form-side .received-value {
+  max-width: none !important;
+  color: #111827 !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  font-family: var(--font-number) !important;
+}
+
+/* available balance (single clean row) */
+.trade-page .futures-form-side .available-margin-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  height: 30px !important;
+  min-height: 30px !important;
+  padding: 0 2px !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.trade-page .futures-form-side .available-margin-label {
+  color: #6b7280 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+.trade-page .futures-form-side .available-margin-value {
+  color: #111827 !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  font-family: var(--font-number) !important;
+}
+
+/* long / short buttons (soft tinted, colored text + border) */
+.trade-page .futures-form-side .futures-action-buttons-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 10px !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  margin-top: auto !important;
+  padding-top: 0 !important;
+}
+
+.trade-page .futures-form-side .long-btn-grid,
+.trade-page .futures-form-side .short-btn-grid {
+  height: 48px !important;
+  min-height: 48px !important;
+  border-radius: 12px !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  font-family: inherit !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+.trade-page .futures-form-side .long-btn-grid {
+  background: rgb(22 163 74 / 0.12) !important;
+  color: #16a34a !important;
+  border: 1px solid rgb(22 163 74 / 0.5) !important;
+}
+
+.trade-page .futures-form-side .short-btn-grid {
+  background: rgb(239 68 68 / 0.12) !important;
+  color: #ef4444 !important;
+  border: 1px solid rgb(239 68 68 / 0.5) !important;
+}
+
+.trade-page .futures-form-side .long-btn-grid:active:not(:disabled) {
+  background: rgb(22 163 74 / 0.18) !important;
+}
+.trade-page .futures-form-side .short-btn-grid:active:not(:disabled) {
+  background: rgb(239 68 68 / 0.18) !important;
+}
+
+/* disabled state stays legible (no washed-out grey) */
+.trade-page .futures-form-side .long-btn-grid:disabled {
+  opacity: 1 !important;
+  filter: none !important;
+  background: rgb(22 163 74 / 0.07) !important;
+  color: rgb(22 163 74 / 0.55) !important;
+  border-color: rgb(22 163 74 / 0.25) !important;
+}
+.trade-page .futures-form-side .short-btn-grid:disabled {
+  opacity: 1 !important;
+  filter: none !important;
+  background: rgb(239 68 68 / 0.07) !important;
+  color: rgb(239 68 68 / 0.55) !important;
+  border-color: rgb(239 68 68 / 0.25) !important;
+}
+
+.trade-page .futures-form-side .long-btn-grid::before,
+.trade-page .futures-form-side .short-btn-grid::before {
+  display: none !important;
+}
+
+/* ---- Position / orders bottom section ---- */
+.trade-page .futures-bottom-section {
+  margin-top: 10px !important;
+  padding: 0 !important;
+  background: #ffffff !important;
+  border-top: 1px solid #eaecef !important;
+  box-shadow: none !important;
+}
+
+.trade-page :deep(.position-tabs .van-tabs__wrap) {
+  height: 56px !important;
+  background: #ffffff !important;
+  border-bottom: 1px solid #eaecef !important;
+}
+
+.trade-page :deep(.position-tabs .van-tab) {
+  font-size: 14px !important;
+  color: #6b7280 !important;
+}
+
+.trade-page :deep(.position-tabs .van-tab--active) {
+  color: #111827 !important;
+  font-weight: 700 !important;
+}
+
+.trade-page .positions-list,
+.trade-page .orders-list,
+.trade-page .history-list {
+  padding: 14px 16px !important;
+  background: #ffffff !important;
+}
+
+/* empty state */
+.trade-page .empty-state {
+  min-height: 240px !important;
+  color: #9ca3af !important;
+}
+.trade-page .empty-state .empty-icon {
+  opacity: 0.5 !important;
+  filter: none !important;
+}
+.trade-page .empty-state .empty-text {
+  color: #9ca3af !important;
+}
+
+/* ---- Position card ---- */
+.trade-page .position-card {
+  background: #ffffff !important;
+  backdrop-filter: none !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.04) !important;
+  padding: 16px !important;
+  gap: 14px !important;
+}
+
+.trade-page .position-card:hover {
+  transform: none !important;
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.04) !important;
+}
+.trade-page .position-card::before { display: none !important; }
+
+.trade-page .position-symbol {
+  font-size: 18px !important;
+  font-weight: 800 !important;
+  color: #111827 !important;
+}
+
+.trade-page .position-perpetual {
+  background: #f3f4f6 !important;
+  color: #6b7280 !important;
+  border-radius: 6px !important;
+}
+
+.trade-page .position-side-badge {
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  border-radius: 6px !important;
+  padding: 3px 8px !important;
+}
+.trade-page .position-side-badge.side-long {
+  background: rgb(22 163 74 / 0.12) !important;
+  color: #16a34a !important;
+}
+.trade-page .position-side-badge.side-short {
+  background: rgb(239 68 68 / 0.12) !important;
+  color: #ef4444 !important;
+}
+
+.trade-page .position-leverage {
+  color: #c99400 !important;
+  font-weight: 800 !important;
+}
+
+.trade-page .unrealized-pnl-label {
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  color: #6b7280 !important;
+  font-weight: 500 !important;
+}
+
+.trade-page .unrealized-pnl-value {
+  font-size: 28px !important;
+  font-weight: 800 !important;
+}
+.trade-page .unrealized-pnl-value.positive { color: #16a34a !important; text-shadow: none !important; }
+.trade-page .unrealized-pnl-value.negative { color: #ef4444 !important; text-shadow: none !important; }
+.trade-page .unrealized-pnl-percent.positive { color: #16a34a !important; text-shadow: none !important; }
+.trade-page .unrealized-pnl-percent.negative { color: #ef4444 !important; text-shadow: none !important; }
+
+.trade-page .position-right .info-label {
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  color: #6b7280 !important;
+  font-size: 11px !important;
+}
+.trade-page .position-right .info-value {
+  color: #111827 !important;
+  font-size: 13px !important;
+}
+.trade-page .entry-price-value.side-long,
+.trade-page .entry-price-value.side-short,
+.trade-page .liquidation-price {
+  text-shadow: none !important;
+}
+
+.trade-page .position-actions {
+  border-top: 1px solid #f0f2f5 !important;
+  padding-top: 14px !important;
+  gap: 10px !important;
+}
+
+.trade-page .action-btn {
+  height: 44px !important;
+  padding: 0 !important;
+  border-radius: 10px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+
+.trade-page .tp-sl-btn {
+  background: #ffffff !important;
+  color: #c99400 !important;
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.6) !important;
+  backdrop-filter: none !important;
+}
+.trade-page .close-btn {
+  background: #ffffff !important;
+  color: #ef4444 !important;
+  border: 1px solid rgb(239 68 68 / 0.5) !important;
+  backdrop-filter: none !important;
+}
+
+/* ---- Responsive guards (375 / 390 / 414) ---- */
+@media (max-width: 414px) {
+  .trade-page .futures-trade-main {
+    padding: 12px !important;
+    gap: 10px !important;
+  }
+  .trade-page .futures-form-side .form-tools-row {
+    grid-template-columns: minmax(0, 1fr) 84px !important;
+    gap: 8px !important;
+  }
+  .trade-page .leverage-inline-btn {
+    width: 84px !important;
+  }
+}
+
+@media (max-width: 375px) {
+  .trade-page .futures-orderbook-side .price-main {
+    font-size: 27px !important;
+  }
+  .trade-page .futures-form-side .input-field {
+    font-size: 14px !important;
+  }
+}
+
+/* =====================================================================
+   FIGURE-2 PASS 2 — fixes for order panel (半宽约束下的按钮/单位/滑杆),
+   single-line key-value rows, and global font refinement.
+   Appended last so it wins the cascade.
+   ===================================================================== */
+
+/* ---- Global font refinement (中文 + 英文 + 数字统一) ---- */
+.trade-page {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif !important;
+  --font-number: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* 数字区域统一等宽数字对齐（不影响 van-icon 图标字体） */
+.trade-page .input-field,
+.trade-page .fee-estimate-value,
+.trade-page .total-value,
+.trade-page .received-value,
+.trade-page .available-margin-value,
+.trade-page .price-main,
+.trade-page .price-fiat,
+.trade-page .position-right .info-value,
+.trade-page .unrealized-pnl-value,
+.trade-page .unrealized-pnl-percent,
+.trade-page .position-leverage,
+.trade-page .order-price,
+.trade-page .order-amount {
+  font-variant-numeric: tabular-nums !important;
+  font-feature-settings: "tnum" !important;
+}
+
+/* 交易对标题 BTC/USDT */
+.trade-page .pair-name {
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  line-height: 1.2 !important;
+}
+
+/* ---- Order type / leverage buttons: 均分且完整显示“市价单/限价单” ---- */
+.trade-page .futures-form-side .form-tools-row {
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 8px !important;
+}
+
+.trade-page .futures-form-side .form-tools-row .order-type-selector {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  padding: 0 10px !important;
+  overflow: visible !important;
+  font-size: 13px !important;
+  white-space: nowrap !important;
+}
+.trade-page .futures-form-side .form-tools-row .order-type-selector > span {
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  flex: 0 1 auto !important;
+  min-width: 0 !important;
+}
+.trade-page .futures-form-side .form-tools-row .order-type-selector .van-icon {
+  flex: 0 0 auto !important;
+}
+
+/* 杠杆按钮：宽度自适应内容，不再挤压左侧下单类型按钮 */
+.trade-page .leverage-inline-btn {
+  width: auto !important;
+  min-width: 54px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  padding: 0 10px !important;
+  font-size: 13px !important;
+  white-space: nowrap !important;
+}
+.trade-page .leverage-inline-btn > span { white-space: nowrap !important; }
+.trade-page .leverage-inline-btn .van-icon { flex: 0 0 auto !important; }
+
+/* ---- Inputs: 数字与单位垂直居中；市价单提示不与单位重叠 ---- */
+.trade-page .futures-form-side .input-field {
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+.trade-page .futures-form-side .input-suffix {
+  display: inline-flex !important;
+  align-items: center !important;
+  white-space: nowrap !important;
+}
+
+/* ---- Slider marks 不被遮挡 ---- */
+.trade-page .futures-form-side .slider-wrapper {
+  min-height: 58px !important;
+  padding: 10px 6px 6px !important;
+}
+.trade-page .futures-form-side .slider-marks {
+  padding: 12px 2px 0 !important;
+}
+
+/* ---- Key-value rows: 单行显示（标签左、金额右），避免难看换行 ---- */
+.trade-page .futures-form-side .fee-estimate-row,
+.trade-page .futures-form-side .total-row,
+.trade-page .futures-form-side .estimated-received-row,
+.trade-page .futures-form-side .available-margin-row {
+  flex-wrap: nowrap !important;
+  gap: 8px !important;
+}
+.trade-page .futures-form-side .fee-estimate-label,
+.trade-page .futures-form-side .total-label,
+.trade-page .futures-form-side .received-label,
+.trade-page .futures-form-side .available-margin-label {
+  white-space: nowrap !important;
+  flex: 0 0 auto !important;
+}
+.trade-page .futures-form-side .fee-estimate-value,
+.trade-page .futures-form-side .total-value,
+.trade-page .futures-form-side .received-value,
+.trade-page .futures-form-side .available-margin-value {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  text-align: right !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* 数字字重收敛：不要过粗（500/600 为主，当前价/盈亏保留大字重） */
+.trade-page .futures-form-side .fee-estimate-value,
+.trade-page .futures-form-side .total-value { font-weight: 600 !important; }
+.trade-page .futures-form-side .received-value,
+.trade-page .futures-form-side .available-margin-value { font-weight: 700 !important; }
+
+/* ---- Position card 字体层级微调 ---- */
+.trade-page .position-symbol { font-size: 20px !important; font-weight: 800 !important; line-height: 1.2 !important; }
+.trade-page .unrealized-pnl-value { line-height: 1.2 !important; }
+.trade-page .position-right .info-value { font-weight: 600 !important; }
+
+@media (max-width: 390px) {
+  .trade-page .futures-form-side .form-tools-row .order-type-selector { font-size: 12px !important; padding: 0 8px !important; }
+  .trade-page .leverage-inline-btn { min-width: 50px !important; font-size: 12px !important; padding: 0 8px !important; }
+  .trade-page .futures-form-side .available-margin-label,
+  .trade-page .futures-form-side .available-margin-value,
+  .trade-page .futures-form-side .received-label,
+  .trade-page .futures-form-side .received-value { font-size: 12px !important; }
+}
+
+/* =====================================================================
+   PREMIUM REFINEMENT PASS — 合约交易高级化
+   实色主操作按钮 / 干净克制的盘口 / 精致的持仓卡片。
+   追加在最后以赢得层叠优先级。
+   ===================================================================== */
+
+/* ---- 主操作按钮：实色、白字、克制阴影，建立强视觉层级 ---- */
+.trade-page .futures-form-side .futures-action-buttons-grid { gap: 10px !important; }
+
+/* 合约「开多」(有兄弟按钮时) 与 「开空」使用实色；现货单按钮维持原样 */
+.trade-page .futures-form-side .long-btn-grid:not(:only-child),
+.trade-page .futures-form-side .short-btn-grid {
+  border: none !important;
+  color: #ffffff !important;
+  letter-spacing: 0.3px !important;
+  transition: transform 0.12s ease, box-shadow 0.2s ease, background 0.2s ease !important;
+}
+.trade-page .futures-form-side .long-btn-grid:not(:only-child) {
+  background: linear-gradient(180deg, #18c884 0%, #10b877 100%) !important;
+  box-shadow: 0 6px 16px rgb(16 184 119 / 0.28) !important;
+}
+.trade-page .futures-form-side .short-btn-grid {
+  background: linear-gradient(180deg, #ff5b6a 0%, #f6465d 100%) !important;
+  box-shadow: 0 6px 16px rgb(246 70 93 / 0.28) !important;
+}
+.trade-page .futures-form-side .long-btn-grid:not(:only-child):active:not(:disabled) {
+  transform: translateY(1px) !important;
+  box-shadow: 0 3px 10px rgb(16 184 119 / 0.24) !important;
+  background: linear-gradient(180deg, #10b877, #0c9c66) !important;
+}
+.trade-page .futures-form-side .short-btn-grid:active:not(:disabled) {
+  transform: translateY(1px) !important;
+  box-shadow: 0 3px 10px rgb(246 70 93 / 0.24) !important;
+  background: linear-gradient(180deg, #f6465d, #e23a51) !important;
+}
+.trade-page .futures-form-side .long-btn-grid:not(:only-child):disabled,
+.trade-page .futures-form-side .short-btn-grid:disabled {
+  background: #eef1f4 !important;
+  color: #b6bcc6 !important;
+  border: none !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+/* ---- 盘口最新价：中性精致卡片，颜色随涨跌 ---- */
+.trade-page .futures-orderbook-side .last-price,
+.trade-page .orderbook-side .last-price {
+  border: 1px solid #eef0f3 !important;
+  background: #f7f8fa !important;
+  border-radius: 12px !important;
+}
+.trade-page .last-price.up .price-main { color: #10b877 !important; }
+.trade-page .last-price.down .price-main { color: #f6465d !important; }
+.trade-page .futures-orderbook-side .price-main,
+.trade-page .orderbook-side .price-main {
+  font-weight: 700 !important;
+  letter-spacing: -0.6px !important;
+}
+.trade-page .futures-orderbook-side .price-fiat,
+.trade-page .orderbook-side .price-fiat { color: #9ca3af !important; }
+
+/* ---- 盘口深度条与数字更克制统一 ---- */
+.trade-page .futures-orderbook-side .ask-depth,
+.trade-page .orderbook-side .ask-depth {
+  background: linear-gradient(90deg, transparent 0%, rgb(246 70 93 / 0.09) 100%) !important;
+}
+.trade-page .futures-orderbook-side .bid-depth,
+.trade-page .orderbook-side .bid-depth {
+  background: linear-gradient(90deg, transparent 0%, rgb(16 184 119 / 0.09) 100%) !important;
+}
+.trade-page .futures-orderbook-side .ask-price,
+.trade-page .orderbook-side .ask-price { color: #f6465d !important; }
+.trade-page .futures-orderbook-side .bid-price,
+.trade-page .orderbook-side .bid-price { color: #10b877 !important; }
+.trade-page .order-row { transition: background 0.15s ease !important; }
+.trade-page .order-row:active { background: #f2f4f7 !important; }
+
+/* ---- 订单类型 / 杠杆 / 输入框：干净描边卡片 ---- */
+.trade-page .futures-form-side .order-type-selector,
+.trade-page .leverage-inline-btn {
+  background: #f7f8fa !important;
+  border: 1px solid #eaecef !important;
+  color: #111827 !important;
+  border-radius: 12px !important;
+}
+.trade-page .futures-form-side .input-row {
+  background: #f7f8fa !important;
+  border: 1px solid #eaecef !important;
+}
+.trade-page .futures-form-side .input-row:focus-within {
+  background: #ffffff !important;
+  border-color: rgb(var(--color-brand-rgb) / 0.5) !important;
+  box-shadow: 0 0 0 3px rgb(var(--color-brand-rgb) / 0.08) !important;
+}
+.trade-page .futures-form-side .estimated-received-row {
+  background: rgb(var(--color-brand-rgb) / 0.06) !important;
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.14) !important;
+}
+
+/* ---- 持仓卡片：精致化层级 ---- */
+.trade-page .position-card {
+  border: 1px solid #edeff2 !important;
+  box-shadow: 0 6px 20px rgb(17 24 39 / 0.05) !important;
+  padding: 18px !important;
+}
+.trade-page .position-card-main {
+  grid-template-columns: 1fr 1.5fr 1.1fr !important;
+  gap: 12px !important;
+}
+.trade-page .position-perpetual {
+  background: #f3f4f6 !important;
+  color: #8a919e !important;
+  font-size: 10px !important;
+  padding: 2px 6px !important;
+}
+.trade-page .position-leverage {
+  display: inline-block !important;
+  margin-top: 4px !important;
+  padding: 2px 8px !important;
+  background: rgb(var(--color-brand-rgb) / 0.12) !important;
+  color: #b8860b !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+.trade-page .unrealized-pnl-label { font-size: 11px !important; margin-bottom: 6px !important; }
+.trade-page .unrealized-pnl-value { font-size: 26px !important; font-weight: 800 !important; letter-spacing: -0.5px !important; }
+.trade-page .unrealized-pnl-percent { font-size: 14px !important; font-weight: 600 !important; }
+
+/* ---- 持仓操作按钮：次操作描边 + 平仓红色调 ---- */
+.trade-page .position-actions { gap: 10px !important; }
+.trade-page .tp-sl-btn {
+  background: #ffffff !important;
+  color: #6b7280 !important;
+  border: 1px solid #e5e7eb !important;
+}
+.trade-page .tp-sl-btn:active { background: #f5f6f8 !important; }
+.trade-page .close-btn {
+  background: rgb(246 70 93 / 0.10) !important;
+  color: #f6465d !important;
+  border: 1px solid rgb(246 70 93 / 0.4) !important;
+}
+.trade-page .close-btn:active { background: rgb(246 70 93 / 0.18) !important; }
+
+/* ---- 底部标签：金色下划线，去掉发光 ---- */
+.trade-page :deep(.position-tabs .van-tabs__line) {
+  background: var(--color-brand) !important;
+  box-shadow: none !important;
+  height: 3px !important;
+  border-radius: 2px !important;
+}
+
+/* ---- 顶部控制条：保证金模式文字 ---- */
+.trade-page .margin-mode-text { color: #b8860b !important; }
+
+/* =====================================================================
+   LAYOUT FIX — 开多/开空按钮完整显示 + 持仓卡片信息不再拥挤
+   ===================================================================== */
+
+/* 合约下单卡片改为内容自适应高度，主操作按钮不再被裁剪 */
+.trade-page .futures-trade-main { align-items: stretch !important; }
+.trade-page .futures-orderbook-side,
+.trade-page .futures-form-side {
+  height: auto !important;
+  min-height: 468px !important;
+  max-height: none !important;
+}
+.trade-page .futures-form-side {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: visible !important;
+}
+.trade-page .futures-form-side .futures-action-buttons-grid {
+  margin-top: auto !important;
+  padding-top: 4px !important;
+}
+
+/* 盘口自适应拉伸后，买卖档位向中间价对齐，空白留在远端更自然 */
+.trade-page .futures-orderbook-side {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+.trade-page .futures-orderbook-side .orderbook-header,
+.trade-page .futures-orderbook-side .last-price { flex: 0 0 auto !important; }
+.trade-page .futures-orderbook-side .asks-list {
+  flex: 1 1 auto !important;
+  height: auto !important;
+  min-height: 120px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  overflow: hidden !important;
+}
+.trade-page .futures-orderbook-side .bids-list {
+  flex: 1 1 auto !important;
+  height: auto !important;
+  min-height: 120px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  overflow: hidden !important;
+}
+.trade-page .futures-orderbook-side .last-price { margin: 8px 0 !important; }
+
+/* ---- 持仓卡片：改为竖向分区，信息清晰不拥挤 ---- */
+.trade-page .position-card-main {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+}
+
+/* 头部：交易对 + 方向 + 永续 在左，杠杆在右 */
+.trade-page .position-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+  width: 100% !important;
+}
+.trade-page .position-symbol-row {
+  margin-bottom: 0 !important;
+  flex-wrap: nowrap !important;
+  white-space: nowrap !important;
+  min-width: 0 !important;
+}
+.trade-page .position-perpetual { white-space: nowrap !important; }
+.trade-page .position-leverage { margin: 0 0 0 auto !important; flex: 0 0 auto !important; }
+
+/* 未实现盈亏：左对齐主区，作为视觉焦点 */
+.trade-page .position-center {
+  text-align: left !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  padding: 0 !important;
+}
+.trade-page .unrealized-pnl-label { margin-bottom: 4px !important; }
+.trade-page .unrealized-pnl-value { margin-bottom: 4px !important; }
+
+/* 关键数据：三等分小面板，标签在上、数值在下，绝不截断 */
+.trade-page .position-right {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 10px !important;
+  background: #f7f8fa !important;
+  border: 1px solid #eef0f3 !important;
+  border-radius: 12px !important;
+  padding: 12px !important;
+}
+.trade-page .position-info-row {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+}
+.trade-page .position-right .info-label {
+  font-size: 11px !important;
+  color: #6b7280 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+.trade-page .position-right .info-value {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #111827 !important;
+  white-space: nowrap !important;
+}
+
+/* =====================================================================
+   SPOT REFINEMENT — 现货下单区高级化（分段式买卖切换 + 实色主按钮）
+   ===================================================================== */
+
+/* 买/卖 切换：分段控件，选中为白底 + 品牌色文字 */
+.trade-page .form-side .buy-sell-toggle {
+  background: #f2f4f7 !important;
+  border: 1px solid #eaecef !important;
+  border-radius: 12px !important;
+  padding: 4px !important;
+}
+.trade-page .form-side .toggle-btn {
+  background: transparent !important;
+  color: #6b7280 !important;
+  border-radius: 9px !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  font-weight: 700 !important;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease !important;
+}
+.trade-page .form-side .buy-btn.active {
+  background: #ffffff !important;
+  color: #10b877 !important;
+  box-shadow: 0 1px 4px rgb(17 24 39 / 0.10) !important;
+  text-shadow: none !important;
+}
+.trade-page .form-side .sell-btn.active {
+  background: #ffffff !important;
+  color: #f6465d !important;
+  box-shadow: 0 1px 4px rgb(17 24 39 / 0.10) !important;
+  text-shadow: none !important;
+}
+
+/* 主下单按钮：买=实色绿，卖=实色红，白字，克制阴影 */
+.trade-page .form-side .submit-btn {
+  border: none !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  letter-spacing: 0.3px !important;
+  transition: transform 0.12s ease, box-shadow 0.2s ease, background 0.2s ease !important;
+}
+.trade-page .form-side .submit-btn::before { display: none !important; }
+.trade-page .form-side .submit-btn.buy {
+  background: linear-gradient(180deg, #18c884 0%, #10b877 100%) !important;
+  box-shadow: 0 6px 16px rgb(16 184 119 / 0.28) !important;
+}
+.trade-page .form-side .submit-btn.sell {
+  background: linear-gradient(180deg, #ff5b6a 0%, #f6465d 100%) !important;
+  box-shadow: 0 6px 16px rgb(246 70 93 / 0.28) !important;
+}
+.trade-page .form-side .submit-btn.buy:active:not(:disabled) {
+  transform: translateY(1px) !important;
+  box-shadow: 0 3px 10px rgb(16 184 119 / 0.24) !important;
+  background: linear-gradient(180deg, #10b877, #0c9c66) !important;
+}
+.trade-page .form-side .submit-btn.sell:active:not(:disabled) {
+  transform: translateY(1px) !important;
+  box-shadow: 0 3px 10px rgb(246 70 93 / 0.24) !important;
+  background: linear-gradient(180deg, #f6465d, #e23a51) !important;
+}
+.trade-page .form-side .submit-btn:disabled {
+  opacity: 1 !important;
+  filter: none !important;
+  background: #eef1f4 !important;
+  color: #b6bcc6 !important;
+  box-shadow: none !important;
+}
+
+/* 预估到账高亮行更柔和统一 */
+.trade-page .form-side .estimated-received-row {
+  background: rgb(var(--color-brand-rgb) / 0.06) !important;
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.14) !important;
+  border-radius: 12px !important;
+}
+
+/* =====================================================================
+   PROMO + BUTTON COLOR — 限时0资金费率徽标 + 开多/开空保留色彩身份
+   ===================================================================== */
+
+/* 币种旁「限时0资金费率」促销徽标 */
+.trade-page .pair-info .zero-fee-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+  margin-left: 8px !important;
+  padding: 3px 9px !important;
+  border-radius: 999px !important;
+  background: linear-gradient(135deg, #fff3df 0%, #ffe7c7 100%) !important;
+  border: 1px solid rgb(233 137 12 / 0.30) !important;
+  color: #e0850b !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  letter-spacing: 0 !important;
+}
+.trade-page .pair-info .zero-fee-badge svg {
+  width: 11px !important;
+  height: 11px !important;
+  flex: 0 0 auto !important;
+}
+.trade-page .pair-info .price-change { margin-left: auto !important; }
+
+/* 开多/开空 未激活（禁用）时仍保留绿/红色彩，仅降低明度 —— 与主流交易所一致 */
+.trade-page .futures-form-side .long-btn-grid:not(:only-child):disabled {
+  background: linear-gradient(180deg, #18c884 0%, #10b877 100%) !important;
+  color: #ffffff !important;
+  opacity: 0.5 !important;
+  filter: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+.trade-page .futures-form-side .short-btn-grid:disabled {
+  background: linear-gradient(180deg, #ff5b6a 0%, #f6465d 100%) !important;
+  color: #ffffff !important;
+  opacity: 0.5 !important;
+  filter: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* 现货主按钮禁用态同样保留色彩，保持一致 */
+.trade-page .form-side .submit-btn.buy:disabled {
+  background: linear-gradient(180deg, #18c884 0%, #10b877 100%) !important;
+  color: #ffffff !important;
+  opacity: 0.5 !important;
+  filter: none !important;
+  box-shadow: none !important;
+}
+.trade-page .form-side .submit-btn.sell:disabled {
+  background: linear-gradient(180deg, #ff5b6a 0%, #f6465d 100%) !important;
+  color: #ffffff !important;
+  opacity: 0.5 !important;
+  filter: none !important;
+  box-shadow: none !important;
+}
+
+/* =====================================================================
+   深色模式适配 —— 交易页此前使用硬编码浅色，深色下需重映射到主题变量
+   （买卖/开多开空的绿红主色保持不变，仅调整卡片/输入/文字/边框）
+   ===================================================================== */
+:global(html[data-theme='dark']) .trade-page .futures-trade-container {
+  background: var(--color-surface-1) !important;
+}
+
+/* 盘口 / 下单卡片 */
+:global(html[data-theme='dark']) .trade-page .orderbook-side,
+:global(html[data-theme='dark']) .trade-page .form-side,
+:global(html[data-theme='dark']) .trade-page .futures-orderbook-side,
+:global(html[data-theme='dark']) .trade-page .futures-form-side {
+  background: var(--color-surface-2) !important;
+  border-color: var(--color-border) !important;
+  box-shadow: none !important;
+}
+
+/* 盘口表头 / 数量列 / 法币价 */
+:global(html[data-theme='dark']) .trade-page .orderbook-header,
+:global(html[data-theme='dark']) .trade-page .orderbook-header span,
+:global(html[data-theme='dark']) .trade-page .quantity {
+  color: var(--color-text-secondary) !important;
+}
+:global(html[data-theme='dark']) .trade-page .price-fiat {
+  color: var(--color-text-muted) !important;
+}
+
+/* 最新价卡片 */
+:global(html[data-theme='dark']) .trade-page .last-price {
+  background: var(--color-surface-1) !important;
+  border-color: var(--color-border) !important;
+}
+
+/* 订单类型 / 杠杆按钮 / 输入行 */
+:global(html[data-theme='dark']) .trade-page .order-type-selector,
+:global(html[data-theme='dark']) .trade-page .leverage-inline-btn,
+:global(html[data-theme='dark']) .trade-page .input-row {
+  background: var(--color-surface-1) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+:global(html[data-theme='dark']) .trade-page .input-field {
+  color: var(--color-text-primary) !important;
+  background: transparent !important;
+}
+:global(html[data-theme='dark']) .trade-page .input-field::placeholder {
+  color: var(--color-text-muted) !important;
+}
+
+/* 键值行文字 */
+:global(html[data-theme='dark']) .trade-page .fee-estimate-label,
+:global(html[data-theme='dark']) .trade-page .total-label,
+:global(html[data-theme='dark']) .trade-page .received-label,
+:global(html[data-theme='dark']) .trade-page .available-margin-label,
+:global(html[data-theme='dark']) .trade-page .avail-label {
+  color: var(--color-text-secondary) !important;
+}
+:global(html[data-theme='dark']) .trade-page .fee-estimate-value,
+:global(html[data-theme='dark']) .trade-page .total-value,
+:global(html[data-theme='dark']) .trade-page .received-value,
+:global(html[data-theme='dark']) .trade-page .available-margin-value,
+:global(html[data-theme='dark']) .trade-page .avail-value {
+  color: var(--color-text-primary) !important;
+}
+
+/* 买/卖 分段控件 */
+:global(html[data-theme='dark']) .trade-page .buy-sell-toggle {
+  background: var(--color-surface-1) !important;
+  border-color: var(--color-border) !important;
+}
+:global(html[data-theme='dark']) .trade-page .buy-sell-toggle .toggle-btn:not(.active) {
+  color: var(--color-text-secondary) !important;
+}
+
+/* 禁用主按钮底色（无 buy/sell/long/short 色彩身份时） */
+:global(html[data-theme='dark']) .trade-page .submit-btn:disabled:not(.buy):not(.sell) {
+  background: var(--color-surface-muted) !important;
+  color: var(--color-text-muted) !important;
+}
+
+/* 底部区（持仓/委托/成交） */
+:global(html[data-theme='dark']) .trade-page .futures-bottom-section,
+:global(html[data-theme='dark']) .trade-page .bottom-section {
+  background: var(--color-surface-2) !important;
+  border-top-color: var(--color-border) !important;
+}
+
+/* 持仓卡片 */
+:global(html[data-theme='dark']) .trade-page .position-card {
+  background: var(--color-surface-2) !important;
+  border-color: var(--color-border) !important;
+  box-shadow: none !important;
+}
+:global(html[data-theme='dark']) .trade-page .position-symbol,
+:global(html[data-theme='dark']) .trade-page .info-value {
+  color: var(--color-text-primary) !important;
+}
+:global(html[data-theme='dark']) .trade-page .position-perpetual {
+  background: var(--color-surface-muted) !important;
+  color: var(--color-text-secondary) !important;
+}
+:global(html[data-theme='dark']) .trade-page .position-right {
+  background: var(--color-surface-1) !important;
+  border-color: var(--color-border) !important;
+}
+:global(html[data-theme='dark']) .trade-page .info-label,
+:global(html[data-theme='dark']) .trade-page .unrealized-pnl-label {
+  color: var(--color-text-secondary) !important;
+}
+
+/* 止盈止损次操作按钮 */
+:global(html[data-theme='dark']) .trade-page .tp-sl-btn {
+  background: var(--color-surface-1) !important;
+  color: var(--color-text-secondary) !important;
+  border-color: var(--color-border) !important;
+}
+
+/* 空状态文案 */
+:global(html[data-theme='dark']) .trade-page .empty-state {
+  color: var(--color-text-muted) !important;
+}
+
+/* 交易对信息分隔线 */
+:global(html[data-theme='dark']) .trade-page .pair-info {
+  border-bottom-color: var(--color-border) !important;
+}
+
+/* 限时0资金费率徽标（深色下更暗的金色调） */
+:global(html[data-theme='dark']) .trade-page .pair-info .zero-fee-badge {
+  background: rgb(233 137 12 / 0.14) !important;
+  border-color: rgb(233 137 12 / 0.30) !important;
+  color: #f0b24a !important;
+}
+
+/* 页面根：深色下此前被硬编码为 background:#ffffff，会整屏泛白，必须回退到深色底 */
+:global(html[data-theme='dark']) .trade-page {
+  background: var(--color-bg) !important;
+  background-color: var(--color-bg) !important;
+}
+
+/* 顶部页内头部 / 交易对信息栏 */
+:global(html[data-theme='dark']) .trade-page .trade-header {
+  background: var(--color-surface-1) !important;
+  border-bottom-color: var(--color-border) !important;
+}
+/* 交易对名称此前为 #111827，深色下几乎不可见 */
+:global(html[data-theme='dark']) .trade-page .pair-name {
+  color: var(--color-text-primary) !important;
+}
+
+/* 两列卡片阴影/描边在深色下收敛 */
+:global(html[data-theme='dark']) .trade-page .futures-orderbook-side,
+:global(html[data-theme='dark']) .trade-page .futures-form-side {
+  background: var(--color-surface-2) !important;
+  border-color: var(--color-border) !important;
+  box-shadow: none !important;
+}
+
+/* 盘口买卖挡位次要文字（此前硬编码 #6b7280 尚可，但统一为 token 更清晰） */
+:global(html[data-theme='dark']) .trade-page .futures-orderbook-side .order-row .quantity,
+:global(html[data-theme='dark']) .trade-page .futures-orderbook-side .price-fiat,
+:global(html[data-theme='dark']) .trade-page .futures-orderbook-side .orderbook-header {
+  color: var(--color-text-secondary) !important;
+}
+
+/* 持仓/委托 Tab 容器与列表 */
+:global(html[data-theme='dark']) .trade-page .position-tabs .van-tabs__wrap {
+  background: var(--color-surface-2) !important;
+}
+:global(html[data-theme='dark']) .trade-page .positions-list,
+:global(html[data-theme='dark']) .trade-page .orders-list,
+:global(html[data-theme='dark']) .trade-page .history-list {
+  background: var(--color-surface-2) !important;
+}
+
+/* 平仓次操作按钮 */
+:global(html[data-theme='dark']) .trade-page .close-btn {
+  background: var(--color-surface-1) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+/* 买/卖分段控件选中态：深色下用浅色表面而非纯白刺眼 */
+:global(html[data-theme='dark']) .trade-page .form-side .buy-btn.active,
+:global(html[data-theme='dark']) .trade-page .form-side .sell-btn.active {
+  background: var(--color-surface-elevated, #1f2a3d) !important;
 }
 </style>

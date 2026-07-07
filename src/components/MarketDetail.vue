@@ -22,6 +22,18 @@
           <van-icon name="arrow-down" size="12" class="coin-select-arrow" />
         </div>
       </template>
+
+      <template #right>
+        <div class="nav-actions">
+          <van-icon
+            :name="isFavorite ? 'star' : 'star-o'"
+            class="nav-action-icon"
+            :class="{ active: isFavorite }"
+            @click="toggleFavorite"
+          />
+          <van-icon name="ellipsis" class="nav-action-icon" @click="handleMore" />
+        </div>
+      </template>
     </van-nav-bar>
 
     <!-- 币种切换抽屉 -->
@@ -157,13 +169,26 @@
     </div>
 
     <!-- K 线图区域 -->
-    <div class="chart-box">
+    <div class="chart-box" ref="chartBox">
+      <!-- 左上角 OHLC -->
+      <div class="ohlc-overlay">
+        <span class="ohlc-item">O<b :class="candleUp ? 'up' : 'down'">{{ formatPrice(lastCandle.open) }}</b></span>
+        <span class="ohlc-item">H<b class="up">{{ formatPrice(lastCandle.high) }}</b></span>
+        <span class="ohlc-item">L<b class="down">{{ formatPrice(lastCandle.low) }}</b></span>
+        <span class="ohlc-item">C<b :class="candleUp ? 'up' : 'down'">{{ formatPrice(lastCandle.close) }}</b></span>
+      </div>
+
       <trading-view-widget 
         ref="tvWidget"
         :symbol="symbol"
         :interval="selectedTimeframe"
         :initial-data="klineHistory" 
       />
+
+      <!-- 左下角全屏按钮 -->
+      <button class="fullscreen-btn" type="button" aria-label="全屏" @click="toggleFullscreen">
+        <van-icon name="expand-o" />
+      </button>
     </div>
 
     <!-- 盘口和成交标签页 -->
@@ -179,56 +204,53 @@
       class="market-tabs"
     >
       <van-tab :title="t('market.orderbook')">
-        <div class="orderbook-container">
-          <!-- 卖单区域 -->
-          <div class="orderbook-section asks-section">
-            <div 
-              v-for="(ask, index) in (orderBook.asks || [])" 
-              :key="'ask-' + (ask.priceStr || ask.price || index)"
-              class="orderbook-row ask-row"
-              @click="handlePriceClick(ask.price || ask.priceStr || 0, 'sell')"
-            >
-              <div class="depth-bar ask-depth" :style="{ '--percent': getDepthWidth(ask.amount || 0) + '%' }"></div>
-              <div class="row-content">
-                <span class="price ask-price">{{ formatOrderPrice(ask.price || parseFloat(ask.priceStr) || 0) }}</span>
-                <span class="amount">{{ formatOrderAmount(ask.amount || parseFloat(ask.amountStr) || 0) }}</span>
+        <div class="orderbook-pro">
+          <!-- 中间当前价 -->
+          <div class="ob-current">
+            <span class="ob-current-price" :class="{ up: priceChange >= 0, down: priceChange < 0 }">
+              {{ formatPrice(displayPrice) }}
+            </span>
+            <span class="ob-current-fiat">≈ {{ formatFiatPrice(displayPrice) }}</span>
+            <span class="ob-current-time">更新 {{ lastUpdateTime }}</span>
+          </div>
+
+          <!-- 双栏盘口：左买盘 / 右卖盘 -->
+          <div class="ob-columns">
+            <!-- 买盘 -->
+            <div class="ob-col ob-bids">
+              <div class="ob-col-title bid">买盘</div>
+              <div class="ob-col-head">
+                <span>价格(USDT)</span>
+                <span>数量({{ symbol }})</span>
+              </div>
+              <div
+                v-for="(bid, i) in bidLevels"
+                :key="'bid-' + i"
+                class="ob-row"
+                @click="handlePriceClick(bid.price, 'buy')"
+              >
+                <div class="ob-depth bid" :style="{ width: depthPct(bid.amount) + '%' }"></div>
+                <span class="ob-price bid">{{ formatOrderPrice(bid.price) }}</span>
+                <span class="ob-amt">{{ formatOrderAmount(bid.amount) }}</span>
               </div>
             </div>
-          </div>
 
-          <!-- 当前价格 - 币安风格 -->
-          <div class="current-price-row">
-            <div class="price-main-info">
-              <span class="current-price-text" :class="{ up: priceChange >= 0, down: priceChange < 0 }">
-                {{ formatPrice(currentPrice) }}
-              </span>
-              <span class="price-fiat">≈ {{ formatFiatPrice(currentPrice) }}</span>
-              <!-- 调试：显示最后更新时间戳（闪烁效果） -->
-              <small 
-                :style="{ 
-                  display: 'block', 
-                  fontSize: '10px', 
-                  color: 'var(--color-text-secondary)', 
-                  marginTop: '2px',
-                  animation: 'blink 1s infinite'
-                }">
-                更新: {{ lastUpdateTime }}
-              </small>
-            </div>
-          </div>
-
-          <!-- 买单区域 -->
-          <div class="orderbook-section bids-section">
-            <div 
-              v-for="(bid, index) in (orderBook.bids || [])" 
-              :key="'bid-' + (bid.priceStr || bid.price || index)"
-              class="orderbook-row bid-row"
-              @click="handlePriceClick(bid.price || bid.priceStr || 0, 'buy')"
-            >
-              <div class="depth-bar bid-depth" :style="{ '--percent': getDepthWidth(bid.amount || 0) + '%' }"></div>
-              <div class="row-content">
-                <span class="price bid-price">{{ formatOrderPrice(bid.price || parseFloat(bid.priceStr) || 0) }}</span>
-                <span class="amount">{{ formatOrderAmount(bid.amount || parseFloat(bid.amountStr) || 0) }}</span>
+            <!-- 卖盘 -->
+            <div class="ob-col ob-asks">
+              <div class="ob-col-title ask">卖盘</div>
+              <div class="ob-col-head">
+                <span>价格(USDT)</span>
+                <span>数量({{ symbol }})</span>
+              </div>
+              <div
+                v-for="(ask, i) in askLevels"
+                :key="'ask-' + i"
+                class="ob-row"
+                @click="handlePriceClick(ask.price, 'sell')"
+              >
+                <div class="ob-depth ask" :style="{ width: depthPct(ask.amount) + '%' }"></div>
+                <span class="ob-price ask">{{ formatOrderPrice(ask.price) }}</span>
+                <span class="ob-amt">{{ formatOrderAmount(ask.amount) }}</span>
               </div>
             </div>
           </div>
@@ -238,9 +260,9 @@
       <van-tab :title="t('market.recent_trades')">
         <div class="trades-container">
           <div class="trades-header">
-            <span class="header-col price-col">{{ t('market.price') }}</span>
-            <span class="header-col amount-col">{{ t('market.amount') }}</span>
             <span class="header-col time-col">{{ t('market.time') }}</span>
+            <span class="header-col price-col">{{ t('market.price') }}(USDT)</span>
+            <span class="header-col amount-col">{{ t('market.amount') }}({{ symbol }})</span>
           </div>
           <div class="trades-list">
             <div 
@@ -248,11 +270,11 @@
               :key="'trade-' + index"
               class="trade-row"
             >
+              <span class="trade-time">{{ formatTradeTime(trade?.time || new Date()) }}</span>
               <span class="trade-price" :class="{ buy: trade?.side === 'buy', sell: trade?.side === 'sell' }">
-                {{ formatPrice(trade?.price || 0) }}
+                {{ formatOrderPrice(trade?.price || 0) }}
               </span>
               <span class="trade-amount">{{ formatOrderAmount(trade?.amount || 0) }}</span>
-              <span class="trade-time">{{ formatTradeTime(trade?.time || new Date()) }}</span>
             </div>
           </div>
         </div>
@@ -413,7 +435,77 @@ const maxOrderVolume = computed(() => {
   return allAmounts.length > 0 ? Math.max(...allAmounts, 1) : 1000;
 });
 
-const trades = computed(() => generateTrades(currentPrice.value));
+// ============================================================
+//  盘口 / 成交 Mock 兜底数据
+//  真实 WS/接口有数据时优先用真实数据，无数据时用 Mock，保证专业盘口观感
+// ============================================================
+const chartBox = ref(null);
+const isFavorite = ref(false);
+
+// 各币种缺省价（真实价未加载时用于生成 Mock 盘口）
+const FALLBACK_PRICES = {
+  BTC: 92000, ETH: 3200, BNB: 610, SOL: 190,
+  DOGE: 0.16, TRX: 0.13, BEAT: 1.2, AIC: 0.8
+};
+
+// Mock 数量（固定，避免每次渲染抖动）
+const MOCK_BID_AMOUNTS = [0.1254, 0.0831, 0.2467, 0.4123, 0.6789];
+const MOCK_ASK_AMOUNTS = [0.1328, 0.0976, 0.2265, 0.3954, 0.6021];
+
+// 用于 Mock 的基准价
+const basePriceForMock = computed(() => {
+  if (currentPrice.value > 0) return currentPrice.value;
+  return FALLBACK_PRICES[symbol.value] || 100;
+});
+
+// 盘口中间展示的价格（真实优先）
+const displayPrice = computed(() => currentPrice.value > 0 ? currentPrice.value : basePriceForMock.value);
+
+// 价格档位步长（按价格量级自适应）
+const priceStep = (base) => {
+  if (base >= 1000) return 0.5;
+  if (base >= 1) return 0.01;
+  return 0.0001;
+};
+
+// 买盘 5 档：真实优先，否则 Mock（价格由高到低）
+const bidLevels = computed(() => {
+  const real = (orderBook.value.bids || []).filter(b => b && b.price).slice(0, 5);
+  if (real.length >= 5) return real;
+  const base = basePriceForMock.value;
+  const step = priceStep(base);
+  return MOCK_BID_AMOUNTS.map((amount, i) => ({ price: base - step * (i + 1), amount }));
+});
+
+// 卖盘 5 档：真实优先，否则 Mock（价格由低到高）
+const askLevels = computed(() => {
+  const real = (orderBook.value.asks || []).filter(a => a && a.price).slice(0, 5);
+  if (real.length >= 5) return real;
+  const base = basePriceForMock.value;
+  const step = priceStep(base);
+  return MOCK_ASK_AMOUNTS.map((amount, i) => ({ price: base + step * (i + 1), amount }));
+});
+
+// 深度条最大值（基于当前展示的档位）
+const maxLevelVolume = computed(() => {
+  const all = [...bidLevels.value, ...askLevels.value].map(x => x.amount || 0);
+  return Math.max(...all, 0.0001);
+});
+const depthPct = (amount) => Math.min(100, Math.round((amount / maxLevelVolume.value) * 100));
+
+// K 线左上角 OHLC（真实最后一根优先，否则 Mock）
+const lastCandle = computed(() => {
+  const h = klineHistory.value;
+  if (Array.isArray(h) && h.length) {
+    const c = h[h.length - 1];
+    return { open: c.open, high: c.high, low: c.low, close: c.close };
+  }
+  const base = basePriceForMock.value;
+  return { open: base * 0.9994, high: base * 1.0009, low: base * 0.9989, close: base };
+});
+const candleUp = computed(() => (lastCandle.value.close || 0) >= (lastCandle.value.open || 0));
+
+const trades = computed(() => generateTrades(basePriceForMock.value));
 
 const timeframes = [
   { label: '1m', value: '1m' },
@@ -909,6 +1001,38 @@ const goToTrade = (side) => {
 const handleIndicators = () => showToast(t('market.indicators_coming_soon'));
 const handleSettings = () => showToast(t('market.settings_coming_soon'));
 
+// 收藏交易对（本地持久化）
+const favKey = (sym) => `market_fav_${sym}`;
+const toggleFavorite = () => {
+  isFavorite.value = !isFavorite.value;
+  try {
+    if (isFavorite.value) localStorage.setItem(favKey(symbol.value), '1');
+    else localStorage.removeItem(favKey(symbol.value));
+  } catch (e) { /* ignore */ }
+  showToast({ message: isFavorite.value ? '已加入自选' : '已取消自选', icon: isFavorite.value ? 'star' : 'star-o' });
+};
+
+const handleMore = () => showToast('更多功能开发中');
+
+// K 线图全屏
+const toggleFullscreen = () => {
+  const el = chartBox.value;
+  if (!el) return;
+  try {
+    if (document.fullscreenElement) {
+      document.exitFullscreen?.();
+    } else if (el.requestFullscreen) {
+      el.requestFullscreen();
+    } else if (el.webkitRequestFullscreen) {
+      el.webkitRequestFullscreen();
+    } else {
+      showToast('当前环境不支持全屏');
+    }
+  } catch (e) {
+    showToast('全屏切换失败');
+  }
+};
+
 // --- Watchers ---
 
 // 1. 监听 URL symbol 变化
@@ -918,6 +1042,11 @@ watch(() => route.query.symbol, (newSymbol) => {
     localStorage.setItem('selectedSymbol', symbol.value);
   }
 });
+
+// 币种变化时同步自选状态
+watch(symbol, (sym) => {
+  try { isFavorite.value = localStorage.getItem(favKey(sym)) === '1'; } catch (e) { isFavorite.value = false; }
+}, { immediate: true });
 
 // 2. 监听时间周期变化 -> 刷新 K 线
 watch(selectedTimeframe, () => {
@@ -1019,12 +1148,18 @@ onUnmounted(() => {
   disconnectBackendWebSocket(); // 断开后端 WebSocket
 });
 
-// generateTrades 函数已删除 - 使用真实数据
-// 成交数据应从后端 WebSocket 或 API 获取，而不是 Mock
+// 最新成交：真实数据接入前使用 Mock 兜底，保证列表非空且交互可用
+const MOCK_TRADE_AMOUNTS = [0.0231, 0.1042, 0.0875, 0.0456, 0.0678, 0.1523, 0.0312, 0.0891, 0.2104, 0.0567, 0.0743, 0.1288];
 const generateTrades = (basePrice) => {
-  // 返回空数组，等待真实数据
-  if (!basePrice) return [];
-  return [];
+  const base = basePrice || FALLBACK_PRICES[symbol.value] || 100;
+  const step = priceStep(base);
+  const now = Date.now();
+  return MOCK_TRADE_AMOUNTS.map((amount, i) => {
+    const side = i % 2 === 0 ? 'buy' : 'sell';
+    const offset = (i % 3) * step;
+    const price = side === 'buy' ? base - offset : base + offset;
+    return { side, price, amount, time: new Date(now - i * 3500) };
+  });
 };
 </script>
 
@@ -1528,8 +1663,8 @@ const generateTrades = (basePrice) => {
 }
 
 .time-col {
-  text-align: right;
-  flex: 0 0 70px;
+  text-align: left;
+  flex: 0 0 72px;
 }
 
 .trades-list {
@@ -1555,7 +1690,7 @@ const generateTrades = (basePrice) => {
 }
 
 .trade-price {
-  flex: 0 0 auto;
+  flex: 1;
   text-align: left;
   font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', 'Arial', 'DIN Alternate', sans-serif;
   font-variant-numeric: tabular-nums;
@@ -1582,8 +1717,8 @@ const generateTrades = (basePrice) => {
 }
 
 .trade-time {
-  flex: 0 0 70px;
-  text-align: right;
+  flex: 0 0 72px;
+  text-align: left;
   color: var(--color-text-muted);
   font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', 'Arial', 'DIN Alternate', sans-serif;
   font-variant-numeric: tabular-nums;
@@ -1607,25 +1742,28 @@ const generateTrades = (basePrice) => {
 }
 .action-btn {
   flex: 1;
-  height: 40px;
-  font-size: 14px;
+  height: 52px;
+  font-size: 16px;
   font-weight: 700;
-  border-radius: 4px;
+  border-radius: 12px;
   border: none;
   transition: all 0.2s ease;
   font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', 'Arial', 'DIN Alternate', sans-serif;
+  letter-spacing: 0.5px;
 }
 .buy-btn {
-  background-color: var(--color-earn);
-  color: var(--color-text-primary);
+  background: linear-gradient(180deg, rgb(var(--color-earn-rgb) / 0.18) 0%, rgb(var(--color-earn-rgb) / 0.10) 100%);
+  border: 1px solid rgb(var(--color-earn-rgb) / 0.40) !important;
+  color: var(--color-earn) !important;
 }
 .buy-btn:active {
   opacity: 0.85;
   transform: scale(0.98);
 }
 .sell-btn {
-  background-color: var(--color-loss);
-  color: var(--color-text-primary);
+  background: linear-gradient(180deg, rgb(var(--color-loss-rgb) / 0.18) 0%, rgb(var(--color-loss-rgb) / 0.10) 100%);
+  border: 1px solid rgb(var(--color-loss-rgb) / 0.40) !important;
+  color: var(--color-loss) !important;
 }
 .sell-btn:active {
   opacity: 0.85;
@@ -1783,5 +1921,206 @@ const generateTrades = (basePrice) => {
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
+}
+
+/* ========== 顶部右侧操作图标（收藏 / 更多） ========== */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-right: 2px;
+}
+.nav-action-icon {
+  font-size: 20px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.15s ease;
+}
+.nav-action-icon:active {
+  transform: scale(0.9);
+}
+.nav-action-icon.active {
+  color: var(--color-brand-legacy);
+}
+
+/* ========== K 线容器 + 叠加层 ========== */
+.chart-box {
+  position: relative;
+  width: 100%;
+  background-color: var(--color-bg);
+  flex-shrink: 0;
+}
+.ohlc-overlay {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 11px;
+  font-family: 'Roboto Mono', 'DIN Alternate', monospace;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+  pointer-events: none;
+  background: rgb(var(--color-bg-rgb, 255 255 255) / 0.0);
+}
+.ohlc-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.ohlc-item b {
+  font-weight: 600;
+}
+.ohlc-item b.up { color: var(--color-earn); }
+.ohlc-item b.down { color: var(--color-loss); }
+
+.fullscreen-btn {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 5;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid rgb(var(--color-border-rgb) / 0.12);
+  background: var(--color-surface-2, rgb(var(--color-border-rgb) / 0.06));
+  color: var(--color-text-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+.fullscreen-btn:active {
+  opacity: 0.7;
+}
+
+/* ========== 专业双栏盘口 ========== */
+.orderbook-pro {
+  background-color: var(--color-bg);
+  padding: 4px 0 12px;
+  min-height: 360px;
+}
+
+/* 中间当前价 */
+.ob-current {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 12px 12px;
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.06);
+}
+.ob-current-price {
+  font-size: 24px;
+  font-weight: 800;
+  font-family: 'DIN Alternate', 'Roboto Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.ob-current-price.up { color: var(--color-earn); }
+.ob-current-price.down { color: var(--color-loss); }
+.ob-current-fiat {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.ob-current-time {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 双栏 */
+.ob-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 0;
+  padding-top: 8px;
+}
+.ob-col {
+  min-width: 0;
+  padding: 0 12px;
+}
+.ob-col.ob-bids {
+  border-right: 1px solid rgb(var(--color-border-rgb) / 0.07);
+}
+.ob-col-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.ob-col-title.bid { color: var(--color-earn); }
+.ob-col-title.ask { color: var(--color-loss); }
+.ob-col-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  padding-bottom: 6px;
+  gap: 8px;
+}
+.ob-col-head span:last-child { text-align: right; }
+
+.ob-row {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 30px;
+  gap: 8px;
+  cursor: pointer;
+  overflow: hidden;
+}
+.ob-row:active {
+  background-color: rgb(var(--color-border-rgb) / 0.04);
+}
+.ob-depth {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  z-index: 0;
+  border-radius: 3px;
+  pointer-events: none;
+  transition: width 0.25s ease;
+}
+/* 买盘深度：从右向左 */
+.ob-depth.bid {
+  right: 0;
+  background: rgb(var(--color-earn-rgb) / 0.12);
+}
+/* 卖盘深度：从左向右 */
+.ob-depth.ask {
+  left: 0;
+  background: rgb(var(--color-loss-rgb) / 0.12);
+}
+.ob-price {
+  position: relative;
+  z-index: 1;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Roboto Mono', 'DIN Alternate', monospace;
+  font-variant-numeric: tabular-nums;
+}
+.ob-price.bid { color: var(--color-earn); }
+.ob-price.ask { color: var(--color-loss); }
+.ob-amt {
+  position: relative;
+  z-index: 1;
+  font-size: 12px;
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* 小屏适配 */
+@media (max-width: 360px) {
+  .ob-col { padding: 0 8px; }
+  .ob-price { font-size: 12px; }
+  .ob-amt { font-size: 11px; }
 }
 </style>
