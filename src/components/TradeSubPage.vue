@@ -6,7 +6,7 @@
         <van-icon 
           name="arrow-left" 
           size="20" 
-          color="#D4AF37" 
+          color="var(--color-accent)" 
           class="back-icon"
           @click="handleBack"
         />
@@ -16,7 +16,7 @@
       </div>
       <div class="navbar-right">
         <div class="lang-icon-wrapper" @click="handleLanguageClick">
-          <van-icon name="globe-o" size="18" color="#D4AF37" />
+          <van-icon name="globe-o" size="18" color="var(--color-accent)" />
         </div>
       </div>
     </div>
@@ -45,7 +45,7 @@
       <div class="pair-info">
         <div class="pair-selector" @click="showCoinSelect = true">
           <span class="pair-name">{{ symbol }}/USDT</span>
-          <van-icon name="arrow-down" size="12" color="#FFFFFF" style="margin-left: 4px" />
+          <van-icon name="arrow-down" size="12" color="var(--color-text-primary)" style="margin-left: 4px" />
         </div>
         <div class="price-change" :class="{ positive: priceChange >= 0 }">
           {{ priceChange >= 0 ? '+' : '' }}{{ priceChange.toFixed(2) }}%
@@ -126,7 +126,7 @@
 
           <div class="order-type-selector" @click="showOrderTypeSheet = true">
             <span>{{ orderType === 'limit' ? t('trade.limit_order') : t('trade.market_order') }}</span>
-            <van-icon name="arrow-down" size="12" color="#848E9C" />
+            <van-icon name="arrow-down" size="12" color="var(--color-text-muted)" />
           </div>
 
           <div class="input-row">
@@ -172,8 +172,8 @@
               :step="1"
               bar-height="4px"
               button-size="16px"
-              active-color="#FCD535"
-              inactive-color="#2A2D35"
+              active-color="var(--color-brand-legacy)"
+              inactive-color="var(--color-surface-muted)"
               @update:model-value="onSpotSliderChange"
             >
               <template #button>
@@ -217,7 +217,7 @@
               <van-icon 
                 name="plus" 
                 size="12" 
-                color="#FCD535" 
+                color="var(--color-brand-legacy)" 
                 style="margin-left: 4px; cursor: pointer;" 
                 @click.stop="router.push('/deposit')" 
               />
@@ -251,7 +251,7 @@
             </div>
             <button class="leverage-btn" @click="showLeveragePopup = true">
               <span>{{ currentLeverage }}x</span>
-              <van-icon name="arrow-down" size="12" color="#848E9C" />
+              <van-icon name="arrow-down" size="12" color="var(--color-text-muted)" />
             </button>
           </div>
           <div class="control-right">
@@ -341,7 +341,7 @@
 
             <div class="order-type-selector" @click="showOrderTypeSheet = true">
               <span>{{ orderType === 'limit' ? t('trade.limit_order') : t('trade.market_order') }}</span>
-              <van-icon name="arrow-down" size="12" color="#848E9C" />
+              <van-icon name="arrow-down" size="12" color="var(--color-text-muted)" />
             </div>
 
             <div class="input-row">
@@ -382,8 +382,8 @@
                 :step="1"
                 bar-height="4px"
                 button-size="16px"
-                active-color="#FCD535"
-                inactive-color="#2A2D35"
+                active-color="var(--color-brand-legacy)"
+                inactive-color="var(--color-surface-muted)"
                 @update:model-value="onFuturesSliderChange"
               >
                 <template #button>
@@ -449,11 +449,11 @@
           <van-tabs 
             v-model:active="activePositionTab" 
             background="transparent" 
-            title-active-color="#FCD535" 
-            title-inactive-color="#8E8E93" 
+            title-active-color="var(--color-brand-legacy)" 
+            title-inactive-color="var(--color-text-secondary)" 
             line-width="30px" 
             line-height="3px" 
-            color="#FCD535" 
+            color="var(--color-brand-legacy)" 
             :border="false"
             class="position-tabs"
           >
@@ -598,7 +598,7 @@
               <div class="history-list">
                 <div v-if="futuresHistoryList.length === 0" class="empty-state">
                   <div class="empty-icon">
-                    <van-icon name="orders-o" size="48" color="#8E8E93" />
+                    <van-icon name="orders-o" size="48" color="var(--color-text-secondary)" />
                   </div>
                   <div class="empty-text">{{ t('trade.no_orders') }}</div>
                 </div>
@@ -661,7 +661,7 @@
                   <div class="history-footer">
                     <!-- 加载中 -->
                     <div v-if="historyLoading" class="history-loading">
-                      <van-loading type="spinner" color="#D4AF37" size="16px" />
+                      <van-loading type="spinner" color="var(--color-accent)" size="16px" />
                       <span class="loading-text">{{ t('common.loading') || '加载中...' }}</span>
                     </div>
                     <!-- 没有更多了 -->
@@ -808,7 +808,7 @@
             @click="selectLeverage(leverage)"
           >
             <span>{{ leverage }}x</span>
-            <van-icon v-if="currentLeverage === leverage" name="success" color="#FCD535" />
+            <van-icon v-if="currentLeverage === leverage" name="success" color="var(--color-brand-legacy)" />
           </div>
         </div>
       </div>
@@ -820,8 +820,8 @@
       position="bottom"
       round
       class="premium-tpsl-popup"
-      :overlay-style="{ backgroundColor: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(10px)' }"
-      :style="{ height: 'auto', background: '#0a0a0a' }"
+      :overlay-style="{ backgroundColor: 'rgb(var(--color-shadow-rgb) / 0.85)', backdropFilter: 'blur(10px)' }"
+      :style="{ height: 'auto', background: 'var(--color-bg)' }"
     >
       <div class="premium-modal-container">
         <div class="modal-drag-indicator"></div>
@@ -1114,7 +1114,7 @@ const asks = ref([]);
 const bids = ref([]);
 const orderBookContainerRef = ref(null);
 const orderFormRef = ref(null);
-const maxVisibleRows = ref(50);
+const maxVisibleRows = ref(12);
 
 // 币种价格数据（默认值，会被币安 API 覆盖）
 const coinPrices = ref({
@@ -1542,12 +1542,10 @@ const updateSpotSliderFromAmount = () => {
     }
     const balance = availableBalance.value;
     if (balance <= 0) {
-      spotSliderValue.value = 0;
       return;
     }
     const orderPrice = parseFloat(price.value) || lastPrice.value;
     if (!orderPrice || orderPrice <= 0) {
-      spotSliderValue.value = 0;
       return;
     }
     let percent = 0;
@@ -1574,14 +1572,12 @@ const setAmountPercent = (percent) => {
   try {
     const balance = availableBalance.value;
     if (balance <= 0) {
-      spotSliderValue.value = 0;
       amount.value = '';
       return;
     }
     const config = currentCoinConfig.value;
     const orderPrice = parseFloat(price.value) || lastPrice.value;
     if (!orderPrice || orderPrice <= 0) {
-      spotSliderValue.value = 0;
       amount.value = '';
       return;
     }
@@ -1603,7 +1599,6 @@ const setAmountPercent = (percent) => {
     }
   } catch (error) {
     console.error('Error setting amount percent:', error);
-    spotSliderValue.value = 0;
     amount.value = '';
   }
 };
@@ -1632,17 +1627,14 @@ const updateFuturesSliderFromAmount = () => {
     }
     const balance = assetStore?.usdtBalance || 0;
     if (balance <= 0) {
-      futuresSliderValue.value = 0;
       return;
     }
     const orderPrice = orderType.value === 'market' ? markPrice.value : parseFloat(futuresPrice.value || markPrice.value);
     if (!orderPrice || orderPrice <= 0) {
-      futuresSliderValue.value = 0;
       return;
     }
     const maxAmount = (balance * currentLeverage.value) / orderPrice;
     if (maxAmount <= 0) {
-      futuresSliderValue.value = 0;
       return;
     }
     const percent = Math.min(100, Math.max(0, (inputAmount / maxAmount) * 100));
@@ -1669,13 +1661,11 @@ const setFuturesAmountPercent = (percent) => {
   try {
     const balance = assetStore?.usdtBalance || 0;
     if (balance <= 0) {
-      futuresSliderValue.value = 0;
       futuresAmount.value = '';
       return;
     }
     const orderPrice = orderType.value === 'market' ? markPrice.value : parseFloat(futuresPrice.value || markPrice.value);
     if (!orderPrice || orderPrice <= 0) {
-      futuresSliderValue.value = 0;
       futuresAmount.value = '';
       return;
     }
@@ -1688,7 +1678,6 @@ const setFuturesAmountPercent = (percent) => {
     futuresAmount.value = calculatedAmount > 0 ? calculatedAmount.toFixed(currentCoinConfig.value.amountFixed) : '';
   } catch (error) {
     console.error('Error setting futures amount percent:', error);
-    futuresSliderValue.value = 0;
     futuresAmount.value = '';
   }
 };
@@ -2328,7 +2317,7 @@ const handleClosePosition = async (position, index) => {
       message: t('trade.close_position_message'),
       confirmButtonText: t('trade.close_position_confirm_btn'),
       cancelButtonText: t('trade.close_position_cancel_btn'),
-      confirmButtonColor: '#F6465D'
+      confirmButtonColor: 'var(--color-loss)'
     });
     isLoading.value = true;
     try {
@@ -2628,7 +2617,7 @@ onUnmounted(() => {
 .trade-sub-page {
   width: 100%;
   height: 100vh;
-  background-color: #000000;
+  background-color: var(--color-bg);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -2650,16 +2639,16 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   height: 52px;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgb(var(--color-shadow-rgb) / 0.8);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+  border-bottom: 1px solid rgb(var(--color-brand-rgb) / 0.1);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
   z-index: 1000;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 10px rgb(var(--color-shadow-rgb) / 0.3);
 }
 
 .navbar-left {
@@ -2678,7 +2667,7 @@ onUnmounted(() => {
 }
 
 .back-icon:hover {
-  background-color: rgba(212, 175, 55, 0.1);
+  background-color: rgb(var(--color-brand-rgb) / 0.1);
   transform: scale(1.1);
 }
 
@@ -2696,7 +2685,7 @@ onUnmounted(() => {
 .navbar-title {
   font-size: 18px;
   font-weight: 800;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.5px;
   text-align: center;
@@ -2721,7 +2710,7 @@ onUnmounted(() => {
 }
 
 .lang-icon-wrapper:hover {
-  background-color: rgba(212, 175, 55, 0.1);
+  background-color: rgb(var(--color-brand-rgb) / 0.1);
   transform: scale(1.1);
 }
 
@@ -2737,8 +2726,8 @@ onUnmounted(() => {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   padding-bottom: 10px; /* 减少底部 padding，紧凑布局 */
-  background-color: #050505;
-  color: #FFFFFF;
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
 }
 
 /* Tab 切换：现货/合约 */
@@ -2746,20 +2735,20 @@ onUnmounted(() => {
   display: flex;
   padding: 0 16px;
   gap: 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .trade-tabs .tab-item {
   padding: 12px 0;
   font-size: 14px;
-  color: #848E9C;
+  color: var(--color-text-muted);
   cursor: pointer;
   position: relative;
   transition: color 0.2s ease;
 }
 
 .trade-tabs .tab-item.active {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-weight: 600;
 }
 
@@ -2770,7 +2759,7 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   height: 2px;
-  background-color: #FCD535;
+  background-color: var(--color-brand-legacy);
 }
 
 /* 交易对信息 */
@@ -2779,7 +2768,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .pair-selector {
@@ -2791,7 +2780,7 @@ onUnmounted(() => {
 .pair-name {
   font-size: 16px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
 }
 
 .price-change {
@@ -2802,13 +2791,13 @@ onUnmounted(() => {
 }
 
 .price-change.positive {
-  color: #0ECB81;
-  background-color: rgba(14, 203, 129, 0.1);
+  color: var(--color-earn);
+  background-color: rgb(var(--color-earn-rgb) / 0.1);
 }
 
 .price-change.negative {
-  color: #F6465D;
-  background-color: rgba(246, 70, 93, 0.1);
+  color: var(--color-loss);
+  background-color: rgb(var(--color-loss-rgb) / 0.1);
 }
 
 /* 核心交易区 - 强制横向布局 */
@@ -2834,12 +2823,12 @@ onUnmounted(() => {
   flex: 0 0 60% !important; /* flex-grow: 0, flex-shrink: 0, flex-basis: 60% */
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, rgba(5, 5, 5, 0.95) 0%, #050505 100%);
+  background: linear-gradient(180deg, rgb(var(--color-bg-rgb) / 0.95) 0%, var(--color-bg) 100%);
   border-radius: 8px;
   overflow: visible;
   padding: 0;
-  border: 1px solid rgba(212, 175, 55, 0.08);
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.08);
+  box-shadow: 0 0 20px rgb(var(--color-shadow-rgb) / 0.5);
   align-self: flex-start; /* 确保顶部对齐 */
 }
 
@@ -2848,8 +2837,8 @@ onUnmounted(() => {
   justify-content: space-between;
   padding: 6px 12px; /* 减少 padding，紧凑布局 */
   font-size: 10px; /* 保持小字号 */
-  color: #8E8E93;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.03);
   flex-shrink: 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -2888,7 +2877,7 @@ onUnmounted(() => {
 }
 
 .order-row:hover {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgb(var(--color-border-rgb) / 0.02);
 }
 
 .depth-bar {
@@ -2904,20 +2893,20 @@ onUnmounted(() => {
 
 .ask-depth {
   background: linear-gradient(to left,
-    rgba(246, 70, 93, 0.25) 0%,
-    rgba(246, 70, 93, 0.15) 50%,
-    rgba(246, 70, 93, 0.05) 100%
+    rgb(var(--color-loss-rgb) / 0.25) 0%,
+    rgb(var(--color-loss-rgb) / 0.15) 50%,
+    rgb(var(--color-loss-rgb) / 0.05) 100%
   );
-  box-shadow: inset -2px 0 8px rgba(246, 70, 93, 0.2);
+  box-shadow: inset -2px 0 8px rgb(var(--color-loss-rgb) / 0.2);
 }
 
 .bid-depth {
   background: linear-gradient(to left,
-    rgba(14, 203, 129, 0.25) 0%,
-    rgba(14, 203, 129, 0.15) 50%,
-    rgba(14, 203, 129, 0.05) 100%
+    rgb(var(--color-earn-rgb) / 0.25) 0%,
+    rgb(var(--color-earn-rgb) / 0.15) 50%,
+    rgb(var(--color-earn-rgb) / 0.05) 100%
   );
-  box-shadow: inset -2px 0 8px rgba(14, 203, 129, 0.2);
+  box-shadow: inset -2px 0 8px rgb(var(--color-earn-rgb) / 0.2);
 }
 
 .order-row .price {
@@ -2931,24 +2920,24 @@ onUnmounted(() => {
 }
 
 .ask-price {
-  color: #F6465D;
+  color: var(--color-loss);
   text-align: left;
   flex: 1;
-  text-shadow: 0 0 6px rgba(246, 70, 93, 0.4);
+  text-shadow: 0 0 6px rgb(var(--color-loss-rgb) / 0.4);
 }
 
 .bid-price {
-  color: #0ECB81;
+  color: var(--color-earn);
   text-align: left;
   flex: 1;
-  text-shadow: 0 0 6px rgba(14, 203, 129, 0.4);
+  text-shadow: 0 0 6px rgb(var(--color-earn-rgb) / 0.4);
 }
 
 .order-row .quantity {
   position: relative;
   z-index: 1;
   font-size: 11px; /* 减小字号，紧凑布局 */
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   text-align: right;
   flex: 1;
   font-weight: 500;
@@ -2959,13 +2948,13 @@ onUnmounted(() => {
 .last-price {
   flex-shrink: 0;
   height: 40px; /* 减少高度，紧凑布局 */
-  background: linear-gradient(180deg, rgba(212, 175, 55, 0.05) 0%, rgba(212, 175, 55, 0.02) 100%);
+  background: linear-gradient(180deg, rgb(var(--color-brand-rgb) / 0.05) 0%, rgb(var(--color-brand-rgb) / 0.02) 100%);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  border-top: 1px solid rgba(212, 175, 55, 0.15);
-  border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+  border-top: 1px solid rgb(var(--color-brand-rgb) / 0.15);
+  border-bottom: 1px solid rgb(var(--color-brand-rgb) / 0.15);
   padding: 0;
   margin: 0;
   position: relative;
@@ -2974,18 +2963,18 @@ onUnmounted(() => {
 .price-main {
   font-size: 18px; /* 稍微减小字号，紧凑布局 */
   font-weight: 800;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
   line-height: 1.1; /* 紧凑行高 */
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
   letter-spacing: -0.5px;
-  text-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
+  text-shadow: 0 0 12px rgb(var(--color-brand-rgb) / 0.4);
   transition: all 0.3s ease;
 }
 
 .price-fiat {
   font-size: 10px; /* 减小字号 */
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-variant-numeric: tabular-nums;
   line-height: 1;
   margin-top: 2px; /* 减少间距 */
@@ -2993,13 +2982,13 @@ onUnmounted(() => {
 }
 
 .last-price.up .price-main {
-  color: #0ECB81;
-  text-shadow: 0 0 12px rgba(14, 203, 129, 0.5);
+  color: var(--color-earn);
+  text-shadow: 0 0 12px rgb(var(--color-earn-rgb) / 0.5);
 }
 
 .last-price.down .price-main {
-  color: #F6465D;
-  text-shadow: 0 0 12px rgba(246, 70, 93, 0.5);
+  color: var(--color-loss);
+  text-shadow: 0 0 12px rgb(var(--color-loss-rgb) / 0.5);
 }
 
 /* 交易表单 - 确保固定宽度，不被压缩 */
@@ -3023,10 +3012,10 @@ onUnmounted(() => {
 .buy-sell-toggle {
   display: flex;
   gap: 0;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(var(--color-border-rgb) / 0.03);
   border-radius: 8px;
   padding: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.05);
   position: relative;
 }
 
@@ -3041,27 +3030,27 @@ onUnmounted(() => {
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   position: relative;
   z-index: 1;
 }
 
 .buy-btn.active {
-  background: linear-gradient(135deg, #00FFA3 0%, #00D98B 100%);
-  color: #000000;
-  box-shadow: 0 0 20px rgba(0, 255, 163, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, var(--color-earn) 0%, var(--color-earn) 100%);
+  color: var(--color-text-on-accent);
+  box-shadow: 0 0 20px rgb(var(--color-earn-rgb) / 0.3), inset 0 1px 0 rgb(var(--color-border-rgb) / 0.2);
+  text-shadow: 0 1px 2px rgb(var(--color-shadow-rgb) / 0.3);
 }
 
 .sell-btn.active {
-  background: linear-gradient(135deg, #FF2E50 0%, #E63950 100%);
-  color: #FFFFFF;
-  box-shadow: 0 0 20px rgba(255, 46, 80, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, var(--color-loss) 0%, var(--color-loss) 100%);
+  color: var(--color-text-primary);
+  box-shadow: 0 0 20px rgb(var(--color-loss-rgb) / 0.3), inset 0 1px 0 rgb(var(--color-border-rgb) / 0.1);
+  text-shadow: 0 1px 2px rgb(var(--color-shadow-rgb) / 0.3);
 }
 
 .toggle-btn:not(.active):hover {
-  color: #D4AF37;
+  color: var(--color-accent);
 }
 
 .order-type-selector {
@@ -3070,28 +3059,28 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: 4px;
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(var(--color-border-rgb) / 0.03);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(212, 175, 55, 0.15);
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.15);
   border-radius: 8px;
   font-size: 13px;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   cursor: pointer;
   transition: all 0.3s ease;
   font-weight: 600;
 }
 
 .order-type-selector:hover {
-  background: rgba(212, 175, 55, 0.05);
-  border-color: rgba(212, 175, 55, 0.25);
+  background: rgb(var(--color-brand-rgb) / 0.05);
+  border-color: rgb(var(--color-brand-rgb) / 0.25);
 }
 
 .input-row {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(var(--color-border-rgb) / 0.03);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(212, 175, 55, 0.15);
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.15);
   border-radius: 8px;
   padding: 0 14px;
   height: 44px;
@@ -3100,16 +3089,16 @@ onUnmounted(() => {
 }
 
 .input-row:focus-within {
-  border-color: #D4AF37;
-  background: rgba(212, 175, 55, 0.05);
+  border-color: var(--color-accent);
+  background: rgb(var(--color-brand-rgb) / 0.05);
   box-shadow:
-    0 0 20px rgba(212, 175, 55, 0.15),
-    inset 0 0 20px rgba(212, 175, 55, 0.05);
+    0 0 20px rgb(var(--color-brand-rgb) / 0.15),
+    inset 0 0 20px rgb(var(--color-brand-rgb) / 0.05);
 }
 
 .input-label {
   font-size: 12px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   white-space: nowrap;
   min-width: 80px;
   text-transform: uppercase;
@@ -3121,7 +3110,7 @@ onUnmounted(() => {
   flex: 1;
   background: transparent;
   border: none;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-size: 16px;
   font-variant-numeric: tabular-nums;
   outline: none;
@@ -3130,13 +3119,13 @@ onUnmounted(() => {
 }
 
 .input-field::placeholder {
-  color: rgba(142, 142, 147, 0.5);
+  color: rgb(var(--color-text-muted-rgb) / 0.5);
 }
 
 /* 输入框单位标签（后缀） */
 .input-suffix {
   font-size: 13px;
-  color: #D4AF37;
+  color: var(--color-accent);
   font-weight: 600;
   white-space: nowrap;
   margin-left: 4px;
@@ -3156,7 +3145,7 @@ onUnmounted(() => {
 }
 
 .market-price-input {
-  color: rgba(142, 142, 147, 0.6) !important;
+  color: rgb(var(--color-text-muted-rgb) / 0.6) !important;
   cursor: not-allowed;
   opacity: 0.6;
   font-style: italic;
@@ -3171,7 +3160,7 @@ onUnmounted(() => {
 }
 
 .est-label {
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   font-weight: 600;
@@ -3179,7 +3168,7 @@ onUnmounted(() => {
 }
 
 .est-value {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-weight: 700;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
   font-variant-numeric: tabular-nums;
@@ -3202,7 +3191,7 @@ onUnmounted(() => {
 
 .mark-item {
   font-size: 10px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   cursor: pointer;
   padding: 6px 10px;
   border-radius: 6px;
@@ -3211,33 +3200,33 @@ onUnmounted(() => {
   min-width: 36px;
   text-align: center;
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgb(var(--color-border-rgb) / 0.02);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .mark-item:hover {
-  color: #D4AF37;
-  background: rgba(212, 175, 55, 0.1);
-  border-color: rgba(212, 175, 55, 0.3);
+  color: var(--color-accent);
+  background: rgb(var(--color-brand-rgb) / 0.1);
+  border-color: rgb(var(--color-brand-rgb) / 0.3);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(212, 175, 55, 0.2);
+  box-shadow: 0 4px 8px rgb(var(--color-brand-rgb) / 0.2);
 }
 
 .custom-slider-button {
   width: 28px;
   height: 28px;
-  color: #000;
+  color: var(--color-text-on-accent);
   font-size: 10px;
   line-height: 28px;
   text-align: center;
-  background: linear-gradient(135deg, #D4AF37 0%, #FFD700 100%);
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-strong) 100%);
   border-radius: 50%;
   font-weight: 800;
   box-shadow:
-    0 0 20px rgba(212, 175, 55, 0.6),
-    0 4px 12px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  border: 2px solid rgba(255, 255, 255, 0.2);
+    0 0 20px rgb(var(--color-brand-rgb) / 0.6),
+    0 4px 12px rgb(var(--color-shadow-rgb) / 0.3),
+    inset 0 1px 0 rgb(var(--color-border-rgb) / 0.3);
+  border: 2px solid rgb(var(--color-border-rgb) / 0.2);
 }
 
 .fee-estimate-row {
@@ -3245,17 +3234,17 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgb(var(--color-border-rgb) / 0.02);
   backdrop-filter: blur(10px);
   border-radius: 8px;
   height: auto;
   margin-bottom: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .fee-estimate-label {
   font-size: 11px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 600;
@@ -3263,7 +3252,7 @@ onUnmounted(() => {
 
 .fee-estimate-value {
   font-size: 13px;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
@@ -3274,7 +3263,7 @@ onUnmounted(() => {
 
 .fee-usdt-note {
   font-size: 10px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-weight: 400;
   margin-left: 4px;
 }
@@ -3284,17 +3273,17 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgb(var(--color-border-rgb) / 0.02);
   backdrop-filter: blur(10px);
   border-radius: 8px;
   height: auto;
   margin-bottom: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .total-label {
   font-size: 11px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 600;
@@ -3302,7 +3291,7 @@ onUnmounted(() => {
 
 .total-value {
   font-size: 14px;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
@@ -3313,18 +3302,18 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 14px 16px;
-  background: rgba(212, 175, 55, 0.06);
+  background: rgb(var(--color-brand-rgb) / 0.06);
   backdrop-filter: blur(10px);
   border-radius: 8px;
   height: auto;
   margin-bottom: 16px;
-  border: 1px solid rgba(212, 175, 55, 0.15);
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.1), inset 0 0 20px rgba(212, 175, 55, 0.05);
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.15);
+  box-shadow: 0 0 20px rgb(var(--color-brand-rgb) / 0.1), inset 0 0 20px rgb(var(--color-brand-rgb) / 0.05);
 }
 
 .received-label {
   font-size: 12px;
-  color: rgba(212, 175, 55, 0.8);
+  color: rgb(var(--color-brand-rgb) / 0.8);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -3332,12 +3321,12 @@ onUnmounted(() => {
 
 .received-value {
   font-size: 16px;
-  color: #D4AF37;
+  color: var(--color-accent);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.3px;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
-  text-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+  text-shadow: 0 0 8px rgb(var(--color-brand-rgb) / 0.4);
 }
 
 .available-row {
@@ -3356,7 +3345,7 @@ onUnmounted(() => {
 }
 
 .avail-label {
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   margin-right: 6px;
   font-weight: 500;
   text-transform: uppercase;
@@ -3365,7 +3354,7 @@ onUnmounted(() => {
 }
 
 .avail-value {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
   font-weight: 700;
@@ -3390,15 +3379,15 @@ onUnmounted(() => {
 }
 
 .submit-btn.buy {
-  background: linear-gradient(135deg, #00FFA3 0%, #00D98B 100%);
-  color: #000000;
-  box-shadow: 0 4px 20px rgba(0, 255, 163, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  background: linear-gradient(135deg, var(--color-earn) 0%, var(--color-earn) 100%);
+  color: var(--color-text-on-accent);
+  box-shadow: 0 4px 20px rgb(var(--color-earn-rgb) / 0.4), inset 0 1px 0 rgb(var(--color-border-rgb) / 0.3);
 }
 
 .submit-btn.sell {
-  background: linear-gradient(135deg, #FF2E50 0%, #E63950 100%);
-  color: #FFFFFF;
-  box-shadow: 0 4px 20px rgba(255, 46, 80, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  background: linear-gradient(135deg, var(--color-loss) 0%, var(--color-loss) 100%);
+  color: var(--color-text-primary);
+  box-shadow: 0 4px 20px rgb(var(--color-loss-rgb) / 0.4), inset 0 1px 0 rgb(var(--color-border-rgb) / 0.2);
 }
 
 .submit-btn:disabled {
@@ -3431,8 +3420,8 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: linear-gradient(180deg, rgba(5, 5, 5, 0.95) 0%, #050505 100%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: linear-gradient(180deg, rgb(var(--color-bg-rgb) / 0.95) 0%, var(--color-bg) 100%);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
   gap: 12px;
   box-sizing: border-box;
 }
@@ -3445,7 +3434,7 @@ onUnmounted(() => {
 
 .margin-mode-text {
   font-size: 12px;
-  color: rgba(212, 175, 55, 0.8);
+  color: rgb(var(--color-brand-rgb) / 0.8);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -3462,15 +3451,15 @@ onUnmounted(() => {
   align-items: flex-end;
   gap: 4px;
   padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgb(var(--color-border-rgb) / 0.02);
   backdrop-filter: blur(10px);
   border-radius: 8px;
-  border: 1px solid rgba(212, 175, 55, 0.1);
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.1);
 }
 
 .funding-rate-label {
   font-size: 10px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -3484,13 +3473,13 @@ onUnmounted(() => {
 }
 
 .funding-rate-value.positive {
-  color: #00FFA3;
-  text-shadow: 0 0 8px rgba(0, 255, 163, 0.4);
+  color: var(--color-earn);
+  text-shadow: 0 0 8px rgb(var(--color-earn-rgb) / 0.4);
 }
 
 .funding-rate-value.negative {
-  color: #FF2E50;
-  text-shadow: 0 0 8px rgba(255, 46, 80, 0.4);
+  color: var(--color-loss);
+  text-shadow: 0 0 8px rgb(var(--color-loss-rgb) / 0.4);
 }
 
 .leverage-btn {
@@ -3498,25 +3487,25 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   padding: 8px 14px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(var(--color-border-rgb) / 0.03);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(212, 175, 55, 0.2);
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.2);
   border-radius: 8px;
   font-size: 13px;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   cursor: pointer;
   transition: all 0.3s ease;
   font-weight: 600;
 }
 
 .leverage-btn:hover {
-  background: rgba(212, 175, 55, 0.1);
-  border-color: rgba(212, 175, 55, 0.3);
-  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
+  background: rgb(var(--color-brand-rgb) / 0.1);
+  border-color: rgb(var(--color-brand-rgb) / 0.3);
+  box-shadow: 0 4px 12px rgb(var(--color-brand-rgb) / 0.2);
 }
 
 .leverage-btn:active {
-  background: rgba(212, 175, 55, 0.15);
+  background: rgb(var(--color-brand-rgb) / 0.15);
   transform: scale(0.98);
 }
 
@@ -3525,9 +3514,9 @@ onUnmounted(() => {
 /* 底部面板 - 紧凑布局，紧贴交易面板 */
 .futures-bottom-section,
 .bottom-section {
-  background: linear-gradient(180deg, #050505 0%, rgba(5, 5, 5, 0.98) 100%);
-  border-top: 1px solid rgba(212, 175, 55, 0.1);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(180deg, var(--color-bg) 0%, rgb(var(--color-bg-rgb) / 0.98) 100%);
+  border-top: 1px solid rgb(var(--color-brand-rgb) / 0.1);
+  box-shadow: 0 -4px 20px rgb(var(--color-shadow-rgb) / 0.5);
   display: flex;
   flex-direction: column;
   margin-top: 12px; /* 减少 margin，紧贴交易面板 */
@@ -3551,21 +3540,21 @@ onUnmounted(() => {
   justify-content: center;
   min-height: 200px;
   padding: 40px 20px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-size: 14px;
   font-weight: 500;
 }
 
 .position-card {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--color-border-rgb) / 0.05);
   backdrop-filter: blur(16px);
   border-radius: 16px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.1);
+  box-shadow: 0 4px 20px rgb(var(--color-shadow-rgb) / 0.3);
 }
 
 .position-card-main {
@@ -3585,7 +3574,7 @@ onUnmounted(() => {
 .position-symbol {
   font-size: 16px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
 }
 
@@ -3601,28 +3590,28 @@ onUnmounted(() => {
 }
 
 .position-side-badge.side-long {
-  background-color: #0ECB81;
-  color: #FFFFFF;
-  box-shadow: 0 0 8px rgba(14, 203, 129, 0.3);
+  background-color: var(--color-earn);
+  color: var(--color-text-primary);
+  box-shadow: 0 0 8px rgb(var(--color-earn-rgb) / 0.3);
 }
 
 .position-side-badge.side-short {
-  background-color: #F6465D;
-  color: #FFFFFF;
-  box-shadow: 0 0 8px rgba(246, 70, 93, 0.3);
+  background-color: var(--color-loss);
+  color: var(--color-text-primary);
+  box-shadow: 0 0 8px rgb(var(--color-loss-rgb) / 0.3);
 }
 
 .position-perpetual {
   font-size: 11px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   padding: 2px 6px;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgb(var(--color-border-rgb) / 0.05);
   border-radius: 4px;
 }
 
 .position-leverage {
   font-size: 13px;
-  color: #FCD535;
+  color: var(--color-brand-legacy);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -3639,7 +3628,7 @@ onUnmounted(() => {
 
 .unrealized-pnl-label {
   font-size: 11px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   margin-bottom: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -3657,17 +3646,17 @@ onUnmounted(() => {
 }
 
 .unrealized-pnl-value.positive {
-  color: #0ECB81;
+  color: var(--color-earn);
   text-shadow:
-    0 0 20px rgba(14, 203, 129, 0.6),
-    0 0 40px rgba(14, 203, 129, 0.3);
+    0 0 20px rgb(var(--color-earn-rgb) / 0.6),
+    0 0 40px rgb(var(--color-earn-rgb) / 0.3);
 }
 
 .unrealized-pnl-value.negative {
-  color: #F6465D;
+  color: var(--color-loss);
   text-shadow:
-    0 0 20px rgba(246, 70, 93, 0.6),
-    0 0 40px rgba(246, 70, 93, 0.3);
+    0 0 20px rgb(var(--color-loss-rgb) / 0.6),
+    0 0 40px rgb(var(--color-loss-rgb) / 0.3);
 }
 
 .unrealized-pnl-percent {
@@ -3678,13 +3667,13 @@ onUnmounted(() => {
 }
 
 .unrealized-pnl-percent.positive {
-  color: #0ECB81;
-  text-shadow: 0 0 8px rgba(14, 203, 129, 0.4);
+  color: var(--color-earn);
+  text-shadow: 0 0 8px rgb(var(--color-earn-rgb) / 0.4);
 }
 
 .unrealized-pnl-percent.negative {
-  color: #F6465D;
-  text-shadow: 0 0 8px rgba(246, 70, 93, 0.4);
+  color: var(--color-loss);
+  text-shadow: 0 0 8px rgb(var(--color-loss-rgb) / 0.4);
 }
 
 /* 止盈止损显示（旧版，保留兼容） */
@@ -3705,8 +3694,8 @@ onUnmounted(() => {
   margin-top: 12px;
   margin-bottom: 12px;
   padding: 12px;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(44, 44, 46, 1);
+  background: rgb(var(--color-shadow-rgb) / 0.2);
+  border: 1px solid rgb(var(--color-border-rgb) / 1);
   border-radius: 8px;
 }
 
@@ -3722,7 +3711,7 @@ onUnmounted(() => {
 
 .tpsl-label {
   font-size: 10px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -3735,18 +3724,18 @@ onUnmounted(() => {
 }
 
 .tpsl-value.tp-value {
-  color: #32D74B;
-  text-shadow: 0 0 8px rgba(50, 215, 75, 0.3);
+  color: var(--color-earn);
+  text-shadow: 0 0 8px rgb(var(--color-earn-rgb) / 0.3);
 }
 
 .tpsl-value.sl-value {
-  color: #FF453A;
-  text-shadow: 0 0 8px rgba(255, 69, 58, 0.3);
+  color: var(--color-loss);
+  text-shadow: 0 0 8px rgb(var(--color-loss-rgb) / 0.3);
 }
 
 .tpsl-item {
   font-size: 11px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
@@ -3754,11 +3743,11 @@ onUnmounted(() => {
 }
 
 .tpsl-item.tp-item {
-  color: #C5A059;
+  color: var(--color-accent);
 }
 
 .tpsl-item.sl-item {
-  color: #8E8E93;
+  color: var(--color-text-secondary);
 }
 
 .position-right {
@@ -3777,7 +3766,7 @@ onUnmounted(() => {
 }
 
 .info-label {
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-size: 11px;
   font-weight: 500;
   text-transform: uppercase;
@@ -3785,7 +3774,7 @@ onUnmounted(() => {
 }
 
 .info-value {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-size: 14px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -3794,20 +3783,20 @@ onUnmounted(() => {
 
 /* 开仓均价颜色 - 根据方向变化 */
 .entry-price-value.side-long {
-  color: #0ECB81;
-  text-shadow: 0 0 8px rgba(14, 203, 129, 0.4);
+  color: var(--color-earn);
+  text-shadow: 0 0 8px rgb(var(--color-earn-rgb) / 0.4);
 }
 
 .entry-price-value.side-short {
-  color: #F6465D;
-  text-shadow: 0 0 8px rgba(246, 70, 93, 0.4);
+  color: var(--color-loss);
+  text-shadow: 0 0 8px rgb(var(--color-loss-rgb) / 0.4);
 }
 
 .liquidation-price {
-  color: #F6465D;
+  color: var(--color-loss);
   font-weight: 800;
   font-size: 14px;
-  text-shadow: 0 0 8px rgba(255, 46, 80, 0.4);
+  text-shadow: 0 0 8px rgb(var(--color-loss-rgb) / 0.4);
 }
 
 /* ========== 历史成交列表 Pro Max 布局 ========== */
@@ -3838,7 +3827,7 @@ onUnmounted(() => {
 .history-order-symbol {
   font-size: 13px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
 }
 
@@ -3849,7 +3838,7 @@ onUnmounted(() => {
 
 .history-order-price-quantity {
   font-size: 11px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
   font-variant-numeric: tabular-nums;
 }
@@ -3875,35 +3864,35 @@ onUnmounted(() => {
 }
 
 .history-order-pnl.pnl-positive {
-  color: #0ECB81;
+  color: var(--color-earn);
 }
 
 .history-order-pnl.pnl-negative {
-  color: #F6465D;
+  color: var(--color-loss);
 }
 
 .history-order-pnl.pnl-zero {
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-weight: 600;
 }
 
 .history-order-pnl.pnl-liquidation {
-  color: #EF4444 !important;
+  color: var(--color-loss) !important;
   font-weight: 900;
   font-size: 17px;
-  text-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+  text-shadow: 0 0 8px rgb(var(--color-loss-rgb) / 0.5);
 }
 
 .history-order-pnl.pnl-liquidation.pnl-negative {
-  color: #DC2626 !important;
+  color: var(--color-loss) !important;
   text-shadow: 
-    0 0 10px rgba(220, 38, 38, 0.6),
-    0 0 20px rgba(220, 38, 38, 0.3);
+    0 0 10px rgb(var(--color-loss-rgb) / 0.6),
+    0 0 20px rgb(var(--color-loss-rgb) / 0.3);
 }
 
 .history-order-time {
   font-size: 10px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
   text-align: right;
   white-space: nowrap;
@@ -3931,12 +3920,12 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: #D4AF37;
+  color: var(--color-accent);
 }
 
 .loading-text {
   font-size: 12px;
-  color: #D4AF37;
+  color: var(--color-accent);
   font-weight: 600;
   letter-spacing: 0.5px;
 }
@@ -3944,7 +3933,7 @@ onUnmounted(() => {
 /* 没有更多数据状态 */
 .history-no-more {
   font-size: 10px;
-  color: #6B7280;
+  color: var(--color-text-muted);
   text-align: center;
   padding: 16px 0;
   letter-spacing: 0.3px;
@@ -3955,19 +3944,19 @@ onUnmounted(() => {
 /* 强平订单标签 */
 .liquidation-badge {
   padding: 3px 8px;
-  background-color: #DC2626;
-  color: #FFFFFF;
+  background-color: var(--color-loss);
+  color: var(--color-text-primary);
   border-radius: 4px;
   font-size: 10px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: 0 0 8px rgba(220, 38, 38, 0.5);
+  box-shadow: 0 0 8px rgb(var(--color-loss-rgb) / 0.5);
 }
 
 .liquidation-order {
-  background: rgba(220, 38, 38, 0.05);
-  border-left: 3px solid #DC2626;
+  background: rgb(var(--color-loss-rgb) / 0.05);
+  border-left: 3px solid var(--color-loss);
 }
 
 .position-actions {
@@ -3975,7 +3964,7 @@ onUnmounted(() => {
   gap: 10px;
   margin-top: 8px;
   padding-top: 16px;
-  border-top: 1px solid rgba(212, 175, 55, 0.1);
+  border-top: 1px solid rgb(var(--color-brand-rgb) / 0.1);
 }
 
 .action-btn {
@@ -3992,15 +3981,15 @@ onUnmounted(() => {
 }
 
 .tp-sl-btn {
-  background: rgba(212, 175, 55, 0.1);
-  color: #D4AF37;
-  border: 1px solid rgba(212, 175, 55, 0.3);
+  background: rgb(var(--color-brand-rgb) / 0.1);
+  color: var(--color-accent);
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.3);
 }
 
 .close-btn {
-  background: rgba(255, 46, 80, 0.1);
-  color: #FF2E50;
-  border: 1px solid rgba(255, 46, 80, 0.3);
+  background: rgb(var(--color-loss-rgb) / 0.1);
+  color: var(--color-loss);
+  border: 1px solid rgb(var(--color-loss-rgb) / 0.3);
 }
 
 /* 订单列表 */
@@ -4008,10 +3997,10 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgb(var(--color-border-rgb) / 0.02);
   backdrop-filter: blur(10px);
   border-radius: 8px;
-  border: 1px solid rgba(212, 175, 55, 0.1);
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.1);
   transition: all 0.2s ease;
 }
 
@@ -4032,13 +4021,13 @@ onUnmounted(() => {
 }
 
 .order-side-badge.buy {
-  background-color: rgba(0, 255, 163, 0.15);
-  color: #00FFA3;
+  background-color: rgb(var(--color-earn-rgb) / 0.15);
+  color: var(--color-earn);
 }
 
 .order-side-badge.sell {
-  background-color: rgba(255, 46, 80, 0.15);
-  color: #FF2E50;
+  background-color: rgb(var(--color-loss-rgb) / 0.15);
+  color: var(--color-loss);
 }
 
 .order-symbol-time {
@@ -4050,12 +4039,12 @@ onUnmounted(() => {
 .order-symbol {
   font-size: 12px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
 }
 
 .order-time {
   font-size: 10px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-family: 'DIN Alternate', monospace;
 }
 
@@ -4071,13 +4060,13 @@ onUnmounted(() => {
 .order-price {
   font-size: 13px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-family: 'DIN Alternate', monospace;
 }
 
 .order-quantity {
   font-size: 11px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-family: 'DIN Alternate', monospace;
 }
 
@@ -4087,9 +4076,9 @@ onUnmounted(() => {
 
 .cancel-btn {
   padding: 5px 12px;
-  background: rgba(255, 46, 80, 0.1);
-  color: #FF2E50;
-  border: 1px solid rgba(255, 46, 80, 0.2);
+  background: rgb(var(--color-loss-rgb) / 0.1);
+  color: var(--color-loss);
+  border: 1px solid rgb(var(--color-loss-rgb) / 0.2);
   border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
@@ -4098,15 +4087,15 @@ onUnmounted(() => {
 }
 
 .cancel-btn:hover {
-  background: rgba(255, 46, 80, 0.15);
-  border-color: rgba(255, 46, 80, 0.3);
+  background: rgb(var(--color-loss-rgb) / 0.15);
+  border-color: rgb(var(--color-loss-rgb) / 0.3);
 }
 
 /* 底部区域 */
 .bottom-section {
-  background: linear-gradient(180deg, #050505 0%, rgba(5, 5, 5, 0.98) 100%);
-  border-top: 1px solid rgba(212, 175, 55, 0.1);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(180deg, var(--color-bg) 0%, rgb(var(--color-bg-rgb) / 0.98) 100%);
+  border-top: 1px solid rgb(var(--color-brand-rgb) / 0.1);
+  box-shadow: 0 -4px 20px rgb(var(--color-shadow-rgb) / 0.5);
   display: flex;
   flex-direction: column;
   margin-top: 8px;
@@ -4117,18 +4106,18 @@ onUnmounted(() => {
   display: flex;
   padding: 8px 16px;
   gap: 32px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
   flex-shrink: 0;
   position: sticky;
   top: 0;
-  background: linear-gradient(180deg, #050505 0%, rgba(5, 5, 5, 0.98) 100%);
+  background: linear-gradient(180deg, var(--color-bg) 0%, rgb(var(--color-bg-rgb) / 0.98) 100%);
   z-index: 10;
   backdrop-filter: blur(10px);
 }
 
 .bottom-tabs .tab-item {
   font-size: 14px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   cursor: pointer;
   padding-bottom: 8px;
   position: relative;
@@ -4139,7 +4128,7 @@ onUnmounted(() => {
 }
 
 .bottom-tabs .tab-item.active {
-  color: #D4AF37;
+  color: var(--color-accent);
   font-weight: 700;
 }
 
@@ -4150,8 +4139,8 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #D4AF37 0%, #FFD700 100%);
-  box-shadow: 0 0 12px rgba(212, 175, 55, 0.6);
+  background: linear-gradient(90deg, var(--color-accent) 0%, var(--color-accent-strong) 100%);
+  box-shadow: 0 0 12px rgb(var(--color-brand-rgb) / 0.6);
   border-radius: 2px 2px 0 0;
 }
 
@@ -4159,7 +4148,7 @@ onUnmounted(() => {
   padding: 12px 16px;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, rgba(5, 5, 5, 0.98) 0%, #050505 100%);
+  background: linear-gradient(180deg, rgb(var(--color-bg-rgb) / 0.98) 0%, var(--color-bg) 100%);
 }
 
 .orders-panel,
@@ -4198,18 +4187,18 @@ onUnmounted(() => {
 
 .empty-text-compact {
   font-size: 12px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-weight: 500;
 }
 
 .assets-glass-card {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--color-border-rgb) / 0.05);
   border-radius: 12px;
   padding: 16px;
   margin-top: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.1);
   backdrop-filter: blur(10px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgb(var(--color-shadow-rgb) / 0.3);
 }
 
 .assets-hud-strip {
@@ -4235,13 +4224,13 @@ onUnmounted(() => {
 .asset-hud-divider {
   width: 1px;
   height: 24px;
-  background: rgba(212, 175, 55, 0.15);
+  background: rgb(var(--color-brand-rgb) / 0.15);
   flex-shrink: 0;
 }
 
 .asset-hud-label {
   font-size: 10px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -4251,10 +4240,10 @@ onUnmounted(() => {
 .asset-hud-value {
   font-size: 14px;
   font-weight: 800;
-  color: #D4AF37;
+  color: var(--color-accent);
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 6px rgba(212, 175, 55, 0.3);
+  text-shadow: 0 0 6px rgb(var(--color-brand-rgb) / 0.3);
   letter-spacing: -0.2px;
   line-height: 1.2;
   white-space: nowrap;
@@ -4262,8 +4251,8 @@ onUnmounted(() => {
 
 /* 弹窗样式 */
 .coin-select-popup {
-  background: linear-gradient(180deg, #050505 0%, rgba(5, 5, 5, 0.98) 100%) !important;
-  border-top: 1px solid rgba(212, 175, 55, 0.1);
+  background: linear-gradient(180deg, var(--color-bg) 0%, rgb(var(--color-bg-rgb) / 0.98) 100%) !important;
+  border-top: 1px solid rgb(var(--color-brand-rgb) / 0.1);
 }
 
 .coin-select-container {
@@ -4275,18 +4264,18 @@ onUnmounted(() => {
 
 .coin-select-header {
   padding: 20px 16px 16px;
-  border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+  border-bottom: 1px solid rgb(var(--color-brand-rgb) / 0.1);
   flex-shrink: 0;
-  background: linear-gradient(180deg, rgba(5, 5, 5, 0.95) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgb(var(--color-bg-rgb) / 0.95) 0%, transparent 100%);
 }
 
 .coin-select-title {
   font-size: 18px;
   font-weight: 800;
-  color: #D4AF37;
+  color: var(--color-accent);
   margin: 0;
   text-align: left;
-  text-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+  text-shadow: 0 0 8px rgb(var(--color-brand-rgb) / 0.3);
 }
 
 .coin-list {
@@ -4294,7 +4283,7 @@ onUnmounted(() => {
   overflow-y: auto;
   padding: 0;
   scrollbar-width: thin;
-  scrollbar-color: rgba(212, 175, 55, 0.3) transparent;
+  scrollbar-color: rgb(var(--color-brand-rgb) / 0.3) transparent;
 }
 
 .coin-list::-webkit-scrollbar {
@@ -4306,7 +4295,7 @@ onUnmounted(() => {
 }
 
 .coin-list::-webkit-scrollbar-thumb {
-  background: rgba(212, 175, 55, 0.3);
+  background: rgb(var(--color-brand-rgb) / 0.3);
   border-radius: 3px;
 }
 
@@ -4314,50 +4303,50 @@ onUnmounted(() => {
   padding: 16px;
   display: flex;
   flex-direction: column;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
 }
 
 .coin-item:hover {
-  background: rgba(212, 175, 55, 0.05);
+  background: rgb(var(--color-brand-rgb) / 0.05);
 }
 
 .coin-item-active {
-  background: rgba(212, 175, 55, 0.08);
-  border-left: 3px solid #D4AF37;
+  background: rgb(var(--color-brand-rgb) / 0.08);
+  border-left: 3px solid var(--color-accent);
 }
 
 .coin-name {
   font-size: 16px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   margin: 0;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
 }
 
 .coin-item-active .coin-name {
-  color: #D4AF37;
-  text-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+  color: var(--color-accent);
+  text-shadow: 0 0 8px rgb(var(--color-brand-rgb) / 0.4);
 }
 
 .coin-pair {
   font-size: 12px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   margin-top: 6px;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
   font-variant-numeric: tabular-nums;
 }
 
 .custom-action-sheet {
-  --van-action-sheet-background: #1C1C1E;
-  --van-action-sheet-item-background: #1C1C1E;
-  --van-action-sheet-item-text-color: #EAECEF;
+  --van-action-sheet-background: var(--color-bg-card);
+  --van-action-sheet-item-background: var(--color-bg-card);
+  --van-action-sheet-item-text-color: var(--color-text-primary);
 }
 
 .leverage-popup {
-  background: #1C1C1E;
+  background: var(--color-bg-card);
 }
 
 .leverage-popup-content {
@@ -4377,13 +4366,13 @@ onUnmounted(() => {
 .leverage-popup-title {
   font-size: 18px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   margin: 0;
 }
 
 .close-icon {
   font-size: 20px;
-  color: #848E9C;
+  color: var(--color-text-muted);
   cursor: pointer;
 }
 
@@ -4398,36 +4387,36 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background-color: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: var(--color-bg-input);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.05);
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
-  color: #EAECEF;
+  color: var(--color-text-primary);
   cursor: pointer;
 }
 
 .leverage-option.active {
-  background-color: rgba(252, 213, 53, 0.1);
-  border-color: #FCD535;
-  color: #FCD535;
+  background-color: rgb(var(--color-brand-legacy-rgb) / 0.1);
+  border-color: var(--color-brand-legacy);
+  color: var(--color-brand-legacy);
 }
 
 /* 止盈止损弹窗 */
 .premium-tpsl-popup {
-  background: #0a0a0a !important;
-  border-top: 1px solid rgba(212, 175, 55, 0.2);
+  background: var(--color-bg) !important;
+  border-top: 1px solid rgb(var(--color-brand-rgb) / 0.2);
 }
 
 .premium-modal-container {
   padding: 12px 24px 32px;
-  background: linear-gradient(180deg, rgba(212, 175, 55, 0.03) 0%, rgba(0, 0, 0, 0) 100%);
+  background: linear-gradient(180deg, rgb(var(--color-brand-rgb) / 0.03) 0%, rgb(var(--color-shadow-rgb) / 0) 100%);
 }
 
 .modal-drag-indicator {
   width: 36px;
   height: 4px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(var(--color-border-rgb) / 0.1);
   border-radius: 2px;
   margin: 0 auto 20px;
 }
@@ -4448,13 +4437,13 @@ onUnmounted(() => {
 .gold-dot {
   width: 6px;
   height: 6px;
-  background: #D4AF37;
+  background: var(--color-accent);
   border-radius: 50%;
-  box-shadow: 0 0 8px #D4AF37;
+  box-shadow: 0 0 8px var(--color-accent);
 }
 
 .premium-modal-header h3 {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-size: 18px;
   font-weight: 700;
   letter-spacing: -0.5px;
@@ -4463,13 +4452,13 @@ onUnmounted(() => {
 
 .premium-close-btn {
   font-size: 22px;
-  color: #4a4a4a;
+  color: var(--color-text-muted);
   transition: color 0.3s;
   cursor: pointer;
 }
 
 .premium-close-btn:active {
-  color: #D4AF37;
+  color: var(--color-accent);
 }
 
 .premium-form-group {
@@ -4483,7 +4472,7 @@ onUnmounted(() => {
 }
 
 .group-label-row label {
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-size: 13px;
   font-weight: 500;
   text-transform: uppercase;
@@ -4491,7 +4480,7 @@ onUnmounted(() => {
 }
 
 .mark-price-ref {
-  color: #4a4a4a;
+  color: var(--color-text-muted);
   font-size: 12px;
   font-family: 'DIN Alternate', sans-serif;
 }
@@ -4499,26 +4488,26 @@ onUnmounted(() => {
 .premium-input-box {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgb(var(--color-border-rgb) / 0.03);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.08);
   border-radius: 12px;
   padding: 4px;
   transition: all 0.3s ease;
 }
 
 .premium-input-box:focus-within {
-  border-color: #D4AF37;
-  background: rgba(212, 175, 55, 0.05);
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
+  border-color: var(--color-accent);
+  background: rgb(var(--color-brand-rgb) / 0.05);
+  box-shadow: 0 0 20px rgb(var(--color-brand-rgb) / 0.1);
 }
 
 .step-btn {
   width: 44px;
   height: 44px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--color-border-rgb) / 0.05);
   border: none;
   border-radius: 8px;
-  color: #D4AF37;
+  color: var(--color-accent);
   font-size: 24px;
   font-weight: 300;
   display: flex;
@@ -4529,7 +4518,7 @@ onUnmounted(() => {
 }
 
 .step-btn:active {
-  background: rgba(212, 175, 55, 0.2);
+  background: rgb(var(--color-brand-rgb) / 0.2);
   transform: scale(0.95);
 }
 
@@ -4544,7 +4533,7 @@ onUnmounted(() => {
   width: 100%;
   background: transparent;
   border: none;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-size: 20px;
   font-weight: 600;
   text-align: center;
@@ -4566,7 +4555,7 @@ onUnmounted(() => {
 .premium-input-box .input-suffix {
   position: absolute;
   right: 12px;
-  color: #4a4a4a;
+  color: var(--color-text-muted);
   font-size: 11px;
   font-weight: 700;
 }
@@ -4579,8 +4568,8 @@ onUnmounted(() => {
 
 .percent-tag {
   padding: 6px 12px;
-  background: rgba(50, 215, 75, 0.1);
-  color: #32D74B;
+  background: rgb(var(--color-earn-rgb) / 0.1);
+  color: var(--color-earn);
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
@@ -4588,8 +4577,8 @@ onUnmounted(() => {
 }
 
 .percent-tag.sl {
-  background: rgba(255, 69, 58, 0.1);
-  color: #FF453A;
+  background: rgb(var(--color-loss-rgb) / 0.1);
+  color: var(--color-loss);
 }
 
 .percent-tag:active {
@@ -4600,22 +4589,22 @@ onUnmounted(() => {
   width: 100%;
   margin-top: 12px;
   padding: 18px;
-  background: linear-gradient(135deg, #FFD700 0%, #D4AF37 100%);
+  background: linear-gradient(135deg, var(--color-accent-strong) 0%, var(--color-accent) 100%);
   border: none;
   border-radius: 14px;
-  color: #000000;
+  color: var(--color-text-on-accent);
   font-size: 16px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
-  box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
+  box-shadow: 0 10px 20px rgb(var(--color-brand-rgb) / 0.2);
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   cursor: pointer;
 }
 
 .premium-gold-button:active {
   transform: scale(0.97);
-  box-shadow: 0 5px 10px rgba(212, 175, 55, 0.1);
+  box-shadow: 0 5px 10px rgb(var(--color-brand-rgb) / 0.1);
   filter: brightness(0.9);
 }
 
@@ -4640,22 +4629,22 @@ onUnmounted(() => {
 }
 
 :deep(.van-slider__bar) {
-  background: linear-gradient(90deg, #D4AF37 0%, rgba(212, 175, 55, 0.3) 100%);
+  background: linear-gradient(90deg, var(--color-accent) 0%, rgb(var(--color-brand-rgb) / 0.3) 100%);
   height: 3px;
   border-radius: 2px;
-  box-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+  box-shadow: 0 0 8px rgb(var(--color-brand-rgb) / 0.4);
 }
 
 :deep(.van-slider__track) {
-  background: rgba(212, 175, 55, 0.1);
+  background: rgb(var(--color-brand-rgb) / 0.1);
   height: 3px;
   border-radius: 2px;
 }
 
 /* Vant Tabs 样式 */
 :deep(.position-tabs .van-tabs__wrap) {
-  background: linear-gradient(180deg, #050505 0%, rgba(5, 5, 5, 0.98) 100%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: linear-gradient(180deg, var(--color-bg) 0%, rgb(var(--color-bg-rgb) / 0.98) 100%);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
   flex-shrink: 0;
   position: sticky;
   top: 0;
@@ -4667,7 +4656,7 @@ onUnmounted(() => {
 
 :deep(.position-tabs .van-tab) {
   font-size: 14px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -4676,13 +4665,13 @@ onUnmounted(() => {
 }
 
 :deep(.position-tabs .van-tab--active) {
-  color: #D4AF37;
+  color: var(--color-accent);
   font-weight: 700;
 }
 
 :deep(.position-tabs .van-tabs__line) {
-  background: linear-gradient(90deg, #D4AF37 0%, #FFD700 100%);
-  box-shadow: 0 0 12px rgba(212, 175, 55, 0.6);
+  background: linear-gradient(90deg, var(--color-accent) 0%, var(--color-accent-strong) 100%);
+  box-shadow: 0 0 12px rgb(var(--color-brand-rgb) / 0.6);
   border-radius: 2px 2px 0 0;
   height: 3px;
 }
@@ -4713,4 +4702,30 @@ onUnmounted(() => {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
+
+/* Compact viewport tuning */
+.orderbook-header { padding: 5px 10px !important; min-height: 22px !important; }
+.order-row { height: 18px !important; line-height: 18px !important; padding: 0 10px !important; }
+.order-row .price,
+.order-row .quantity { font-size: 12px !important; line-height: 18px !important; }
+.last-price { height: 40px !important; min-height: 40px !important; }
+.price-main { font-size: 18px !important; line-height: 1.1 !important; }
+.price-fiat { font-size: 10px !important; }
+.right-form-panel,
+.right-trade-form,
+.form-side,
+.futures-form-side { gap: 6px !important; padding: 6px !important; }
+.toggle-btn { height: 36px !important; font-size: 14px !important; }
+.order-type-selector { min-height: 42px !important; padding: 8px 12px !important; }
+.input-row { min-height: 42px !important; height: 42px !important; padding: 0 12px !important; }
+.estimated-row { padding: 4px !important; }
+.slider-wrapper { padding: 10px 8px 6px !important; margin-bottom: 6px !important; }
+.slider-marks { padding-top: 6px !important; margin-top: 4px !important; }
+.mark-item { padding: 4px 6px !important; min-width: 28px !important; }
+.fee-estimate-row,
+.total-row,
+.estimated-received-row { padding: 8px 12px !important; margin-bottom: 6px !important; }
+.available-row { gap: 2px !important; padding: 6px 10px !important; }
+.avail-item { padding: 3px 0 !important; }
+.submit-btn { height: 44px !important; min-height: 44px !important; }
 </style>

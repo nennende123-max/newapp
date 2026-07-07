@@ -53,8 +53,8 @@ const generateMockMarkets = () => {
       endDate: 'Jan 31, 2026',
       image: cryptoIcons[0],
       outcomes: [
-        { side: 'YES', price: 0.62, color: '#0ECB81' },
-        { side: 'NO', price: 0.38, color: '#F6465D' }
+        { side: 'YES', price: 0.62, color: 'var(--color-earn)' },
+        { side: 'NO', price: 0.38, color: 'var(--color-loss)' }
       ],
       comments: 124
     },
@@ -66,8 +66,8 @@ const generateMockMarkets = () => {
       endDate: 'Feb 15, 2026',
       image: 'https://via.placeholder.com/48x48/1C1C1E/FFFFFF?text=P',
       outcomes: [
-        { side: 'YES', price: 0.12, color: '#0ECB81' },
-        { side: 'NO', price: 0.88, color: '#F6465D' }
+        { side: 'YES', price: 0.12, color: 'var(--color-earn)' },
+        { side: 'NO', price: 0.88, color: 'var(--color-loss)' }
       ],
       comments: 89
     },
@@ -79,8 +79,8 @@ const generateMockMarkets = () => {
       endDate: 'Mar 31, 2026',
       image: cryptoIcons[1],
       outcomes: [
-        { side: 'YES', price: 0.58, color: '#0ECB81' },
-        { side: 'NO', price: 0.42, color: '#F6465D' }
+        { side: 'YES', price: 0.58, color: 'var(--color-earn)' },
+        { side: 'NO', price: 0.42, color: 'var(--color-loss)' }
       ],
       comments: 92
     },
@@ -92,8 +92,8 @@ const generateMockMarkets = () => {
       endDate: 'Mar 1, 2026',
       image: 'https://via.placeholder.com/48x48/1C1C1E/FFFFFF?text=M',
       outcomes: [
-        { side: 'YES', price: 0.45, color: '#0ECB81' },
-        { side: 'NO', price: 0.55, color: '#F6465D' }
+        { side: 'YES', price: 0.45, color: 'var(--color-earn)' },
+        { side: 'NO', price: 0.55, color: 'var(--color-loss)' }
       ],
       comments: 67
     },
@@ -105,8 +105,8 @@ const generateMockMarkets = () => {
       endDate: 'Jun 30, 2026',
       image: 'https://via.placeholder.com/48x48/1C1C1E/FFFFFF?text=L',
       outcomes: [
-        { side: 'YES', price: 0.28, color: '#0ECB81' },
-        { side: 'NO', price: 0.72, color: '#F6465D' }
+        { side: 'YES', price: 0.28, color: 'var(--color-earn)' },
+        { side: 'NO', price: 0.72, color: 'var(--color-loss)' }
       ],
       comments: 156
     },
@@ -118,8 +118,8 @@ const generateMockMarkets = () => {
       endDate: 'Dec 31, 2026',
       image: cryptoIcons[1],
       outcomes: [
-        { side: 'YES', price: 0.35, color: '#0ECB81' },
-        { side: 'NO', price: 0.65, color: '#F6465D' }
+        { side: 'YES', price: 0.35, color: 'var(--color-earn)' },
+        { side: 'NO', price: 0.65, color: 'var(--color-loss)' }
       ],
       comments: 203
     },
@@ -131,8 +131,8 @@ const generateMockMarkets = () => {
       endDate: 'Dec 31, 2026',
       image: 'https://via.placeholder.com/48x48/1C1C1E/FFFFFF?text=I',
       outcomes: [
-        { side: 'YES', price: 0.52, color: '#0ECB81' },
-        { side: 'NO', price: 0.48, color: '#F6465D' }
+        { side: 'YES', price: 0.52, color: 'var(--color-earn)' },
+        { side: 'NO', price: 0.48, color: 'var(--color-loss)' }
       ],
       comments: 78
     },
@@ -144,8 +144,8 @@ const generateMockMarkets = () => {
       endDate: 'Jun 30, 2026',
       image: cryptoIcons[3],
       outcomes: [
-        { side: 'YES', price: 0.41, color: '#0ECB81' },
-        { side: 'NO', price: 0.59, color: '#F6465D' }
+        { side: 'YES', price: 0.41, color: 'var(--color-earn)' },
+        { side: 'NO', price: 0.59, color: 'var(--color-loss)' }
       ],
       comments: 145
     }

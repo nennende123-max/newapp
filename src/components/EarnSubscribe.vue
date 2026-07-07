@@ -2,7 +2,7 @@
   <div class="earn-subscribe-page">
     <!-- 顶部导航栏 -->
     <div class="subscribe-header">
-      <van-icon name="arrow-left" size="22" color="#FFFFFF" class="header-icon" @click="handleBack" />
+      <van-icon name="arrow-left" size="22" color="var(--color-text-primary)" class="header-icon" @click="handleBack" />
       <div class="header-center">
         <span class="header-title">{{ symbol }} {{ t('earn.subscribe') }}</span>
       </div>
@@ -113,7 +113,7 @@
         v-model="agreedToTerms" 
         shape="square" 
         class="agreement-checkbox"
-        active-color="#FCD535"
+        active-color="var(--color-brand-legacy)"
         icon-size="16px"
       >
         <span class="agreement-text">{{ t('earn.agreement_text') }}</span>
@@ -365,10 +365,10 @@ onMounted(() => {
 
 /* 1. 基础页面字体 */
 .earn-subscribe-page {
-  background-color: #0B0E11;
+  background-color: var(--color-bg);
   min-height: 100vh;
   padding-bottom: 100px;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', 'PingFang SC', sans-serif;
 }
 
@@ -386,18 +386,18 @@ onMounted(() => {
 
 /* 3. 勾选框黑金化：彻底覆盖默认蓝色 */
 :deep(.agreement-checkbox) {
-  --van-checkbox-checked-icon-color: #FCD535 !important; /* 勾号金色 */
-  --van-checkbox-active-color: #1C1C1E !important;      /* 背景深灰 */
-  --van-checkbox-border-color: rgba(255, 255, 255, 0.3) !important;
+  --van-checkbox-checked-icon-color: var(--color-brand-legacy) !important; /* 勾号金色 */
+  --van-checkbox-active-color: var(--color-bg-card) !important;      /* 背景深灰 */
+  --van-checkbox-border-color: rgb(var(--color-border-rgb) / 0.3) !important;
 }
 
 :deep(.agreement-checkbox .van-checkbox__icon--checked) {
-  background-color: #1C1C1E !important;
-  border-color: #FCD535 !important;
+  background-color: var(--color-bg-card) !important;
+  border-color: var(--color-brand-legacy) !important;
 }
 
 :deep(.agreement-checkbox .van-checkbox__icon--checked .van-icon) {
-  color: #FCD535 !important; /* 强制勾号为金色 */
+  color: var(--color-brand-legacy) !important; /* 强制勾号为金色 */
   font-weight: bold !important;
 }
 
@@ -416,15 +416,15 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background-color: #111111;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: var(--color-bg);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.08);
   height: 46px;
   box-sizing: border-box;
 }
 
 .header-icon {
   font-size: 22px !important;
-  color: #FCD535 !important;
+  color: var(--color-brand-legacy) !important;
   cursor: pointer;
   transition: opacity 0.2s ease;
   display: flex !important;
@@ -444,7 +444,7 @@ onMounted(() => {
 .header-title {
   font-size: 18px;
   font-weight: 700;
-  color: #FCD535;
+  color: var(--color-brand-legacy);
 }
 
 .header-actions-placeholder {
@@ -457,12 +457,12 @@ onMounted(() => {
 .limit-section,
 .overview-section {
   padding: 20px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .section-label {
   font-size: 12px;
-  color: #848E9C;
+  color: var(--color-text-muted);
   margin-bottom: 12px;
   font-weight: 500;
 }
@@ -476,21 +476,21 @@ onMounted(() => {
 .term-btn {
   flex: 1;
   padding: 12px 16px;
-  background-color: #1E2329;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--color-bg-elevated);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.1);
   border-radius: 8px;
   text-align: center;
   font-size: 14px;
   font-weight: 600;
-  color: #848E9C;
+  color: var(--color-text-muted);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .term-btn.active {
-  background-color: #F0B90B;
-  color: #000000;
-  border-color: #F0B90B;
+  background-color: var(--color-brand);
+  color: var(--color-text-on-accent);
+  border-color: var(--color-brand);
 }
 
 .term-btn:active {
@@ -500,7 +500,7 @@ onMounted(() => {
 /* 金额输入 - 容器化设计 */
 .amount-input-wrapper {
   position: relative;
-  background-color: #2B3139;
+  background-color: var(--color-surface-muted);
   border: 2px solid transparent;
   border-radius: 8px;
   padding: 12px 16px;
@@ -514,8 +514,8 @@ onMounted(() => {
 }
 
 .amount-input-wrapper.focused {
-  border-color: #F0B90B;
-  background-color: #2B3139;
+  border-color: var(--color-brand);
+  background-color: var(--color-surface-muted);
 }
 
 .amount-input-field {
@@ -525,7 +525,7 @@ onMounted(() => {
   outline: none;
   font-size: 32px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
   padding: 0;
   margin: 0;
@@ -533,7 +533,7 @@ onMounted(() => {
 }
 
 .amount-input-field::placeholder {
-  color: #848E9C;
+  color: var(--color-text-muted);
   font-size: 20px;
   font-weight: 500;
 }
@@ -548,11 +548,11 @@ onMounted(() => {
 
 .max-btn {
   font-size: 13px;
-  color: #F0B90B;
+  color: var(--color-brand);
   font-weight: 600;
   cursor: pointer;
   padding: 6px 12px;
-  background-color: rgba(240, 185, 11, 0.15);
+  background-color: rgb(var(--color-brand-rgb) / 0.15);
   border-radius: 4px;
   transition: all 0.2s ease;
   min-height: 28px;
@@ -564,14 +564,14 @@ onMounted(() => {
 
 .max-btn:active {
   opacity: 0.8;
-  background-color: rgba(240, 185, 11, 0.25);
+  background-color: rgb(var(--color-brand-rgb) / 0.25);
   transform: scale(0.98);
 }
 
 .divider-line {
   width: 1px;
   height: 20px;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgb(var(--color-border-rgb) / 0.1);
   flex-shrink: 0;
 }
 
@@ -589,19 +589,19 @@ onMounted(() => {
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgb(var(--color-border-rgb) / 0.1);
   display: block;
 }
 
 .coin-symbol {
   font-size: 14px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
 }
 
 .available-balance {
   font-size: 12px;
-  color: #848E9C;
+  color: var(--color-text-muted);
   margin-top: 8px;
 }
 
@@ -621,12 +621,12 @@ onMounted(() => {
 }
 
 .limit-label {
-  color: #848E9C;
+  color: var(--color-text-muted);
   font-size: 13px;
 }
 
 .limit-value {
-  color: #EAECEF;
+  color: var(--color-text-primary);
   font-size: 14px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -653,31 +653,31 @@ onMounted(() => {
 
 .overview-label {
   font-size: 12px;
-  color: #848E9C;
+  color: var(--color-text-muted);
 }
 
 .overview-value {
   font-size: 16px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
 }
 
 .overview-value.apy-large {
   font-size: 24px;
   font-weight: 700;
-  color: #0ECB81;
+  color: var(--color-earn);
 }
 
 .overview-value.earnings-large {
   font-size: 18px;
   font-weight: 700;
-  color: #0ECB81;
+  color: var(--color-earn);
 }
 
 .disclaimer {
   font-size: 11px;
-  color: #848E9C;
+  color: var(--color-text-muted);
   line-height: 1.4;
   margin-top: 8px;
 }
@@ -695,7 +695,7 @@ onMounted(() => {
 
 :deep(.agreement-checkbox .van-checkbox__icon) {
   margin-top: 2px;
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: rgb(var(--color-border-rgb) / 0.3);
   background-color: transparent;
   font-size: 16px;
   border-radius: 4px; /* 确保是方块风格 */
@@ -703,7 +703,7 @@ onMounted(() => {
 
 .agreement-text {
   font-size: 13px;
-  color: #848E9C;
+  color: var(--color-text-muted);
   line-height: 1.5;
 }
 
@@ -714,8 +714,8 @@ onMounted(() => {
   left: 0;
   right: 0;
   padding: 16px;
-  background-color: #0B0E11;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: var(--color-bg);
+  border-top: 1px solid rgb(var(--color-border-rgb) / 0.08);
   z-index: 100;
   padding-bottom: calc(16px + env(safe-area-inset-bottom));
 }
@@ -730,14 +730,14 @@ onMounted(() => {
 }
 
 .confirm-btn:not(.enabled) {
-  background-color: #1E2329;
-  color: #848E9C;
+  background-color: var(--color-bg-elevated);
+  color: var(--color-text-muted);
   cursor: not-allowed;
 }
 
 .confirm-btn.enabled {
-  background-color: #F0B90B;
-  color: #000000;
+  background-color: var(--color-brand);
+  color: var(--color-text-on-accent);
 }
 
 .confirm-btn.enabled:active {

@@ -1,16 +1,15 @@
-import { defineStore } from 'pinia'
+﻿import { defineStore } from 'pinia'
 import * as walletApi from '@/api/wallet'
 import * as tradeApi from '@/api/trade'
-import { walletConnect } from '@/api/user'
-import { useI18n } from 'vue-i18n'
 import request from '@/utils/request'
+import walletService from '@/services/walletService'
 
-// Helper function to load from localStorage (用于钱包连接状态和 BNB 开关状态)
+// Helper function to load from localStorage (鐢ㄤ簬閽卞寘杩炴帴鐘舵€佸拰 BNB 寮€鍏崇姸鎬?
 const loadFromStorage = (key, defaultValue) => {
   try {
     const item = localStorage.getItem(key)
     if (item !== null) {
-      // 对于布尔值，直接比较字符串
+      // 瀵逛簬甯冨皵鍊硷紝鐩存帴姣旇緝瀛楃涓?
       if (typeof defaultValue === 'boolean') {
         return item === 'true'
       }
@@ -22,7 +21,7 @@ const loadFromStorage = (key, defaultValue) => {
   return defaultValue
 }
 
-// Helper function to save to localStorage (仅用于钱包连接状态)
+// Helper function to save to localStorage (浠呯敤浜庨挶鍖呰繛鎺ョ姸鎬?
 const saveToStorage = (key, value) => {
   try {
     localStorage.setItem(key, JSON.stringify(value))
@@ -31,11 +30,33 @@ const saveToStorage = (key, value) => {
   }
 }
 
+const withTimeout = (promise, ms, message, code = 'REQUEST_TIMEOUT') => {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      const error = new Error(message)
+      error.code = code
+      reject(error)
+    }, ms)
+
+    Promise.resolve(promise)
+      .then((value) => {
+        clearTimeout(timer)
+        resolve(value)
+      })
+      .catch((error) => {
+        clearTimeout(timer)
+        reject(error)
+      })
+  })
+}
+
 export const useAssetStore = defineStore('assets', {
   state: () => {
-    // 币种价格映射（全局公用价格数据源）
+    // 甯佺浠锋牸鏄犲皠锛堝叏灞€鍏敤浠锋牸鏁版嵁婧愶級
     const priceMap = {
       USDT: 1.00,
+      USDC: 1.00,
+      FDUSD: 1.00,
       BTC: 92000.00,
       BEAT: 2.85,
       ZEC: 45.20,
@@ -44,58 +65,64 @@ export const useAssetStore = defineStore('assets', {
     }
     
     return {
-      // 资金和订单数据 - 初始值设为空或0，通过 initData() 从 API 获取
+      // 璧勯噾鍜岃鍗曟暟鎹?- 鍒濆鍊艰涓虹┖鎴?锛岄€氳繃 initData() 浠?API 鑾峰彇
       usdtBalance: 0,
       holdings: {},
-      userAssets: null, // 完整的资产数据（包括冻结余额）
+      userAssets: null, // 瀹屾暣鐨勮祫浜ф暟鎹紙鍖呮嫭鍐荤粨浣欓锛?
       orders: [],
       transactionHistory: [],
       
-      // IDO 认购记录数组（暂时保留，后续可迁移到 API）
-      idoRecords: [],
+      // IDO 璁よ喘璁板綍鏁扮粍锛堟殏鏃朵繚鐣欙紝鍚庣画鍙縼绉诲埌 API锛?
+      idoRecords: Array.isArray(loadFromStorage('userIDORecords', []))
+        ? loadFromStorage('userIDORecords', [])
+        : [],
+      ieoAssets: loadFromStorage('ieoAssets', {}),
+      launchpadStakingPositions: Array.isArray(loadFromStorage('launchpadStakingPositions', []))
+        ? loadFromStorage('launchpadStakingPositions', [])
+        : [],
       
-      // BEAT 代币持仓（暂时保留，后续可迁移到 API）
+      // BEAT 浠ｅ竵鎸佷粨锛堟殏鏃朵繚鐣欙紝鍚庣画鍙縼绉诲埌 API锛?
       beatBalance: 0,
       
-      // 账户权益相关（包含合约盈亏）
-      equity: 0, // 账户权益 = 可用余额 + 冻结保证金 + 合约未实现盈亏
-      futuresUnrealizedPnl: 0, // 合约未实现盈亏总计
+      // 璐︽埛鏉冪泭鐩稿叧锛堝寘鍚悎绾︾泩浜忥級
+      equity: 0, // 璐︽埛鏉冪泭 = 鍙敤浣欓 + 鍐荤粨淇濊瘉閲?+ 鍚堢害鏈疄鐜扮泩浜?
+      futuresUnrealizedPnl: 0, // 鍚堢害鏈疄鐜扮泩浜忔€昏
       
-      // 钱包连接状态 - 保留从 localStorage 读取
+      // 閽卞寘杩炴帴鐘舵€?- 淇濈暀浠?localStorage 璇诲彇
       isWalletConnected: loadFromStorage('isWalletConnected', false),
       walletAddress: loadFromStorage('walletAddress', ''),
       
-      // BNB 支付开关状态 - 从 localStorage 读取，默认 true
+      // BNB 鏀粯寮€鍏崇姸鎬?- 浠?localStorage 璇诲彇锛岄粯璁?true
       useBNBForFees: loadFromStorage('useBNBForFees', true),
       useBNBForInterest: loadFromStorage('useBNBForInterest', true),
       
-      // 币种价格映射（全局公用）
+      // 甯佺浠锋牸鏄犲皠锛堝叏灞€鍏敤锛?
       priceMap: priceMap,
       
-      // 全局加载状态
+      // 鍏ㄥ眬鍔犺浇鐘舵€?
       isLoading: false,
       
-      // 持仓列表（用于同步）
+      // 鎸佷粨鍒楄〃锛堢敤浜庡悓姝ワ級
       positions: []
     }
   },
 
   getters: {
-    // 获取指定币种的持仓数量（优先从 userAssets 中获取）
+    // 鑾峰彇鎸囧畾甯佺鐨勬寔浠撴暟閲忥紙浼樺厛浠?userAssets 涓幏鍙栵級
     getHolding: (state) => (symbol) => {
-      // 自动转大写，防止 symbol 大小写不匹配
+      // 鑷姩杞ぇ鍐欙紝闃叉 symbol 澶у皬鍐欎笉鍖归厤
       const key = symbol?.toUpperCase()
       
-      // 优先从 userAssets 中获取（包含所有币种）
+      // 浼樺厛浠?userAssets 涓幏鍙栵紙鍖呭惈鎵€鏈夊竵绉嶏級
       if (state.userAssets && state.userAssets[key] !== undefined) {
         return state.userAssets[key] || 0
       }
       
-      // 兼容旧代码：从 holdings 中获取
+      // 鍏煎鏃т唬鐮侊細浠?holdings 涓幏鍙?
       return state.holdings[key] || 0
     },
 
-    // 获取所有持仓列表（用于 Me.vue 显示）
+    // 鑾峰彇鎵€鏈夋寔浠撳垪琛紙鐢ㄤ簬 Me.vue 鏄剧ず锛?
     getAllHoldings: (state) => {
       return Object.keys(state.holdings).map(symbol => ({
         symbol,
@@ -103,17 +130,17 @@ export const useAssetStore = defineStore('assets', {
       }))
     },
 
-    // 计算预估总资产价值（USDT）
+    // 璁＄畻棰勪及鎬昏祫浜т环鍊硷紙USDT锛?
     estimatedTotalValue: (state) => {
       let total = 0
       
-      // 1. USDT 余额（USDT 价格为 1）
+      // 1. USDT 浣欓锛圲SDT 浠锋牸涓?1锛?
       total += state.usdtBalance * (state.priceMap.USDT || 1)
       
-      // 2. BEAT 代币价值
+      // 2. BEAT 浠ｅ竵浠峰€?
       total += state.beatBalance * (state.priceMap.BEAT || 0)
       
-      // 3. 所有持仓币种的价值
+      // 3. 鎵€鏈夋寔浠撳竵绉嶇殑浠峰€?
       Object.keys(state.holdings).forEach(symbol => {
         const balance = state.holdings[symbol] || 0
         const price = state.priceMap[symbol] || 0
@@ -123,11 +150,11 @@ export const useAssetStore = defineStore('assets', {
       return total
     },
 
-    // 计算现货账户价值（USDT余额 + 持仓总值，排除BEAT）
+    // 璁＄畻鐜拌揣璐︽埛浠峰€硷紙USDT浣欓 + 鎸佷粨鎬诲€硷紝鎺掗櫎BEAT锛?
     spotAccountValue: (state) => {
       let total = state.usdtBalance || 0
       
-      // 计算所有持仓币种的价值（排除BEAT，因为BEAT在赚币账户）
+      // 璁＄畻鎵€鏈夋寔浠撳竵绉嶇殑浠峰€硷紙鎺掗櫎BEAT锛屽洜涓築EAT鍦ㄨ禋甯佽处鎴凤級
       Object.keys(state.holdings).forEach(symbol => {
         if (symbol === 'BEAT') return
         const balance = state.holdings[symbol] || 0
@@ -138,35 +165,62 @@ export const useAssetStore = defineStore('assets', {
       return total
     },
 
-    // 计算赚币账户价值（BEAT余额 + IEO冻结估算）
+    // 璁＄畻璧氬竵璐︽埛浠峰€硷紙BEAT浣欓 + IEO鍐荤粨浼扮畻锛?
     earnAccountValue: (state) => {
       const beatValue = (state.beatBalance || 0) * (state.priceMap['BEAT'] || 0)
-      // IEO 冻结估算：从 IDO 记录中计算
-      const idoFrozen = state.idoRecords.reduce((sum, record) => {
+      // IEO 鍐荤粨浼扮畻锛氫粠 IDO 璁板綍涓绠?
+      const idoRecords = Array.isArray(state.idoRecords) ? state.idoRecords : []
+      const idoFrozen = idoRecords.reduce((sum, record) => {
         return sum + (record.amount || 0)
       }, 0)
       return beatValue + idoFrozen
     },
 
-    // 计算 IEO 待解锁价值（动态数据）
+    // 璁＄畻 IEO 寰呰В閿佷环鍊硷紙鍔ㄦ€佹暟鎹級
     idoPendingValue: (state) => {
-      // 从 IDO 记录中计算待解锁金额（动态数据，不再使用写死的 500）
-      // TODO: 后续可以从 API 获取真实的待解锁金额
-      return state.idoRecords.reduce((sum, record) => {
-        // 假设有 pending 字段表示待解锁金额
+      // 浠?IDO 璁板綍涓绠楀緟瑙ｉ攣閲戦锛堝姩鎬佹暟鎹紝涓嶅啀浣跨敤鍐欐鐨?500锛?
+      // TODO: 鍚庣画鍙互浠?API 鑾峰彇鐪熷疄鐨勫緟瑙ｉ攣閲戦
+      const idoRecords = Array.isArray(state.idoRecords) ? state.idoRecords : []
+      return idoRecords.reduce((sum, record) => {
+        // 鍋囪鏈?pending 瀛楁琛ㄧず寰呰В閿侀噾棰?
         return sum + (record.pending || 0)
       }, 0)
     },
 
-    // 统一计算所有子账户之和（用于确保数据一致性）
-    // 注意：如果 equity 已设置，优先使用 equity（包含合约盈亏）
+    // 缁熶竴璁＄畻鎵€鏈夊瓙璐︽埛涔嬪拰锛堢敤浜庣‘淇濇暟鎹竴鑷存€э級
+    // 娉ㄦ剰锛氬鏋?equity 宸茶缃紝浼樺厛浣跨敤 equity锛堝寘鍚悎绾︾泩浜忥級
+    launchpadStakingValue: (state) => {
+      const positions = Array.isArray(state.launchpadStakingPositions) ? state.launchpadStakingPositions : []
+      return positions.reduce((sum, position) => {
+        return sum + (Number(position.amountUsdt) || 0)
+      }, 0)
+    },
+
+    launchpadTotalRewards: (state) => {
+      const positions = Array.isArray(state.launchpadStakingPositions) ? state.launchpadStakingPositions : []
+      return positions.reduce((sum, position) => {
+        return sum + (Number(position.claimableReward) || 0)
+      }, 0)
+    },
+
+    launchpadRemainingAllocation: (state) => {
+      const baseAllocation = 999
+      const positions = Array.isArray(state.launchpadStakingPositions) ? state.launchpadStakingPositions : []
+      const boostAllocation = positions.reduce((sum, position) => {
+        return sum + ((Number(position.amountUsdt) || 0) * (Number(position.boostRate) || 0))
+      }, 0)
+      const idoRecords = Array.isArray(state.idoRecords) ? state.idoRecords : []
+      const used = idoRecords.reduce((sum, record) => sum + (Number(record.amount) || 0), 0)
+      return Math.max(0, baseAllocation + boostAllocation - used)
+    },
+
     totalPortfolioValue: (state) => {
-      // 如果 equity 已设置且大于 0，优先使用 equity（包含合约未实现盈亏）
+      // 濡傛灉 equity 宸茶缃笖澶т簬 0锛屼紭鍏堜娇鐢?equity锛堝寘鍚悎绾︽湭瀹炵幇鐩堜簭锛?
       if (state.equity > 0) {
         return state.equity
       }
       
-      // 否则使用传统计算方式（兼容旧代码）
+      // 鍚﹀垯浣跨敤浼犵粺璁＄畻鏂瑰紡锛堝吋瀹规棫浠ｇ爜锛?
       let spotValue = state.usdtBalance || 0
       Object.keys(state.holdings).forEach(symbol => {
         if (symbol === 'BEAT') return
@@ -176,106 +230,107 @@ export const useAssetStore = defineStore('assets', {
       })
       
       const beatValue = (state.beatBalance || 0) * (state.priceMap['BEAT'] || 0)
-      const idoFrozen = state.idoRecords.reduce((sum, record) => {
+      const idoRecords = Array.isArray(state.idoRecords) ? state.idoRecords : []
+      const idoFrozen = idoRecords.reduce((sum, record) => {
         return sum + (record.amount || 0)
       }, 0)
       const earnValue = beatValue + idoFrozen
       
-      // 动态计算 IEO 待解锁金额（不再使用写死的 500）
-      const idoPending = state.idoRecords.reduce((sum, record) => {
+      // 鍔ㄦ€佽绠?IEO 寰呰В閿侀噾棰濓紙涓嶅啀浣跨敤鍐欐鐨?500锛?
+      const idoPending = idoRecords.reduce((sum, record) => {
         return sum + (record.pending || 0)
       }, 0)
       
       return spotValue + earnValue + idoPending
     },
 
-    // 当前现货费率（根据 useBNBForFees 状态动态计算）
+    // 褰撳墠鐜拌揣璐圭巼锛堟牴鎹?useBNBForFees 鐘舵€佸姩鎬佽绠楋級
     currentSpotFeeRate: (state) => {
-      // 如果开启 BNB 支付手续费，享受 25% 折扣：0.001 * 0.75 = 0.00075
-      // 如果关闭，返回标准费率 0.001 (0.1%)
+      // 濡傛灉寮€鍚?BNB 鏀粯鎵嬬画璐癸紝浜彈 25% 鎶樻墸锛?.001 * 0.75 = 0.00075
+      // 濡傛灉鍏抽棴锛岃繑鍥炴爣鍑嗚垂鐜?0.001 (0.1%)
       return state.useBNBForFees ? 0.00075 : 0.001
     },
 
-    // U 本位费率（根据 useBNBForFees 状态动态计算）
+    // U 鏈綅璐圭巼锛堟牴鎹?useBNBForFees 鐘舵€佸姩鎬佽绠楋級
     currentFuturesFeeRate: (state) => {
-      // 挂单费率：如果开启 BNB，享受 25% 折扣：0.0002 * 0.75 = 0.00015
-      // 吃单费率：如果开启 BNB，享受 25% 折扣：0.0004 * 0.75 = 0.0003
+      // 鎸傚崟璐圭巼锛氬鏋滃紑鍚?BNB锛屼韩鍙?25% 鎶樻墸锛?.0002 * 0.75 = 0.00015
+      // 鍚冨崟璐圭巼锛氬鏋滃紑鍚?BNB锛屼韩鍙?25% 鎶樻墸锛?.0004 * 0.75 = 0.0003
       return {
-        maker: state.useBNBForFees ? 0.00015 : 0.0002,  // 挂单费率 (0.015% 或 0.02%)
-        taker: state.useBNBForFees ? 0.0003 : 0.0004    // 吃单费率 (0.03% 或 0.04%)
+        maker: state.useBNBForFees ? 0.00015 : 0.0002,  // 鎸傚崟璐圭巼 (0.015% 鎴?0.02%)
+        taker: state.useBNBForFees ? 0.0003 : 0.0004    // 鍚冨崟璐圭巼 (0.03% 鎴?0.04%)
       }
     }
   },
 
   actions: {
-    // 同步持仓列表
+    // 鍚屾鎸佷粨鍒楄〃
     syncPositions(positions) {
       this.positions = [...positions];
       console.log('[AssetsStore] Assets synced:', this.positions);
     },
     
     /**
-     * 初始化数据 - App 启动时唯一获取数据的入口
-     * 从 API 获取资产和订单数据
+     * 鍒濆鍖栨暟鎹?- App 鍚姩鏃跺敮涓€鑾峰彇鏁版嵁鐨勫叆鍙?
+     * 浠?API 鑾峰彇璧勪骇鍜岃鍗曟暟鎹?
      */
     async initData() {
       this.isLoading = true
       try {
-        // 并行获取资产和订单数据
-        // 获取完整资产数据（包括冻结余额和账户权益）
+        // 骞惰鑾峰彇璧勪骇鍜岃鍗曟暟鎹?
+        // 鑾峰彇瀹屾暣璧勪骇鏁版嵁锛堝寘鎷喕缁撲綑棰濆拰璐︽埛鏉冪泭锛?
         const [assetsResponse, ordersRes] = await Promise.all([
-          request.get('/api/v1/assets/'), // 使用 /api/v1/assets/ 获取包含 equity 的数据
+          request.get('/api/v1/assets/'), // 浣跨敤 /api/v1/assets/ 鑾峰彇鍖呭惈 equity 鐨勬暟鎹?
           tradeApi.getOrders()
         ])
 
-        // 检查响应格式
-        // /api/v1/assets/ 返回的格式：{ code: 200, data: { balance: 50000, equity: 51234.56, holdings: {...}, frozen: {...}, futures_unrealized_pnl: 1234.56 } }
-        console.log('前端接收到的完整资产数据:', assetsResponse)
+        // 妫€鏌ュ搷搴旀牸寮?
+        // /api/v1/assets/ 杩斿洖鐨勬牸寮忥細{ code: 200, data: { balance: 50000, equity: 51234.56, holdings: {...}, frozen: {...}, futures_unrealized_pnl: 1234.56 } }
+        console.log('鍓嶇鎺ユ敹鍒扮殑瀹屾暣璧勪骇鏁版嵁:', assetsResponse)
         
-        // 处理响应数据
+        // 澶勭悊鍝嶅簲鏁版嵁
         let assetsData = null
         
-        // 检查响应格式：axios 返回 { data: { code: 200, data: {...} } }
+        // 妫€鏌ュ搷搴旀牸寮忥細axios 杩斿洖 { data: { code: 200, data: {...} } }
         if (assetsResponse && assetsResponse.data) {
           const response = assetsResponse.data
           
-          // 检查后端返回的 code
+          // 妫€鏌ュ悗绔繑鍥炵殑 code
           if (response.code === 200 && response.data) {
             assetsData = response.data
           } else {
-            console.warn('⚠️ 后端返回错误:', response.message || '未知错误')
+            console.warn('鈿狅笍 鍚庣杩斿洖閿欒:', response.message || '鏈煡閿欒')
           }
         } else {
-          console.warn('⚠️ 资产数据格式异常:', assetsResponse)
+          console.warn('鈿狅笍 璧勪骇鏁版嵁鏍煎紡寮傚父:', assetsResponse)
         }
         
-        // 如果成功获取到数据，更新状态
+        // 濡傛灉鎴愬姛鑾峰彇鍒版暟鎹紝鏇存柊鐘舵€?
         if (assetsData) {
-          // 提取账户权益和合约盈亏
+          // 鎻愬彇璐︽埛鏉冪泭鍜屽悎绾︾泩浜?
           this.equity = assetsData.equity || 0
           this.futuresUnrealizedPnl = assetsData.futures_unrealized_pnl || 0
           
-          // 兼容旧格式：如果返回的是旧格式（直接是资产字典），则从 holdings 中提取
+          // 鍏煎鏃ф牸寮忥細濡傛灉杩斿洖鐨勬槸鏃ф牸寮忥紙鐩存帴鏄祫浜у瓧鍏革級锛屽垯浠?holdings 涓彁鍙?
           let assets = {}
           if (assetsData.holdings) {
-            // 新格式：从 holdings 和 frozen 中提取
+            // 鏂版牸寮忥細浠?holdings 鍜?frozen 涓彁鍙?
             assets = { ...assetsData.holdings }
-            // 添加冻结余额字段
+            // 娣诲姞鍐荤粨浣欓瀛楁
             Object.keys(assetsData.frozen || {}).forEach(coin => {
               assets[`${coin}_frozen`] = assetsData.frozen[coin]
             })
           } else {
-            // 旧格式：直接使用 data
+            // 鏃ф牸寮忥細鐩存帴浣跨敤 data
             assets = assetsData
           }
           
-          // 存储完整的资产数据（包括冻结余额）
+          // 瀛樺偍瀹屾暣鐨勮祫浜ф暟鎹紙鍖呮嫭鍐荤粨浣欓锛?
           this.userAssets = { ...assets }
           
-          // 提取 USDT 可用余额
+          // 鎻愬彇 USDT 鍙敤浣欓
           const balance = assets.USDT || 0
           
-          // 全量提取所有币种的可用余额（排除 USDT 和冻结字段）
+          // 鍏ㄩ噺鎻愬彇鎵€鏈夊竵绉嶇殑鍙敤浣欓锛堟帓闄?USDT 鍜屽喕缁撳瓧娈碉級
           const holdings = {}
           const supportedCoins = ['BTC', 'ETH', 'BNB', 'SOL', 'DOGE', 'TRX', 'BEAT', 'AIC']
           
@@ -285,15 +340,15 @@ export const useAssetStore = defineStore('assets', {
             }
           })
           
-          // 如果后端返回了其他币种，也一并添加（动态支持）
+          // 濡傛灉鍚庣杩斿洖浜嗗叾浠栧竵绉嶏紝涔熶竴骞舵坊鍔狅紙鍔ㄦ€佹敮鎸侊級
           Object.keys(assets).forEach(key => {
-            // 排除 USDT、冻结字段（_frozen）和已处理的币种
+            // 鎺掗櫎 USDT銆佸喕缁撳瓧娈碉紙_frozen锛夊拰宸插鐞嗙殑甯佺
             if (key !== 'USDT' && !key.endsWith('_frozen') && !supportedCoins.includes(key)) {
               holdings[key] = assets[key] || 0
             }
           })
           
-          console.log('解析后的资产数据:', { 
+          console.log('瑙ｆ瀽鍚庣殑璧勪骇鏁版嵁:', { 
             balance, 
             holdings, 
             equity: this.equity,
@@ -306,32 +361,32 @@ export const useAssetStore = defineStore('assets', {
             fullAssets: assets
           })
           
-          // 关键：确保将 API 返回的 balance 正确赋值给 state
+          // 鍏抽敭锛氱‘淇濆皢 API 杩斿洖鐨?balance 姝ｇ‘璧嬪€肩粰 state
           this.usdtBalance = balance
           this.holdings = holdings
           
-          // 如果 holdings 中有 BEAT，也更新 beatBalance（兼容旧代码）
+          // 濡傛灉 holdings 涓湁 BEAT锛屼篃鏇存柊 beatBalance锛堝吋瀹规棫浠ｇ爜锛?
           if (holdings.BEAT !== undefined) {
             this.beatBalance = holdings.BEAT
           }
           
-          // 调试确认：在赋值语句之后，立即打印确保数据真的存进去了
-          console.log('✅ State更新后余额:', this.usdtBalance)
-          console.log('✅ State更新后持仓:', this.holdings)
-          console.log('✅ State更新后账户权益:', this.equity)
-          console.log('✅ State更新后合约盈亏:', this.futuresUnrealizedPnl)
-          console.log('✅ State更新后完整资产数据:', this.userAssets)
+          // 璋冭瘯纭锛氬湪璧嬪€艰鍙ヤ箣鍚庯紝绔嬪嵆鎵撳嵃纭繚鏁版嵁鐪熺殑瀛樿繘鍘讳簡
+          console.log('鉁?State鏇存柊鍚庝綑棰?', this.usdtBalance)
+          console.log('鉁?State鏇存柊鍚庢寔浠?', this.holdings)
+          console.log('鉁?State鏇存柊鍚庤处鎴锋潈鐩?', this.equity)
+          console.log('鉁?State鏇存柊鍚庡悎绾︾泩浜?', this.futuresUnrealizedPnl)
+          console.log('鉁?State鏇存柊鍚庡畬鏁磋祫浜ф暟鎹?', this.userAssets)
         } else {
-          // 如果没有获取到数据，不要重置为 0，保留现有数据
-          console.warn('⚠️ 未能获取到资产数据，保留现有状态')
+          // 濡傛灉娌℃湁鑾峰彇鍒版暟鎹紝涓嶈閲嶇疆涓?0锛屼繚鐣欑幇鏈夋暟鎹?
+          console.warn('Unable to load asset data; keeping current state')
         }
 
         if (ordersRes.code === 200 && ordersRes.data) {
           this.orders = ordersRes.data || []
         }
 
-        // 获取交易历史（从 localStorage 读取，因为 wallet.js 的 deposit/withdraw 会写入）
-        // 注意：这里暂时保留从 localStorage 读取，后续可以迁移到 API
+        // 鑾峰彇浜ゆ槗鍘嗗彶锛堜粠 localStorage 璇诲彇锛屽洜涓?wallet.js 鐨?deposit/withdraw 浼氬啓鍏ワ級
+        // 娉ㄦ剰锛氳繖閲屾殏鏃朵繚鐣欎粠 localStorage 璇诲彇锛屽悗缁彲浠ヨ縼绉诲埌 API
         try {
           const txHistory = localStorage.getItem('txHistory')
           if (txHistory) {
@@ -343,14 +398,14 @@ export const useAssetStore = defineStore('assets', {
         }
 
       } catch (error) {
-        console.error('❌ Error initializing data:', error)
-        console.error('错误详情:', error.response?.data || error.message)
+        console.error('鉂?Error initializing data:', error)
+        console.error('閿欒璇︽儏:', error.response?.data || error.message)
         
-        // 初始化失败时，不要重置为 0，保留现有数据
-        // 这样可以避免因为网络问题或临时错误导致数据丢失
-        // 只有在确认是认证失败（401）时才清除数据
+        // 鍒濆鍖栧け璐ユ椂锛屼笉瑕侀噸缃负 0锛屼繚鐣欑幇鏈夋暟鎹?
+        // 杩欐牱鍙互閬垮厤鍥犱负缃戠粶闂鎴栦复鏃堕敊璇鑷存暟鎹涪澶?
+        // 鍙湁鍦ㄧ‘璁ゆ槸璁よ瘉澶辫触锛?01锛夋椂鎵嶆竻闄ゆ暟鎹?
         if (error.response?.status === 401) {
-          console.warn('⚠️ 认证失败，清除数据')
+          console.warn('Authentication failed; clearing asset state')
           this.usdtBalance = 0
           this.holdings = {}
           this.orders = []
@@ -358,7 +413,7 @@ export const useAssetStore = defineStore('assets', {
           this.equity = 0
           this.futuresUnrealizedPnl = 0
         } else {
-          console.warn('⚠️ 数据加载失败，保留现有状态')
+          console.warn('Asset data load failed; keeping current state')
         }
       } finally {
         this.isLoading = false
@@ -366,136 +421,74 @@ export const useAssetStore = defineStore('assets', {
     },
     
     /**
-     * 检查是否安装了 Web3 钱包
-     * 在页面加载时调用，用于检测钱包是否可用
+     * 妫€鏌ユ槸鍚﹀畨瑁呬簡 Web3 閽卞寘
+     * 鍦ㄩ〉闈㈠姞杞芥椂璋冪敤锛岀敤浜庢娴嬮挶鍖呮槸鍚﹀彲鐢?
      */
     checkWalletInstalled() {
-      return typeof window.ethereum !== 'undefined'
+      return walletService.checkWalletInstalled()
     },
 
     /**
-     * 连接 Web3 钱包并完成认证
-     * 参考币安 Web3 钱包的认证流程
+     * 杩炴帴 Web3 閽卞寘骞跺畬鎴愯璇?
+     * 鍙傝€冨竵瀹?Web3 閽卞寘鐨勮璇佹祦绋?
      * 
-     * 注意：此方法仅在用户主动点击"连接钱包"按钮时调用
-     * 不要在页面加载时自动调用，避免未安装钱包时频繁报错
+     * 娉ㄦ剰锛氭鏂规硶浠呭湪鐢ㄦ埛涓诲姩鐐瑰嚮"杩炴帴閽卞寘"鎸夐挳鏃惰皟鐢?
+     * 涓嶈鍦ㄩ〉闈㈠姞杞芥椂鑷姩璋冪敤锛岄伩鍏嶆湭瀹夎閽卞寘鏃堕绻佹姤閿?
      */
     async connectWallet() {
       try {
-        // 1. 静默检测是否安装了 Web3 钱包（MetaMask、币安钱包等）
-        // window.ethereum 是 Web3 钱包注入到浏览器的全局对象
-        if (typeof window.ethereum === 'undefined') {
-          // 返回一个特殊的错误对象，让调用方显示友好的 Toast 提示
-          const error = new Error('请先安装 MetaMask 钱包以使用此功能')
-          error.code = 'WALLET_NOT_INSTALLED'
-          throw error
+        const { i18n } = await import('@/main')
+        const message = i18n.global.t('auth.signMessage')
+        const session = await walletService.createSession(message)
+
+        if (session.token) {
+          localStorage.setItem('token', session.token)
         }
+        localStorage.setItem('walletAddress', session.address)
 
-        // 2. 请求用户授权连接钱包
-        // request 方法会弹出钱包授权窗口，用户需要点击"连接"或"授权"
-        const accounts = await window.ethereum.request({
-          method: 'eth_requestAccounts'
-        });
-        
-        if (!accounts || accounts.length === 0) {
-          throw new Error('没有检测到钱包地址');
+        this.isWalletConnected = true
+        this.walletAddress = session.address
+        saveToStorage('isWalletConnected', true)
+        saveToStorage('walletAddress', session.address)
+
+        return {
+          success: true,
+          address: session.address,
+          token: session.token,
+          mode: session.mode,
+          authenticated: session.authenticated
         }
-        // --- 到这里，address 已经在整个 connectWallet 内部“自由”了 ---
-        const address = accounts[0];
-
-        // 3. 获取 i18n 消息
-        const { i18n } = await import('@/main');
-        const message = i18n.global.t('auth.signMessage');
-
-        // 4. 发起签名
-        // 使用 personal_sign 方法请求用户签名消息
-        // 用户需要在钱包中确认签名，签名后会返回签名结果（十六进制字符串）
-        const signature = await window.ethereum.request({
-          method: 'personal_sign',
-          params: [message, address]
-        });
-
-        // 5. 将签名发送到后端进行验证
-        // walletConnect 函数会调用 request.post('/api/v1/auth/connect', data)
-        // 实际请求的 URL 是：http://127.0.0.1:8000/api/v1/auth/connect
-        const response = await walletConnect({
-          address: address,
-          signature: signature,
-          message: message
-        });
-
-        // 6. 检查响应格式，确保后端返回了正确的数据
-        if (response.data && response.data.code === 200 && response.data.data) {
-          // 8. 成功拿到后端返回的 JWT Token
-          const token = response.data.data.token
-
-          // 9. 将 Token 存入 localStorage
-          // localStorage.setItem('token', ...) 用于持久化存储 Token
-          // 即使关闭浏览器，Token 也会保留（直到用户清除浏览器数据）
-          // 后续请求会自动从 localStorage 读取 Token 并添加到请求头
-          localStorage.setItem('token', token)
-
-          // 10. 保存钱包地址到 localStorage（可选，用于显示）
-          localStorage.setItem('walletAddress', address)
-
-          // 11. 更新 Store 状态
-          this.isWalletConnected = true
-          this.walletAddress = address
-          saveToStorage('isWalletConnected', true)
-          saveToStorage('walletAddress', address)
-
-          // 12. 打印激活提示
-          console.log('✅ 机构级账户已激活')
-          console.log('钱包地址:', address)
-          console.log('Token:', token)
-
-          // 返回成功信息，包含地址和 token
-          return {
-            success: true,
-            address: address,
-            token: token
-          }
-        } else {
-          throw new Error('认证失败：服务器返回异常')
-        }
-
       } catch (error) {
-        // 静默处理错误，不打印到控制台（避免刷屏）
-        // 调用方会显示友好的 Toast 提示
-        
-        // 如果是用户拒绝连接或签名，给出友好提示
         if (error.code === 4001) {
-          throw new Error('用户拒绝了钱包连接请求')
+          throw new Error('User rejected wallet authorization')
         } else if (error.code === -32002) {
-          throw new Error('钱包连接请求已在进行中，请稍候')
-        } else if (error.code === 'WALLET_NOT_INSTALLED') {
-          // 钱包未安装的错误，直接抛出（调用方会显示友好提示）
-          throw error
-        } else {
-          // 其他错误，静默处理
-          throw error
+          throw new Error('Wallet request is already pending. Please check your wallet.')
         }
+        throw error
       }
     },
     
     /**
-     * 断开钱包连接
+     * 鏂紑閽卞寘杩炴帴
      */
     disconnectWallet() {
+      walletService.disconnect()
       this.isWalletConnected = false
       this.walletAddress = ''
+      localStorage.removeItem('token')
       saveToStorage('isWalletConnected', false)
       saveToStorage('walletAddress', '')
     },
 
     /**
-     * 重置测试数据
+     * 閲嶇疆娴嬭瘯鏁版嵁
      */
     resetTestData() {
       localStorage.removeItem('userBalance')
       localStorage.removeItem('userHoldings')
       localStorage.removeItem('userOrders')
       localStorage.removeItem('userIDORecords')
+      localStorage.removeItem('launchpadStakingPositions')
       localStorage.removeItem('txHistory')
       localStorage.removeItem('beatBalance')
       localStorage.removeItem('isWalletConnected')
@@ -504,37 +497,37 @@ export const useAssetStore = defineStore('assets', {
     },
 
     /**
-     * 充值 USDT
-     * @param {number} amount - 充值金额
-     * @returns {Promise<boolean>} - 成功返回 true
+     * 鍏呭€?USDT
+     * @param {number} amount - 鍏呭€奸噾棰?
+     * @returns {Promise<boolean>} - 鎴愬姛杩斿洖 true
      */
     /**
-     * 充值操作
-     * 调用后端 API 进行充值，成功后重新拉取余额
+     * 鍏呭€兼搷浣?
+     * 璋冪敤鍚庣 API 杩涜鍏呭€硷紝鎴愬姛鍚庨噸鏂版媺鍙栦綑棰?
      * 
-     * @param {number} amount - 充值金额
-     * @param {string} currency - 币种，默认为 'USDT'
-     * @returns {Promise<boolean>} 成功返回 true
+     * @param {number} amount - 鍏呭€奸噾棰?
+     * @param {string} currency - 甯佺锛岄粯璁や负 'USDT'
+     * @returns {Promise<boolean>} 鎴愬姛杩斿洖 true
      */
     async deposit(amount, currency = 'USDT') {
       this.isLoading = true
       try {
-        // 调用后端 API 进行充值
+        // 璋冪敤鍚庣 API 杩涜鍏呭€?
         const res = await walletApi.deposit(amount, currency)
         
-        // 检查响应格式
+        // 妫€鏌ュ搷搴旀牸寮?
         if (res.data && res.data.code === 200 && res.data.data) {
-          // 更新本地状态（可选，也可以等 initData 拉取）
+          // 鏇存柊鏈湴鐘舵€侊紙鍙€夛紝涔熷彲浠ョ瓑 initData 鎷夊彇锛?
           const assets = res.data.data
           this.usdtBalance = assets.USDT || this.usdtBalance
           if (assets.BTC !== undefined) this.holdings.BTC = assets.BTC
           if (assets.BEAT !== undefined) this.beatBalance = assets.BEAT
           
-          // 重新拉取最新数据（确保数据一致性）
+          // 閲嶆柊鎷夊彇鏈€鏂版暟鎹紙纭繚鏁版嵁涓€鑷存€э級
           await this.initData()
           return true
         } else {
-          throw new Error(res.data?.message || res.message || '充值失败')
+          throw new Error(res.data?.message || res.message || 'Deposit failed')
         }
       } catch (error) {
         console.error('Deposit error:', error)
@@ -545,41 +538,41 @@ export const useAssetStore = defineStore('assets', {
     },
 
     /**
-     * 提现 USDT
-     * @param {number} amount - 提现金额
-     * @returns {Promise<boolean>} - 成功返回 true
+     * 鎻愮幇 USDT
+     * @param {number} amount - 鎻愮幇閲戦
+     * @returns {Promise<boolean>} - 鎴愬姛杩斿洖 true
      */
     /**
-     * 提现操作
-     * 调用后端 API 进行提现，成功后重新拉取余额
+     * 鎻愮幇鎿嶄綔
+     * 璋冪敤鍚庣 API 杩涜鎻愮幇锛屾垚鍔熷悗閲嶆柊鎷夊彇浣欓
      * 
-     * @param {number} amount - 提现金额
-     * @param {string} currency - 币种，默认为 'USDT'
-     * @returns {Promise<boolean>} 成功返回 true
+     * @param {number} amount - 鎻愮幇閲戦
+     * @param {string} currency - 甯佺锛岄粯璁や负 'USDT'
+     * @returns {Promise<boolean>} 鎴愬姛杩斿洖 true
      */
     async withdraw(amount, currency = 'USDT') {
       this.isLoading = true
       try {
-        // 调用后端 API 进行提现
+        // 璋冪敤鍚庣 API 杩涜鎻愮幇
         const res = await walletApi.withdraw(amount, currency)
         
-        // 检查响应格式
+        // 妫€鏌ュ搷搴旀牸寮?
         if (res.data && res.data.code === 200 && res.data.data) {
-          // 更新本地状态（可选，也可以等 initData 拉取）
+          // 鏇存柊鏈湴鐘舵€侊紙鍙€夛紝涔熷彲浠ョ瓑 initData 鎷夊彇锛?
           const assets = res.data.data
           this.usdtBalance = assets.USDT || this.usdtBalance
           if (assets.BTC !== undefined) this.holdings.BTC = assets.BTC
           if (assets.BEAT !== undefined) this.beatBalance = assets.BEAT
           
-          // 重新拉取最新数据（确保数据一致性）
+          // 閲嶆柊鎷夊彇鏈€鏂版暟鎹紙纭繚鏁版嵁涓€鑷存€э級
           await this.initData()
           return true
         } else {
-          throw new Error(res.data?.message || res.message || '提现失败')
+          throw new Error(res.data?.message || res.message || '鎻愮幇澶辫触')
         }
       } catch (error) {
         console.error('Withdraw error:', error)
-        // 如果是余额不足的错误，显示更友好的提示
+        // 濡傛灉鏄綑棰濅笉瓒崇殑閿欒锛屾樉绀烘洿鍙嬪ソ鐨勬彁绀?
         if (error.response?.data?.detail) {
           throw new Error(error.response.data.detail)
         }
@@ -590,20 +583,20 @@ export const useAssetStore = defineStore('assets', {
     },
 
     /**
-     * 创建订单（限价单）
-     * @param {Object} order - 订单对象
-     * @param {string} order.symbol - 币种符号
-     * @param {string} order.type - 'BUY' 或 'SELL'
-     * @param {number} order.price - 订单价格
-     * @param {number} order.amount - 订单数量
-     * @returns {Promise<boolean>} - 成功返回 true
+     * 鍒涘缓璁㈠崟锛堥檺浠峰崟锛?
+     * @param {Object} order - 璁㈠崟瀵硅薄
+     * @param {string} order.symbol - 甯佺绗﹀彿
+     * @param {string} order.type - 'BUY' 鎴?'SELL'
+     * @param {number} order.price - 璁㈠崟浠锋牸
+     * @param {number} order.amount - 璁㈠崟鏁伴噺
+     * @returns {Promise<boolean>} - 鎴愬姛杩斿洖 true
      */
     async createOrder(order) {
       this.isLoading = true
       try {
         const { symbol, type, price, amount } = order
         
-        // 转换格式：type 'BUY'/'SELL' -> side 'buy'/'sell'
+        // 杞崲鏍煎紡锛歵ype 'BUY'/'SELL' -> side 'buy'/'sell'
         const side = type.toLowerCase()
         
         const res = await tradeApi.submitOrder({
@@ -614,11 +607,11 @@ export const useAssetStore = defineStore('assets', {
         })
         
         if (res.code === 200) {
-          // 重新拉取最新数据
+          // 閲嶆柊鎷夊彇鏈€鏂版暟鎹?
           await this.initData()
           return true
         } else {
-          throw new Error(res.msg || '下单失败')
+          throw new Error(res.msg || '涓嬪崟澶辫触')
         }
       } catch (error) {
         console.error('Create order error:', error)
@@ -629,9 +622,9 @@ export const useAssetStore = defineStore('assets', {
     },
 
     /**
-     * 取消订单
-     * @param {number|string} orderId - 订单ID
-     * @returns {Promise<boolean>} - 成功返回 true
+     * 鍙栨秷璁㈠崟
+     * @param {number|string} orderId - 璁㈠崟ID
+     * @returns {Promise<boolean>} - 鎴愬姛杩斿洖 true
      */
     async cancelOrder(orderId) {
       this.isLoading = true
@@ -639,11 +632,11 @@ export const useAssetStore = defineStore('assets', {
         const res = await tradeApi.cancelOrder(orderId)
         
         if (res.code === 200) {
-          // 重新拉取最新数据
+          // 閲嶆柊鎷夊彇鏈€鏂版暟鎹?
           await this.initData()
           return true
         } else {
-          throw new Error(res.msg || '撤单失败')
+          throw new Error(res.msg || '鎾ゅ崟澶辫触')
         }
       } catch (error) {
         console.error('Cancel order error:', error)
@@ -654,10 +647,13 @@ export const useAssetStore = defineStore('assets', {
     },
 
     /**
-     * 添加交易历史记录（保留用于 IDO 等场景）
-     * @param {Object} record - 交易记录对象
+     * 娣诲姞浜ゆ槗鍘嗗彶璁板綍锛堜繚鐣欑敤浜?IDO 绛夊満鏅級
+     * @param {Object} record - 浜ゆ槗璁板綍瀵硅薄
      */
     addTransaction(record) {
+      if (!Array.isArray(this.transactionHistory)) {
+        this.transactionHistory = []
+      }
       const now = new Date()
       const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`
       const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
@@ -667,7 +663,7 @@ export const useAssetStore = defineStore('assets', {
         time: `${dateStr} ${timeStr}`,
         type: record.type,
         amount: record.amount,
-        status: record.status || '成功',
+        status: record.status || '鎴愬姛',
         tx_id: record.tx_id || null,
         chain_name: record.chain_name || null,
         project_name: record.project_name || null,
@@ -678,7 +674,7 @@ export const useAssetStore = defineStore('assets', {
       
       this.transactionHistory.unshift(transaction)
       
-      // 保存到 localStorage（因为 wallet.js 的 API 会写入，这里同步更新）
+      // 淇濆瓨鍒?localStorage锛堝洜涓?wallet.js 鐨?API 浼氬啓鍏ワ紝杩欓噷鍚屾鏇存柊锛?
       try {
         const txHistory = JSON.parse(localStorage.getItem('txHistory') || '[]')
         txHistory.unshift(transaction)
@@ -689,12 +685,15 @@ export const useAssetStore = defineStore('assets', {
     },
 
     /**
-     * 参与 IDO 认购（暂时保留，后续可迁移到 API）
-     * @param {Object} project - 项目对象
-     * @returns {boolean} - 成功返回 true
+     * 鍙備笌 IDO 璁よ喘锛堟殏鏃朵繚鐣欙紝鍚庣画鍙縼绉诲埌 API锛?
+     * @param {Object} project - 椤圭洰瀵硅薄
+     * @returns {boolean} - 鎴愬姛杩斿洖 true
      */
     joinIDO(project) {
-      // 检查是否已经认购过该项目
+      if (!Array.isArray(this.idoRecords)) {
+        this.idoRecords = []
+      }
+      // 妫€鏌ユ槸鍚﹀凡缁忚璐繃璇ラ」鐩?
       const alreadyJoined = this.idoRecords.some(record => 
         record.name === project.name || record.ticker === project.ticker
       )
@@ -727,9 +726,9 @@ export const useAssetStore = defineStore('assets', {
       this.beatBalance += beatAmount
       
       this.addTransaction({
-        type: '认购',
+        type: '璁よ喘',
         amount: -allocationAmount,
-        status: '成功',
+        status: '鎴愬姛',
         project_name: project.name || 'Unknown Project',
         price: project.price || 0.1,
         total_cost: allocationAmount,
@@ -739,13 +738,286 @@ export const useAssetStore = defineStore('assets', {
       return true
     },
 
+    subscribeLaunchpad(project, amount, mode = 'fixed') {
+      if (!Array.isArray(this.idoRecords)) {
+        this.idoRecords = []
+      }
+      const subscribeAmount = Number(amount) || 0
+      if (subscribeAmount <= 0) return false
+      if (this.usdtBalance < subscribeAmount) return false
+      const directLimit = Number(project?.directRemainingAllocation)
+      const remainingLimit = Number.isFinite(directLimit) ? directLimit : this.launchpadRemainingAllocation
+      if (subscribeAmount > remainingLimit) return false
+
+      this.usdtBalance -= subscribeAmount
+
+      const subscriptionPrice = Number(project?.subscriptionPrice || project?.price) || 0
+      const tokenAmount = subscriptionPrice ? subscribeAmount / subscriptionPrice : subscribeAmount * 10
+      const raisedAmount = Number(project?.raisedAmount) || 0
+      const totalRaise = Number(project?.totalRaise || project?.targetRaise) || 0
+      const projectedRaisedAmount = Math.max(raisedAmount, subscribeAmount)
+      const isOversubscribed = totalRaise > 0 && projectedRaisedAmount > totalRaise
+      const finalUsdt = isOversubscribed ? totalRaise * (subscribeAmount / projectedRaisedAmount) : subscribeAmount
+      const finalTokenAmount = subscriptionPrice ? finalUsdt / subscriptionPrice : tokenAmount
+      const refundAmount = Math.max(0, subscribeAmount - finalUsdt)
+      const record = {
+        id: Date.now() + Math.random(),
+        name: project?.name || 'Launchpad Project',
+        ticker: project?.ticker || '',
+        price: subscriptionPrice,
+        amount: subscribeAmount,
+        mode: mode === 'boosted' ? 'stake' : mode,
+        pending: subscribeAmount,
+        tokenAmount,
+        estimatedTokenAmount: tokenAmount,
+        finalTokenAmount,
+        refundAmount,
+        wonTokenAmount: 0,
+        winRatio: 0,
+        settled: false,
+        settlementTime: project?.settlementTime || null,
+        listingTime: project?.listingTime || null,
+        status: 'pending_draw',
+        timestamp: new Date().toISOString()
+      }
+
+      this.idoRecords.push(record)
+      saveToStorage('userIDORecords', this.idoRecords)
+      this.addTransaction({
+        type: '认购',
+        amount: -subscribeAmount,
+        status: '成功',
+        project_name: record.name,
+        price: record.price,
+        total_cost: subscribeAmount,
+        token_amount: tokenAmount
+      })
+
+      return true
+    },
+
+    addLaunchpadStake(project, asset, amount, metrics = {}) {
+      const stakeAmount = Number(amount) || 0
+      if (stakeAmount <= 0) return false
+      if (!Array.isArray(this.launchpadStakingPositions)) {
+        this.launchpadStakingPositions = []
+      }
+
+      const price = this.priceMap[asset] || 1
+      const amountUsdt = Number(metrics.amountUsdt) || stakeAmount * price
+      if (asset === 'USDT') {
+        if (this.usdtBalance < stakeAmount) return false
+        this.usdtBalance -= stakeAmount
+      } else {
+        const current = this.holdings[asset] || 0
+        if (current < stakeAmount) return false
+        this.holdings[asset] = current - stakeAmount
+      }
+
+      const existing = this.launchpadStakingPositions.find(position => (
+        position.projectTicker === (project?.ticker || '') && position.asset === asset
+      ))
+
+      if (existing) {
+        existing.amount += stakeAmount
+        existing.amountUsdt += amountUsdt
+        existing.claimableReward += Number(metrics.estimatedReward) || 0
+        existing.finalRewardToken = (Number(existing.finalRewardToken) || 0) + (Number(metrics.finalRewardToken) || 0)
+        existing.poolRewardAllocation = Number(metrics.poolRewardAllocation) || existing.poolRewardAllocation
+        existing.totalPoolStakeAmount = Number(metrics.totalPoolStakeAmount) || existing.totalPoolStakeAmount
+        existing.status = 'active'
+        existing.updatedAt = new Date().toISOString()
+      } else {
+        this.launchpadStakingPositions.push({
+          id: Date.now() + Math.random(),
+          projectName: project?.name || 'Launchpad Project',
+          projectTicker: project?.ticker || '',
+          rewardTicker: metrics.rewardTicker || project?.ticker || 'GMT',
+          asset,
+          amount: stakeAmount,
+          amountUsdt,
+          stakingStartTime: project?.stakingStartTime || null,
+          stakingEndTime: project?.stakingEndTime || null,
+          listingTime: project?.listingTime || null,
+          userStakeStartTime: new Date().toISOString(),
+          userStakeEndTime: null,
+          claimableReward: Number(metrics.estimatedReward) || 0,
+          finalRewardToken: Number(metrics.finalRewardToken) || 0,
+          dailyRate: Number(metrics.dailyRate) || 0.006,
+          rewardPrice: Number(metrics.rewardPrice || project?.price) || 1,
+          dailyRewardToken: amountUsdt * (Number(metrics.dailyRate) || 0.006) / (Number(metrics.rewardPrice || project?.price) || 1),
+          rewardTime: '00:00',
+          lastRewardAt: new Date().toISOString(),
+          poolRewardAllocation: Number(metrics.poolRewardAllocation) || 0,
+          totalPoolStakeAmount: Number(metrics.totalPoolStakeAmount) || 1,
+          apy: Number(metrics.apy) || 0,
+          status: 'active',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        })
+      }
+
+      saveToStorage('launchpadStakingPositions', this.launchpadStakingPositions)
+      this.addTransaction({
+        type: 'Launchpad Stake',
+        amount: -amountUsdt,
+        status: '成功',
+        project_name: project?.name || 'Launchpad Project',
+        total_cost: amountUsdt
+      })
+      return true
+    },
+
+    creditIEOAsset(symbol, amount, meta = {}) {
+      const ticker = String(symbol || '').toUpperCase()
+      const quantity = Number(amount) || 0
+      if (!ticker || quantity <= 0) return false
+      if (!this.ieoAssets || typeof this.ieoAssets !== 'object') {
+        this.ieoAssets = {}
+      }
+      const current = this.ieoAssets[ticker] || { symbol: ticker, amount: 0, name: meta.name || ticker, source: 'IEO' }
+      this.ieoAssets[ticker] = {
+        ...current,
+        symbol: ticker,
+        name: meta.name || current.name || ticker,
+        amount: (Number(current.amount) || 0) + quantity,
+        updatedAt: new Date().toISOString(),
+        status: meta.status || 'won'
+      }
+      saveToStorage('ieoAssets', this.ieoAssets)
+      return true
+    },
+
+    syncLaunchpadSettlements(nowValue = Date.now()) {
+      if (!Array.isArray(this.idoRecords)) return
+      let changed = false
+      this.idoRecords = this.idoRecords.map(record => {
+        if (record.settled) return record
+        const settlementTime = record.settlementTime ? new Date(record.settlementTime).getTime() : nowValue
+        if (Number.isFinite(settlementTime) && nowValue < settlementTime) {
+          return { ...record, status: record.status || 'pending_draw' }
+        }
+        const finalTokenAmount = Number(record.finalTokenAmount ?? record.tokenAmount) || 0
+        const estimatedTokenAmount = Number(record.estimatedTokenAmount ?? record.tokenAmount) || 0
+        const refundAmount = Math.max(0, Number(record.refundAmount) || 0)
+        if (refundAmount > 0) {
+          this.usdtBalance += refundAmount
+        }
+        if (finalTokenAmount > 0) {
+          this.creditIEOAsset(record.ticker, finalTokenAmount, { name: record.name, status: 'won' })
+        }
+        changed = true
+        return {
+          ...record,
+          status: finalTokenAmount > 0 ? 'won' : 'not_won',
+          wonTokenAmount: finalTokenAmount,
+          winRatio: estimatedTokenAmount > 0 ? finalTokenAmount / estimatedTokenAmount : 0,
+          settled: true,
+          settledAt: new Date(nowValue).toISOString()
+        }
+      })
+      if (changed) {
+        saveToStorage('userIDORecords', this.idoRecords)
+      }
+    },
+
+    syncLaunchpadDailyRewards(nowValue = Date.now()) {
+      if (!Array.isArray(this.launchpadStakingPositions)) return
+      let changed = false
+      const dayMs = 24 * 60 * 60 * 1000
+      this.launchpadStakingPositions = this.launchpadStakingPositions.map(position => {
+        if (position.status !== 'active') return position
+        const lastRewardAt = new Date(position.lastRewardAt || position.createdAt || nowValue).getTime()
+        const elapsedDays = Math.floor((nowValue - lastRewardAt) / dayMs)
+        if (elapsedDays <= 0) return position
+        const amountUsdt = Number(position.amountUsdt) || 0
+        const dailyRate = Number(position.dailyRate) || 0.006
+        const rewardPrice = Number(position.rewardPrice) || 1
+        const rewardToken = amountUsdt * dailyRate * elapsedDays / rewardPrice
+        if (rewardToken > 0) {
+          this.creditIEOAsset(position.rewardTicker, rewardToken, { name: position.projectName, status: 'staking_reward' })
+          changed = true
+        }
+        return {
+          ...position,
+          claimableReward: (Number(position.claimableReward) || 0) + rewardToken,
+          finalRewardToken: (Number(position.finalRewardToken) || 0) + rewardToken,
+          dailyRewardToken: amountUsdt * dailyRate / rewardPrice,
+          lastRewardAt: new Date(lastRewardAt + elapsedDays * dayMs).toISOString(),
+          updatedAt: new Date(nowValue).toISOString()
+        }
+      })
+      if (changed) {
+        saveToStorage('launchpadStakingPositions', this.launchpadStakingPositions)
+      }
+    },
+
+    claimLaunchpadRewards(positionId = null, rewardAmount = null) {
+      if (!Array.isArray(this.launchpadStakingPositions)) {
+        this.launchpadStakingPositions = []
+      }
+      const targetPositions = positionId
+        ? this.launchpadStakingPositions.filter(position => position.id === positionId)
+        : this.launchpadStakingPositions
+      const totalReward = Number(rewardAmount) || targetPositions.reduce((sum, position) => {
+        return sum + (Number(position.finalRewardToken || position.claimableReward) || 0)
+      }, 0)
+      if (totalReward <= 0) return false
+
+      const rewardTicker = targetPositions[0]?.rewardTicker || 'BEAT'
+      this.holdings[rewardTicker] = (this.holdings[rewardTicker] || 0) + totalReward
+      this.launchpadStakingPositions = this.launchpadStakingPositions.map(position => ({
+        ...position,
+        claimableReward: !positionId || position.id === positionId ? 0 : position.claimableReward,
+        finalRewardToken: !positionId || position.id === positionId ? 0 : position.finalRewardToken,
+        status: !positionId || position.id === positionId ? 'claimed' : position.status,
+        updatedAt: new Date().toISOString()
+      }))
+      saveToStorage('launchpadStakingPositions', this.launchpadStakingPositions)
+      this.addTransaction({
+        type: 'Claim Rewards',
+        amount: totalReward,
+        status: '成功',
+        project_name: 'Launchpad Staking',
+        token_amount: totalReward
+      })
+      return true
+    },
+
+    earlyUnstakeLaunchpad(positionId) {
+      if (!Array.isArray(this.launchpadStakingPositions)) {
+        this.launchpadStakingPositions = []
+      }
+      const position = this.launchpadStakingPositions.find(item => item.id === positionId)
+      if (!position) return false
+
+      if (position.asset === 'USDT') {
+        this.usdtBalance += position.amount
+      } else {
+        this.holdings[position.asset] = (this.holdings[position.asset] || 0) + position.amount
+      }
+
+      position.status = 'unlocked'
+      position.userStakeEndTime = new Date().toISOString()
+      this.launchpadStakingPositions = this.launchpadStakingPositions.filter(item => item.id !== positionId)
+      saveToStorage('launchpadStakingPositions', this.launchpadStakingPositions)
+      this.addTransaction({
+        type: 'Unlock Principal',
+        amount: position.amountUsdt,
+        status: '成功',
+        project_name: position.projectName,
+        total_cost: position.amountUsdt
+      })
+      return true
+    },
+
     /**
-     * 交易操作（立即成交，用于市价单或测试）
-     * @param {string} type - 'BUY' 或 'SELL'
-     * @param {string} symbol - 币种符号
-     * @param {number} amount - 交易数量
-     * @param {number} price - 交易价格
-     * @returns {boolean} - 成功返回 true
+     * 浜ゆ槗鎿嶄綔锛堢珛鍗虫垚浜わ紝鐢ㄤ簬甯備环鍗曟垨娴嬭瘯锛?
+     * @param {string} type - 'BUY' 鎴?'SELL'
+     * @param {string} symbol - 甯佺绗﹀彿
+     * @param {number} amount - 浜ゆ槗鏁伴噺
+     * @param {number} price - 浜ゆ槗浠锋牸
+     * @returns {boolean} - 鎴愬姛杩斿洖 true
      */
     trade(type, symbol, amount, price) {
       const totalCost = amount * price
@@ -781,12 +1053,12 @@ export const useAssetStore = defineStore('assets', {
     },
 
     /**
-     * 切换 BNB 支付交易手续费开关
-     * @param {boolean} value - 开关状态
+     * 鍒囨崲 BNB 鏀粯浜ゆ槗鎵嬬画璐瑰紑鍏?
+     * @param {boolean} value - 寮€鍏崇姸鎬?
      */
     toggleBNBForFees(value) {
       this.useBNBForFees = value
-      // 同步写入 localStorage
+      // 鍚屾鍐欏叆 localStorage
       try {
         localStorage.setItem('useBNBForFees', value.toString())
       } catch (error) {
@@ -795,12 +1067,12 @@ export const useAssetStore = defineStore('assets', {
     },
 
     /**
-     * 切换 BNB 支付杠杆利息开关
-     * @param {boolean} value - 开关状态
+     * 鍒囨崲 BNB 鏀粯鏉犳潌鍒╂伅寮€鍏?
+     * @param {boolean} value - 寮€鍏崇姸鎬?
      */
     toggleBNBForInterest(value) {
       this.useBNBForInterest = value
-      // 同步写入 localStorage
+      // 鍚屾鍐欏叆 localStorage
       try {
         localStorage.setItem('useBNBForInterest', value.toString())
       } catch (error) {
@@ -809,21 +1081,21 @@ export const useAssetStore = defineStore('assets', {
     },
 
     /**
-     * 设置止盈止损 (TP/SL)
+     * 璁剧疆姝㈢泩姝㈡崯 (TP/SL)
      * @param {Object} params - { positionId, tp, sl }
-     * @returns {Promise<boolean>} - 成功返回 true
+     * @returns {Promise<boolean>} - 鎴愬姛杩斿洖 true
      */
     async setTPSL(params) {
       try {
-        // 调用后端 API 设置 TP/SL
+        // 璋冪敤鍚庣 API 璁剧疆 TP/SL
         const res = await request.post('/api/v1/futures/positions/tpsl', params)
         
-        // 检查响应格式
+        // 妫€鏌ュ搷搴旀牸寮?
         if (res.success || res.code === 200) {
-          // 手动更新本地 positions 数组中的对应字段
+          // 鎵嬪姩鏇存柊鏈湴 positions 鏁扮粍涓殑瀵瑰簲瀛楁
           const target = this.positions.find(p => p.id === params.positionId)
           if (target) {
-            // 同步更新所有可能的字段名（兼容不同格式）
+            // 鍚屾鏇存柊鎵€鏈夊彲鑳界殑瀛楁鍚嶏紙鍏煎涓嶅悓鏍煎紡锛?
             target.tp = params.tp
             target.take_profit = params.tp
             target.takeProfit = params.tp
@@ -836,12 +1108,12 @@ export const useAssetStore = defineStore('assets', {
           
           return true
         } else {
-          throw new Error(res.message || res.msg || '设置失败')
+          throw new Error(res.message || res.msg || '璁剧疆澶辫触')
         }
       } catch (error) {
         console.error('[TP/SL] Set error:', error)
         
-        // 即使 API 失败，也尝试更新本地数据（使用 localStorage 作为 fallback）
+        // 鍗充娇 API 澶辫触锛屼篃灏濊瘯鏇存柊鏈湴鏁版嵁锛堜娇鐢?localStorage 浣滀负 fallback锛?
         const target = this.positions.find(p => p.id === params.positionId)
         if (target) {
           target.tp = params.tp
@@ -859,4 +1131,5 @@ export const useAssetStore = defineStore('assets', {
     }
   }
 })
+
 

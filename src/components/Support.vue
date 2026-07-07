@@ -1,361 +1,548 @@
 <template>
-  <van-nav-bar
-    :title="$t('support.title')"
-    left-arrow
-    fixed
-    placeholder
-    :border="false"
-    @click-left="router.back()"
-    style="
-      background-color: #0E0E0E;
-      --van-nav-bar-background: #0E0E0E;
-      --van-nav-bar-title-text-color: #FCD535;
-      --van-nav-bar-icon-color: #FCD535;
-    "
-  />
+  <div class="support-shell">
+    <van-nav-bar
+      title="帮助与客服"
+      left-arrow
+      fixed
+      placeholder
+      :border="false"
+      class="page-nav-bar"
+      @click-left="router.back()"
+    />
 
-  <div class="support-page">
-    <!-- 径向渐变背景 -->
-    <div class="gradient-bg"></div>
-
-    <!-- 中心引导区 -->
-    <div class="center-guide">
-      <div class="guide-icon">
-        <van-icon name="service-o" size="64" color="#FCD535" />
-      </div>
-      <div class="guide-title">{{ $t('support.official_service') }}</div>
-      <div class="guide-subtitle">{{ $t('support.service_subtitle') }}</div>
-
-      <!-- 服务承诺 -->
-      <div class="service-promise">
-        <div class="promise-item">
-          <div class="promise-icon">
-            <van-icon name="shield-o" size="24" color="#FCD535" />
-          </div>
-          <div class="promise-label">{{ $t('support.privacy_encryption') }}</div>
+    <main class="support-page">
+      <section class="support-hero" aria-label="客服中心">
+        <div class="hero-copy">
+          <span class="hero-kicker">TruthFi Support</span>
+          <h1>我们随时为你服务</h1>
+          <p>遇到充值、交易、安全问题，可优先联系在线客服</p>
         </div>
-        <div class="promise-item">
-          <div class="promise-icon">
-            <van-icon name="clock-o" size="24" color="#FCD535" />
-          </div>
-          <div class="promise-label">{{ $t('support.fast_response') }}</div>
-        </div>
-        <div class="promise-item">
-          <div class="promise-icon">
-            <van-icon name="user-o" size="24" color="#FCD535" />
-          </div>
-          <div class="promise-label">{{ $t('support.human_service') }}</div>
-        </div>
-      </div>
+        <span class="hero-badge" aria-hidden="true">
+          <van-icon name="service-o" />
+        </span>
+      </section>
 
-      <!-- Telegram 社区入口 -->
-      <div class="community-section">
-        <van-cell
-          :title="$t('support.telegram_community')"
-          is-link
-          @click="handleCommunityClick"
-          class="telegram-cell"
+      <section class="primary-actions" aria-label="客服入口">
+        <button
+          class="support-action is-primary"
+          type="button"
+          :disabled="communityLoading || serviceLoading"
+          @click="handleContactService"
         >
-          <template #icon>
-            <van-icon name="guide-o" size="18" color="#FCD535" style="margin-right: 10px" />
-          </template>
-        </van-cell>
-      </div>
-    </div>
+          <span class="action-icon">
+            <van-loading v-if="serviceLoading" size="18" color="#111827" />
+            <van-icon v-else name="service-o" />
+          </span>
+          <span class="action-copy">
+            <strong>{{ serviceLoading ? '正在分配客服...' : '联系在线客服' }}</strong>
+            <small>充值、提现、交易问题优先处理</small>
+          </span>
+          <van-icon v-if="!serviceLoading" name="arrow" class="action-arrow" />
+        </button>
 
-    <!-- 底部按钮 -->
-    <div class="bottom-button-container">
-      <van-button
-        block
-        class="contact-button"
-        @click="handleContactService"
-      >
-        <van-icon name="service-o" size="18" style="margin-right: 8px;" />
-        {{ $t('support.contact_service') }}
-      </van-button>
-    </div>
+        <button
+          class="support-action"
+          type="button"
+          :disabled="communityLoading || serviceLoading"
+          @click="handleCommunityClick"
+        >
+          <span class="action-icon">
+            <van-loading v-if="communityLoading" size="18" color="#F0B90B" />
+            <van-icon v-else name="guide-o" />
+          </span>
+          <span class="action-copy">
+            <strong>{{ communityLoading ? '正在打开社区...' : '加入官方 Telegram 社区' }}</strong>
+            <small>获取公告、进度同步与社区协助</small>
+          </span>
+          <van-icon v-if="!communityLoading" name="arrow" class="action-arrow" />
+        </button>
+      </section>
+
+      <section class="promise-card" aria-label="客服服务优势">
+        <div class="promise-item">
+          <span class="promise-icon"><van-icon name="shield-o" /></span>
+          <strong>隐私加密</strong>
+          <small>会话安全保护</small>
+        </div>
+        <div class="promise-item">
+          <span class="promise-icon"><van-icon name="clock-o" /></span>
+          <strong>快速响应</strong>
+          <small>优先分配线路</small>
+        </div>
+        <div class="promise-item">
+          <span class="promise-icon"><van-icon name="user-o" /></span>
+          <strong>人工服务</strong>
+          <small>专员协助处理</small>
+        </div>
+      </section>
+
+      <section class="faq-section" aria-label="常见问题">
+        <h2>常见问题</h2>
+        <div class="faq-list">
+          <button
+            v-for="item in faqItems"
+            :key="item.title"
+            class="faq-row"
+            type="button"
+            @click="handleFaqClick(item.title)"
+          >
+            <span class="faq-icon"><van-icon :name="item.icon" /></span>
+            <span>{{ item.title }}</span>
+            <van-icon name="arrow" class="faq-arrow" />
+          </button>
+        </div>
+      </section>
+
+      <section class="security-note" aria-label="安全提示">
+        <van-icon name="shield-o" />
+        <span>客服不会向你索要密码、验证码或私钥</span>
+      </section>
+    </main>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useI18n } from 'vue-i18n';
-import { showToast, showLoadingToast } from 'vant';
+import { showSuccessToast, showToast } from 'vant';
 
 const router = useRouter();
-const { t } = useI18n();
+const communityLoading = ref(false);
+const serviceLoading = ref(false);
 
-// 联系客服
-const handleContactService = () => {
-  // 显示加载提示 - 纯净样式
-  const toast = showLoadingToast({
-    message: t('support.connecting'),
-    forbidClick: true,
-    loadingType: 'spinner',
-    duration: 1500,
-    position: 'middle'
-  });
+const faqItems = [
+  { title: '充值未到账', icon: 'balance-o' },
+  { title: '提现处理中', icon: 'paid' },
+  { title: '如何绑定 Google 验证器', icon: 'shield-o' },
+  { title: '修改登录密码', icon: 'lock' },
+  { title: '账户安全设置', icon: 'setting-o' }
+];
 
-  // 1.5秒后显示结果提示
+const handleCommunityClick = () => {
+  if (communityLoading.value || serviceLoading.value) return;
+
+  communityLoading.value = true;
   setTimeout(() => {
-    showToast({
-      message: t('support.service_busy'),
-      duration: 3000,
+    communityLoading.value = false;
+    showSuccessToast({
+      message: '社区入口已准备好',
+      duration: 1500,
       position: 'middle'
     });
-  }, 1500);
+  }, 1100);
 };
 
-// Telegram 社区
-const handleCommunityClick = () => {
+const handleContactService = () => {
+  if (communityLoading.value || serviceLoading.value) return;
+
+  serviceLoading.value = true;
+  setTimeout(() => {
+    serviceLoading.value = false;
+    showToast({
+      message: '客服已进入排队通道，请稍候',
+      icon: 'service-o',
+      duration: 1700,
+      position: 'middle'
+    });
+  }, 1200);
+};
+
+const handleFaqClick = (title) => {
   showToast({
-    message: t('support.telegram_redirect'),
-    duration: 2000,
+    message: `${title}帮助内容整理中`,
+    icon: 'info-o',
+    duration: 1400,
     position: 'middle'
   });
 };
 </script>
 
 <style scoped>
-.support-page {
-  background: #0E0E0E;
-  background-image: linear-gradient(
-    to bottom,
-    rgba(212, 175, 55, 0.03) 0%,
-    rgba(212, 175, 55, 0.01) 30%,
-    transparent 50%,
-    rgba(212, 175, 55, 0.01) 70%,
-    rgba(212, 175, 55, 0.03) 100%
-  );
+.support-shell {
   min-height: 100vh;
-  padding: 16px;
-  padding-bottom: 120px;
-  color: #FFFFFF;
+  background: #F5F7FA;
+  color: #111827;
+}
+
+:deep(.page-nav-bar) {
+  --van-nav-bar-background: #FFFFFF;
+  --van-nav-bar-title-text-color: #111827;
+  --van-nav-bar-icon-color: #F0B90B;
+  border-bottom: 1px solid #E6EBF2;
+}
+
+:deep(.page-nav-bar .van-nav-bar__title) {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.support-page {
+  min-height: calc(100dvh - var(--van-nav-bar-height));
+  padding: 16px 16px max(22px, env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
-  gap: 40px;
-  position: relative;
-  overflow: hidden;
+  gap: 12px;
+  background:
+    linear-gradient(180deg, #FFFFFF 0%, #F7F9FC 42%, #F5F7FA 100%);
 }
 
-/* 径向渐变背景 */
-.gradient-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(
-    circle at 50% 35%,
-    rgba(212, 175, 55, 0.08) 0%,
-    rgba(212, 175, 55, 0.03) 30%,
-    transparent 60%
-  );
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* 中心引导区 */
-.center-guide {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  margin-top: calc(25vh - 80px);
-  gap: 32px;
-  position: relative;
-  z-index: 1;
-}
-
-.guide-icon {
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.05);
-  }
-}
-
-.guide-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #FFFFFF;
-  font-family: 'DIN Alternate', 'Roboto', sans-serif;
-}
-
-.guide-subtitle {
-  font-size: 14px;
-  color: #8E8E93;
-  font-weight: 400;
-  font-family: 'DIN Alternate', 'Roboto', sans-serif;
-}
-
-/* 服务承诺 */
-.service-promise {
+.support-hero {
+  min-height: 126px;
+  padding: 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #FFFFFF 0%, #FFF9E8 100%);
+  border: 1px solid rgba(240, 185, 11, 0.2);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.07);
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  width: 100%;
-  max-width: 320px;
-  margin-top: 8px;
+  grid-template-columns: minmax(0, 1fr) 54px;
+  align-items: center;
+  gap: 14px;
 }
 
-.promise-item {
-  display: flex;
-  flex-direction: column;
+.hero-copy {
+  min-width: 0;
+}
+
+.hero-kicker {
+  display: block;
+  margin-bottom: 7px;
+  color: #B7791F;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.support-hero h1 {
+  margin: 0;
+  color: #111827;
+  font-size: 21px;
+  font-weight: 950;
+  line-height: 1.18;
+  letter-spacing: 0;
+}
+
+.support-hero p {
+  margin: 9px 0 0;
+  color: #64748B;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.hero-badge {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  color: #111827;
+  font-size: 27px;
+  background: linear-gradient(135deg, #FCD535 0%, #F0B90B 100%);
+  box-shadow: 0 12px 24px rgba(240, 185, 11, 0.22);
+}
+
+.primary-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.support-action {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  min-height: 70px;
+  padding: 12px 14px;
+  border: 1px solid #E8EEF5;
+  border-radius: 16px;
+  background: #FFFFFF;
+  color: #111827;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.045);
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 20px;
   align-items: center;
+  gap: 12px;
+  text-align: left;
+  transition: transform 0.16s ease, opacity 0.16s ease, box-shadow 0.16s ease;
+}
+
+.support-action.is-primary {
+  border-color: rgba(240, 185, 11, 0.28);
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.07);
+}
+
+.action-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  color: #F0B90B;
+  font-size: 21px;
+  background: #FFF8E1;
+  border: 1px solid rgba(240, 185, 11, 0.24);
+}
+
+.is-primary .action-icon {
+  color: #111827;
+  background: #F0B90B;
+  border-color: #F0B90B;
+}
+
+.action-copy {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.action-copy strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #111827;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.action-copy small {
+  min-width: 0;
+  overflow: hidden;
+  color: #64748B;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.action-arrow {
+  color: #94A3B8;
+  font-size: 20px;
+}
+
+.support-action:disabled {
+  opacity: 0.76;
+}
+
+.support-action:active {
+  transform: scale(0.985);
+  box-shadow: 0 7px 16px rgba(15, 23, 42, 0.06);
+}
+
+.promise-card {
+  height: 104px;
+  padding: 13px 10px;
+  border-radius: 16px;
+  background: #FFFFFF;
+  border: 1px solid #E8EEF5;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.045);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
+.promise-item {
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 5px;
+  text-align: center;
+}
+
 .promise-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: rgba(252, 213, 53, 0.1);
-  border: 1px solid rgba(252, 213, 53, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  color: #F0B90B;
+  font-size: 19px;
+  background: #FFF8E1;
+  border: 1px solid rgba(240, 185, 11, 0.22);
 }
 
-.promise-item:hover .promise-icon {
-  background: rgba(252, 213, 53, 0.15);
-  border-color: rgba(252, 213, 53, 0.3);
-  transform: scale(1.05);
+.promise-item strong {
+  color: #111827;
+  font-size: 14px;
+  font-weight: 850;
+  line-height: 1.15;
 }
 
-.promise-label {
+.promise-item small {
+  color: #64748B;
   font-size: 12px;
-  color: #8E8E93;
   font-weight: 500;
-  font-family: 'DIN Alternate', 'Roboto', sans-serif;
+  line-height: 1.2;
 }
 
-/* Telegram 社区入口 */
-.community-section {
-  width: 100%;
-  max-width: 600px;
-  margin-top: 40px;
-  position: relative;
-  z-index: 1;
+.faq-section {
+  display: grid;
+  gap: 10px;
 }
 
-.telegram-cell {
-  background: #1C1C1E;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  overflow: hidden;
-}
-
-:deep(.telegram-cell .van-cell) {
-  background: transparent !important;
-  padding: 16px 20px !important;
-}
-
-:deep(.telegram-cell .van-cell__title) {
-  color: #FFFFFF !important;
-  font-size: 15px !important;
-  font-weight: 500 !important;
-  font-family: 'DIN Alternate', 'Roboto', sans-serif;
-}
-
-:deep(.telegram-cell .van-cell:active) {
-  background-color: rgba(255, 255, 255, 0.03) !important;
-}
-
-:deep(.telegram-cell .van-cell__right-icon) {
-  color: #8E8E93 !important;
-}
-
-/* 底部按钮 */
-.bottom-button-container {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 16px;
-  background: #0E0E0E;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  z-index: 100;
-}
-
-.contact-button {
-  background: #FCD535;
-  color: #0E0E0E;
-  height: 56px;
+.faq-section h2 {
+  margin: 2px 2px 0;
+  color: #111827;
   font-size: 16px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.faq-list {
+  overflow: hidden;
+  border-radius: 16px;
+  background: #FFFFFF;
+  border: 1px solid #E8EEF5;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.045);
+}
+
+.faq-row {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  min-height: 54px;
+  padding: 0 14px;
+  border: 0;
+  border-bottom: 1px solid #EEF2F6;
+  background: #FFFFFF;
+  color: #111827;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  font-size: 14px;
   font-weight: 700;
-  border-radius: 12px;
-  border: none;
+  line-height: 1.2;
+}
+
+.faq-row:last-child {
+  border-bottom: 0;
+}
+
+.faq-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  color: #B7791F;
+  font-size: 16px;
+  background: #FFF8E1;
+}
+
+.faq-arrow {
+  color: #94A3B8;
+  font-size: 17px;
+}
+
+.faq-row:active {
+  background: #F8FAFC;
+}
+
+.security-note {
+  min-height: 42px;
+  padding: 10px 12px;
+  border-radius: 13px;
+  background: #EEF2F6;
+  color: #64748B;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
-  font-family: 'DIN Alternate', 'Roboto', sans-serif;
-  box-shadow: 0 4px 15px rgba(252, 213, 53, 0.3);
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
 }
 
-.contact-button:active {
-  opacity: 0.8;
-  transform: scale(0.98);
-  box-shadow: 0 2px 8px rgba(252, 213, 53, 0.2);
+.security-note .van-icon {
+  color: #F0B90B;
+  flex: 0 0 auto;
+  font-size: 15px;
 }
 
-/* Toast 样式优化 - 全局覆盖 */
+@media (max-height: 720px) {
+  .support-page {
+    padding-top: 12px;
+    gap: 10px;
+  }
+
+  .support-hero {
+    min-height: 116px;
+    padding: 15px 16px;
+  }
+
+  .support-hero h1 {
+    font-size: 20px;
+  }
+
+  .support-hero p {
+    margin-top: 7px;
+    font-size: 12px;
+  }
+
+  .support-action {
+    min-height: 66px;
+  }
+
+  .promise-card {
+    height: 96px;
+    padding: 10px 8px;
+  }
+
+  .promise-icon {
+    width: 31px;
+    height: 31px;
+    font-size: 17px;
+  }
+
+  .promise-item strong {
+    font-size: 13px;
+  }
+
+  .promise-item small {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 360px) {
+  .support-page {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .support-hero {
+    grid-template-columns: minmax(0, 1fr) 46px;
+    gap: 10px;
+  }
+
+  .hero-badge {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    font-size: 23px;
+  }
+
+  .action-copy strong {
+    font-size: 15px;
+  }
+
+  .action-copy small {
+    font-size: 11px;
+  }
+}
 </style>
 
 <style>
-/* 1. 核心修复：强制切除 Toast 容器底部可能溢出的系统 UI */
-.van-toast--loading {
-  overflow: hidden !important; /* 彻底防止内部元素溢出产生灰色背景 */
-  padding-bottom: 20px !important; /* 统一内边距，确保底部与顶部对称 */
+.support-page *,
+.support-page *::before,
+.support-page *::after {
+  box-sizing: border-box !important;
 }
 
-/* 2. 移除 Vant 默认在 Loading 模式下可能产生的伪元素进度背景 */
-.van-toast--loading::before,
-.van-toast--loading::after {
-  display: none !important;
-  content: none !important;
-}
-
-/* 3. 针对截图中的灰色条（可能是 van-toast__text 的背景或边距）：强制透明 */
-.van-toast__text {
-  background-color: transparent !important;
-  margin-bottom: 0 !important;
-}
-
-/* 4. 保持黄色 Spinner 质感 */
-.van-loading__spinner--spinner {
-  color: #FCD535 !important;
-}
-
-.van-loading__spinner {
-  color: #FCD535 !important;
-}
-
-/* 确保 Toast 整体样式 */
-.van-toast--loading {
-  background: rgba(28, 28, 30, 0.9) !important;
-  backdrop-filter: blur(15px) !important;
-  border-radius: 12px !important;
-  padding: 20px 24px !important;
-}
-
-.van-toast--loading .van-toast__message {
-  color: #FFFFFF !important;
-  font-size: 14px !important;
-  margin-top: 12px !important;
-}
-
-.van-toast--loading .van-loading {
-  margin: 0 auto !important;
+.support-page button {
+  font-family: inherit !important;
 }
 </style>

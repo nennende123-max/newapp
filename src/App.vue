@@ -2,7 +2,7 @@
   <div id="app">
     <!-- 全局加载条 -->
     <div v-if="assetStore.isLoading" class="global-loading-bar">
-      <van-loading color="#FCD535" vertical size="20px">加载中...</van-loading>
+      <van-loading color="var(--color-brand-legacy)" vertical size="20px">加载中...</van-loading>
     </div>
 
     <div class="app-header" v-if="showAppHeader">
@@ -22,18 +22,18 @@
             {{ formatAddress(assetStore.walletAddress) }}
           </span>
         </div>
-        
-        <!-- 测试按钮：验证 API 连通性和 Token 自动携带 -->
-        <div 
-          class="test-btn" 
-          @click="handleTestUserInfo"
-          title="测试获取用户信息"
+
+        <button
+          class="theme-toggle-btn"
+          type="button"
+          :aria-label="themeStore.isDark ? 'Switch to light theme' : 'Switch to dark theme'"
+          @click="themeStore.toggleTheme"
         >
-          🛠️
-        </div>
-        
+          <span class="theme-toggle-symbol" aria-hidden="true"></span>
+        </button>
+
         <div class="lang-icon-box" @click="langRef?.open()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EAECEF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="2" y1="12" x2="22" y2="12"></line>
             <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
@@ -43,9 +43,17 @@
     </div>
 
     <div class="main-content" :class="{ 'fullscreen-mode': isFullScreen, 'no-app-header': !showAppHeader }">
+      <div v-if="routeError" class="route-error-card">
+        <van-icon name="warning-o" />
+        <div>
+          <strong>{{ $t('common.error') || 'Page error' }}</strong>
+          <span>{{ routeError }}</span>
+        </div>
+        <button type="button" @click="clearRouteError">重试</button>
+      </div>
       <router-view v-slot="{ Component }">
-        <keep-alive :include="['Home', 'MarketDetail', 'Miner', 'Trade', 'IDO', 'Me']">
-          <component :is="Component" />
+        <keep-alive v-if="!routeError" :include="['Home', 'MarketDetail', 'Miner', 'Trade', 'IDO', 'Me']">
+          <component :is="Component" :key="route.fullPath" />
         </keep-alive>
       </router-view>
     </div>
@@ -53,18 +61,18 @@
     <van-tabbar 
       v-if="!isFullScreen"
       v-model="active" 
-      active-color="#EAECEF" 
-      inactive-color="#8E8E93" 
+      active-color="var(--color-text-primary)" 
+      inactive-color="var(--color-text-secondary)" 
       :border="false" 
       fixed 
       placeholder 
       safe-area-inset-bottom 
       @change="onTabChange"
       style="
-        --van-tabbar-background: #1E2329;
+        --van-tabbar-background: var(--color-bg-elevated);
         --van-tabbar-item-active-background: transparent;
         --van-tabbar-height: 60px;
-        background-color: #1E2329;
+        background-color: var(--color-bg-elevated);
       "
     >
       <van-tabbar-item icon="wap-home-o" name="/">{{ $t('tab.home') }}</van-tabbar-item>
@@ -99,7 +107,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, onErrorCaptured } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { Tabbar, TabbarItem, Icon, showToast } from 'vant';
@@ -107,7 +115,7 @@ import LanguageSelect from './components/LanguageSelect.vue';
 import DisconnectDialog from './components/DisconnectDialog.vue';
 import { useAssetStore } from '@/stores/assets';
 import { useMarketStore } from '@/stores/market';
-import { getCurrentUser } from '@/api/user';
+import { useThemeStore } from '@/stores/theme';
 import BinanceLogo from '@/components/BinanceLogo.vue';
 
 const { t } = useI18n();
@@ -124,8 +132,10 @@ const active = ref('/');
 const routerReady = ref(false);
 const assetStore = useAssetStore();
 const marketStore = useMarketStore();
+const themeStore = useThemeStore();
 const isConnecting = ref(false);
 const showDisconnectDialog = ref(false);
+const routeError = ref('');
 
 // --- 全局通知状态 ---
 const notification = ref({
@@ -247,11 +257,21 @@ const showAppHeader = computed(() => {
 });
 
 // 监听路由
+const normalizeTabPath = (path = '/') => {
+  if (path === '/' || path.startsWith('/home')) return '/';
+  if (path.startsWith('/miner') || path.startsWith('/earn')) return '/miner';
+  if (path.startsWith('/trade') || path.startsWith('/market')) return '/trade';
+  if (path.startsWith('/ido')) return '/ido';
+  if (path.startsWith('/me') || path.startsWith('/profile')) return '/me';
+  return active.value || '/';
+};
+
 watch(
   () => route?.path, 
   (newPath) => {
     if (newPath) {
-      active.value = newPath;
+      routeError.value = '';
+      active.value = normalizeTabPath(newPath);
       routerReady.value = true;
     }
   },
@@ -259,8 +279,23 @@ watch(
 );
 
 const onTabChange = (path) => {
-  router.push(path);
+  routeError.value = '';
+  active.value = path;
+  if (route.path !== path) {
+    router.push(path);
+  }
 };
+
+const clearRouteError = () => {
+  routeError.value = '';
+  router.replace(route.fullPath);
+};
+
+onErrorCaptured((error) => {
+  console.error('[App] route render error:', error);
+  routeError.value = error?.message || 'Current page failed to render';
+  return false;
+});
 
 // 格式化地址显示（截断）
 const formatAddress = (address) => {
@@ -327,48 +362,6 @@ const handleDisconnectCancel = () => {
   showDisconnectDialog.value = false;
 };
 
-// 测试获取用户信息（验证 API 连通性和 Token 自动携带）
-const handleTestUserInfo = async () => {
-  try {
-    console.log('🧪 开始测试获取用户信息...');
-    
-    // 调用 getCurrentUser API
-    // request.js 的请求拦截器会自动从 localStorage 读取 token 并添加到请求头
-    const response = await getCurrentUser();
-    
-    // 成功时：显示后端返回的用户数据
-    const userData = response.data;
-    console.log('✅ 测试成功');
-    console.log('返回数据:', userData);
-    
-    // 使用 alert 显示数据（格式化 JSON）
-    alert(`✅ 测试成功！\n\n返回数据：\n${JSON.stringify(userData, null, 2)}`);
-    
-  } catch (error) {
-    // 失败时：显示错误信息
-    console.error('❌ 测试失败:', error);
-    
-    // 获取错误详情
-    let errorMessage = '请求失败';
-    if (error.response) {
-      // 服务器返回了错误响应
-      errorMessage = `请求失败：${error.response.status} - ${error.response.data?.detail || error.response.data?.message || '未知错误'}`;
-      console.error('错误响应:', error.response.data);
-    } else if (error.request) {
-      // 请求已发出但没有收到响应
-      errorMessage = '请求失败：网络错误或服务器无响应';
-      console.error('请求已发出但无响应:', error.request);
-    } else {
-      // 请求配置错误
-      errorMessage = `请求失败：${error.message}`;
-      console.error('请求配置错误:', error.message);
-    }
-    
-    // 使用 alert 显示错误
-    alert(`❌ ${errorMessage}`);
-  }
-};
-
 // App 启动时初始化数据
 onMounted(async () => {
   try {
@@ -417,13 +410,13 @@ body, html, #app {
 }
 
 .van-cell__title {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-weight: 500;
   flex: auto;
 }
 
 .van-cell__value {
-  color: #8E8E93 !important;
+  color: var(--color-text-secondary) !important;
   font-size: 14px;
 }
 
@@ -433,13 +426,13 @@ body, html, #app {
 }
 
 .van-cell::after {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05) !important;
   left: 16px;
   right: 16px;
 }
 
 .section-group {
-  background: #1C1C1E !important;
+  background: var(--color-bg-card) !important;
   border-radius: 16px !important;
   overflow: hidden;
   margin-bottom: 16px;
@@ -450,7 +443,7 @@ body, html, #app {
   left: 0;
   width: 100%;
   height: 52px;
-  background-color: #1E2329;
+  background-color: var(--color-bg-elevated);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -464,39 +457,85 @@ body, html, #app {
   align-items: center;
   flex-shrink: 0;
 }
-.header-right { display: flex; align-items: center; gap: 16px; }
+.header-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-left: auto;
+}
 
-/* 测试按钮样式 */
-.test-btn {
-  background-color: #383E46;
-  color: #EAECEF;
-  font-size: 18px;
-  padding: 6px 10px;
-  border-radius: var(--radius-button);
-  font-weight: 500;
-  cursor: pointer;
+.theme-toggle-btn {
+  width: 44px;
+  height: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--color-surface-2), var(--color-surface-1));
+  color: var(--color-text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
-  user-select: none;
-  min-width: 36px;
-  height: 32px;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  flex: 0 0 44px;
 }
 
-.test-btn:hover {
-  background-color: #424850;
-  transform: scale(1.05);
-}
-
-.test-btn:active {
+.theme-toggle-btn:active {
   transform: scale(0.95);
-  opacity: 0.8;
+}
+
+.theme-toggle-symbol {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: block;
+  position: relative;
+  background: var(--color-text-primary);
+  box-shadow: inset 7px -2px 0 0 var(--color-primary);
+}
+
+.theme-toggle-symbol::after {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  right: -5px;
+  top: 3px;
+  background: var(--color-primary);
+  box-shadow:
+    -3px 12px 0 0 var(--color-primary),
+    2px 8px 0 -0.5px var(--color-primary);
+  opacity: 0.9;
+}
+
+:global(html[data-theme='dark']) .theme-toggle-btn {
+  background: rgb(var(--color-primary-rgb) / 0.12);
+  border-color: var(--color-primary-border);
+}
+
+:global(html[data-theme='dark']) .theme-toggle-symbol {
+  background: var(--color-primary);
+  box-shadow:
+    0 -8px 0 -6px var(--color-primary),
+    0 8px 0 -6px var(--color-primary),
+    8px 0 0 -6px var(--color-primary),
+    -8px 0 0 -6px var(--color-primary),
+    6px 6px 0 -6px var(--color-primary),
+    -6px -6px 0 -6px var(--color-primary),
+    6px -6px 0 -6px var(--color-primary),
+    -6px 6px 0 -6px var(--color-primary);
+}
+
+:global(html[data-theme='dark']) .theme-toggle-symbol::after {
+  display: none;
 }
 
 .connect-wallet-btn { 
-  background-color: #383E46; 
-  color: #EAECEF; 
+  background-color: var(--color-surface-muted); 
+  color: var(--color-text-primary); 
   font-size: 12px; 
   padding: 6px 12px; 
   border-radius: var(--radius-button); 
@@ -509,10 +548,10 @@ body, html, #app {
   user-select: none;
 }
 .connect-wallet-btn:hover {
-  background-color: #424850;
+  background-color: var(--color-surface-muted);
 }
 .connect-wallet-btn.connected {
-  background-color: #383E46;
+  background-color: var(--color-surface-muted);
   color: var(--color-text-primary);
   border: 1px solid var(--color-earn);
 }
@@ -546,18 +585,59 @@ body, html, #app {
   padding-bottom: 0 !important;
 }
 
+.route-error-card {
+  margin: 18px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 16px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.route-error-card .van-icon {
+  color: var(--color-warning);
+  font-size: 24px;
+}
+
+.route-error-card div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.route-error-card span {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  word-break: break-word;
+}
+
+.route-error-card button {
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: var(--color-primary);
+  color: var(--color-text-on-accent);
+  font-weight: 700;
+}
+
 /* ========== 底部导航栏 Tabbar 美化 ========== */
 
 /* 导航栏背景优化 */
 .van-tabbar { 
-  background-color: #0E0E0E !important; 
-  border-top: 1px solid #1C1C1E !important; 
+  background-color: var(--color-bg) !important; 
+  border-top: 1px solid var(--color-bg-card) !important; 
 }
 
 /* 1. 底部导航选中时，图标背景变黄，图标变黑 */
 :deep(.van-tabbar-item--active .van-tabbar-item__icon) {
-  background-color: #FCD535 !important;
-  color: #000000 !important;
+  background-color: var(--color-brand-legacy) !important;
+  color: var(--color-text-on-accent) !important;
   border-radius: 10px;
   padding: 6px 10px;
   transition: all 0.2s ease;
@@ -565,12 +645,12 @@ body, html, #app {
 
 /* 2. 确保选中时文字也变为品牌黄 */
 :deep(.van-tabbar-item--active) {
-  color: #FCD535 !important;
+  color: var(--color-brand-legacy) !important;
   
 }
 
 :deep(.van-tabbar-item--active .van-tabbar-item__text) {
-  color: #FCD535 !important;
+  color: var(--color-brand-legacy) !important;
   font-weight: 600 !important;
   font-size: 12px !important;
   transition: color 0.2s ease !important;
@@ -578,20 +658,20 @@ body, html, #app {
 
 /* 未选中状态样式 */
 :deep(.van-tabbar-item) {
-  color: #8E8E93 !important;
+  color: var(--color-text-secondary) !important;
   transition: all 0.3s ease !important;
   position: relative;
 }
 
 :deep(.van-tabbar-item:not(.van-tabbar-item--active) .van-tabbar-item__text) {
-  color: #8E8E93 !important;
+  color: var(--color-text-secondary) !important;
   font-weight: 400 !important;
   font-size: 12px !important;
   transition: color 0.3s ease !important;
 }
 
 :deep(.van-tabbar-item:not(.van-tabbar-item--active) .van-tabbar-item__icon) {
-  color: #8E8E93 !important;
+  color: var(--color-text-secondary) !important;
   transition: all 0.3s ease !important;
 }
 
@@ -678,7 +758,7 @@ body, html, #app {
   left: 0;
   right: 0;
   height: 3px;
-  background: rgba(252, 213, 53, 0.2);
+  background: rgb(var(--color-brand-legacy-rgb) / 0.2);
   z-index: 9999;
   display: flex;
   align-items: center;
@@ -688,7 +768,7 @@ body, html, #app {
 }
 
 .global-loading-bar :deep(.van-loading__text) {
-  color: #FCD535;
+  color: var(--color-brand-legacy);
   font-size: 12px;
   margin-top: 4px;
 }
@@ -699,16 +779,16 @@ body, html, #app {
   top: 16px;
   left: 16px;
   right: 16px;
-  background: rgba(28, 28, 30, 0.9);
+  background: rgb(var(--color-surface-rgb) / 0.9);
   backdrop-filter: blur(15px);
-  border: 1px solid rgba(252, 213, 53, 0.3);
+  border: 1px solid rgb(var(--color-brand-legacy-rgb) / 0.3);
   border-radius: 16px;
   padding: 12px 16px;
   z-index: 10000;
   display: flex;
   align-items: center;
   gap: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(252, 213, 53, 0.1);
+  box-shadow: 0 10px 30px rgb(var(--color-shadow-rgb) / 0.5), 0 0 15px rgb(var(--color-brand-legacy-rgb) / 0.1);
   animation: notif-bounce 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   cursor: pointer;
   overflow: hidden;
@@ -720,14 +800,14 @@ body, html, #app {
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at 20% 50%, rgba(252, 213, 53, 0.1), transparent 70%);
+  background: radial-gradient(circle at 20% 50%, rgb(var(--color-brand-legacy-rgb) / 0.1), transparent 70%);
   pointer-events: none;
 }
 
 .notif-icon {
   font-size: 24px;
-  color: #FCD535;
-  background: rgba(252, 213, 53, 0.1);
+  color: var(--color-brand-legacy);
+  background: rgb(var(--color-brand-legacy-rgb) / 0.1);
   padding: 8px;
   border-radius: 12px;
 }
@@ -742,19 +822,19 @@ body, html, #app {
 .notif-title {
   font-size: 14px;
   font-weight: 700;
-  color: #FCD535;
+  color: var(--color-brand-legacy);
   letter-spacing: 0.5px;
 }
 
 .notif-message {
   font-size: 12px;
-  color: #EAECEF;
+  color: var(--color-text-primary);
   opacity: 0.9;
 }
 
 .notif-arrow {
   font-size: 14px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
 }
 
 /* 通知进场离场动画 */

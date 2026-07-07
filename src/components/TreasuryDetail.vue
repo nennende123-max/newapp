@@ -26,11 +26,11 @@
 
         <div class="security-badges">
           <div class="badge-item">
-            <van-icon name="passed" size="14" color="#0ECB81" />
+            <van-icon name="passed" size="14" color="var(--color-earn)" />
             <span>{{ $t('treasury.security_level') }}：AAA</span>
           </div>
           <div class="badge-item">
-            <van-icon name="shield-o" size="14" color="#0ECB81" />
+            <van-icon name="shield-o" size="14" color="var(--color-earn)" />
             <span>{{ $t('treasury.auditor') }}：CertiK</span>
           </div>
         </div>
@@ -43,8 +43,8 @@
           <svg class="trend-chart" viewBox="0 0 300 120" preserveAspectRatio="none">
             <defs>
               <linearGradient id="trendGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" style="stop-color:#0ECB81;stop-opacity:0.3" />
-                <stop offset="100%" style="stop-color:#0ECB81;stop-opacity:0" />
+                <stop offset="0%" style="stop-color:var(--color-earn);stop-opacity:0.3" />
+                <stop offset="100%" style="stop-color:var(--color-earn);stop-opacity:0" />
               </linearGradient>
             </defs>
             <!-- 面积图 -->
@@ -56,7 +56,7 @@
             <path 
               d="M 0 100 Q 50 80 100 70 T 200 50 T 300 40" 
               fill="none" 
-              stroke="#0ECB81" 
+              stroke="var(--color-earn)" 
               stroke-width="2" 
               stroke-linecap="round"
             />
@@ -67,7 +67,7 @@
       <!-- 实时归集记录 -->
       <div class="records-section">
         <div class="section-title">
-          <van-icon name="orders-o" size="16" color="#FCD535" />
+          <van-icon name="orders-o" size="16" color="var(--color-brand-legacy)" />
           <span>{{ $t('treasury.on_chain_records') }}</span>
         </div>
 
@@ -319,9 +319,9 @@ onUnmounted(() => {
 
 <style scoped>
 .treasury-detail-page {
-  background-color: #0E0E0E;
+  background-color: var(--color-bg);
   min-height: 100vh;
-  color: #fff;
+  color: var(--color-text-primary);
   display: flex;
   flex-direction: column;
 }
@@ -333,12 +333,12 @@ onUnmounted(() => {
   align-items: center;
   height: 44px;
   padding: 0 16px;
-  background-color: #0E0E0E;
+  background-color: var(--color-bg);
   position: sticky;
   top: 0;
   z-index: 100;
   flex-shrink: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .header-left, .header-right {
@@ -353,32 +353,32 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: var(--color-bg-input);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.08);
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .back-button :deep(.van-icon) {
-  color: #D4AF37;
+  color: var(--color-accent);
   transition: color 0.3s ease;
 }
 
 .back-button:active {
-  background-color: rgba(212, 175, 55, 0.1);
-  border-color: rgba(212, 175, 55, 0.3);
+  background-color: rgb(var(--color-brand-rgb) / 0.1);
+  border-color: rgb(var(--color-brand-rgb) / 0.3);
   transform: scale(0.95);
 }
 
 .back-button:active :deep(.van-icon) {
-  color: #FCD535;
+  color: var(--color-brand-legacy);
 }
 
 .header-title {
   font-size: 18px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   display: flex;
   align-items: center;
   flex: 1;
@@ -394,11 +394,11 @@ onUnmounted(() => {
 
 /* 头部卡片 */
 .header-card {
-  background: #1C1C1E;
+  background: var(--color-bg-card);
   border-radius: 16px;
   padding: 24px;
   margin-bottom: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .treasury-amount {
@@ -407,7 +407,7 @@ onUnmounted(() => {
 
 .amount-label {
   font-size: 12px;
-  color: #848E9C;
+  color: var(--color-text-muted);
   margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -417,7 +417,7 @@ onUnmounted(() => {
 .amount-value {
   font-size: 36px;
   font-weight: 800;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
   font-variant-numeric: tabular-nums;
   margin-bottom: 8px;
@@ -430,11 +430,11 @@ onUnmounted(() => {
 }
 
 .amount-change.positive {
-  color: #0ECB81;
+  color: var(--color-earn);
 }
 
 .amount-change.negative {
-  color: #F6465D;
+  color: var(--color-loss);
 }
 
 .security-badges {
@@ -448,27 +448,27 @@ onUnmounted(() => {
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  background: rgba(14, 203, 129, 0.1);
-  border: 1px solid rgba(14, 203, 129, 0.2);
+  background: rgb(var(--color-earn-rgb) / 0.1);
+  border: 1px solid rgb(var(--color-earn-rgb) / 0.2);
   border-radius: 8px;
   font-size: 12px;
-  color: #0ECB81;
+  color: var(--color-earn);
   font-weight: 500;
 }
 
 /* 图表区域 */
 .chart-section {
-  background: #1C1C1E;
+  background: var(--color-bg-card);
   border-radius: 16px;
   padding: 20px;
   margin-bottom: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .chart-title {
   font-size: 16px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   margin-bottom: 16px;
 }
 
@@ -485,10 +485,10 @@ onUnmounted(() => {
 
 /* 记录列表 */
 .records-section {
-  background: #1C1C1E;
+  background: var(--color-bg-card);
   border-radius: 16px;
   padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .section-title {
@@ -497,7 +497,7 @@ onUnmounted(() => {
   gap: 8px;
   font-size: 16px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   margin-bottom: 16px;
 }
 
@@ -508,7 +508,7 @@ onUnmounted(() => {
 
 .record-item {
   padding: 16px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
   display: grid;
   grid-template-columns: 80px 1fr auto;
   grid-template-rows: auto auto;
@@ -521,7 +521,7 @@ onUnmounted(() => {
 }
 
 .record-item.new-record {
-  background-color: rgba(14, 203, 129, 0.05);
+  background-color: rgb(var(--color-earn-rgb) / 0.05);
   animation: slideIn 0.5s ease;
 }
 
@@ -540,7 +540,7 @@ onUnmounted(() => {
   grid-column: 1;
   grid-row: 1 / 3;
   font-size: 11px;
-  color: #848E9C;
+  color: var(--color-text-muted);
   font-family: 'DIN Alternate', monospace;
   display: flex;
   align-items: center;
@@ -550,7 +550,7 @@ onUnmounted(() => {
   grid-column: 2;
   grid-row: 1;
   font-size: 13px;
-  color: #EAECEF;
+  color: var(--color-text-primary);
   font-weight: 500;
 }
 
@@ -558,7 +558,7 @@ onUnmounted(() => {
   grid-column: 2;
   grid-row: 2;
   font-size: 11px;
-  color: #5E5E5E;
+  color: var(--color-text-muted);
   font-family: 'DIN Alternate', monospace;
   display: flex;
   align-items: center;
@@ -568,7 +568,7 @@ onUnmounted(() => {
 }
 
 .record-txid:active {
-  color: #FCD535;
+  color: var(--color-brand-legacy);
 }
 
 .copy-icon {
@@ -585,7 +585,7 @@ onUnmounted(() => {
   grid-row: 1 / 3;
   font-size: 16px;
   font-weight: 700;
-  color: #0ECB81;
+  color: var(--color-earn);
   font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
   font-variant-numeric: tabular-nums;
   display: flex;
@@ -594,7 +594,7 @@ onUnmounted(() => {
 }
 
 .record-amount.positive {
-  color: #0ECB81;
+  color: var(--color-earn);
 }
 
 /* 滚动条样式 */
@@ -607,11 +607,11 @@ onUnmounted(() => {
 }
 
 .records-list::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(var(--color-border-rgb) / 0.1);
   border-radius: 2px;
 }
 
 .records-list::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgb(var(--color-border-rgb) / 0.2);
 }
 </style>

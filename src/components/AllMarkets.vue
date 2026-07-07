@@ -114,7 +114,7 @@
 
       <!-- 加载更多提示 -->
       <div v-if="isLoading" class="loading-more">
-        <van-loading type="spinner" size="16px" color="#F0B90B">加载中...</van-loading>
+        <van-loading type="spinner" size="16px" color="var(--color-brand)">加载中...</van-loading>
       </div>
       <div v-if="hasMore === false && displayedMarkets.length > 0" class="no-more">
         没有更多了
@@ -442,7 +442,7 @@ onUnmounted(() => {
 .all-markets-page {
   width: 100%;
   height: 100vh;
-  background-color: #111111;
+  background-color: var(--color-bg);
   font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif !important;
   display: flex;
   flex-direction: column;
@@ -459,14 +459,14 @@ onUnmounted(() => {
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  background-color: #111111;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: var(--color-bg);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.08);
   flex-shrink: 0;
 }
 
 .header-back {
   font-size: 20px;
-  color: #F0B90B;
+  color: var(--color-brand);
   cursor: pointer;
   transition: opacity 0.2s ease;
   flex-shrink: 0;
@@ -481,7 +481,7 @@ onUnmounted(() => {
   position: relative;
   display: flex;
   align-items: center;
-  background-color: #2B3139;
+  background-color: var(--color-surface-muted);
   border-radius: 20px;
   padding: 8px 16px;
   gap: 8px;
@@ -489,7 +489,7 @@ onUnmounted(() => {
 
 .search-icon {
   font-size: 16px;
-  color: #848E9C;
+  color: var(--color-text-muted);
   flex-shrink: 0;
 }
 
@@ -499,24 +499,24 @@ onUnmounted(() => {
   border: none;
   outline: none;
   font-size: 14px;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif !important;
 }
 
 .search-input::placeholder {
-  color: #848E9C;
+  color: var(--color-text-muted);
 }
 
 .clear-icon {
   font-size: 16px;
-  color: #848E9C;
+  color: var(--color-text-muted);
   cursor: pointer;
   flex-shrink: 0;
   transition: color 0.2s ease;
 }
 
 .clear-icon:active {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
 }
 
 /* 二级分类 Tabs */
@@ -524,8 +524,8 @@ onUnmounted(() => {
   display: flex;
   gap: 0;
   padding: 12px 16px;
-  background-color: #111111;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: var(--color-bg);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.08);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -541,7 +541,7 @@ onUnmounted(() => {
   padding: 8px 16px;
   font-size: 14px;
   font-weight: 500;
-  color: #848E9C;
+  color: var(--color-text-muted);
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s ease;
@@ -554,7 +554,7 @@ onUnmounted(() => {
 }
 
 .category-tab.active {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-weight: 700;
 }
 
@@ -565,7 +565,7 @@ onUnmounted(() => {
   left: 16px;
   right: 16px;
   height: 2px;
-  background-color: #F0B90B;
+  background-color: var(--color-brand);
   border-radius: 1px;
 }
 
@@ -578,10 +578,10 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   padding: 12px 16px;
-  background-color: #111111;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: var(--color-bg);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.08);
   font-size: 12px;
-  color: #848E9C;
+  color: var(--color-text-muted);
   font-weight: 500;
   flex-shrink: 0;
 }
@@ -596,7 +596,7 @@ onUnmounted(() => {
 }
 
 .header-col:active {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
 }
 
 .header-col.name-col {
@@ -617,7 +617,7 @@ onUnmounted(() => {
 
 .sort-icon {
   font-size: 10px;
-  color: #F0B90B;
+  color: var(--color-brand);
   line-height: 1;
 }
 
@@ -632,14 +632,14 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   padding: 12px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
   cursor: pointer;
   transition: background-color 0.2s ease;
   min-height: 60px;
 }
 
 .market-item:active {
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: rgb(var(--color-border-rgb) / 0.03);
 }
 
 /* 第一列：币种信息 (40%) */
@@ -659,7 +659,7 @@ onUnmounted(() => {
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgb(var(--color-border-rgb) / 0.1);
 }
 
 .coin-details {
@@ -679,7 +679,7 @@ onUnmounted(() => {
 .coin-symbol-text {
   font-size: 15px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   line-height: 1.2;
 }
 
@@ -688,16 +688,16 @@ onUnmounted(() => {
   align-items: center;
   gap: 6px;
   font-size: 10px;
-  color: #848E9C;
+  color: var(--color-text-muted);
   line-height: 1.2;
 }
 
 .coin-pair {
-  color: #848E9C;
+  color: var(--color-text-muted);
 }
 
 .coin-vol {
-  color: #848E9C;
+  color: var(--color-text-muted);
 }
 
 /* 第二列：最新价格 (30%) */
@@ -712,43 +712,43 @@ onUnmounted(() => {
 .price-value {
   font-size: 16px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', monospace !important;
   font-variant-numeric: tabular-nums;
   transition: color 0.3s ease;
 }
 
 .price-value.flash-green {
-  color: #0ECB81 !important;
+  color: var(--color-earn) !important;
   animation: flashGreen 0.3s ease;
 }
 
 .price-value.flash-red {
-  color: #F6465D !important;
+  color: var(--color-loss) !important;
   animation: flashRed 0.3s ease;
 }
 
 @keyframes flashGreen {
   0% {
-    color: #0ECB81;
+    color: var(--color-earn);
   }
   50% {
-    color: #32D74B;
+    color: var(--color-earn);
   }
   100% {
-    color: #FFFFFF;
+    color: var(--color-text-primary);
   }
 }
 
 @keyframes flashRed {
   0% {
-    color: #F6465D;
+    color: var(--color-loss);
   }
   50% {
-    color: #FF6B7A;
+    color: var(--color-loss);
   }
   100% {
-    color: #FFFFFF;
+    color: var(--color-text-primary);
   }
 }
 
@@ -774,18 +774,18 @@ onUnmounted(() => {
 }
 
 .change-btn.positive {
-  background-color: #0ECB81;
-  color: #FFFFFF;
+  background-color: var(--color-earn);
+  color: var(--color-text-primary);
 }
 
 .change-btn.negative {
-  background-color: #F6465D;
-  color: #FFFFFF;
+  background-color: var(--color-loss);
+  color: var(--color-text-primary);
 }
 
 .change-btn.neutral {
-  background-color: #2B3139;
-  color: #848E9C;
+  background-color: var(--color-surface-muted);
+  color: var(--color-text-muted);
 }
 
 /* 加载更多 */
@@ -793,7 +793,7 @@ onUnmounted(() => {
 .no-more {
   padding: 20px;
   text-align: center;
-  color: #848E9C;
+  color: var(--color-text-muted);
   font-size: 12px;
 }
 

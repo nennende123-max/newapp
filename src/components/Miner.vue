@@ -1,531 +1,929 @@
 <template>
-  <div class="cloud-mining-page">
-
-    <!-- Section 1: Summary cards -->
-    <div class="summary-header">
-      <div class="summary-cards">
-        <div class="summary-card">
-          <div class="summary-card-top">
-            <span class="summary-label">{{ t('miner.cloud_total_assets') }}</span>
-            <van-icon
-              :name="showBalance ? 'eye-o' : 'closed-eye'"
-              class="eye-icon"
-              @click="showBalance = !showBalance"
-            />
+  <div class="earn-page">
+    <main class="earn-content">
+      <section class="asset-overview-card">
+        <span class="overview-kicker">{{ t('miner.earn_assets') }}</span>
+        <strong>{{ formatMoney(earnAssets) }} <small>USDT</small></strong>
+        <div class="overview-stats">
+          <div>
+            <span>{{ t('miner.accumulated_earnings') }}</span>
+            <b>{{ formatMoney(accumulatedEarnings) }} USDT</b>
           </div>
-          <div class="summary-value num">
-            {{ showBalance ? formatAssetValue(cloudMiningAssets) : '****' }}
-            <span class="summary-unit">USDT</span>
+          <div>
+            <span>{{ t('miner.today_earnings') }}</span>
+            <b>{{ formatMoney(todayEstimatedInterest) }} USDT</b>
           </div>
         </div>
-        <div class="summary-card">
-          <span class="summary-label">{{ t('miner.cloud_total_earnings') }}</span>
-          <div class="summary-value num text-earn">
-            {{ showBalance ? formatAssetValue(totalProfit) : '****' }}
-            <span class="summary-unit">USDT</span>
-          </div>
-        </div>
-      </div>
+      </section>
 
-      <!-- Quick access -->
-      <div class="nav-grid">
-        <div
-          v-for="nav in navItems"
-          :key="nav.key"
-          class="nav-item"
-          @click="handleNavClick(nav.key)"
+      <div class="earn-tabs" role="tablist">
+        <button
+          type="button"
+          :class="{ active: activeEarnTab === 'token' }"
+          @click="activeEarnTab = 'token'"
         >
-          <div class="nav-icon">
-            <van-icon :name="nav.icon" />
+          {{ t('miner.token_earn') }}
+        </button>
+        <button
+          type="button"
+          :class="{ active: activeEarnTab === 'interest' }"
+          @click="activeEarnTab = 'interest'"
+        >
+          {{ t('miner.interest_earn') }}
+        </button>
+      </div>
+
+      <section v-if="activeEarnTab === 'token'" class="product-card">
+        <div class="product-head">
+          <div>
+            <span class="status-badge">{{ t('miner.open') }}</span>
+            <h1>{{ t('miner.crypto_earns_crypto') }}</h1>
+            <p>{{ t('miner.crypto_earns_crypto_subtitle') }}</p>
           </div>
-          <span class="nav-label">{{ nav.label }}</span>
+          <div class="apy-block">
+            <strong>12% - 28%</strong>
+            <span>{{ t('miner.est_apy') }}</span>
+          </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Section 2: Institutional miner list -->
-    <section class="miner-marketplace">
-      <h2 class="section-title">{{ $t('inst_power') }}</h2>
-
-      <div v-if="loading" class="loading-box">
-        <van-loading color="#F0B90B" vertical>{{ $t('update_db') }}</van-loading>
-      </div>
-
-      <div v-else class="miner-list">
-        <div v-for="m in minersFromDB" :key="m.id" class="miner-card">
-          <div class="miner-card-header">
-            <div class="miner-title-block">
-              <h3 class="miner-name">{{ m.name }}</h3>
-              <span class="miner-pair">{{ m.pair }}</span>
-            </div>
-            <span class="m-badge">{{ $t('safe_sla') }}</span>
+        <div class="product-highlight">
+          <div>
+            <span>{{ t('miner.reward_token') }}</span>
+            <strong>{{ rewardToken }}</strong>
           </div>
-
-          <div class="miner-data-rows">
-            <div class="data-row split">
-              <div class="data-left">
-                <span class="data-label">{{ t('miner.est_apy') }}</span>
-                <span class="apy-value num">{{ m.rate }}%</span>
-              </div>
-              <div class="data-right">
-                <span class="data-label">
-                  <van-icon name="lock" class="lock-icon" />
-                  {{ t('miner.cycle_label') }}
-                </span>
-                <span class="cycle-value num">{{ m.days }}{{ t('earn.days') }}</span>
-              </div>
-            </div>
-            <div class="data-row full">
-              <span class="data-label">{{ t('miner.min_purchase_price') }}</span>
-              <span class="price-value num">${{ formatPrice(m.price) }}</span>
-            </div>
+          <div>
+            <span>{{ t('miner.estimated_reward') }}</span>
+            <strong>{{ formatToken(userEstimatedReward) }} {{ rewardToken }}</strong>
           </div>
+        </div>
 
-          <button class="m-buy-btn btn-cta" @click="confirmRent(m)">
-            {{ t('earn.rent_now') }}
+        <div class="meta-block">
+          <span>{{ t('miner.cycle_label') }}</span>
+          <div class="term-chips">
+            <button
+              v-for="term in termOptions"
+              :key="term"
+              type="button"
+              :class="{ active: selectedTerm === term }"
+              @click="selectedTerm = term"
+            >
+              {{ term }}{{ t('earn.days') }}
+            </button>
+          </div>
+        </div>
+
+        <div class="form-panel">
+          <button class="selector-field" type="button" @click="openAssetSheet('token')">
+            <span>{{ t('miner.select_asset') }}</span>
+            <strong>{{ selectedStakeAsset }} <van-icon name="arrow" /></strong>
           </button>
+          <label class="amount-field">
+            <span>{{ t('miner.input_amount') }}</span>
+            <input v-model="stakeAmount" type="number" inputmode="decimal" min="0" />
+          </label>
+          <div class="estimate-row">
+            <span>{{ t('miner.estimated_reward') }}</span>
+            <strong>{{ formatToken(userEstimatedReward) }} {{ rewardToken }}</strong>
+          </div>
         </div>
-      </div>
-    </section>
 
-    <!-- 规则中心弹窗 -->
-    <van-popup 
-      v-model:show="showRulesPopup" 
-      position="bottom" 
+        <button class="primary-action" type="button" @click="joinCryptoEarn">
+          {{ t('miner.join_now') }}
+        </button>
+      </section>
+
+      <section v-else class="product-card">
+        <div class="product-head">
+          <div>
+            <span class="status-badge">{{ t('miner.open') }}</span>
+            <h1>{{ t('miner.crypto_earns_interest') }}</h1>
+            <p>{{ t('miner.crypto_earns_interest_subtitle') }}</p>
+          </div>
+          <div class="apy-block">
+            <strong>0.6%</strong>
+            <span>{{ t('miner.daily_rate') }}</span>
+          </div>
+        </div>
+
+        <div class="interest-metrics">
+          <div>
+            <span>{{ t('miner.select_asset') }}</span>
+            <strong>{{ depositAsset }}</strong>
+          </div>
+          <div>
+            <span>{{ t('miner.estimated_apr') }}</span>
+            <strong>219%</strong>
+          </div>
+          <div>
+            <span>{{ t('miner.interest_method') }}</span>
+            <strong>{{ t('miner.daily_interest') }}</strong>
+          </div>
+          <div>
+            <span>{{ t('miner.today_estimated') }}</span>
+            <strong>{{ formatAmount(todayEstimatedInterest) }} {{ depositAsset }}</strong>
+          </div>
+        </div>
+
+        <div class="form-panel">
+          <button class="selector-field" type="button" @click="openAssetSheet('interest')">
+            <span>{{ t('miner.select_asset') }}</span>
+            <strong>{{ depositAsset }} <van-icon name="arrow" /></strong>
+          </button>
+          <label class="amount-field">
+            <span>{{ t('miner.subscribe_amount') }}</span>
+            <input v-model="depositAmount" type="number" inputmode="decimal" min="0" />
+          </label>
+          <div class="estimate-row">
+            <span>{{ t('miner.accumulated_interest') }}</span>
+            <strong>{{ formatAmount(accumulatedInterest) }} {{ depositAsset }}</strong>
+          </div>
+        </div>
+
+        <button class="primary-action" type="button" @click="subscribeInterestEarn">
+          {{ t('miner.subscribe_now') }}
+        </button>
+      </section>
+
+      <section class="records-card">
+        <div class="records-head">
+          <h2>{{ t('miner.my_income_records') }}</h2>
+          <span>{{ activeEarnTab === 'token' ? t('miner.token_earn_records') : t('miner.interest_earn_records') }}</span>
+        </div>
+
+        <div v-if="currentRecords.length === 0" class="empty-state">
+          <van-icon name="orders-o" />
+          <strong>{{ t('miner.no_income_records') }}</strong>
+        </div>
+
+        <article v-for="record in visibleRecords" v-else :key="record.id" class="record-card">
+          <div class="record-title">
+            <strong>{{ record.typeLabel }}</strong>
+            <span class="status-badge subtle">{{ record.statusLabel }}</span>
+          </div>
+          <div class="record-grid">
+            <span>{{ activeEarnTab === 'token' ? t('miner.investment_asset') : t('miner.subscription_asset') }}</span>
+            <b>{{ record.asset }}</b>
+            <span>{{ activeEarnTab === 'token' ? t('miner.investment_amount') : t('miner.subscription_amount') }}</span>
+            <b>{{ formatAmount(record.amount) }}</b>
+            <span>{{ activeEarnTab === 'token' ? t('miner.reward_token') : t('miner.daily_rate') }}</span>
+            <b>{{ activeEarnTab === 'token' ? rewardToken : '0.6%' }}</b>
+            <span>{{ activeEarnTab === 'token' ? t('miner.estimated_reward') : t('miner.accumulated_interest') }}</span>
+            <b>{{ record.rewardDisplay }}</b>
+          </div>
+        </article>
+
+        <button
+          v-if="currentRecords.length > 2"
+          class="view-all-action"
+          type="button"
+          @click="showAllRecords = !showAllRecords"
+        >
+          {{ showAllRecords ? t('launchpad_subscribe.collapse') : t('launchpad_subscribe.view_all') }}
+        </button>
+      </section>
+    </main>
+
+    <van-popup
+      v-model:show="showAssetSheet"
+      position="bottom"
       round
       closeable
-      class="dark-rules-popup"
-      :close-on-click-overlay="true"
+      class="asset-sheet"
+      :overlay-style="{ background: 'rgba(0,0,0,0.35)' }"
     >
-      <div class="rules-content">
-        <h3 class="rules-title">{{ $t('miner.rules_center') }}</h3>
-        <div class="rules-body">
-          <div class="rule-section">
-            <h4 class="rule-section-title">{{ $t('miner.mining_rules') }}</h4>
-            <p class="rule-section-text">{{ $t('miner.mining_rules_desc') }}</p>
-          </div>
-        </div>
+      <div class="sheet-handle"></div>
+      <h2>{{ t('miner.select_asset') }}</h2>
+      <div class="asset-list">
+        <button
+          v-for="asset in supportedStakeAssets"
+          :key="asset"
+          type="button"
+          :class="{ active: currentSheetAsset === asset }"
+          @click="selectAsset(asset)"
+        >
+          <span>
+            <strong>{{ asset }}</strong>
+            <small>{{ assetFullName(asset) }}</small>
+          </span>
+          <van-icon v-if="currentSheetAsset === asset" name="success" />
+        </button>
       </div>
     </van-popup>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onActivated } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import { useI18n } from 'vue-i18n';
-import { showToast, showConfirmDialog } from 'vant';
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { showToast } from 'vant'
 
-defineOptions({
-  name: 'Miner'
-});
+defineOptions({ name: 'Miner' })
 
-const router = useRouter();
-const route = useRoute();
-const { t } = useI18n();
+const { t } = useI18n()
 
-const loading = ref(false);
-const showBalance = ref(true);
-const showRulesPopup = ref(false);
-const cloudMiningAssets = ref(1234.56);
-const totalProfit = ref(342.8);
+const DAY_SECONDS = 86400
+const now = ref(Date.now())
+const activeEarnTab = ref('token')
+const showAssetSheet = ref(false)
+const showAllRecords = ref(false)
+const assetSheetMode = ref('token')
+const selectedStakeAsset = ref('USDT')
+const stakeAmount = ref(100)
+const selectedTerm = ref(15)
+const campaignStartTime = ref(Date.now() - 6 * 60 * 60 * 1000)
+const stakeStartTime = ref(Date.now() - 2 * 60 * 60 * 1000)
+const stakeEndTime = ref(Date.now() + 15 * 24 * 60 * 60 * 1000)
+const rewardToken = ref('NEW')
+const rewardPoolAmount = ref(600000)
+const totalPoolStakeAmount = ref(1200000)
+const principalLocked = ref(0)
+const depositAsset = ref('USDT')
+const depositAmount = ref(1000)
+const dailyRate = ref(0.006)
+const interestStartTime = ref(Date.now() - 4 * 60 * 60 * 1000)
+const interestEndTime = ref(Date.now() + 30 * 24 * 60 * 60 * 1000)
+const earnCryptoRecords = reactive([])
+const earnInterestRecords = reactive([])
+const supportedStakeAssets = ['USDT', 'BNB', 'ETH', 'BTC', 'SOL']
+const termOptions = [7, 15, 30]
 
-const navItems = computed(() => [
-  {
-    key: 'marketplace',
-    label: t('miner.marketplace'),
-    icon: 'shop-o'
-  },
-  {
-    key: 'my_miners',
-    label: t('miner.my_miners'),
-    icon: 'cluster-o'
-  },
-  {
-    key: 'history',
-    label: t('miner.revenue_record'),
-    icon: 'bill-o'
-  }
-]);
+let timer = null
 
-const minersFromDB = ref([
-  { id: 1, name: 'Antminer S21', pair: 'BTC / USDT', rate: 2.5, days: 30, price: 1000 },
-  { id: 2, name: 'Avalon A14', pair: 'BTC / USDT', rate: 3.2, days: 60, price: 2500 },
-  { id: 3, name: 'Antminer S19 XP', pair: 'USDT', rate: 1.8, days: 90, price: 500 }
-]);
+const activeSeconds = computed(() => {
+  return Math.max(0, (Math.min(now.value, stakeEndTime.value) - stakeStartTime.value) / 1000)
+})
 
-// --- 格式化资产值（支持国际化） ---
-const formatAssetValue = (value) => {
-  if (value >= 10000) {
-    return `${(value / 10000).toFixed(2)}${t('miner.ten_thousand')}`;
-  }
-  return value.toLocaleString('en-US', {
+const durationSeconds = computed(() => {
+  return Math.max(1, (stakeEndTime.value - campaignStartTime.value) / 1000)
+})
+
+const userEstimatedReward = computed(() => {
+  const userShare = Number(stakeAmount.value) / Number(totalPoolStakeAmount.value)
+  const timeRatio = Math.min(1, activeSeconds.value / durationSeconds.value)
+  return Number(rewardPoolAmount.value) * userShare * timeRatio
+})
+
+const userFinalReward = computed(() => {
+  return now.value >= stakeEndTime.value ? userEstimatedReward.value : 0
+})
+
+const interestActiveSeconds = computed(() => {
+  return Math.max(0, (Math.min(now.value, interestEndTime.value) - interestStartTime.value) / 1000)
+})
+
+const todayEstimatedInterest = computed(() => {
+  return Number(depositAmount.value) * Number(dailyRate.value)
+})
+
+const accumulatedInterest = computed(() => {
+  return Number(depositAmount.value) * Number(dailyRate.value) * (interestActiveSeconds.value / DAY_SECONDS)
+})
+
+const finalInterest = computed(() => {
+  return now.value >= interestEndTime.value ? accumulatedInterest.value : 0
+})
+
+const earnAssets = computed(() => {
+  return Number(principalLocked.value) + Number(depositAmount.value)
+})
+
+const accumulatedEarnings = computed(() => {
+  return accumulatedInterest.value + (userEstimatedReward.value * 0.045)
+})
+
+const earnRecords = computed(() => {
+  const cryptoRecords = earnCryptoRecords.map(record => ({
+    ...record,
+    kind: 'token',
+    typeLabel: t('miner.crypto_earns_crypto'),
+    rewardDisplay: `${formatToken(userFinalReward.value || userEstimatedReward.value)} ${rewardToken.value}`,
+    statusLabel: now.value >= stakeEndTime.value ? t('miner.unlockable') : t('miner.active')
+  }))
+  const interestRecords = earnInterestRecords.map(record => ({
+    ...record,
+    kind: 'interest',
+    typeLabel: t('miner.crypto_earns_interest'),
+    rewardDisplay: `${formatAmount(finalInterest.value || accumulatedInterest.value)} ${record.asset}`,
+    statusLabel: now.value >= interestEndTime.value ? t('miner.claimable') : t('miner.active')
+  }))
+  return [...cryptoRecords, ...interestRecords]
+})
+
+const currentRecords = computed(() => (
+  earnRecords.value.filter(record => record.kind === activeEarnTab.value)
+))
+
+const visibleRecords = computed(() => (
+  showAllRecords.value ? currentRecords.value : currentRecords.value.slice(0, 2)
+))
+
+const currentSheetAsset = computed(() => (
+  assetSheetMode.value === 'interest' ? depositAsset.value : selectedStakeAsset.value
+))
+
+const formatMoney = (value) => {
+  return Number(value || 0).toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
-  });
-};
-
-const formatPrice = (value) => {
-  return Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 });
-};
-
-const handleNavClick = (key) => {
-  switch (key) {
-    case 'marketplace':
-      router.push('/earn');
-      break;
-    case 'my_miners':
-      showToast(t('miner.my_miners'));
-      break;
-    case 'history':
-      router.push('/history');
-      break;
-    default:
-      break;
-  }
-};
-
-const confirmRent = (miner) => {
-  showConfirmDialog({
-    title: t('earn.rent_now'),
-    message: `${miner.name} · $${formatPrice(miner.price)}`,
-    confirmButtonColor: '#F0B90B'
   })
-    .then(() => showToast({ message: t('miner.mining_rules_desc'), icon: 'success' }))
-    .catch(() => {});
-};
+}
 
-const loadMiners = () => {
-  loading.value = true;
-  setTimeout(() => {
-    loading.value = false;
-  }, 400);
-};
+const formatToken = (value) => {
+  return Number(value || 0).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 4
+  })
+}
+
+const formatAmount = (value) => {
+  return Number(value || 0).toLocaleString('en-US', {
+    maximumFractionDigits: 6
+  })
+}
+
+const assetFullName = (asset) => ({
+  USDT: 'Tether USD',
+  BNB: 'BNB',
+  ETH: 'Ethereum',
+  BTC: 'Bitcoin',
+  SOL: 'Solana'
+}[asset] || asset)
+
+const openAssetSheet = (mode = activeEarnTab.value) => {
+  assetSheetMode.value = mode
+  showAssetSheet.value = true
+}
+
+const selectAsset = (asset) => {
+  if (assetSheetMode.value === 'interest') {
+    depositAsset.value = asset
+  } else {
+    selectedStakeAsset.value = asset
+  }
+  showAssetSheet.value = false
+}
+
+const joinCryptoEarn = () => {
+  principalLocked.value += Number(stakeAmount.value)
+  earnCryptoRecords.unshift({
+    id: `crypto-${Date.now()}`,
+    asset: selectedStakeAsset.value,
+    amount: Number(stakeAmount.value),
+    term: selectedTerm.value
+  })
+  showToast({ message: t('miner.join_success'), icon: 'success' })
+}
+
+const subscribeInterestEarn = () => {
+  earnInterestRecords.unshift({
+    id: `interest-${Date.now()}`,
+    asset: depositAsset.value,
+    amount: Number(depositAmount.value)
+  })
+  showToast({ message: t('miner.subscribe_success'), icon: 'success' })
+}
 
 onMounted(() => {
-  loadMiners();
-  if (route.query.minerId) {
-    const id = Number(route.query.minerId);
-    if (minersFromDB.value.some(m => m.id === id || String(m.id) === route.query.minerId)) {
-      // miner deep-link from earn page
-    }
-  }
-});
+  timer = setInterval(() => {
+    now.value = Date.now()
+  }, 1000)
+})
 
-onActivated(() => {
-  loadMiners();
-});
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+})
 </script>
 
 <style scoped>
-.cloud-mining-page {
-  background: var(--color-bg, #0B0E11);
+.earn-page {
+  --earn-bg: #f5f6f8;
+  --earn-card: #ffffff;
+  --earn-yellow: #f0b90b;
+  --earn-text: #111827;
+  --earn-muted: #6b7280;
+  --earn-border: #eaecef;
+  --earn-success: #16a34a;
   min-height: 100vh;
-  padding: 16px;
-  padding-bottom: 80px;
-  color: var(--color-text-primary, #EAECEF);
+  padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  background: var(--earn-bg);
+  color: var(--earn-text);
   font-family: var(--font-ui);
+  font-variant-numeric: tabular-nums;
 }
 
-/* Section 1: Summary */
-.summary-header {
-  margin-bottom: 20px;
+.earn-page,
+.earn-page * {
+  box-sizing: border-box;
 }
 
-.summary-cards {
+.earn-page button,
+.earn-page input {
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+}
+
+.earn-page button {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.earn-content {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.asset-overview-card {
+  min-height: 148px;
+  padding: 20px;
+  border-radius: 20px;
+  color: #ffffff;
+  background:
+    radial-gradient(circle at 85% 15%, rgb(240 185 11 / 0.34), transparent 34%),
+    linear-gradient(145deg, #111827 0%, #182232 52%, #0b1220 100%);
+  box-shadow: 0 18px 36px rgb(17 24 39 / 0.16);
+  overflow: hidden;
+}
+
+.overview-kicker {
+  display: block;
+  color: #c7ccd4;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.asset-overview-card > strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 25px;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.asset-overview-card small {
+  font-size: 13px;
+  color: #d1d5db;
+}
+
+.overview-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: 12px;
+  margin-top: 20px;
 }
 
-.summary-card {
-  background: var(--color-bg-elevated, #1E2329);
-  border-radius: var(--radius-card, 16px);
-  border: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.05));
-  padding: 14px;
+.overview-stats div {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
-.summary-card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 6px;
-}
-
-.summary-label {
-  font-size: 11px;
-  color: var(--color-text-secondary, #848E9C);
-  font-weight: 500;
-  line-height: 1.3;
-}
-
-.eye-icon {
-  font-size: 16px;
-  color: var(--color-text-secondary, #848E9C);
-  flex-shrink: 0;
-}
-
-.summary-value {
-  font-size: 18px;
-  font-weight: 700;
-  color: #FFFFFF;
-  font-family: var(--font-number);
-  font-variant-numeric: tabular-nums;
-  line-height: 1.2;
-}
-
-.summary-value.text-earn {
-  color: var(--color-earn, #0ECB81);
-}
-
-.summary-unit {
+.overview-stats span {
+  color: #c7ccd4;
   font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-secondary, #848E9C);
-  margin-left: 2px;
+  font-weight: 400;
 }
 
-.nav-grid {
+.overview-stats b {
+  color: var(--earn-yellow);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.earn-tabs {
+  height: 48px;
+  padding: 4px;
+  border: 1px solid var(--earn-border);
+  border-radius: 14px;
+  background: #ffffff;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  grid-template-columns: 1fr 1fr;
 }
 
-.nav-grid .nav-item {
-  display: flex;
-  flex-direction: column;
+.earn-tabs button {
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--earn-muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.earn-tabs button.active {
+  background: var(--earn-yellow);
+  color: #111827;
+}
+
+.product-card,
+.records-card {
+  padding: 18px;
+  border: 1px solid var(--earn-border);
+  border-radius: 18px;
+  background: var(--earn-card);
+  box-shadow: 0 10px 26px rgb(17 24 39 / 0.055);
+}
+
+.product-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: start;
+}
+
+.product-head h1 {
+  margin: 10px 0 0;
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.product-head p {
+  margin: 7px 0 0;
+  color: var(--earn-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.status-badge {
+  height: 22px;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  cursor: pointer;
-}
-
-.nav-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-button, 8px);
-  background: var(--color-bg-elevated, #1E2329);
-  border: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.08));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-primary, #EAECEF);
-  font-size: 20px;
-}
-
-.nav-label {
+  width: fit-content;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #eaf8f0;
+  color: var(--earn-success);
   font-size: 11px;
-  color: var(--color-text-secondary, #848E9C);
-  text-align: center;
-  line-height: 1.3;
-}
-
-/* Section 2: Marketplace */
-.miner-marketplace {
-  margin-top: 4px;
-}
-
-.section-title {
-  margin: 0 0 14px;
-  font-size: 16px;
   font-weight: 700;
-  color: var(--color-text-primary, #EAECEF);
 }
 
-.loading-box {
-  display: flex;
-  justify-content: center;
-  padding: 40px;
+.status-badge.subtle {
+  color: var(--earn-muted);
+  background: #f1f3f5;
 }
 
-.miner-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.miner-card {
-  background: var(--color-bg-elevated, #1E2329);
-  border-radius: var(--radius-card, 16px);
-  padding: 16px;
-  border: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.05));
-}
-
-.miner-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-
-.miner-title-block {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.miner-name {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 700;
-  color: #FFFFFF;
-}
-
-.miner-pair {
-  font-size: 12px;
-  color: var(--color-text-secondary, #848E9C);
-  font-weight: 500;
-}
-
-.m-badge {
-  font-size: 10px;
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--color-text-secondary, #848E9C);
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.miner-data-rows {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-.data-row.split {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 12px;
-}
-
-.data-row.full {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 10px;
-  border-top: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.06));
-}
-
-.data-left,
-.data-right {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.data-right {
-  align-items: flex-end;
+.apy-block {
   text-align: right;
 }
 
-.data-label {
-  font-size: 11px;
-  color: var(--color-text-secondary, #848E9C);
+.apy-block strong {
+  display: block;
+  color: var(--earn-success);
+  font-size: 24px;
+  line-height: 1.1;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.apy-block span {
+  color: var(--earn-muted);
+  font-size: 12px;
+}
+
+.product-highlight,
+.estimate-row,
+.selector-field {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.product-highlight {
+  min-height: 72px;
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fafafa 0%, #f6f7f9 100%);
+  border: 1px solid var(--earn-border);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.product-highlight div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.product-highlight span,
+.estimate-row span,
+.selector-field span,
+.amount-field span,
+.interest-metrics span,
+.record-grid span {
+  color: var(--earn-muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.product-highlight strong,
+.estimate-row strong,
+.selector-field strong,
+.interest-metrics strong,
+.record-grid b {
+  color: var(--earn-text);
+  font-size: 15px;
+  font-weight: 600;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.meta-block {
+  margin-top: 16px;
+}
+
+.meta-block > span {
+  display: block;
+  color: var(--earn-muted);
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.term-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.term-chips button {
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--earn-border);
+  background: #f9fafb;
+  color: var(--earn-text);
   display: inline-flex;
   align-items: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.term-chips button.active {
+  border-color: var(--earn-yellow);
+  background: #fff7db;
+  color: #8a6a00;
+}
+
+.interest-metrics {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.interest-metrics div {
+  min-height: 58px;
+  padding: 10px;
+  border-radius: 12px;
+  background: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-panel {
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #f9fafb;
+  border: 1px solid var(--earn-border);
+}
+
+.selector-field {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  color: var(--earn-text);
+}
+
+.amount-field {
+  min-height: 54px;
+  margin-top: 8px;
+  padding: 8px 0;
+  border-top: 1px solid var(--earn-border);
+  border-bottom: 1px solid var(--earn-border);
+  display: grid;
+  grid-template-columns: 1fr minmax(90px, 44%);
+  gap: 12px;
+  align-items: center;
+}
+
+.amount-field input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--earn-text);
+  text-align: right;
+  font-size: 20px;
+  font-weight: 700;
+  min-width: 0;
+}
+
+.estimate-row {
+  padding-top: 8px;
+}
+
+.primary-action {
+  width: 100%;
+  height: 48px;
+  margin-top: 16px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--earn-yellow);
+  color: #111827;
+  font-size: 15px;
+  font-weight: 800;
+  box-shadow: 0 10px 22px rgb(240 185 11 / 0.24);
+}
+
+.primary-action:active,
+.term-chips button:active,
+.selector-field:active,
+.asset-list button:active {
+  transform: translateY(1px);
+}
+
+.records-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.records-head h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.records-head span {
+  color: var(--earn-muted);
+  font-size: 12px;
+}
+
+.empty-state {
+  margin-top: 12px;
+  min-height: 112px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fafafa 0%, #f5f6f8 100%);
+  color: var(--earn-muted);
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+}
+
+.empty-state :deep(.van-icon) {
+  font-size: 24px;
+  color: #c3c7cf;
+}
+
+.empty-state strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.record-card {
+  margin-top: 10px;
+  padding: 14px;
+  border-radius: 14px;
+  background: #f9fafb;
+  border: 1px solid var(--earn-border);
+}
+
+.record-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.record-title > strong {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.record-grid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 7px 12px;
+}
+
+.record-grid b {
+  text-align: right;
+}
+
+.view-all-action {
+  width: 100%;
+  height: 38px;
+  margin-top: 10px;
+  border: 0;
+  border-radius: 10px;
+  background: #fff7db;
+  color: #8a6a00;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.asset-sheet {
+  max-height: 70vh;
+  overflow: hidden;
+  border-radius: 20px 20px 0 0;
+  background: #ffffff;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.sheet-handle {
+  width: 40px;
+  height: 4px;
+  margin: 10px auto 8px;
+  border-radius: 999px;
+  background: #d1d5db;
+}
+
+.asset-sheet h2 {
+  margin: 0;
+  padding: 0 20px 12px;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.asset-list {
+  max-height: calc(70vh - 58px);
+  overflow-y: auto;
+  padding: 0 16px 16px;
+}
+
+.asset-list button {
+  width: 100%;
+  min-height: 64px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-bottom-color: var(--earn-border);
+  border-radius: 12px;
+  background: #ffffff;
+  color: var(--earn-text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+}
+
+.asset-list button.active {
+  border-color: var(--earn-yellow);
+  background: #fff7db;
+}
+
+.asset-list span {
+  display: flex;
+  flex-direction: column;
   gap: 3px;
 }
 
-.lock-icon {
-  font-size: 11px;
-}
-
-.apy-value {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--color-earn, #0ECB81);
-  font-family: var(--font-number);
-  font-variant-numeric: tabular-nums;
-}
-
-.cycle-value,
-.price-value {
+.asset-list strong {
   font-size: 15px;
   font-weight: 700;
-  color: var(--color-text-primary, #EAECEF);
-  font-family: var(--font-number);
-  font-variant-numeric: tabular-nums;
 }
 
-.m-buy-btn {
-  width: 100%;
-  background: var(--color-brand, #F0B90B);
-  border: none;
-  padding: 12px;
-  border-radius: var(--radius-button, 8px);
-  font-weight: 700;
-  font-size: 14px;
-  color: #000;
-  cursor: pointer;
+.asset-list small {
+  color: var(--earn-muted);
+  font-size: 12px;
 }
 
-.m-buy-btn:active {
-  opacity: 0.85;
+.asset-list :deep(.van-icon) {
+  color: var(--earn-yellow);
 }
 
-.num {
-  font-family: var(--font-number);
-  font-variant-numeric: tabular-nums;
-}
+@media (max-width: 390px) {
+  .earn-content {
+    padding: 14px 14px 18px;
+  }
 
-.text-earn {
-  color: var(--color-earn, #0ECB81);
-}
+  .product-head {
+    grid-template-columns: 1fr;
+  }
 
-/* Rules popup */
-.dark-rules-popup {
-  background-color: #1E2329 !important;
-  color: #EAECEF !important;
-  max-height: 60% !important;
-}
+  .apy-block {
+    text-align: left;
+  }
 
-:deep(.dark-rules-popup .van-popup__close-icon) {
-  color: #FFFFFF !important;
-}
-
-.rules-content {
-  padding: 0;
-}
-
-.rules-title {
-  text-align: center;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--color-brand, #F0B90B);
-  margin: 20px 0;
-  padding: 0 20px;
-}
-
-.rules-body {
-  padding: 0 20px 40px;
-  font-size: 14px;
-  line-height: 1.6;
-  color: #848E9C;
-}
-
-.rule-section-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: #FFFFFF;
-  margin-bottom: 12px;
-}
-
-.rule-section-text {
-  font-size: 14px;
-  color: #848E9C;
-  line-height: 1.6;
-  margin: 0;
-}
-
-:deep(.van-icon) {
-  font-family: 'vant-icon', sans-serif !important;
+  .product-highlight {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

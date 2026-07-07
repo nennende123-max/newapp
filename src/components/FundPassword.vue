@@ -7,7 +7,7 @@
       placeholder
       :border="false"
       @click-left="handleBack"
-      style="--van-nav-bar-background: #000000; --van-nav-bar-title-text-color: #FCD535; --van-nav-bar-icon-color: #FCD535;"
+      style="--van-nav-bar-background: var(--color-bg); --van-nav-bar-title-text-color: var(--color-brand-legacy); --van-nav-bar-icon-color: var(--color-brand-legacy);"
     />
     
     <div class="content-wrapper" :class="{ 'keyboard-open': showKeyboard }">
@@ -41,7 +41,7 @@
           </div>
         </div>
         <div class="eye-toggle" @click.stop="togglePasswordVisibility">
-          <van-icon :name="showPassword ? 'eye' : 'eye-o'" size="20" color="#8E8E93" />
+          <van-icon :name="showPassword ? 'eye' : 'eye-o'" size="20" color="var(--color-text-secondary)" />
         </div>
       </div>
 
@@ -295,7 +295,7 @@ const handleConfirm = () => {
 <style scoped>
 .fund-password-page {
   min-height: 100vh;
-  background-color: #000000; /* 纯黑背景，使黄色元素更突出 */
+  background-color: var(--color-bg); /* 纯黑背景，使黄色元素更突出 */
   padding-top: 12px;
   font-family: 'DIN Alternate', 'Roboto', sans-serif;
 }
@@ -326,7 +326,7 @@ const handleConfirm = () => {
 
 .step-text {
   font-size: 16px;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-weight: 500;
   text-align: center;
   font-variant-numeric: tabular-nums;
@@ -354,12 +354,12 @@ const handleConfirm = () => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgb(var(--color-border-rgb) / 0.2);
   transition: all 0.3s ease;
 }
 
 .dot.active {
-  background-color: #FCD535;
+  background-color: var(--color-brand-legacy);
   width: 24px;
   border-radius: 4px;
 }
@@ -386,10 +386,10 @@ const handleConfirm = () => {
 .password-item {
   width: 48px;
   height: 48px;
-  background-color: #1C1C1E;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--color-bg-card);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.1);
   border-radius: 8px;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-size: 20px;
   font-weight: 600;
   display: flex;
@@ -400,13 +400,13 @@ const handleConfirm = () => {
 }
 
 .password-item.is-filled {
-  border-color: #FCD535;
+  border-color: var(--color-brand-legacy);
 }
 
 .password-item.is-focused {
-  border-color: #FCD535;
-  background-color: rgba(252, 213, 53, 0.1);
-  box-shadow: 0 0 8px rgba(252, 213, 53, 0.3);
+  border-color: var(--color-brand-legacy);
+  background-color: rgb(var(--color-brand-legacy-rgb) / 0.1);
+  box-shadow: 0 0 8px rgb(var(--color-brand-legacy-rgb) / 0.3);
 }
 
 /* 眼睛图标切换按钮 */
@@ -430,7 +430,7 @@ const handleConfirm = () => {
 /* 提示文字 */
 .hint-text {
   font-size: 13px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   text-align: center;
   line-height: 1.5;
   padding: 0 20px;
@@ -444,17 +444,17 @@ const handleConfirm = () => {
 
 <style>
 .custom-keyboard.van-number-keyboard {
-  background-color: #0E0E0E !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background-color: var(--color-bg) !important;
+  border-top: 1px solid rgb(var(--color-border-rgb) / 0.1) !important;
   padding-bottom: env(safe-area-inset-bottom) !important;
 }
 
 .custom-keyboard .van-key {
-  background-color: #1C1C1E !important;
-  color: #FFFFFF !important; /* 强制文字白色 */
+  background-color: var(--color-bg-card) !important;
+  color: var(--color-text-primary) !important; /* 强制文字白色 */
   border-radius: 8px !important;
   margin: 0 0 6px 0 !important;
-  box-shadow: 0 2px 0 rgba(0,0,0,0.5) !important;
+  box-shadow: 0 2px 0 rgb(var(--color-shadow-rgb) / 0.5) !important;
   font-family: 'DIN Alternate', sans-serif !important;
   font-size: 24px !important;
   height: 54px !important;
@@ -463,27 +463,27 @@ const handleConfirm = () => {
 }
 
 .custom-keyboard .van-key:active {
-  background-color: #FCD535 !important;
-  color: #000000 !important; /* 按下变黑 */
+  background-color: var(--color-brand-legacy) !important;
+  color: var(--color-text-on-accent) !important; /* 按下变黑 */
   transform: translateY(2px);
   box-shadow: none !important;
 }
 
 .custom-keyboard .van-key--close {
-  background-color: #FCD535 !important;
-  color: #000000 !important;
+  background-color: var(--color-brand-legacy) !important;
+  color: var(--color-text-on-accent) !important;
   font-weight: 700 !important;
   font-size: 16px !important;
 }
 
 .custom-keyboard .van-key--delete, 
 .custom-keyboard .van-key--gray {
-  background-color: #2B3139 !important;
+  background-color: var(--color-surface-muted) !important;
 }
 
 .custom-keyboard .van-key--delete .van-key__icon {
   font-size: 22px !important;
-  color: #FFFFFF !important;
+  color: var(--color-text-primary) !important;
 }
 
 </style>
@@ -491,9 +491,9 @@ const handleConfirm = () => {
 <style>
 /* Toast 黑金风格 - 全局样式（Toast 是动态添加到 body 的） */
 .custom-toast.van-toast {
-  background-color: #1C1C1E !important;
-  border: 1px solid rgba(252, 213, 53, 0.3) !important;
-  box-shadow: 0 4px 20px rgba(252, 213, 53, 0.2), 0 0 0 1px rgba(252, 213, 53, 0.1) inset !important;
+  background-color: var(--color-bg-card) !important;
+  border: 1px solid rgb(var(--color-brand-legacy-rgb) / 0.3) !important;
+  box-shadow: 0 4px 20px rgb(var(--color-brand-legacy-rgb) / 0.2), 0 0 0 1px rgb(var(--color-brand-legacy-rgb) / 0.1) inset !important;
   border-radius: 12px !important;
   padding: 20px 24px !important;
   min-width: 200px !important;
@@ -501,7 +501,7 @@ const handleConfirm = () => {
 }
 
 .custom-toast .van-toast__text {
-  color: #FFFFFF !important;
+  color: var(--color-text-primary) !important;
   font-size: 15px !important;
   font-weight: 500 !important;
   font-family: 'DIN Alternate', 'Roboto', sans-serif !important;
@@ -509,15 +509,15 @@ const handleConfirm = () => {
 }
 
 .custom-toast .van-toast__icon {
-  color: #FCD535 !important;
+  color: var(--color-brand-legacy) !important;
   font-size: 48px !important;
 }
 
 .custom-toast.van-toast--success .van-toast__icon {
-  color: #FCD535 !important;
+  color: var(--color-brand-legacy) !important;
 }
 
 .custom-toast.van-toast--fail .van-toast__icon {
-  color: #FF453A !important;
+  color: var(--color-loss) !important;
 }
 </style>

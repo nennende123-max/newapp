@@ -6,54 +6,75 @@
       fixed
       placeholder
       :border="false"
+      class="page-nav-bar"
       @click-left="router.back()"
-      style="--van-nav-bar-background: #0E0E0E; --van-nav-bar-title-text-color: #FCD535; --van-nav-bar-icon-color: #FCD535;"
     />
-    <div class="content-wrapper">
-      <van-cell-group inset class="section-group">
-        <van-cell :title="uiText.securityCenter" is-link to="/security-center" center>
-          <template #icon>
-            <van-icon name="shield-o" color="#FCD535" size="18" style="margin-right: 10px" />
-          </template>
-        </van-cell>
-      </van-cell-group>
-      <van-cell-group inset class="section-group">
-        <van-cell :title="uiText.currency" :value="uiText.currencyValue" center>
-          <template #icon>
-            <van-icon name="balance-o" color="#FCD535" size="18" style="margin-right: 10px" />
-          </template>
-        </van-cell>
-        <van-cell :title="uiText.notifications" center>
-          <template #icon>
-            <van-icon name="bullhorn-o" color="#FCD535" size="18" style="margin-right: 10px" />
-          </template>
-          <template #right-icon>
-            <van-switch v-model="pushEnabled" size="20" active-color="#FCD535" inactive-color="#333" />
-          </template>
-        </van-cell>
-        <van-cell :title="uiText.clearCache" is-link :value="cacheSizeDisplay" center @click="handleClearCache">
-          <template #icon>
-            <van-icon name="delete-o" color="#FCD535" size="18" style="margin-right: 10px" />
-          </template>
-        </van-cell>
-        <van-cell :title="uiText.privacy" is-link center @click="handlePrivacyClick">
-          <template #icon>
-            <van-icon name="description" color="#FCD535" size="18" style="margin-right: 10px" />
-          </template>
-        </van-cell>
-        <van-cell :title="uiText.about" is-link :value="uiText.version" center @click="handleAboutClick">
-          <template #icon>
-            <van-icon name="info-o" color="#FCD535" size="18" style="margin-right: 10px" />
-          </template>
-        </van-cell>
-      </van-cell-group>
-    </div>
 
-    <!-- 隐私政策对话框 -->
+    <main class="settings-content">
+      <section class="settings-card single-card">
+        <button class="setting-row" type="button" @click="router.push('/security-center')">
+          <span class="setting-icon">
+            <van-icon name="shield-o" />
+          </span>
+          <span class="setting-title">{{ uiText.securityCenter }}</span>
+          <van-icon name="arrow" class="row-arrow" />
+        </button>
+      </section>
+
+      <section class="settings-card">
+        <div class="setting-row static-row">
+          <span class="setting-icon">
+            <van-icon name="balance-o" />
+          </span>
+          <span class="setting-title">{{ uiText.currency }}</span>
+          <span class="setting-value">{{ uiText.currencyValue }}</span>
+        </div>
+
+        <div class="setting-row static-row">
+          <span class="setting-icon">
+            <van-icon name="bullhorn-o" />
+          </span>
+          <span class="setting-title">{{ uiText.notifications }}</span>
+          <van-switch
+            v-model="pushEnabled"
+            size="24"
+            active-color="#F0B90B"
+            inactive-color="#E5EAF0"
+          />
+        </div>
+
+        <button class="setting-row" type="button" @click="handleClearCache">
+          <span class="setting-icon">
+            <van-icon name="delete-o" />
+          </span>
+          <span class="setting-title">{{ uiText.clearCache }}</span>
+          <span class="setting-value">{{ cacheSizeDisplay }}</span>
+          <van-icon name="arrow" class="row-arrow" />
+        </button>
+
+        <button class="setting-row" type="button" @click="handlePrivacyClick">
+          <span class="setting-icon">
+            <van-icon name="description-o" />
+          </span>
+          <span class="setting-title">{{ uiText.privacy }}</span>
+          <van-icon name="arrow" class="row-arrow" />
+        </button>
+
+        <button class="setting-row" type="button" @click="handleAboutClick">
+          <span class="setting-icon">
+            <van-icon name="info-o" />
+          </span>
+          <span class="setting-title">{{ uiText.about }}</span>
+          <span class="setting-value">{{ uiText.version }}</span>
+          <van-icon name="arrow" class="row-arrow" />
+        </button>
+      </section>
+    </main>
+
     <van-dialog
       v-model:show="showPrivacyDialog"
       :title="$t('settings.privacy_policy_title')"
-      class-name="dark-dialog"
+      class-name="settings-dialog"
       :show-cancel-button="false"
       :confirm-button-text="$t('settings.privacy_policy_confirm')"
       @confirm="showPrivacyDialog = false"
@@ -61,47 +82,37 @@
       <div class="privacy-content">
         <p><strong>{{ $t('settings.privacy_section1_title') }}</strong></p>
         <p>{{ $t('settings.privacy_section1_content') }}</p>
-        
         <p><strong>{{ $t('settings.privacy_section2_title') }}</strong></p>
         <p>{{ $t('settings.privacy_section2_content') }}</p>
-        
         <p><strong>{{ $t('settings.privacy_section3_title') }}</strong></p>
         <p>{{ $t('settings.privacy_section3_content') }}</p>
-        
         <p><strong>{{ $t('settings.privacy_section4_title') }}</strong></p>
         <p>{{ $t('settings.privacy_section4_content') }}</p>
-        
         <p><strong>{{ $t('settings.privacy_section5_title') }}</strong></p>
         <p>{{ $t('settings.privacy_section5_content') }}</p>
       </div>
     </van-dialog>
 
-    <!-- 关于我们对话框 -->
     <van-dialog
       v-model:show="showAboutDialog"
       :title="$t('settings.about_us_title')"
-      class-name="dark-dialog"
+      class-name="settings-dialog"
       :show-cancel-button="false"
       :confirm-button-text="$t('settings.about_us_confirm')"
       @confirm="showAboutDialog = false"
     >
       <div class="about-content">
-        <div class="about-logo">
-          <div class="logo-placeholder">TF</div>
-        </div>
+        <div class="about-logo">TF</div>
         <div class="about-version">{{ $t('settings.about_us_version') }}</div>
-        <div class="about-description">
-          <p>{{ $t('settings.about_us_content') }}</p>
-          <p>{{ $t('settings.about_us_content2') }}</p>
-        </div>
+        <p>{{ $t('settings.about_us_content') }}</p>
+        <p>{{ $t('settings.about_us_content2') }}</p>
       </div>
     </van-dialog>
-
   </div>
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { showToast } from 'vant';
@@ -121,17 +132,13 @@ const uiText = computed(() => ({
   version: t('settings.about_us_version')
 }));
 
-// 缓存大小显示
 const cacheSizeDisplay = ref('24.5MB');
-
-// 从 localStorage 读取推送通知状态，默认 true
 const pushEnabled = ref(localStorage.getItem('user_push_enabled') !== 'false');
 const showPrivacyDialog = ref(false);
 const showAboutDialog = ref(false);
 
-// 监听推送通知开关变化
 watch(pushEnabled, (newVal) => {
-  localStorage.setItem('user_push_enabled', newVal.toString());
+  localStorage.setItem('user_push_enabled', String(newVal));
   showToast({
     message: newVal ? t('settings.notification_enabled') : t('settings.notification_disabled'),
     duration: 1500,
@@ -141,8 +148,8 @@ watch(pushEnabled, (newVal) => {
 
 const handleClearCache = () => {
   cacheSizeDisplay.value = '0KB';
-  showToast({ 
-    message: t('settings.cache_cleared'), 
+  showToast({
+    message: t('settings.cache_cleared'),
     duration: 1500,
     position: 'middle'
   });
@@ -160,168 +167,258 @@ const handleAboutClick = () => {
 <style scoped>
 .settings-page {
   min-height: 100vh;
-  background-color: #0E0E0E;
-  padding-top: 12px;
-  font-family: 'DIN Alternate', 'Roboto', sans-serif;
+  background: #F5F7FA;
+  color: #111827;
 }
 
-.content-wrapper {
-  padding: 12px 0 24px;
+:deep(.page-nav-bar) {
+  --van-nav-bar-background: #FFFFFF;
+  --van-nav-bar-title-text-color: #111827;
+  --van-nav-bar-icon-color: #F0B90B;
+  border-bottom: 1px solid #E6EBF2;
 }
 
-/* Section Group 样式 */
-.section-group {
-  background: #1C1C1E !important;
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
-  border-radius: 12px !important;
-  margin-bottom: 16px;
+:deep(.page-nav-bar .van-nav-bar__title) {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.settings-content {
+  padding: 24px 18px 32px;
+}
+
+.settings-card {
   overflow: hidden;
+  margin-bottom: 16px;
+  background: #FFFFFF;
+  border: 1px solid #EEF2F6;
+  border-radius: 10px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
 }
 
-/* Cell 样式深度覆盖 */
-:deep(.van-cell) {
-  background: transparent !important;
-  padding: 16px 20px !important;
+.single-card {
+  margin-bottom: 16px;
+}
+
+.setting-row {
+  width: 100%;
+  min-height: 56px;
+  padding: 0 18px;
+  border: 0;
+  border-bottom: 1px solid #F1F4F8;
+  background: transparent;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto auto;
   align-items: center;
-  transition: background-color 0.15s ease;
+  gap: 12px;
+  text-align: left;
 }
 
-:deep(.van-cell:active) {
-  background-color: rgba(255, 255, 255, 0.03) !important;
+.setting-row:last-child {
+  border-bottom: 0;
 }
 
-:deep(.van-cell__title) {
-  font-size: 15px !important;
-  color: #FFFFFF !important;
-  font-weight: 500 !important;
-  font-family: 'DIN Alternate', 'Roboto', sans-serif;
+.setting-row:active {
+  background: #F8FAFC;
 }
 
-:deep(.van-cell__value) {
-  font-size: 14px !important;
-  color: #8E8E93 !important;
-  font-family: 'DIN Alternate', 'Roboto', sans-serif;
+.static-row:active {
+  background: transparent;
 }
 
-:deep(.van-cell::after) {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
-  left: 20px;
-  right: 20px;
+.setting-icon {
+  color: #F0B90B;
+  font-size: 18px;
+  display: grid;
+  place-items: center;
 }
 
-:deep(.van-cell:last-child::after) {
-  display: none;
+.setting-title {
+  min-width: 0;
+  color: #111827;
+  font-size: 15px;
+  font-weight: 500;
 }
 
-/* Switch 样式 */
-:deep(.van-switch) {
-  background-color: #333 !important;
+.setting-value {
+  color: #64748B;
+  font-size: 14px;
+  font-weight: 500;
 }
 
-:deep(.van-switch--on) {
-  background-color: #FCD535 !important;
+.row-arrow {
+  color: #94A3B8;
+  font-size: 18px;
 }
 
 :deep(.van-switch__node) {
-  background-color: #FFFFFF !important;
+  box-shadow: 0 2px 7px rgba(15, 23, 42, 0.14);
 }
 
-/* 隐私政策内容样式 */
 .privacy-content {
-  padding: 20px;
-  color: #FFFFFF;
-  font-size: 14px;
-  line-height: 1.6;
   max-height: 60vh;
   overflow-y: auto;
+  padding: 18px 20px;
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.6;
 }
 
-.privacy-content p {
-  margin-bottom: 16px;
+.privacy-content p,
+.about-content p {
+  margin: 0 0 14px;
 }
 
 .privacy-content strong {
-  color: #FCD535;
-  font-weight: 600;
+  color: #111827;
 }
 
-/* 关于我们内容样式 */
 .about-content {
-  padding: 20px;
-  color: #FFFFFF;
+  padding: 22px 22px 8px;
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.6;
   text-align: center;
 }
 
 .about-logo {
-  margin-bottom: 16px;
-}
-
-.logo-placeholder {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto;
-  background: linear-gradient(135deg, #FCD535 0%, #D4AF37 100%);
+  width: 62px;
+  height: 62px;
+  margin: 0 auto 12px;
   border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32px;
-  font-weight: 700;
-  color: #0E0E0E;
-  font-family: 'DIN Alternate', 'Roboto', sans-serif;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #FCD535 0%, #F0B90B 100%);
+  color: #111827;
+  font-size: 24px;
+  font-weight: 900;
 }
 
 .about-version {
-  font-size: 16px;
-  color: #FCD535;
-  font-weight: 600;
-  margin-bottom: 20px;
-  font-family: 'DIN Alternate', 'Roboto', sans-serif;
-}
-
-.about-description {
-  text-align: left;
-  font-size: 14px;
-  line-height: 1.6;
-  color: #FFFFFF;
-}
-
-.about-description p {
   margin-bottom: 16px;
+  color: #B7791F;
+  font-weight: 800;
 }
 </style>
 
-<!-- 全局样式：Dialog 暗黑主题 -->
 <style>
-.dark-dialog.van-dialog,
-.dark-dialog.van-dialog .van-dialog__content {
-  background-color: #1C1C1E !important;
-  border-radius: 12px;
+.settings-page {
+  background: #F5F7FA !important;
 }
 
-.dark-dialog .van-dialog__header {
-  color: #FFFFFF !important;
-  padding-top: 24px;
-  padding-bottom: 16px;
+.settings-page .settings-content {
+  box-sizing: border-box !important;
+  padding: 24px 18px 32px !important;
 }
 
-.dark-dialog .van-dialog__footer {
-  background-color: #1C1C1E !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+.settings-page .settings-card {
+  display: block !important;
+  overflow: hidden !important;
+  margin: 0 0 16px !important;
+  background: #FFFFFF !important;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06) !important;
 }
 
-.dark-dialog .van-dialog__confirm,
-.dark-dialog .van-dialog__confirm .van-button__text {
+.settings-page .setting-row {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-height: 62px !important;
+  margin: 0 !important;
+  padding: 0 18px !important;
+  border-top: 0 !important;
+  border-right: 0 !important;
+  border-left: 0 !important;
+  border-bottom: 1px solid #F1F4F8 !important;
+  border-radius: 0 !important;
   background: transparent !important;
-  border: none !important;
-  color: #FCD535 !important;
-  font-weight: 600 !important;
+  box-shadow: none !important;
+  display: grid !important;
+  grid-template-columns: 22px minmax(0, 1fr) auto auto !important;
+  align-items: center !important;
+  gap: 12px !important;
+  text-align: left !important;
+  font: inherit !important;
 }
 
-.dark-dialog .van-dialog__footer .van-button {
+.settings-page .setting-row:last-child {
+  border-bottom: 0 !important;
+}
+
+.settings-page .setting-row:active {
+  background: #F8FAFC !important;
+}
+
+.settings-page .static-row:active {
   background: transparent !important;
-  border: none !important;
-  height: 50px;
-  font-size: 16px;
+}
+
+.settings-page .setting-icon {
+  color: #F0B90B !important;
+  font-size: 18px !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+.settings-page .setting-title {
+  min-width: 0 !important;
+  color: #111827 !important;
+  font-size: 15.5px !important;
+  font-weight: 650 !important;
+  line-height: 1.2 !important;
+}
+
+.settings-page .setting-value {
+  color: #64748B !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+}
+
+.settings-page .row-arrow {
+  color: #94A3B8 !important;
+  font-size: 18px !important;
+}
+
+.settings-page .van-switch {
+  justify-self: end !important;
+}
+
+@media (max-width: 360px) {
+  .settings-page .settings-content {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  .settings-page .setting-row {
+    min-height: 58px !important;
+    padding: 0 15px !important;
+    gap: 10px !important;
+  }
+
+  .settings-page .setting-title {
+    font-size: 15px !important;
+  }
+}
+
+.settings-dialog.van-dialog,
+.settings-dialog.van-dialog .van-dialog__content {
+  background: #FFFFFF !important;
+  border-radius: 14px;
+}
+
+.settings-dialog .van-dialog__header {
+  color: #111827 !important;
+  font-weight: 800;
+}
+
+.settings-dialog .van-dialog__confirm,
+.settings-dialog .van-dialog__confirm .van-button__text {
+  color: #F0B90B !important;
+  font-weight: 700 !important;
 }
 </style>

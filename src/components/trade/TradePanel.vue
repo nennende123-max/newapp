@@ -1,7 +1,7 @@
 <template>
   <div class="trade-page">
-    <!-- ========== DEBUG MODE: 屏幕调试面板 ========== -->
-    <div style="background: #330000; color: #ff0000; padding: 10px; border: 2px solid red; font-family: monospace; z-index: 9999; margin-bottom: 10px; position: sticky; top: 0;">
+    <!-- ========== DEBUG MODE: 灞忓箷璋冭瘯闈㈡澘 ========== -->
+    <div style="display: none; background: var(--color-debug-bg); color: var(--color-debug-text); padding: 10px; border: 2px solid var(--color-debug-text); font-family: monospace; z-index: 9999; margin-bottom: 10px; position: sticky; top: 0;">
       <p><strong>=== DEBUG MODE ===</strong></p>
       <p>Props Symbol: {{ props.initialSymbol || 'undefined' }}</p>
       <p>Symbol Value: {{ symbol }}</p>
@@ -13,7 +13,7 @@
       <p>Active Trade Tab: {{ activeTradeTab }}</p>
     </div>
 
-    <!-- 固定顶部导航栏 - 子页面模式隐藏 -->
+    <!-- 鍥哄畾椤堕儴瀵艰埅鏍?- 瀛愰〉闈㈡ā寮忛殣钘?-->
     <div v-if="!isSubPage" class="trade-header">
       <div class="header-center">
         <span class="page-title">{{ pageTitle }}</span>
@@ -21,12 +21,12 @@
       
       <div class="nav-right-icon-wrap" @click="goToKlineChart">
         <svg viewBox="0 0 1024 1024" class="kline-svg-icon">
-          <path d="M896 128H128a64 64 0 0 0-64 64v640a64 64 0 0 0 64 64h768a64 64 0 0 0 64-64V192a64 64 0 0 0-64-64zM320 768H192V448h128v320zm256 0H448V256h128v512zm256 0H704V512h128v256z" fill="#FCD535"></path>
+          <path d="M896 128H128a64 64 0 0 0-64 64v640a64 64 0 0 0 64 64h768a64 64 0 0 0 64-64V192a64 64 0 0 0-64-64zM320 768H192V448h128v320zm256 0H448V256h128v512zm256 0H704V512h128v256z" fill="var(--color-brand-legacy)"></path>
         </svg>
       </div>
     </div>
 
-    <!-- 可滚动内容区域 -->
+    <!-- 鍙粴鍔ㄥ唴瀹瑰尯鍩?-->
     <div class="trade-scrollable-content">
     <div v-if="!isSubPage" class="trade-tabs">
       <div 
@@ -48,18 +48,18 @@
     <div class="pair-info">
       <div class="pair-selector" @click="showCoinSelect = true">
         <span class="pair-name">{{ displayTitle }}/USDT</span>
-        <van-icon name="arrow-down" size="12" color="#FFFFFF" style="margin-left: 4px" />
+        <van-icon name="arrow-down" size="12" color="var(--color-text-primary)" style="margin-left: 4px" />
       </div>
       <div class="price-change" :class="{ positive: priceChange >= 0 }">
         {{ priceChange >= 0 ? '+' : '' }}{{ priceChange.toFixed(2) }}%
       </div>
     </div>
 
-    <!-- 现货交易界面 - 严格隔离，使用独立的 v-if (DEBUG MODE: 使用 isSpot) -->
+    <!-- 鐜拌揣浜ゆ槗鐣岄潰 - 涓ユ牸闅旂锛屼娇鐢ㄧ嫭绔嬬殑 v-if (DEBUG MODE: 浣跨敤 isSpot) -->
     <template v-if="isSpot">
       <div class="trade-panel-container">
         <div class="trade-main">
-          <!-- 左侧：盘口区 -->
+          <!-- 宸︿晶锛氱洏鍙ｅ尯 -->
           <div ref="orderBookContainerRef" class="orderbook-side left-panel">
         <div class="orderbook-header">
           <span class="header-price">{{ t('trade.price') }} (USDT)</span>
@@ -100,13 +100,13 @@
         </div>
       </div>
 
-          <!-- 右侧：交易表单 - DEBUG MODE: 强制重写为简单结构 -->
-          <div ref="orderFormRef" class="right-form-panel flex flex-col flex-1" style="border: 2px dashed yellow;">
-            <!-- 现货模式表单 - 完全独立的 template 块 -->
+          <!-- 鍙充晶锛氫氦鏄撹〃鍗?- DEBUG MODE: 寮哄埗閲嶅啓涓虹畝鍗曠粨鏋?-->
+          <div ref="orderFormRef" class="right-form-panel flex flex-col flex-1" style="border: 1px solid var(--color-border);">
+            <!-- 鐜拌揣妯″紡琛ㄥ崟 - 瀹屽叏鐙珛鐨?template 鍧?-->
             <template v-if="isSpot">
-              <div class="spot-zone" style="border: 1px solid #00ff00; padding: 5px; margin-top: 5px;">
-                <p style="color: #00ff00; font-size: 12px; font-weight: bold;">[DEBUG: 这是现货区域]</p>
-                <!-- 买入/卖出切换 -->
+              <div class="spot-zone" style="border: 0; padding: 0; margin-top: 0;">
+                <p style="display: none; color: var(--color-debug-accent); font-size: 12px; font-weight: bold;">[DEBUG: 杩欐槸鐜拌揣鍖哄煙]</p>
+                <!-- 涔板叆/鍗栧嚭鍒囨崲 -->
         <div class="buy-sell-toggle">
           <div 
             class="toggle-btn buy-btn" 
@@ -126,7 +126,7 @@
 
         <div class="order-type-selector" @click="showOrderTypeSheet = true">
           <span>{{ orderType === 'limit' ? t('trade.limit_order') : t('trade.market_order') }}</span>
-          <van-icon name="arrow-down" size="12" color="#848E9C" />
+          <van-icon name="arrow-down" size="12" color="var(--color-text-muted)" />
         </div>
 
         <div class="input-row">
@@ -148,7 +148,7 @@
 
         <div class="estimated-row">
           <span class="est-label">{{ t('trade.estimated_value') }}</span>
-          <span class="est-value">≈ ¥{{ formatFiatPrice(parseFloat(price) || lastPrice) }}</span>
+          <span class="est-value">鈮?楼{{ formatFiatPrice(parseFloat(price) || lastPrice) }}</span>
         </div>
 
         <div class="input-row">
@@ -164,7 +164,7 @@
           />
         </div>
 
-                <!-- 现货滑块 -->
+                <!-- 鐜拌揣婊戝潡 -->
         <div class="slider-wrapper">
           <van-slider
             v-model="spotSliderValue"
@@ -173,8 +173,8 @@
             :step="1"
             bar-height="4px"
             button-size="16px"
-            active-color="#FCD535"
-            inactive-color="#2A2D35"
+            active-color="var(--color-brand-legacy)"
+            inactive-color="var(--color-surface-muted)"
             @update:model-value="onSpotSliderChange"
           >
             <template #button>
@@ -197,7 +197,7 @@
           <span class="fee-estimate-label">{{ t('trade.estimated_fee') }}({{ orderSide === 'buy' ? currentCoinConfig.baseCoin : 'USDT' }})</span>
           <span class="fee-estimate-value">
             {{ formatEstimatedFee }}
-            <span v-if="orderSide === 'buy' && formatEstimatedFeeUSDT" class="fee-usdt-note">(≈ {{ formatEstimatedFeeUSDT }} USDT)</span>
+            <span v-if="orderSide === 'buy' && formatEstimatedFeeUSDT" class="fee-usdt-note">(鈮?{{ formatEstimatedFeeUSDT }} USDT)</span>
           </span>
         </div>
 
@@ -213,18 +213,18 @@
 
         <div class="available-row">
           <div class="avail-item">
-            <span class="avail-label">{{ t('trade.avail') }}：</span>
+            <span class="avail-label">{{ t('trade.avail') }}:</span>
             <span class="avail-value">{{ formatAvailableBalance }}</span>
             <van-icon 
               name="plus" 
               size="12" 
-              color="#FCD535" 
+              color="var(--color-brand-legacy)" 
               style="margin-left: 4px; cursor: pointer;" 
               @click.stop="router.push('/deposit')" 
             />
           </div>
           <div class="avail-item">
-            <span class="avail-label">{{ t('trade.sellable') }}：</span>
+            <span class="avail-label">{{ t('trade.sellable') }}:</span>
             <span class="avail-value">{{ formatSellableBalance }}</span>
           </div>
         </div>
@@ -241,11 +241,11 @@
               </div>
             </template>
 
-            <!-- 合约模式表单 - 完全独立的 template 块（禁止使用 v-else） -->
+            <!-- 鍚堢害妯″紡琛ㄥ崟 - 瀹屽叏鐙珛鐨?template 鍧楋紙绂佹浣跨敤 v-else锛?-->
             <template v-if="!isSpot">
-              <div class="futures-zone" style="border: 1px solid #00ffff; padding: 5px; margin-top: 5px;">
-                <p style="color: #00ffff; font-size: 12px; font-weight: bold;">[DEBUG: 这是合约区域]</p>
-                <!-- 资产信息面板：合约模式专用 -->
+              <div class="futures-zone" style="border: 0; padding: 0; margin-top: 0;">
+                <p style="display: none; color: var(--color-debug-alt); font-size: 12px; font-weight: bold;">[DEBUG: 杩欐槸鍚堢害鍖哄煙]</p>
+                <!-- 璧勪骇淇℃伅闈㈡澘锛氬悎绾︽ā寮忎笓鐢?-->
                 <div class="futures-asset-panel">
                   <div class="asset-row">
                     <div class="asset-item">
@@ -276,7 +276,7 @@
 
                 <div class="order-type-selector" @click="showOrderTypeSheet = true">
                   <span>{{ orderType === 'limit' ? t('trade.limit_order') : t('trade.market_order') }}</span>
-                  <van-icon name="arrow-down" size="12" color="#848E9C" />
+                  <van-icon name="arrow-down" size="12" color="var(--color-text-muted)" />
                 </div>
 
                 <div class="input-row">
@@ -308,7 +308,7 @@
                   <span class="input-suffix">{{ currentCoinConfig.baseCoin }}</span>
                 </div>
 
-                <!-- 合约滑块 -->
+                <!-- 鍚堢害婊戝潡 -->
                 <div class="slider-wrapper">
                   <van-slider
                     v-model="futuresSliderValue"
@@ -317,8 +317,8 @@
                     :step="1"
                     bar-height="4px"
                     button-size="16px"
-                    active-color="#FCD535"
-                    inactive-color="#2A2D35"
+                    active-color="var(--color-brand-legacy)"
+                    inactive-color="var(--color-surface-muted)"
                     @update:model-value="onFuturesSliderChange"
                   >
                     <template #button>
@@ -356,7 +356,7 @@
                   <span class="received-value">{{ futuresMargin > 0 ? futuresMargin.toFixed(2) : '0.00' }} USDT</span>
                 </div>
 
-                <!-- 合约操作按钮 -->
+                <!-- 鍚堢害鎿嶄綔鎸夐挳 -->
                 <div class="futures-action-buttons-grid">
                   <button 
                     class="long-btn-grid"
@@ -378,7 +378,7 @@
           </div>
         </div>
 
-        <!-- 现货底部：委托与资产 -->
+        <!-- 鐜拌揣搴曢儴锛氬鎵樹笌璧勪骇 -->
         <div class="bottom-section">
         <div class="bottom-tabs">
           <div 
@@ -452,10 +452,10 @@
       </div>
     </template>
 
-    <!-- 合约交易界面 - 严格隔离，使用独立的 v-if（禁止使用 v-else）(DEBUG MODE: 使用 !isSpot) -->
+    <!-- 鍚堢害浜ゆ槗鐣岄潰 - 涓ユ牸闅旂锛屼娇鐢ㄧ嫭绔嬬殑 v-if锛堢姝娇鐢?v-else锛?DEBUG MODE: 浣跨敤 !isSpot) -->
     <template v-if="!isSpot">
       <div class="trade-panel-container">
-        <!-- 合约控制栏：全仓文本 + 杠杆倍数（左边），资金费率（右边） -->
+        <!-- 鍚堢害鎺у埗鏍忥細鍏ㄤ粨鏂囨湰 + 鏉犳潌鍊嶆暟锛堝乏杈癸級锛岃祫閲戣垂鐜囷紙鍙宠竟锛?-->
         <div class="futures-control-bar">
         <div class="control-left">
           <div class="margin-mode-text">
@@ -463,7 +463,7 @@
           </div>
           <button class="leverage-btn" @click="showLeveragePopup = true">
             <span>{{ currentLeverage }}x</span>
-            <van-icon name="arrow-down" size="12" color="#848E9C" />
+            <van-icon name="arrow-down" size="12" color="var(--color-text-muted)" />
           </button>
         </div>
         <div class="control-right">
@@ -476,9 +476,9 @@
         </div>
       </div>
 
-      <!-- 核心交易区 - 左右布局 -->
+      <!-- 鏍稿績浜ゆ槗鍖?- 宸﹀彸甯冨眬 -->
       <div class="futures-trade-main">
-          <!-- 左侧：盘口区 -->
+          <!-- 宸︿晶锛氱洏鍙ｅ尯 -->
           <div ref="orderBookContainerRef" class="futures-orderbook-side left-panel">
           <div class="orderbook-header">
             <span class="header-price">{{ t('trade.price') }} (USDT)</span>
@@ -519,9 +519,9 @@
           </div>
         </div>
 
-          <!-- 右侧：交易表单 - 合约模式专用，无需 template 包裹（已在合约模板内） -->
+          <!-- 鍙充晶锛氫氦鏄撹〃鍗?- 鍚堢害妯″紡涓撶敤锛屾棤闇€ template 鍖呰９锛堝凡鍦ㄥ悎绾︽ā鏉垮唴锛?-->
           <div ref="orderFormRef" class="futures-form-side right-panel">
-            <!-- 资产信息面板：合约模式专用 -->
+            <!-- 璧勪骇淇℃伅闈㈡澘锛氬悎绾︽ā寮忎笓鐢?-->
             <div class="futures-asset-panel">
             <div class="asset-row">
               <div class="asset-item">
@@ -552,11 +552,11 @@
 
           <div class="order-type-selector" @click="showOrderTypeSheet = true">
             <span>{{ orderType === 'limit' ? t('trade.limit_order') : t('trade.market_order') }}</span>
-            <van-icon name="arrow-down" size="12" color="#848E9C" />
+            <van-icon name="arrow-down" size="12" color="var(--color-text-muted)" />
           </div>
 
           <div class="input-row">
-            <!-- 合约模式：使用 futuresPrice 字段 -->
+            <!-- 鍚堢害妯″紡锛氫娇鐢?futuresPrice 瀛楁 -->
             <input
               v-if="orderType === 'limit'"
               v-model="futuresPrice"
@@ -575,7 +575,7 @@
           </div>
 
           <div class="input-row">
-            <!-- 合约模式：使用 futuresAmount 字段 -->
+            <!-- 鍚堢害妯″紡锛氫娇鐢?futuresAmount 瀛楁 -->
             <input
               v-model="futuresAmount"
               type="number"
@@ -586,7 +586,7 @@
             <span class="input-suffix">{{ currentCoinConfig.baseCoin }}</span>
           </div>
 
-          <!-- 杠杆滑块：合约模式专用 -->
+          <!-- 鏉犳潌婊戝潡锛氬悎绾︽ā寮忎笓鐢?-->
           <div class="slider-wrapper">
             <van-slider
               v-model="futuresSliderValue"
@@ -595,8 +595,8 @@
               :step="1"
               bar-height="4px"
               button-size="16px"
-              active-color="#FCD535"
-              inactive-color="#2A2D35"
+              active-color="var(--color-brand-legacy)"
+              inactive-color="var(--color-surface-muted)"
               @update:model-value="onFuturesSliderChange"
             >
               <template #button>
@@ -615,7 +615,7 @@
             </div>
           </div>
 
-          <!-- 费用和总额：根据模式显示不同的计算逻辑 -->
+          <!-- 璐圭敤鍜屾€婚锛氭牴鎹ā寮忔樉绀轰笉鍚岀殑璁＄畻閫昏緫 -->
           <div class="fee-estimate-row">
             <span class="fee-estimate-label">{{ t('trade.estimated_fee') }}(USDT)</span>
             <span class="fee-estimate-value">
@@ -630,13 +630,13 @@
             </span>
           </div>
 
-          <!-- 保证金金额：合约模式专用 -->
+          <!-- 淇濊瘉閲戦噾棰濓細鍚堢害妯″紡涓撶敤 -->
           <div class="estimated-received-row">
             <span class="received-label">{{ t('trade.margin_amount') }}</span>
             <span class="received-value">{{ futuresMargin > 0 ? futuresMargin.toFixed(2) : '0.00' }} USDT</span>
           </div>
 
-          <!-- 操作按钮：合约模式专用 - 开多/开空按钮 -->
+          <!-- 鎿嶄綔鎸夐挳锛氬悎绾︽ā寮忎笓鐢?- 寮€澶?寮€绌烘寜閽?-->
           <div class="futures-action-buttons-grid">
             <button 
               class="long-btn-grid"
@@ -656,25 +656,25 @@
         </div>
       </div>
 
-      <!-- 底部：持仓看板 -->
+      <!-- 搴曢儴锛氭寔浠撶湅鏉?-->
       <div class="futures-bottom-section">
         <van-tabs 
           v-model:active="activePositionTab" 
           background="transparent" 
-          title-active-color="#FCD535" 
-          title-inactive-color="#8E8E93" 
+          title-active-color="var(--color-brand-legacy)" 
+          title-inactive-color="var(--color-text-secondary)" 
           line-width="30px" 
           line-height="3px" 
-          color="#FCD535" 
+          color="var(--color-brand-legacy)" 
           :border="false"
           class="position-tabs"
         >
-          <!-- 持有仓位Tab：合约模式专用 -->
+          <!-- 鎸佹湁浠撲綅Tab锛氬悎绾︽ā寮忎笓鐢?-->
           <van-tab :title="t('trade.positions_tab', { count: positions.length })">
             <div class="positions-list">
               <div v-if="positions.length === 0" class="empty-state">
                 <div class="empty-icon">
-                  <van-icon name="orders-o" size="48" color="#8E8E93" />
+                  <van-icon name="orders-o" size="48" color="var(--color-text-secondary)" />
                 </div>
                 <div class="empty-text">{{ t('trade.no_positions') }}</div>
               </div>
@@ -756,7 +756,7 @@
             <div class="orders-list">
               <div v-if="!futuresOrdersList || futuresOrdersList.length === 0" class="empty-state">
                 <div class="empty-icon">
-                  <van-icon name="orders-o" size="48" color="#8E8E93" />
+                  <van-icon name="orders-o" size="48" color="var(--color-text-secondary)" />
                 </div>
                 <div class="empty-text">{{ t('trade.no_orders') }}</div>
               </div>
@@ -792,7 +792,7 @@
             <div class="history-list">
               <div v-if="!futuresHistoryList || futuresHistoryList.length === 0" class="empty-state">
                 <div class="empty-icon">
-                  <van-icon name="orders-o" size="48" color="#8E8E93" />
+                  <van-icon name="orders-o" size="48" color="var(--color-text-secondary)" />
                 </div>
                 <div class="empty-text">{{ t('trade.no_orders') }}</div>
               </div>
@@ -803,17 +803,17 @@
                   class="order-item history-order-item"
                   :class="{ 'liquidation-order': order.type === 'liquidation' || order.type === 'LIQUIDATION' }"
                 >
-                  <!-- 左侧：操作详情 -->
+                  <!-- 宸︿晶锛氭搷浣滆鎯?-->
                   <div class="history-order-left">
                     <div class="history-order-header">
-                      <!-- 强平订单特殊标签 -->
+                      <!-- 寮哄钩璁㈠崟鐗规畩鏍囩 -->
                       <div 
                         v-if="order.type === 'liquidation' || order.type === 'LIQUIDATION'"
                         class="liquidation-badge"
                       >
                         {{ t('trade.forced_liquidation') }}
                       </div>
-                      <!-- 普通订单方向标签 -->
+                      <!-- 鏅€氳鍗曟柟鍚戞爣绛?-->
                       <div 
                         v-else
                         class="order-side-badge" 
@@ -830,7 +830,7 @@
                     </div>
                   </div>
                   
-                  <!-- 右侧：核心结果（盈亏 + 时间） -->
+                  <!-- 鍙充晶锛氭牳蹇冪粨鏋滐紙鐩堜簭 + 鏃堕棿锛?-->
                   <div class="history-order-right">
                     <div 
                       v-if="order.realized_pnl !== undefined" 
@@ -848,19 +848,19 @@
                   </div>
                 </div>
 
-                <!-- IntersectionObserver 监听目标（触底锚点） -->
+                <!-- IntersectionObserver 鐩戝惉鐩爣锛堣Е搴曢敋鐐癸級 -->
                 <div ref="loadMoreTrigger" class="history-observer-target"></div>
 
-                <!-- 底部状态栏 -->
+                <!-- 搴曢儴鐘舵€佹爮 -->
                 <div class="history-footer">
-                  <!-- 加载中 -->
+                  <!-- 鍔犺浇涓?-->
                   <div v-if="historyLoading" class="history-loading">
-                    <van-loading type="spinner" color="#D4AF37" size="16px" />
-                    <span class="loading-text">{{ t('common.loading') || '加载中...' }}</span>
+                    <van-loading type="spinner" color="var(--color-accent)" size="16px" />
+                    <span class="loading-text">{{ t('common.loading') || '鍔犺浇涓?..' }}</span>
                   </div>
-                  <!-- 没有更多了 -->
+                  <!-- 娌℃湁鏇村浜?-->
                   <div v-else-if="!historyHasMore && futuresHistoryList.length > 0" class="history-no-more">
-                    - 仅展示近 3 个月的记录 -
+                    - 浠呭睍绀鸿繎 3 涓湀鐨勮褰?-
                   </div>
                 </div>
               </div>
@@ -870,9 +870,9 @@
       </div>
     </div>
     </template>
-    <!-- 可滚动内容区域结束 -->
+    <!-- 鍙粴鍔ㄥ唴瀹瑰尯鍩熺粨鏉?-->
         </div>
-    <!-- trade-scrollable-content 结束 -->
+    <!-- trade-scrollable-content 缁撴潫 -->
 
     <van-popup
       v-model:show="showCoinSelect"
@@ -909,7 +909,7 @@
       class="custom-action-sheet" 
     />
 
-    <!-- 杠杆选择弹窗：仅在合约模式下显示 -->
+    <!-- 鏉犳潌閫夋嫨寮圭獥锛氫粎鍦ㄥ悎绾︽ā寮忎笅鏄剧ず -->
     <van-popup
       v-if="!isSpotMode"
       v-model:show="showLeveragePopup"
@@ -932,24 +932,24 @@
             @click="selectLeverage(leverage)"
           >
             <span>{{ leverage }}x</span>
-            <van-icon v-if="currentLeverage === leverage" name="success" color="#FCD535" />
+            <van-icon v-if="currentLeverage === leverage" name="success" color="var(--color-brand-legacy)" />
           </div>
         </div>
       </div>
     </van-popup>
 
-    <!-- 止盈止损弹窗：仅在合约模式下显示 -->
+    <!-- 姝㈢泩姝㈡崯寮圭獥锛氫粎鍦ㄥ悎绾︽ā寮忎笅鏄剧ず -->
     <van-popup
       v-if="!isSpotMode"
       v-model:show="showTPSLPopup"
       position="bottom"
       round
       class="premium-tpsl-popup"
-      :overlay-style="{ backgroundColor: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(10px)' }"
-      :style="{ height: 'auto', background: '#0a0a0a' }"
+      :overlay-style="{ backgroundColor: 'rgb(var(--color-shadow-rgb) / 0.85)', backdropFilter: 'blur(10px)' }"
+      :style="{ height: 'auto', background: 'var(--color-bg)' }"
     >
       <div class="premium-modal-container">
-        <!-- 头部装饰线 -->
+        <!-- 澶撮儴瑁呴グ绾?-->
         <div class="modal-drag-indicator"></div>
         
         <div class="premium-modal-header">
@@ -961,7 +961,7 @@
         </div>
 
         <div class="premium-tpsl-form">
-          <!-- 止盈价格输入 -->
+          <!-- 姝㈢泩浠锋牸杈撳叆 -->
           <div class="premium-form-group">
             <div class="group-label-row">
             <label>{{ t('trade.take_profit_price') }}</label>
@@ -990,7 +990,7 @@
             </div>
           </div>
 
-          <!-- 止损价格输入 -->
+          <!-- 姝㈡崯浠锋牸杈撳叆 -->
           <div class="premium-form-group">
             <div class="group-label-row">
               <label>{{ t('trade.stop_loss_price') }}</label>
@@ -1014,7 +1014,7 @@
               <button class="step-btn" @click="adjustTPSLPrice('stopLossPrice', 10)">+</button>
             </div>
 
-            <!-- 错误提示 -->
+            <!-- 閿欒鎻愮ず -->
             <div v-if="stopLossPriceError" class="tpsl-error-message">
               {{ stopLossPriceError }}
             </div>
@@ -1032,7 +1032,7 @@
             </div>
           </div>
 
-          <!-- 核心执行按钮 -->
+          <!-- 鏍稿績鎵ц鎸夐挳 -->
           <button 
             class="premium-gold-button" 
             :class="{ 'disabled': !isTPSLFormValid }"
@@ -1062,7 +1062,7 @@ defineOptions({
   name: 'Trade'
 });
 
-// Props: 支持子页面模式
+// Props: 鏀寔瀛愰〉闈㈡ā寮?
 const props = defineProps({
   isSubPage: {
     type: Boolean,
@@ -1076,13 +1076,13 @@ const props = defineProps({
     type: String,
     default: null
   },
-  // 强制指定交易类型（子页面使用）
+  // 寮哄埗鎸囧畾浜ゆ槗绫诲瀷锛堝瓙椤甸潰浣跨敤锛?
   forceTradeTab: {
     type: String,
     default: null,
     validator: (value) => !value || value === 'spot' || value === 'futures'
   },
-  // 初始模式（子页面使用，用于控制界面显示）
+  // 鍒濆妯″紡锛堝瓙椤甸潰浣跨敤锛岀敤浜庢帶鍒剁晫闈㈡樉绀猴級
   initialMode: {
     type: String,
     default: 'futures',
@@ -1096,30 +1096,30 @@ const { t } = useI18n();
 const assetStore = useAssetStore();
 const marketStore = useMarketStore();
 
-// 修复1：计算属性绑定 pageTitle，解决语言切换问题
+// 淇1锛氳绠楀睘鎬х粦瀹?pageTitle锛岃В鍐宠瑷€鍒囨崲闂
 const pageTitle = computed(() => t('trade.title'));
 
-// 标题显示逻辑：移除"永续"二字用于显示，但在逻辑判断中保留原始值
+// 鏍囬鏄剧ず閫昏緫锛氱Щ闄?姘哥画"浜屽瓧鐢ㄤ簬鏄剧ず锛屼絾鍦ㄩ€昏緫鍒ゆ柇涓繚鐣欏師濮嬪€?
 const displayTitle = computed(() => {
   const title = symbol.value || '';
-  return title.replace(/\s*永续/g, '').trim();
+  return title.replace(/\s*姘哥画/g, '').trim();
 });
 
-// 支持子页面模式：优先使用props传入的symbol，否则使用路由参数
+// 鏀寔瀛愰〉闈㈡ā寮忥細浼樺厛浣跨敤props浼犲叆鐨剆ymbol锛屽惁鍒欎娇鐢ㄨ矾鐢卞弬鏁?
 const symbol = ref(props.initialSymbol || route.query.symbol || 'BTC');
 
-// 支持从 props 或路由参数获取初始方向
+// 鏀寔浠?props 鎴栬矾鐢卞弬鏁拌幏鍙栧垵濮嬫柟鍚?
 const orderSide = ref(
   props.initialSide || (route.query.side === 'buy' || route.query.side === 'sell' ? route.query.side : 'buy')
 );
 
 const coinConfigs = {
-  // 主流高价币：价格保留2位，数量保留4-6位
+  // 涓绘祦楂樹环甯侊細浠锋牸淇濈暀2浣嶏紝鏁伴噺淇濈暀4-6浣?
   'BTC/USDT': { priceFixed: 2, amountFixed: 6, step: 0.01, baseCoin: 'BTC' },
   'ETH/USDT': { priceFixed: 2, amountFixed: 4, step: 0.01, baseCoin: 'ETH' },
   'BNB/USDT': { priceFixed: 2, amountFixed: 3, step: 0.1, baseCoin: 'BNB' },
   'SOL/USDT': { priceFixed: 2, amountFixed: 2, step: 0.01, baseCoin: 'SOL' },
-  // 低价币：价格保留4位(看清微小波动)，数量保留2位(不需要太碎)
+  // 浣庝环甯侊細浠锋牸淇濈暀4浣?鐪嬫竻寰皬娉㈠姩)锛屾暟閲忎繚鐣?浣?涓嶉渶瑕佸お纰?
   'DOGE/USDT': { priceFixed: 4, amountFixed: 2, step: 0.0001, baseCoin: 'DOGE' },
   'TRX/USDT': { priceFixed: 4, amountFixed: 2, step: 0.0001, baseCoin: 'TRX' },
   'BEAT/USDT': { priceFixed: 4, amountFixed: 2, step: 0.0001, baseCoin: 'BEAT' },
@@ -1135,42 +1135,42 @@ const coinList = ref([
   { symbol: 'DOGE' }, { symbol: 'TRX' }, { symbol: 'BEAT' }, { symbol: 'AIC' }
 ]);
 
-// 子页面模式下，根据 forceTradeTab prop 设置初始标签页
-// 主页面模式下，默认显示现货
+// 瀛愰〉闈㈡ā寮忎笅锛屾牴鎹?forceTradeTab prop 璁剧疆鍒濆鏍囩椤?
+// 涓婚〉闈㈡ā寮忎笅锛岄粯璁ゆ樉绀虹幇璐?
 const activeTradeTab = ref(props.forceTradeTab || 'spot');
 
-// 强制修正 isSpot 逻辑 - DEBUG MODE
+// 寮哄埗淇 isSpot 閫昏緫 - DEBUG MODE
 const isSpot = computed(() => {
-  console.log('🔍 [DEBUG] Calculating Mode for:', props.initialSymbol);
+  console.log('馃攳 [DEBUG] Calculating Mode for:', props.initialSymbol);
   if (!props.initialSymbol) {
-    console.log('🔍 [DEBUG] No symbol prop, defaulting to spot');
-    return true; // 默认现货
+    console.log('馃攳 [DEBUG] No symbol prop, defaulting to spot');
+    return true; // 榛樿鐜拌揣
   }
-  // 只要名字里带 '永续'、'SWAP'、'USD' (如果是合约特征) 就判定为合约
-  const isFutures = props.initialSymbol.includes('永续') || props.initialSymbol.includes('SWAP') || props.initialSymbol.includes('swap');
+  // 鍙鍚嶅瓧閲屽甫 '姘哥画'銆?SWAP'銆?USD' (濡傛灉鏄悎绾︾壒寰? 灏卞垽瀹氫负鍚堢害
+  const isFutures = props.initialSymbol.includes('姘哥画') || props.initialSymbol.includes('SWAP') || props.initialSymbol.includes('swap');
   const result = !isFutures;
-  console.log('🔍 [DEBUG] Symbol check result:', { symbol: props.initialSymbol, isFutures, isSpot: result });
+  console.log('馃攳 [DEBUG] Symbol check result:', { symbol: props.initialSymbol, isFutures, isSpot: result });
   return result;
 });
 
-// 保留旧的 isSpotMode 以兼容现有代码
+// 淇濈暀鏃х殑 isSpotMode 浠ュ吋瀹圭幇鏈変唬鐮?
 const isSpotMode = computed(() => {
-  // 首先检查 symbol 是否包含合约标识
+  // 棣栧厛妫€鏌?symbol 鏄惁鍖呭惈鍚堢害鏍囪瘑
   const symbolText = symbol.value || '';
-  if (symbolText.includes('永续') || symbolText.includes('SWAP') || symbolText.includes('swap')) {
-    return false; // 是合约
+  if (symbolText.includes('姘哥画') || symbolText.includes('SWAP') || symbolText.includes('swap')) {
+    return false; // 鏄悎绾?
   }
   
-  // 子页面模式下，使用 initialMode prop
+  // 瀛愰〉闈㈡ā寮忎笅锛屼娇鐢?initialMode prop
   if (props.isSubPage) {
     return props.initialMode === 'spot';
   }
   
-  // 主页面模式下，根据 activeTradeTab 判断
+  // 涓婚〉闈㈡ā寮忎笅锛屾牴鎹?activeTradeTab 鍒ゆ柇
   return activeTradeTab.value === 'spot';
 });
 
-// 添加调试日志
+// 娣诲姞璋冭瘯鏃ュ織
 watch([isSpot, isSpotMode], ([newIsSpot, newIsSpotMode]) => {
   console.log('[TradePanel] Mode changed:', {
     isSpot: newIsSpot ? 'Spot' : 'Futures',
@@ -1182,7 +1182,7 @@ watch([isSpot, isSpotMode], ([newIsSpot, newIsSpotMode]) => {
   });
 }, { immediate: true });
 
-// 屏幕高度监控 - DEBUG MODE
+// 灞忓箷楂樺害鐩戞帶 - DEBUG MODE
 const screenHeight = ref(typeof window !== 'undefined' ? window.innerHeight : 0);
 const updateScreenHeight = () => {
   if (typeof window !== 'undefined') {
@@ -1190,9 +1190,9 @@ const updateScreenHeight = () => {
   }
 };
 
-// 子页面模式下，禁止切换标签页（因为标签切换器已被隐藏）
+// 瀛愰〉闈㈡ā寮忎笅锛岀姝㈠垏鎹㈡爣绛鹃〉锛堝洜涓烘爣绛惧垏鎹㈠櫒宸茶闅愯棌锛?
 const canSwitchTab = computed(() => !props.isSubPage);
-// orderSide 已在上面定义（支持 props 传入）
+// orderSide 宸插湪涓婇潰瀹氫箟锛堟敮鎸?props 浼犲叆锛?
 const orderType = ref('limit'); 
 const price = ref('');
 const amount = ref('');
@@ -1200,53 +1200,53 @@ const priceChange = ref(1.83);
 const lastPrice = ref(92255.50);
 const activeOrderTab = ref('orders');
 const selectedPercent = ref(null);
-const spotSliderValue = ref(0); // 现货滑块值 (0-100)
-// 数据隔离：现货和合约订单分开存储
-const spotOrdersList = ref([]);      // 现货订单列表
-const futuresOrdersList = ref([]);   // 合约订单列表
+const spotSliderValue = ref(0); // 鐜拌揣婊戝潡鍊?(0-100)
+// 鏁版嵁闅旂锛氱幇璐у拰鍚堢害璁㈠崟鍒嗗紑瀛樺偍
+const spotOrdersList = ref([]);      // 鐜拌揣璁㈠崟鍒楄〃
+const futuresOrdersList = ref([]);   // 鍚堢害璁㈠崟鍒楄〃
 
-// 注意：不再使用 ordersList computed，直接使用 spotOrdersList 和 futuresOrdersList
+// 娉ㄦ剰锛氫笉鍐嶄娇鐢?ordersList computed锛岀洿鎺ヤ娇鐢?spotOrdersList 鍜?futuresOrdersList
 // const ordersList = computed(() => {
 //   return activeTradeTab.value === 'spot' ? spotOrdersList.value : futuresOrdersList.value;
 // });
 const showOrderTypeSheet = ref(false);
-const currentLeverage = ref(20); // 默认杠杆20x
-const isLoading = ref(false); // 下单加载状态 
+const currentLeverage = ref(20); // 榛樿鏉犳潌20x
+const isLoading = ref(false); // 涓嬪崟鍔犺浇鐘舵€?
 const showLeveragePopup = ref(false);
 
-// 合约交易相关变量
-const marginMode = ref('cross'); // 'cross' 全仓, 'isolated' 逐仓
+// 鍚堢害浜ゆ槗鐩稿叧鍙橀噺
+const marginMode = ref('cross'); // 'cross' 鍏ㄤ粨, 'isolated' 閫愪粨
 const markPrice = ref(92255.50);
 const futuresPrice = ref('');
 const futuresAmount = ref('');
 const selectedFuturesPercent = ref(null);
-const futuresSliderValue = ref(0); // 合约滑块值 (0-100)
-// 现货模式下默认选中"当前委托"Tab（索引1），合约模式下默认选中"持有仓位"Tab（索引0）
-// 注意：由于 van-tabs 需要 ref，我们使用 ref + watch 来实现动态切换
+const futuresSliderValue = ref(0); // 鍚堢害婊戝潡鍊?(0-100)
+// 鐜拌揣妯″紡涓嬮粯璁ら€変腑"褰撳墠濮旀墭"Tab锛堢储寮?锛夛紝鍚堢害妯″紡涓嬮粯璁ら€変腑"鎸佹湁浠撲綅"Tab锛堢储寮?锛?
+// 娉ㄦ剰锛氱敱浜?van-tabs 闇€瑕?ref锛屾垜浠娇鐢?ref + watch 鏉ュ疄鐜板姩鎬佸垏鎹?
 const activePositionTab = ref(0);
 
-// 监听 isSpotMode 变化，自动切换 Tab
+// 鐩戝惉 isSpotMode 鍙樺寲锛岃嚜鍔ㄥ垏鎹?Tab
 watch(isSpotMode, (isSpot) => {
   if (props.isSubPage) {
-    activePositionTab.value = isSpot ? 1 : 0; // 现货模式选中"当前委托"，合约模式选中"持有仓位"
+    activePositionTab.value = isSpot ? 1 : 0; // 鐜拌揣妯″紡閫変腑"褰撳墠濮旀墭"锛屽悎绾︽ā寮忛€変腑"鎸佹湁浠撲綅"
   }
 }, { immediate: true });
 
-// 初始化时设置正确的 Tab
+// 鍒濆鍖栨椂璁剧疆姝ｇ‘鐨?Tab
 if (props.isSubPage && isSpotMode.value) {
-  activePositionTab.value = 1; // 现货模式默认选中"当前委托"
+  activePositionTab.value = 1; // 鐜拌揣妯″紡榛樿閫変腑"褰撳墠濮旀墭"
 }
 const positions = ref([]);
-const futuresHistoryList = ref([]);  // 合约历史订单列表
-const historyPage = ref(1);  // 当前页码（从1开始）
-const historyPageSize = ref(20);  // 每页条数
-const historyHasMore = ref(true);  // 是否还有更多数据
-const historyLoading = ref(false);  // 是否正在加载
-const loadMoreTrigger = ref(null);  // IntersectionObserver 监听目标（绑定到底部那个看不见的 div）
-let historyObserver = null;  // 存放观察器实例
+const futuresHistoryList = ref([]);  // 鍚堢害鍘嗗彶璁㈠崟鍒楄〃
+const historyPage = ref(1);  // 褰撳墠椤电爜锛堜粠1寮€濮嬶級
+const historyPageSize = ref(20);  // 姣忛〉鏉℃暟
+const historyHasMore = ref(true);  // 鏄惁杩樻湁鏇村鏁版嵁
+const historyLoading = ref(false);  // 鏄惁姝ｅ湪鍔犺浇
+const loadMoreTrigger = ref(null);  // IntersectionObserver 鐩戝惉鐩爣锛堢粦瀹氬埌搴曢儴閭ｄ釜鐪嬩笉瑙佺殑 div锛?
+let historyObserver = null;  // 瀛樻斁瑙傚療鍣ㄥ疄渚?
 const showTPSLPopup = ref(false);
 
-// 资产信息计算属性（合约页面）
+// 璧勪骇淇℃伅璁＄畻灞炴€э紙鍚堢害椤甸潰锛?
 const usdtBalance = computed(() => {
   return assetStore.userAssets?.USDT || 0;
 });
@@ -1255,7 +1255,7 @@ const frozenMargin = computed(() => {
   return assetStore.userAssets?.USDT_frozen || 0;
 });
 
-// 计算所有持仓占用的保证金总和（已占用保证金）
+// 璁＄畻鎵€鏈夋寔浠撳崰鐢ㄧ殑淇濊瘉閲戞€诲拰锛堝凡鍗犵敤淇濊瘉閲戯級
 const totalPositionMargin = computed(() => {
   return positions.value.reduce((sum, pos) => sum + (pos.margin || 0), 0);
 });
@@ -1264,33 +1264,33 @@ const totalUnrealizedPnl = computed(() => {
   return positions.value.reduce((sum, pos) => sum + (pos.unrealizedPnl || 0), 0);
 });
 
-// 账户权益 = 余额 + 未实现盈亏
+// 璐︽埛鏉冪泭 = 浣欓 + 鏈疄鐜扮泩浜?
 const totalEquity = computed(() => {
   return usdtBalance.value + totalUnrealizedPnl.value;
 });
 
-// 可用保证金 = 账户权益 - 已占用保证金 - 委托冻结
+// 鍙敤淇濊瘉閲?= 璐︽埛鏉冪泭 - 宸插崰鐢ㄤ繚璇侀噾 - 濮旀墭鍐荤粨
 const availableMargin = computed(() => {
   const equity = totalEquity.value;
   const usedMargin = totalPositionMargin.value;
   const frozen = frozenMargin.value;
   const available = Math.max(0, equity - usedMargin - frozen);
   
-  // 调试日志：验证公式 账户权益 = 可用 + 占用 + 冻结
+  // 璋冭瘯鏃ュ織锛氶獙璇佸叕寮?璐︽埛鏉冪泭 = 鍙敤 + 鍗犵敤 + 鍐荤粨
   if (process.env.NODE_ENV === 'development' && positions.value.length > 0) {
     const sum = available + usedMargin + frozen;
     const diff = Math.abs(equity - sum);
-    if (diff > 0.01) { // 允许0.01的误差
-      console.warn(`[资产计算] 公式验证失败: 账户权益(${equity.toFixed(2)}) ≠ 可用(${available.toFixed(2)}) + 占用(${usedMargin.toFixed(2)}) + 冻结(${frozen.toFixed(2)}) = ${sum.toFixed(2)}, 差值: ${diff.toFixed(2)}`);
+    if (diff > 0.01) { // 鍏佽0.01鐨勮宸?
+      console.warn(`[璧勪骇璁＄畻] 鍏紡楠岃瘉澶辫触: 璐︽埛鏉冪泭(${equity.toFixed(2)}) 鈮?鍙敤(${available.toFixed(2)}) + 鍗犵敤(${usedMargin.toFixed(2)}) + 鍐荤粨(${frozen.toFixed(2)}) = ${sum.toFixed(2)}, 宸€? ${diff.toFixed(2)}`);
     } else {
-      console.log(`[资产计算] ✓ 公式验证通过: 账户权益(${equity.toFixed(2)}) = 可用(${available.toFixed(2)}) + 占用(${usedMargin.toFixed(2)}) + 冻结(${frozen.toFixed(2)})`);
+      console.log(`[璧勪骇璁＄畻] 鉁?鍏紡楠岃瘉閫氳繃: 璐︽埛鏉冪泭(${equity.toFixed(2)}) = 鍙敤(${available.toFixed(2)}) + 鍗犵敤(${usedMargin.toFixed(2)}) + 鍐荤粨(${frozen.toFixed(2)})`);
     }
   }
   
   return available;
 });
 
-// PnL 变化闪烁效果
+// PnL 鍙樺寲闂儊鏁堟灉
 const pnlChanged = ref(false);
 let pnlFlashTimer = null;
 watch(totalUnrealizedPnl, () => {
@@ -1305,10 +1305,10 @@ const tpSlForm = ref({
   takeProfitPrice: '',
   stopLossPrice: ''
 });
-// 资金费率（每8小时更新一次，通常范围在 -0.01% 到 0.01% 之间）
+// 璧勯噾璐圭巼锛堟瘡8灏忔椂鏇存柊涓€娆★紝閫氬父鑼冨洿鍦?-0.01% 鍒?0.01% 涔嬮棿锛?
 const fundingRate = ref(0.0001); // 0.01% = 0.0001 
 
-// 模拟币种价格数据（与后端 MOCK_MARKET_PRICES 保持一致）
+// 妯℃嫙甯佺浠锋牸鏁版嵁锛堜笌鍚庣 MOCK_MARKET_PRICES 淇濇寔涓€鑷达級
 const coinPrices = {
   'BTC': 92255.0,
   'ETH': 3100.0,
@@ -1324,9 +1324,9 @@ const asks = ref([]);
 const bids = ref([]);
 const orderBookContainerRef = ref(null);
 const orderFormRef = ref(null);
-const maxVisibleRows = ref(50); // 默认最大可见行数
+const maxVisibleRows = ref(12); // balanced orderbook depth for one-screen trading layout
 
-// 缓存最大数量值，避免重复计算
+// 缂撳瓨鏈€澶ф暟閲忓€硷紝閬垮厤閲嶅璁＄畻
 const maxQuantityCache = {
   asks: null,
   bids: null,
@@ -1335,25 +1335,25 @@ const maxQuantityCache = {
 };
 
 /**
- * 生成列表的简单哈希值，用于检测列表是否变化
- * @param {Array} list - 订单列表
- * @returns {string} 哈希值
+ * 鐢熸垚鍒楄〃鐨勭畝鍗曞搱甯屽€硷紝鐢ㄤ簬妫€娴嬪垪琛ㄦ槸鍚﹀彉鍖?
+ * @param {Array} list - 璁㈠崟鍒楄〃
+ * @returns {string} 鍝堝笇鍊?
  */
 const getListHash = (list) => {
   if (!list || list.length === 0) return '';
-  // 使用前几个和最后一个元素的数量值生成简单哈希
+  // 浣跨敤鍓嶅嚑涓拰鏈€鍚庝竴涓厓绱犵殑鏁伴噺鍊肩敓鎴愮畝鍗曞搱甯?
   const firstQty = list[0]?.quantity || 0;
   const lastQty = list[list.length - 1]?.quantity || 0;
   const length = list.length;
   return `${length}-${firstQty}-${lastQty}`;
 };
 
-// 生成盘口数据（生成足够多的数据，供动态显示使用）
+// 鐢熸垚鐩樺彛鏁版嵁锛堢敓鎴愯冻澶熷鐨勬暟鎹紝渚涘姩鎬佹樉绀轰娇鐢級
 const generateOrderBook = () => {
   const basePrice = lastPrice.value;
-  const totalRows = 100; // 生成100行数据，确保有足够的数据填充
+  const totalRows = 100; // 鐢熸垚100琛屾暟鎹紝纭繚鏈夎冻澶熺殑鏁版嵁濉厖
   
-  // 生成卖单（从高到低）
+  // 鐢熸垚鍗栧崟锛堜粠楂樺埌浣庯級
   const newAsks = [];
   for (let i = 0; i < totalRows; i++) {
     const priceOffset = (totalRows - i) * 0.01 + Math.random() * 0.1;
@@ -1363,9 +1363,9 @@ const generateOrderBook = () => {
       quantity: quantity
     });
   }
-  asks.value = newAsks.sort((a, b) => a.price - b.price); // 按价格从低到高排序
+  asks.value = newAsks.sort((a, b) => a.price - b.price); // 鎸変环鏍间粠浣庡埌楂樻帓搴?
   
-  // 生成买单（从低到高）
+  // 鐢熸垚涔板崟锛堜粠浣庡埌楂橈級
   const newBids = [];
   for (let i = 0; i < totalRows; i++) {
     const priceOffset = (i + 1) * 0.01 + Math.random() * 0.1;
@@ -1375,58 +1375,58 @@ const generateOrderBook = () => {
       quantity: quantity
     });
   }
-  bids.value = newBids.sort((a, b) => b.price - a.price); // 按价格从高到低排序
+  bids.value = newBids.sort((a, b) => b.price - a.price); // 鎸変环鏍间粠楂樺埌浣庢帓搴?
 };
 
-// 计算可显示的最大行数（根据右侧容器高度）
+// 璁＄畻鍙樉绀虹殑鏈€澶ц鏁帮紙鏍规嵁鍙充晶瀹瑰櫒楂樺害锛?
 const calculateMaxRows = () => {
   if (!orderFormRef.value) {
-    return 20; // 默认显示20行，避免留白过大
+    return 20; // 榛樿鏄剧ず20琛岋紝閬垮厤鐣欑櫧杩囧ぇ
   }
   
   const rightSideHeight = orderFormRef.value.clientHeight;
-  const headerHeight = 24; // orderbook-header 高度
-  const lastPriceHeight = 32; // last-price 高度
-  const rowHeight = 20; // 每行高度
+  const headerHeight = 24; // orderbook-header 楂樺害
+  const lastPriceHeight = 32; // last-price 楂樺害
+  const rowHeight = 20; // 姣忚楂樺害
   
-  // 可用高度 = 右侧高度 - 盘口头部 - 中间最新价
-  // 注意：我们希望左侧总高度和右侧完全一致
+  // 鍙敤楂樺害 = 鍙充晶楂樺害 - 鐩樺彛澶撮儴 - 涓棿鏈€鏂颁环
+  // 娉ㄦ剰锛氭垜浠笇鏈涘乏渚ф€婚珮搴﹀拰鍙充晶瀹屽叏涓€鑷?
   const availableHeight = rightSideHeight - headerHeight - lastPriceHeight;
   
-  // 买卖单各占一半高度
+  // 涔板崠鍗曞悇鍗犱竴鍗婇珮搴?
   const halfHeight = availableHeight / 2;
   const rowsPerSide = Math.floor(halfHeight / rowHeight);
   
-  // 返回单侧应显示的行数，最小显示10行，最大100行
-  return Math.max(10, Math.min(100, rowsPerSide));
+  // 杩斿洖鍗曚晶搴旀樉绀虹殑琛屾暟锛屾渶灏忔樉绀?0琛岋紝鏈€澶?00琛?
+  return Math.max(8, Math.min(12, rowsPerSide));
 };
 
-// 动态计算显示的买卖单数量
+// 鍔ㄦ€佽绠楁樉绀虹殑涔板崠鍗曟暟閲?
 const displayedAsks = computed(() => {
-  // 卖单：取最低的 n 行，并倒序排列（高价在上，低价在下）
+  // 鍗栧崟锛氬彇鏈€浣庣殑 n 琛岋紝骞跺€掑簭鎺掑垪锛堥珮浠峰湪涓婏紝浣庝环鍦ㄤ笅锛?
   return asks.value.slice(0, maxVisibleRows.value).reverse();
 });
 
 const displayedBids = computed(() => {
-  // 买单：取最高的 n 行（高价在上，低价在下）
+  // 涔板崟锛氬彇鏈€楂樼殑 n 琛岋紙楂樹环鍦ㄤ笂锛屼綆浠峰湪涓嬶級
   return bids.value.slice(0, maxVisibleRows.value);
 });
 
-// 监听窗口大小变化，重新计算行数
+// 鐩戝惉绐楀彛澶у皬鍙樺寲锛岄噸鏂拌绠楄鏁?
 const handleResize = () => {
   maxVisibleRows.value = calculateMaxRows();
 };
 
-// 使用 ResizeObserver 监听右侧下单区的高度变化
+// 浣跨敤 ResizeObserver 鐩戝惉鍙充晶涓嬪崟鍖虹殑楂樺害鍙樺寲
 let resizeObserver = null;
 
-// 初始化盘口动态行数计算
+// 鍒濆鍖栫洏鍙ｅ姩鎬佽鏁拌绠?
 const initOrderBookResizeObserver = () => {
   nextTick(() => {
     if (orderFormRef.value) {
       maxVisibleRows.value = calculateMaxRows();
       
-      // 使用 ResizeObserver 监听右侧容器高度变化，从而决定左侧显示多少行
+      // 浣跨敤 ResizeObserver 鐩戝惉鍙充晶瀹瑰櫒楂樺害鍙樺寲锛屼粠鑰屽喅瀹氬乏渚ф樉绀哄灏戣
       if (resizeObserver) {
         resizeObserver.disconnect();
       }
@@ -1441,12 +1441,12 @@ const initOrderBookResizeObserver = () => {
 watch(() => route.query.symbol, (newSymbol) => {
   if (newSymbol) {
     symbol.value = newSymbol;
-    // 切换页面时也更新价格
+    // 鍒囨崲椤甸潰鏃朵篃鏇存柊浠锋牸
     updatePriceForSymbol(newSymbol);
   }
 });
 
-// 监听交易标签页切换，重新计算盘口行数
+// 鐩戝惉浜ゆ槗鏍囩椤靛垏鎹紝閲嶆柊璁＄畻鐩樺彛琛屾暟
 watch(activeTradeTab, () => {
   nextTick(() => {
     initOrderBookResizeObserver();
@@ -1457,16 +1457,16 @@ watch(() => route.query.side, (newSide) => {
   if (newSide === 'buy' || newSide === 'sell') orderSide.value = newSide;
 }, { immediate: true });
 
-// 修复2：监听 symbol 变化，自动更新输入框价格为对应币种的最新价
+// 淇2锛氱洃鍚?symbol 鍙樺寲锛岃嚜鍔ㄦ洿鏂拌緭鍏ユ浠锋牸涓哄搴斿竵绉嶇殑鏈€鏂颁环
 watch(symbol, (newSymbol) => {
   updatePriceForSymbol(newSymbol);
 });
 
-// 辅助函数：根据币种更新价格
+// 杈呭姪鍑芥暟锛氭牴鎹竵绉嶆洿鏂颁环鏍?
 const updatePriceForSymbol = (newSymbol) => {
   lastPrice.value = coinPrices[newSymbol] || 92255.50;
   
-  // 仅在没有真实深度数据时，生成模拟数据作为初始显示
+  // 浠呭湪娌℃湁鐪熷疄娣卞害鏁版嵁鏃讹紝鐢熸垚妯℃嫙鏁版嵁浣滀负鍒濆鏄剧ず
   const realDepth = marketStore.depths[newSymbol];
   if (!realDepth || !realDepth.asks.length) {
   generateOrderBook();
@@ -1475,7 +1475,7 @@ const updatePriceForSymbol = (newSymbol) => {
     bids.value = [...realDepth.bids];
   }
 
-  // 只有是限价单时，才自动填充价格
+  // 鍙湁鏄檺浠峰崟鏃讹紝鎵嶈嚜鍔ㄥ～鍏呬环鏍?
   if (orderType.value === 'limit') {
     price.value = lastPrice.value.toFixed(currentCoinConfig.value.priceFixed);
   }
@@ -1489,7 +1489,7 @@ const availableBalance = computed(() => {
     if (orderSide.value === 'buy') realBalance = assetStore?.usdtBalance || 0;
     else realBalance = assetStore?.getHolding(symbol.value) || 0;
     
-    // 合约交易使用合约账户余额
+    // 鍚堢害浜ゆ槗浣跨敤鍚堢害璐︽埛浣欓
     if (activeTradeTab.value === 'futures') {
       return assetStore?.usdtBalance || 0;
     }
@@ -1501,22 +1501,22 @@ const availableBalance = computed(() => {
 });
 
 const frozenBalance = computed(() => {
-  // 1. 简单判空保护
+  // 1. 绠€鍗曞垽绌轰繚鎶?
   if (!assetStore.userAssets) return 0;
   
-  // 2. 根据当前是"买"还是"卖"来决定显示哪个币种的冻结额
-  // 买入时 (Buy BTC) -> 显示冻结的 USDT
+  // 2. 鏍规嵁褰撳墠鏄?涔?杩樻槸"鍗?鏉ュ喅瀹氭樉绀哄摢涓竵绉嶇殑鍐荤粨棰?
+  // 涔板叆鏃?(Buy BTC) -> 鏄剧ず鍐荤粨鐨?USDT
   if (orderSide.value === 'buy') {
     return assetStore.userAssets['USDT_frozen'] || 0;
   }
-  // 卖出时 (Sell BTC) -> 显示冻结的 BTC (即 symbol)
+  // 鍗栧嚭鏃?(Sell BTC) -> 鏄剧ず鍐荤粨鐨?BTC (鍗?symbol)
   else {
     const frozenKey = `${symbol.value}_frozen`;
     return assetStore.userAssets[frozenKey] || 0;
   }
 });
 
-// 判断持仓方向是否为多单
+// 鍒ゆ柇鎸佷粨鏂瑰悜鏄惁涓哄鍗?
 const isLongPosition = (position) => {
   const side = position.side?.toLowerCase() || '';
   return side === 'long' || side === 'buy';
@@ -1545,32 +1545,32 @@ const formatNumber = (value) => {
   return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 8 });
 };
 
-// 格式化资产数量（使用统一的格式化函数）
-// 格式化资产余额（使用统一的格式化函数，确保小数位正确）
+// 鏍煎紡鍖栬祫浜ф暟閲忥紙浣跨敤缁熶竴鐨勬牸寮忓寲鍑芥暟锛?
+// 鏍煎紡鍖栬祫浜т綑棰濓紙浣跨敤缁熶竴鐨勬牸寮忓寲鍑芥暟锛岀‘淇濆皬鏁颁綅姝ｇ‘锛?
 const formatAssetBalance = (value, symbol = '') => {
-  // 使用现有的 formatAssetAmount 函数，它已经处理了不同币种的小数位
+  // 浣跨敤鐜版湁鐨?formatAssetAmount 鍑芥暟锛屽畠宸茬粡澶勭悊浜嗕笉鍚屽竵绉嶇殑灏忔暟浣?
   return formatAssetAmount(value, symbol);
 };
 
 /**
- * 计算订单簿深度条的宽度百分比
- * @param {number} quantity - 当前订单的数量
- * @param {Array} list - 订单列表（asks 或 bids）
- * @param {string} type - 订单类型 ('asks' 或 'bids')
- * @param {Object} options - 可选配置
- * @param {boolean} options.smooth - 是否使用平滑曲线（平方根函数）使视觉效果更自然，默认 true
- * @param {number} options.minWidth - 最小宽度百分比，默认 0
- * @param {number} options.maxWidth - 最大宽度百分比，默认 100
- * @param {boolean} options.useCache - 是否使用缓存，默认 true
- * @returns {number} 深度条宽度百分比 (0-100)
+ * 璁＄畻璁㈠崟绨挎繁搴︽潯鐨勫搴︾櫨鍒嗘瘮
+ * @param {number} quantity - 褰撳墠璁㈠崟鐨勬暟閲?
+ * @param {Array} list - 璁㈠崟鍒楄〃锛坅sks 鎴?bids锛?
+ * @param {string} type - 璁㈠崟绫诲瀷 ('asks' 鎴?'bids')
+ * @param {Object} options - 鍙€夐厤缃?
+ * @param {boolean} options.smooth - 鏄惁浣跨敤骞虫粦鏇茬嚎锛堝钩鏂规牴鍑芥暟锛変娇瑙嗚鏁堟灉鏇磋嚜鐒讹紝榛樿 true
+ * @param {number} options.minWidth - 鏈€灏忓搴︾櫨鍒嗘瘮锛岄粯璁?0
+ * @param {number} options.maxWidth - 鏈€澶у搴︾櫨鍒嗘瘮锛岄粯璁?100
+ * @param {boolean} options.useCache - 鏄惁浣跨敤缂撳瓨锛岄粯璁?true
+ * @returns {number} 娣卞害鏉″搴︾櫨鍒嗘瘮 (0-100)
  */
 const getDepthWidth = (quantity, list, type, options = {}) => {
-  // 参数验证
+  // 鍙傛暟楠岃瘉
   if (!list || list.length === 0 || !quantity || quantity <= 0) {
     return options.minWidth || 0;
   }
 
-  // 获取或计算最大数量（使用缓存优化性能）
+  // 鑾峰彇鎴栬绠楁渶澶ф暟閲忥紙浣跨敤缂撳瓨浼樺寲鎬ц兘锛?
   let maxQuantity;
   const useCache = options.useCache !== false;
   const listHash = useCache ? getListHash(list) : null;
@@ -1579,20 +1579,20 @@ const getDepthWidth = (quantity, list, type, options = {}) => {
   if (useCache && 
       maxQuantityCache[`${cacheKey}ListHash`] === listHash && 
       maxQuantityCache[cacheKey] !== null) {
-    // 使用缓存值
+    // 浣跨敤缂撳瓨鍊?
     maxQuantity = maxQuantityCache[cacheKey];
   } else {
-    // 计算新的最大数量
+    // 璁＄畻鏂扮殑鏈€澶ф暟閲?
     maxQuantity = Math.max(...list.map(item => item.quantity || 0));
     
-    // 更新缓存
+    // 鏇存柊缂撳瓨
     if (useCache) {
       maxQuantityCache[cacheKey] = maxQuantity;
       maxQuantityCache[`${cacheKey}ListHash`] = listHash;
     }
   }
   
-  // 边界情况处理
+  // 杈圭晫鎯呭喌澶勭悊
   if (maxQuantity === 0) {
     return options.minWidth || 0;
   }
@@ -1601,17 +1601,17 @@ const getDepthWidth = (quantity, list, type, options = {}) => {
     return options.maxWidth || 100;
   }
 
-  // 计算基础比例
+  // 璁＄畻鍩虹姣斾緥
   const ratio = quantity / maxQuantity;
   
-  // 应用平滑曲线（平方根函数）使视觉效果更自然
-  // 这样可以避免小数量订单的深度条过小，同时保持大数量订单的视觉突出
+  // 搴旂敤骞虫粦鏇茬嚎锛堝钩鏂规牴鍑芥暟锛変娇瑙嗚鏁堟灉鏇磋嚜鐒?
+  // 杩欐牱鍙互閬垮厤灏忔暟閲忚鍗曠殑娣卞害鏉¤繃灏忥紝鍚屾椂淇濇寔澶ф暟閲忚鍗曠殑瑙嗚绐佸嚭
   const smoothRatio = options.smooth !== false ? Math.sqrt(ratio) : ratio;
   
-  // 计算百分比宽度
+  // 璁＄畻鐧惧垎姣斿搴?
   const width = smoothRatio * 100;
   
-  // 应用最小/最大宽度限制
+  // 搴旂敤鏈€灏?鏈€澶у搴﹂檺鍒?
   const minWidth = options.minWidth || 0;
   const maxWidth = options.maxWidth || 100;
   
@@ -1644,11 +1644,11 @@ const handleAmountInput = (e) => {
   }
   amount.value = value;
   
-  // 反向计算百分比：根据输入的数量更新滑块值
+  // 鍙嶅悜璁＄畻鐧惧垎姣旓細鏍规嵁杈撳叆鐨勬暟閲忔洿鏂版粦鍧楀€?
   updateSpotSliderFromAmount();
 };
 
-// 根据输入的数量反向计算滑块百分比
+// 鏍规嵁杈撳叆鐨勬暟閲忓弽鍚戣绠楁粦鍧楃櫨鍒嗘瘮
 const updateSpotSliderFromAmount = () => {
   try {
     const inputAmount = parseFloat(amount.value);
@@ -1659,39 +1659,37 @@ const updateSpotSliderFromAmount = () => {
     
     const balance = availableBalance.value;
     if (balance <= 0) {
-      spotSliderValue.value = 0;
       return;
     }
     
     const orderPrice = parseFloat(price.value) || lastPrice.value;
     if (!orderPrice || orderPrice <= 0) {
-      spotSliderValue.value = 0;
       return;
     }
     
     let percent = 0;
     
     if (orderSide.value === 'buy') {
-      // 买入：根据数量计算总花费，再计算百分比
+      // 涔板叆锛氭牴鎹暟閲忚绠楁€昏姳璐癸紝鍐嶈绠楃櫨鍒嗘瘮
       // percent = (amount * price / balance) * 100
       const totalCost = inputAmount * orderPrice;
       percent = Math.min(100, Math.max(0, (totalCost / balance) * 100));
     } else {
-      // 卖出：直接计算百分比
+      // 鍗栧嚭锛氱洿鎺ヨ绠楃櫨鍒嗘瘮
       // percent = (amount / balance) * 100
       percent = Math.min(100, Math.max(0, (inputAmount / balance) * 100));
     }
     
-    // 直接使用计算出的百分比（允许任意精度）
+    // 鐩存帴浣跨敤璁＄畻鍑虹殑鐧惧垎姣旓紙鍏佽浠绘剰绮惧害锛?
     spotSliderValue.value = Math.round(percent);
   } catch (error) {
     console.error('Error updating slider from amount:', error);
   }
 };
 
-// 滑块变化事件处理
+// 婊戝潡鍙樺寲浜嬩欢澶勭悊
 const onSpotSliderChange = (value) => {
-  // 确保值在有效范围内
+  // 纭繚鍊煎湪鏈夋晥鑼冨洿鍐?
   const clampedValue = Math.max(0, Math.min(100, value));
   spotSliderValue.value = clampedValue;
   setAmountPercent(clampedValue);
@@ -1710,7 +1708,6 @@ const setAmountPercent = (percent) => {
   try {
     const balance = availableBalance.value;
     if (balance <= 0) { 
-      spotSliderValue.value = 0;
       amount.value = '';
       return; 
     }
@@ -1719,19 +1716,18 @@ const setAmountPercent = (percent) => {
     const orderPrice = parseFloat(price.value) || lastPrice.value;
     
     if (!orderPrice || orderPrice <= 0) {
-      spotSliderValue.value = 0;
       amount.value = '';
       return;
     }
     
     if (orderSide.value === 'buy') {
-      // 买入操作：amount = (余额 * percent / 100) / price
+      // 涔板叆鎿嶄綔锛歛mount = (浣欓 * percent / 100) / price
       let scalingFactor = percent / 100;
       
-      // 如果是 100%，预留缓冲空间防止计算精度溢出或滑点
+      // 濡傛灉鏄?100%锛岄鐣欑紦鍐茬┖闂撮槻姝㈣绠楃簿搴︽孩鍑烘垨婊戠偣
       if (percent === 100) {
-        // 限价单：预留 0.1% 缓冲空间
-        // 市价单：预留 0.5% 缓冲空间（防止价格波动和滑点）
+        // 闄愪环鍗曪細棰勭暀 0.1% 缂撳啿绌洪棿
+        // 甯備环鍗曪細棰勭暀 0.5% 缂撳啿绌洪棿锛堥槻姝环鏍兼尝鍔ㄥ拰婊戠偣锛?
         scalingFactor = orderType.value === 'market' ? 0.995 : 0.999;
       }
       
@@ -1739,10 +1735,10 @@ const setAmountPercent = (percent) => {
       const calculatedAmount = totalCost / orderPrice;
       amount.value = calculatedAmount > 0 ? calculatedAmount.toFixed(config.amountFixed) : '';
     } else {
-      // 卖出操作：amount = 余额 * percent / 100
+      // 鍗栧嚭鎿嶄綔锛歛mount = 浣欓 * percent / 100
       let scalingFactor = percent / 100;
       
-      // 如果是 100%，预留极小缓冲空间
+      // 濡傛灉鏄?100%锛岄鐣欐瀬灏忕紦鍐茬┖闂?
       if (percent === 100) {
         scalingFactor = 0.999;
       }
@@ -1752,26 +1748,25 @@ const setAmountPercent = (percent) => {
     }
   } catch (error) { 
     console.error('Error setting amount percent:', error); 
-    spotSliderValue.value = 0;
     amount.value = '';
   }
 };
 
-// ========== 费率常量 ==========
-const SPOT_FEE_RATE = 0.001;   // 现货 0.1%
-const FUTURES_FEE_RATE = 0.0004; // 合约 0.04% (与后端保持一致)
+// ========== 璐圭巼甯搁噺 ==========
+const SPOT_FEE_RATE = 0.001;   // 鐜拌揣 0.1%
+const FUTURES_FEE_RATE = 0.0004; // 鍚堢害 0.04% (涓庡悗绔繚鎸佷竴鑷?
 
-// ========== 现货交易计算属性 ==========
+// ========== 鐜拌揣浜ゆ槗璁＄畻灞炴€?==========
 
-// 获取当前有效的价格（市价单使用当前价格，限价单使用用户输入价格）
+// 鑾峰彇褰撳墠鏈夋晥鐨勪环鏍硷紙甯備环鍗曚娇鐢ㄥ綋鍓嶄环鏍硷紝闄愪环鍗曚娇鐢ㄧ敤鎴疯緭鍏ヤ环鏍硷級
 const spotCurrentPrice = computed(() => {
   if (orderType.value === 'market') {
-    return lastPrice.value; // 市价单使用最新价格
+    return lastPrice.value; // 甯備环鍗曚娇鐢ㄦ渶鏂颁环鏍?
   }
-  return parseFloat(price.value) || lastPrice.value; // 限价单使用用户输入，否则使用最新价格
+  return parseFloat(price.value) || lastPrice.value; // 闄愪环鍗曚娇鐢ㄧ敤鎴疯緭鍏ワ紝鍚﹀垯浣跨敤鏈€鏂颁环鏍?
 });
 
-// 现货预估手续费
+// 鐜拌揣棰勪及鎵嬬画璐?
 const spotEstimatedFee = computed(() => {
   const p = spotCurrentPrice.value;
   const a = parseFloat(amount.value) || 0;
@@ -1779,71 +1774,71 @@ const spotEstimatedFee = computed(() => {
   if (p <= 0 || a <= 0) return 0;
   
   if (orderSide.value === 'buy') {
-    // 买入：手续费从获得的币种中扣除，显示币种单位
+    // 涔板叆锛氭墜缁垂浠庤幏寰楃殑甯佺涓墸闄わ紝鏄剧ず甯佺鍗曚綅
     return a * SPOT_FEE_RATE;
   } else {
-    // 卖出：手续费从获得的 USDT 中扣除，显示 USDT 单位
+    // 鍗栧嚭锛氭墜缁垂浠庤幏寰楃殑 USDT 涓墸闄わ紝鏄剧ず USDT 鍗曚綅
     return (p * a) * SPOT_FEE_RATE;
   }
 });
 
-// 格式化现货预估手续费显示
+// 鏍煎紡鍖栫幇璐ч浼版墜缁垂鏄剧ず
 const formatEstimatedFee = computed(() => {
   const fee = spotEstimatedFee.value;
   if (fee <= 0) return '0.00';
   
   if (orderSide.value === 'buy') {
-    // 买入：显示币种单位
+    // 涔板叆锛氭樉绀哄竵绉嶅崟浣?
     const config = currentCoinConfig.value;
     return fee.toFixed(config.amountFixed);
   } else {
-    // 卖出：显示 USDT 单位
+    // 鍗栧嚭锛氭樉绀?USDT 鍗曚綅
     return formatAssetBalance(fee, 'USDT');
   }
 });
 
-// 买入时的手续费 USDT 等值（用于小字备注）
+// 涔板叆鏃剁殑鎵嬬画璐?USDT 绛夊€硷紙鐢ㄤ簬灏忓瓧澶囨敞锛?
 const formatEstimatedFeeUSDT = computed(() => {
   if (orderSide.value !== 'buy') return '';
   const fee = spotEstimatedFee.value;
   if (fee <= 0) return '';
   
   const p = spotCurrentPrice.value;
-  const feeUSDT = fee * p; // BTC手续费 * BTC价格 = USDT等值
+  const feeUSDT = fee * p; // BTC鎵嬬画璐?* BTC浠锋牸 = USDT绛夊€?
   return feeUSDT > 0 ? formatAssetBalance(feeUSDT, 'USDT') : '';
 });
 
-// 现货总额（名义价值）
+// 鐜拌揣鎬婚锛堝悕涔変环鍊硷級
 const spotTotal = computed(() => {
   const p = spotCurrentPrice.value;
   const a = parseFloat(amount.value) || 0;
   
   if (p <= 0 || a <= 0) return 0;
   
-  // 总额 = 价格 * 数量（名义价值）
+  // 鎬婚 = 浠锋牸 * 鏁伴噺锛堝悕涔変环鍊硷級
   return p * a;
 });
 
-// 格式化现货总额显示
+// 鏍煎紡鍖栫幇璐ф€婚鏄剧ず
 const formatTotalAmount = computed(() => {
   const total = spotTotal.value;
   return total > 0 ? total.toFixed(2) : '0.00';
 });
 
-// 预估到账金额（用户实际能拿到的数量）
+// 棰勪及鍒拌处閲戦锛堢敤鎴峰疄闄呰兘鎷垮埌鐨勬暟閲忥級
 const formatEstimatedReceived = computed(() => {
   const p = spotCurrentPrice.value;
   const a = parseFloat(amount.value) || 0;
   if (p <= 0 || a <= 0) return '0.00';
   
   if (orderSide.value === 'buy') {
-    // 买入：实际得到的币种 = amount - fee
+    // 涔板叆锛氬疄闄呭緱鍒扮殑甯佺 = amount - fee
     const fee = spotEstimatedFee.value;
     const received = a - fee;
     const config = currentCoinConfig.value;
     return received > 0 ? received.toFixed(config.amountFixed) + ' ' + currentCoinConfig.value.baseCoin : '0.00 ' + currentCoinConfig.value.baseCoin;
   } else {
-    // 卖出：实际得到的 USDT = total - fee（统一使用 formatAssetBalance 确保 2 位小数）
+    // 鍗栧嚭锛氬疄闄呭緱鍒扮殑 USDT = total - fee锛堢粺涓€浣跨敤 formatAssetBalance 纭繚 2 浣嶅皬鏁帮級
     const total = spotTotal.value;
     const fee = spotEstimatedFee.value;
     const received = total - fee;
@@ -1851,19 +1846,19 @@ const formatEstimatedReceived = computed(() => {
   }
 });
 
-// 可用余额：始终显示 USDT 余额（买入时用 USDT，卖出时也需要 USDT 支付手续费）
+// 鍙敤浣欓锛氬缁堟樉绀?USDT 浣欓锛堜拱鍏ユ椂鐢?USDT锛屽崠鍑烘椂涔熼渶瑕?USDT 鏀粯鎵嬬画璐癸級
 const formatAvailableBalance = computed(() => {
   const usdtBalance = assetStore?.usdtBalance || 0;
   return formatAssetBalance(usdtBalance, 'USDT') + ' USDT';
 });
 
-// 可卖余额：始终显示币种持仓（买入后可以卖币，卖出时也需要有币才能卖）
+// 鍙崠浣欓锛氬缁堟樉绀哄竵绉嶆寔浠擄紙涔板叆鍚庡彲浠ュ崠甯侊紝鍗栧嚭鏃朵篃闇€瑕佹湁甯佹墠鑳藉崠锛?
 const formatSellableBalance = computed(() => {
   const coinBalance = assetStore?.getHolding(symbol.value) || 0;
   return formatAssetBalance(coinBalance, symbol.value) + ' ' + symbol.value;
 });
 
-// 使用 computed 来实现响应式翻译
+// 浣跨敤 computed 鏉ュ疄鐜板搷搴斿紡缈昏瘧
 const orderTypeOptions = computed(() => [
   { name: t('trade.limit_order'), type: 'limit' },
   { name: t('trade.market_order'), type: 'market' }
@@ -1884,22 +1879,22 @@ const isOrderValid = computed(() => {
   else { const p = parseFloat(price.value); return p > 0 && a > 0; }
 });
 
-// 合约交易相关方法
+// 鍚堢害浜ゆ槗鐩稿叧鏂规硶
 const selectFuturesPrice = (priceValue) => {
   if (orderType.value === 'limit') {
     futuresPrice.value = priceValue.toString();
   }
 };
 
-// 合约滑块变化事件处理
+// 鍚堢害婊戝潡鍙樺寲浜嬩欢澶勭悊
 const onFuturesSliderChange = (value) => {
-  // 确保值在有效范围内
+  // 纭繚鍊煎湪鏈夋晥鑼冨洿鍐?
   const clampedValue = Math.max(0, Math.min(100, value));
   futuresSliderValue.value = clampedValue;
   setFuturesAmountPercent(clampedValue);
 };
 
-// 根据合约输入的数量反向计算滑块百分比
+// 鏍规嵁鍚堢害杈撳叆鐨勬暟閲忓弽鍚戣绠楁粦鍧楃櫨鍒嗘瘮
 const updateFuturesSliderFromAmount = () => {
   try {
     const inputAmount = parseFloat(futuresAmount.value);
@@ -1910,35 +1905,32 @@ const updateFuturesSliderFromAmount = () => {
     
     const balance = assetStore?.usdtBalance || 0;
     if (balance <= 0) {
-      futuresSliderValue.value = 0;
       return;
     }
     
     const orderPrice = orderType.value === 'market' ? markPrice.value : parseFloat(futuresPrice.value || markPrice.value);
     if (!orderPrice || orderPrice <= 0) {
-      futuresSliderValue.value = 0;
       return;
     }
     
-    // 基于可用保证金和杠杆计算最大可开仓位
+    // 鍩轰簬鍙敤淇濊瘉閲戝拰鏉犳潌璁＄畻鏈€澶у彲寮€浠撲綅
     const maxAmount = (balance * currentLeverage.value) / orderPrice;
     
     if (maxAmount <= 0) {
-      futuresSliderValue.value = 0;
       return;
     }
     
     // percent = (inputAmount / maxAmount) * 100
     const percent = Math.min(100, Math.max(0, (inputAmount / maxAmount) * 100));
     
-    // 直接使用计算出的百分比（允许任意精度）
+    // 鐩存帴浣跨敤璁＄畻鍑虹殑鐧惧垎姣旓紙鍏佽浠绘剰绮惧害锛?
     futuresSliderValue.value = Math.round(percent);
   } catch (error) {
     console.error('Error updating futures slider from amount:', error);
   }
 };
 
-// 合约数量输入处理
+// 鍚堢害鏁伴噺杈撳叆澶勭悊
 const handleFuturesAmountInput = (e) => {
   let value = e.target.value;
   if (value.includes('-')) value = value.replace(/-/g, '');
@@ -1951,7 +1943,7 @@ const handleFuturesAmountInput = (e) => {
   }
   futuresAmount.value = value;
   
-  // 反向计算百分比：根据输入的数量更新滑块值
+  // 鍙嶅悜璁＄畻鐧惧垎姣旓細鏍规嵁杈撳叆鐨勬暟閲忔洿鏂版粦鍧楀€?
   updateFuturesSliderFromAmount();
 };
 
@@ -1960,91 +1952,88 @@ const setFuturesAmountPercent = (percent) => {
   try {
     const balance = assetStore?.usdtBalance || 0;
     if (balance <= 0) {
-      futuresSliderValue.value = 0;
       futuresAmount.value = '';
       return;
     }
     
     const orderPrice = orderType.value === 'market' ? markPrice.value : parseFloat(futuresPrice.value || markPrice.value);
     if (!orderPrice || orderPrice <= 0) {
-      futuresSliderValue.value = 0;
       futuresAmount.value = '';
       return;
     }
     
-    // 基于可用保证金和杠杆计算最大可开仓位
-    // 最大可开数量 = (可用保证金 * 杠杆倍数) / 价格
+    // 鍩轰簬鍙敤淇濊瘉閲戝拰鏉犳潌璁＄畻鏈€澶у彲寮€浠撲綅
+    // 鏈€澶у彲寮€鏁伴噺 = (鍙敤淇濊瘉閲?* 鏉犳潌鍊嶆暟) / 浠锋牸
     const maxAmount = (balance * currentLeverage.value) / orderPrice;
     
-    // 如果是 100%，预留极小缓冲空间（防止计算精度问题）
+    // 濡傛灉鏄?100%锛岄鐣欐瀬灏忕紦鍐茬┖闂达紙闃叉璁＄畻绮惧害闂锛?
     let scalingFactor = percent / 100;
     if (percent === 100) {
-      scalingFactor = 0.999; // 预留 0.1% 缓冲
+      scalingFactor = 0.999; // 棰勭暀 0.1% 缂撳啿
     }
     
     const calculatedAmount = maxAmount * scalingFactor;
     futuresAmount.value = calculatedAmount > 0 ? calculatedAmount.toFixed(currentCoinConfig.value.amountFixed) : '';
   } catch (error) {
     console.error('Error setting futures amount percent:', error);
-    futuresSliderValue.value = 0;
     futuresAmount.value = '';
   }
 };
 
-// ========== 合约交易计算属性 ==========
+// ========== 鍚堢害浜ゆ槗璁＄畻灞炴€?==========
 
-// 获取当前有效的价格（市价单使用标记价格，限价单使用用户输入价格）
+// 鑾峰彇褰撳墠鏈夋晥鐨勪环鏍硷紙甯備环鍗曚娇鐢ㄦ爣璁颁环鏍硷紝闄愪环鍗曚娇鐢ㄧ敤鎴疯緭鍏ヤ环鏍硷級
 const futuresCurrentPrice = computed(() => {
   if (orderType.value === 'market') {
-    return markPrice.value; // 市价单使用标记价格
+    return markPrice.value; // 甯備环鍗曚娇鐢ㄦ爣璁颁环鏍?
   }
-  return parseFloat(futuresPrice.value) || markPrice.value; // 限价单使用用户输入，否则使用标记价格
+  return parseFloat(futuresPrice.value) || markPrice.value; // 闄愪环鍗曚娇鐢ㄧ敤鎴疯緭鍏ワ紝鍚﹀垯浣跨敤鏍囪浠锋牸
 });
 
-// 合约名义价值
+// 鍚堢害鍚嶄箟浠峰€?
 const futuresNotionalValue = computed(() => {
   const p = futuresCurrentPrice.value;
   const a = parseFloat(futuresAmount.value) || 0;
   
   if (p <= 0 || a <= 0) return 0;
   
-  // 名义价值 = 价格 * 数量
+  // 鍚嶄箟浠峰€?= 浠锋牸 * 鏁伴噺
   return p * a;
 });
 
-// 合约预估手续费
+// 鍚堢害棰勪及鎵嬬画璐?
 const futuresEstimatedFee = computed(() => {
   const notional = futuresNotionalValue.value;
   if (notional <= 0) return 0;
   
-  // 手续费 = 名义价值 * 费率
+  // 鎵嬬画璐?= 鍚嶄箟浠峰€?* 璐圭巼
   return notional * FUTURES_FEE_RATE;
 });
 
-// 格式化合约预估手续费显示
+// 鏍煎紡鍖栧悎绾﹂浼版墜缁垂鏄剧ず
 const formatFuturesEstimatedFee = computed(() => {
   const fee = futuresEstimatedFee.value;
   return fee > 0 ? fee.toFixed(4) : '0.00';
 });
 
-// 合约保证金（所需保证金）
+// 鍚堢害淇濊瘉閲戯紙鎵€闇€淇濊瘉閲戯級
 const futuresMargin = computed(() => {
   const notional = futuresNotionalValue.value;
   const leverage = currentLeverage.value || 20;
   
   if (notional <= 0 || leverage <= 0) return 0;
   
-  // 保证金 = 名义价值 / 杠杆倍数
+  // 淇濊瘉閲?= 鍚嶄箟浠峰€?/ 鏉犳潌鍊嶆暟
   return notional / leverage;
 });
 
-// 合约总额（显示名义价值，也可以显示保证金）
+// 鍚堢害鎬婚锛堟樉绀哄悕涔変环鍊硷紝涔熷彲浠ユ樉绀轰繚璇侀噾锛?
 const futuresTotal = computed(() => {
-  // 这里显示名义价值，如果需要显示保证金，可以改为 futuresMargin.value
+  // 杩欓噷鏄剧ず鍚嶄箟浠峰€硷紝濡傛灉闇€瑕佹樉绀轰繚璇侀噾锛屽彲浠ユ敼涓?futuresMargin.value
   return futuresNotionalValue.value;
 });
 
-// 格式化合约总额显示
+// 鏍煎紡鍖栧悎绾︽€婚鏄剧ず
 const formatFuturesTotalAmount = computed(() => {
   const total = futuresTotal.value;
   return total > 0 ? total.toFixed(2) : '0.00';
@@ -2086,11 +2075,11 @@ const formatUnrealizedPnl = (pnl) => {
   return Math.abs(pnl).toFixed(2);
 };
 
-// 注意：此函数已废弃，现在直接使用后端返回的 unrealized_pnl
-// 保留此函数以防其他地方调用，但不再覆盖后端返回的值
+// 娉ㄦ剰锛氭鍑芥暟宸插簾寮冿紝鐜板湪鐩存帴浣跨敤鍚庣杩斿洖鐨?unrealized_pnl
+// 淇濈暀姝ゅ嚱鏁颁互闃插叾浠栧湴鏂硅皟鐢紝浣嗕笉鍐嶈鐩栧悗绔繑鍥炵殑鍊?
 const updatePositionsPnl = () => {
-  // 不再重新计算，直接使用后端返回的 unrealized_pnl
-  // 只更新百分比（基于后端返回的 PnL）
+  // 涓嶅啀閲嶆柊璁＄畻锛岀洿鎺ヤ娇鐢ㄥ悗绔繑鍥炵殑 unrealized_pnl
+  // 鍙洿鏂扮櫨鍒嗘瘮锛堝熀浜庡悗绔繑鍥炵殑 PnL锛?
   positions.value.forEach(position => {
     if (position.margin > 0) {
       position.unrealizedPnlPercent = (position.unrealizedPnl / position.margin) * 100;
@@ -2129,15 +2118,15 @@ const handleLong = async () => {
         duration: 2000
       });
       
-      // 刷新持仓列表和资产余额
+      // 鍒锋柊鎸佷粨鍒楄〃鍜岃祫浜т綑棰?
       await fetchFuturesPositions();
       await assetStore.initData();
       
-      // 刷新当前委托订单列表（合约）
-      console.log('下单成功，正在强制刷新合约委托列表...');
+      // 鍒锋柊褰撳墠濮旀墭璁㈠崟鍒楄〃锛堝悎绾︼級
+      console.log('涓嬪崟鎴愬姛锛屾鍦ㄥ己鍒跺埛鏂板悎绾﹀鎵樺垪琛?..');
       await fetchFuturesOrders();
       
-      // 清空输入框
+      // 娓呯┖杈撳叆妗?
       futuresAmount.value = '';
       futuresPrice.value = '';
       selectedFuturesPercent.value = null;
@@ -2147,9 +2136,9 @@ const handleLong = async () => {
       throw new Error(responseData?.message || t('trade.order_failed'));
     }
   } catch (error) {
-    console.error('❌ 合约开多失败:', error);
+    console.error('鉂?鍚堢害寮€澶氬け璐?', error);
     
-    let errorMessage = t('trade.order_failed') || '开仓失败，请重试';
+    let errorMessage = t('trade.order_failed') || 'Order failed, please try again';
     if (error.response?.data?.detail) {
       errorMessage = error.response.data.detail;
     } else if (error.response?.data?.message) {
@@ -2199,15 +2188,15 @@ const handleShort = async () => {
         duration: 2000
       });
       
-      // 刷新持仓列表和资产余额
+      // 鍒锋柊鎸佷粨鍒楄〃鍜岃祫浜т綑棰?
       await fetchFuturesPositions();
       await assetStore.initData();
       
-      // 刷新当前委托订单列表（合约）
-      console.log('下单成功，正在强制刷新合约委托列表...');
+      // 鍒锋柊褰撳墠濮旀墭璁㈠崟鍒楄〃锛堝悎绾︼級
+      console.log('涓嬪崟鎴愬姛锛屾鍦ㄥ己鍒跺埛鏂板悎绾﹀鎵樺垪琛?..');
       await fetchFuturesOrders();
       
-      // 清空输入框
+      // 娓呯┖杈撳叆妗?
       futuresAmount.value = '';
       futuresPrice.value = '';
       selectedFuturesPercent.value = null;
@@ -2217,9 +2206,9 @@ const handleShort = async () => {
       throw new Error(responseData?.message || t('trade.order_failed'));
     }
   } catch (error) {
-    console.error('❌ 合约开空失败:', error);
+    console.error('鉂?鍚堢害寮€绌哄け璐?', error);
     
-    let errorMessage = t('trade.order_failed') || '开仓失败，请重试';
+    let errorMessage = t('trade.order_failed') || 'Order failed, please try again';
     if (error.response?.data?.detail) {
       errorMessage = error.response.data.detail;
     } else if (error.response?.data?.message) {
@@ -2249,56 +2238,56 @@ const adjustTPSLPrice = (field, step) => {
   const currentVal = parseFloat(tpSlForm.value[field]) || markPrice.value;
   let newVal = currentVal + step;
   
-  // 如果是止损价格调整，需要验证是否触及强平线
+  // 濡傛灉鏄鎹熶环鏍艰皟鏁达紝闇€瑕侀獙璇佹槸鍚﹁Е鍙婂己骞崇嚎
   if (field === 'stopLossPrice' && currentTPSLPosition.value?.position) {
     const position = currentTPSLPosition.value.position;
     const liquidationPrice = position.liquidationPrice;
     const isLong = position.side === 'long' || position.side === 'LONG';
     
     if (liquidationPrice > 0) {
-      // 做多：止损价格必须大于强平价格
+      // 鍋氬锛氭鎹熶环鏍煎繀椤诲ぇ浜庡己骞充环鏍?
       if (isLong && newVal <= liquidationPrice) {
-        // 自动修正为强平价 + 0.5%
+        // 鑷姩淇涓哄己骞充环 + 0.5%
         newVal = liquidationPrice * 1.005;
       }
-      // 做空：止损价格必须小于强平价格
+      // 鍋氱┖锛氭鎹熶环鏍煎繀椤诲皬浜庡己骞充环鏍?
       else if (!isLong && newVal >= liquidationPrice) {
-        // 自动修正为强平价 - 0.5%
+        // 鑷姩淇涓哄己骞充环 - 0.5%
         newVal = liquidationPrice * 0.995;
       }
     }
   }
   
-  // 根据步长增减，保留2位小数
+  // 鏍规嵁姝ラ暱澧炲噺锛屼繚鐣?浣嶅皬鏁?
   tpSlForm.value[field] = newVal.toFixed(2);
 };
 
 const setTPSLPercentage = (field, percent) => {
-  // 基于标记价格快速设置百分比偏移
+  // 鍩轰簬鏍囪浠锋牸蹇€熻缃櫨鍒嗘瘮鍋忕Щ
   const basePrice = markPrice.value;
   let calculatedPrice;
   
   if (field === 'takeProfitPrice') {
     calculatedPrice = basePrice * (1 + percent);
   } else {
-    // 止损价格：需要验证是否触及强平线
+    // 姝㈡崯浠锋牸锛氶渶瑕侀獙璇佹槸鍚﹁Е鍙婂己骞崇嚎
     calculatedPrice = basePrice * (1 - percent);
     
-    // 如果有持仓信息，检查是否触及强平价格
+    // 濡傛灉鏈夋寔浠撲俊鎭紝妫€鏌ユ槸鍚﹁Е鍙婂己骞充环鏍?
     if (currentTPSLPosition.value?.position) {
       const position = currentTPSLPosition.value.position;
       const liquidationPrice = position.liquidationPrice;
       const isLong = position.side === 'long' || position.side === 'LONG';
       
       if (liquidationPrice > 0) {
-        // 做多：止损价格必须大于强平价格
+        // 鍋氬锛氭鎹熶环鏍煎繀椤诲ぇ浜庡己骞充环鏍?
         if (isLong && calculatedPrice <= liquidationPrice) {
-          // 自动修正为强平价 + 0.5%（给缓冲空间）
+          // 鑷姩淇涓哄己骞充环 + 0.5%锛堢粰缂撳啿绌洪棿锛?
           calculatedPrice = liquidationPrice * 1.005;
         }
-        // 做空：止损价格必须小于强平价格
+        // 鍋氱┖锛氭鎹熶环鏍煎繀椤诲皬浜庡己骞充环鏍?
         else if (!isLong && calculatedPrice >= liquidationPrice) {
-          // 自动修正为强平价 - 0.5%（给缓冲空间）
+          // 鑷姩淇涓哄己骞充环 - 0.5%锛堢粰缂撳啿绌洪棿锛?
           calculatedPrice = liquidationPrice * 0.995;
         }
       }
@@ -2308,10 +2297,10 @@ const setTPSLPercentage = (field, percent) => {
   tpSlForm.value[field] = calculatedPrice.toFixed(2);
 };
 
-// 验证止损价格是否合理
+// 楠岃瘉姝㈡崯浠锋牸鏄惁鍚堢悊
 const validateStopLossPrice = () => {
   if (!currentTPSLPosition.value?.position) {
-    return null; // 没有持仓信息，无法验证
+    return null; // 娌℃湁鎸佷粨淇℃伅锛屾棤娉曢獙璇?
   }
   
   const position = currentTPSLPosition.value.position;
@@ -2319,39 +2308,39 @@ const validateStopLossPrice = () => {
   const stopLossPrice = parseFloat(tpSlForm.value.stopLossPrice);
   
   if (!stopLossPrice || !liquidationPrice || liquidationPrice <= 0) {
-    return null; // 没有输入或没有强平价格，无法验证
+    return null; // 娌℃湁杈撳叆鎴栨病鏈夊己骞充环鏍硷紝鏃犳硶楠岃瘉
   }
   
   const isLong = position.side === 'long' || position.side === 'LONG';
   
-  // 做多：止损价格必须大于强平价格
+  // 鍋氬锛氭鎹熶环鏍煎繀椤诲ぇ浜庡己骞充环鏍?
   if (isLong && stopLossPrice <= liquidationPrice) {
     return t('trade.stop_loss_above_liquidation', { price: formatPrice(liquidationPrice) }) || 
-           `止损价格必须大于强平价格 (强平价: ${formatPrice(liquidationPrice)})`;
+           `姝㈡崯浠锋牸蹇呴』澶т簬寮哄钩浠锋牸 (寮哄钩浠? ${formatPrice(liquidationPrice)})`;
   }
   
-  // 做空：止损价格必须小于强平价格
+  // 鍋氱┖锛氭鎹熶环鏍煎繀椤诲皬浜庡己骞充环鏍?
   if (!isLong && stopLossPrice >= liquidationPrice) {
     return t('trade.stop_loss_below_liquidation', { price: formatPrice(liquidationPrice) }) || 
-           `止损价格必须小于强平价格 (强平价: ${formatPrice(liquidationPrice)})`;
+           `姝㈡崯浠锋牸蹇呴』灏忎簬寮哄钩浠锋牸 (寮哄钩浠? ${formatPrice(liquidationPrice)})`;
   }
   
-  return null; // 验证通过
+  return null; // 楠岃瘉閫氳繃
 };
 
-// 计算属性：止损价格错误信息
+// 璁＄畻灞炴€э細姝㈡崯浠锋牸閿欒淇℃伅
 const stopLossPriceError = computed(() => {
   return validateStopLossPrice();
 });
 
-// 计算属性：表单是否有效
+// 璁＄畻灞炴€э細琛ㄥ崟鏄惁鏈夋晥
 const isTPSLFormValid = computed(() => {
-  // 至少填写一个价格
+  // 鑷冲皯濉啓涓€涓环鏍?
   if (!tpSlForm.value.takeProfitPrice && !tpSlForm.value.stopLossPrice) {
     return false;
   }
   
-  // 如果填写了止损价格，必须通过验证
+  // 濡傛灉濉啓浜嗘鎹熶环鏍硷紝蹇呴』閫氳繃楠岃瘉
   if (tpSlForm.value.stopLossPrice && stopLossPriceError.value) {
     return false;
   }
@@ -2359,7 +2348,7 @@ const isTPSLFormValid = computed(() => {
   return true;
 });
 
-// 检查止损百分比按钮是否应该禁用
+// 妫€鏌ユ鎹熺櫨鍒嗘瘮鎸夐挳鏄惁搴旇绂佺敤
 const isStopLossPercentDisabled = (percent) => {
   if (!currentTPSLPosition.value?.position) {
     return false;
@@ -2376,12 +2365,12 @@ const isStopLossPercentDisabled = (percent) => {
   const calculatedPrice = basePrice * (1 - percent);
   const isLong = position.side === 'long' || position.side === 'LONG';
   
-  // 做多：如果计算出的价格 <= 强平价格，禁用
+  // 鍋氬锛氬鏋滆绠楀嚭鐨勪环鏍?<= 寮哄钩浠锋牸锛岀鐢?
   if (isLong && calculatedPrice <= liquidationPrice) {
     return true;
   }
   
-  // 做空：如果计算出的价格 >= 强平价格，禁用
+  // 鍋氱┖锛氬鏋滆绠楀嚭鐨勪环鏍?>= 寮哄钩浠锋牸锛岀鐢?
   if (!isLong && calculatedPrice >= liquidationPrice) {
     return true;
   }
@@ -2418,7 +2407,7 @@ const handleClosePosition = async (position, index) => {
       message: t('trade.close_position_message'),
       confirmButtonText: t('trade.close_position_confirm_btn'),
       cancelButtonText: t('trade.close_position_cancel_btn'),
-      confirmButtonColor: '#F6465D'
+      confirmButtonColor: 'var(--color-loss)'
     });
     
     isLoading.value = true;
@@ -2440,26 +2429,26 @@ const handleClosePosition = async (position, index) => {
           duration: 2000
         });
         
-        // 刷新持仓列表和资产余额
+        // 鍒锋柊鎸佷粨鍒楄〃鍜岃祫浜т綑棰?
         await fetchFuturesPositions();
         await assetStore.initData();
         
-        // 刷新当前委托订单列表（合约）
-        console.log('平仓成功，正在强制刷新合约委托列表...');
+        // 鍒锋柊褰撳墠濮旀墭璁㈠崟鍒楄〃锛堝悎绾︼級
+        console.log('骞充粨鎴愬姛锛屾鍦ㄥ己鍒跺埛鏂板悎绾﹀鎵樺垪琛?..');
         await fetchFuturesOrders();
         
-        // 刷新历史成交订单列表（合约）
-        console.log('[DEBUG] 平仓成功，正在刷新历史成交列表...');
+        // 鍒锋柊鍘嗗彶鎴愪氦璁㈠崟鍒楄〃锛堝悎绾︼級
+        console.log('[DEBUG] 骞充粨鎴愬姛锛屾鍦ㄥ埛鏂板巻鍙叉垚浜ゅ垪琛?..');
         await fetchFuturesHistory();
         
-        console.log('✅ 平仓成功，持仓列表、资产余额、委托列表和历史成交列表已刷新');
+        console.log('[DEBUG] Close position succeeded; refreshed positions, assets, orders, and history.');
       } else {
         throw new Error(responseData?.message || t('trade.close_failed'));
       }
     } catch (error) {
-      console.error('❌ 平仓失败:', error);
+      console.error('鉂?骞充粨澶辫触:', error);
       
-      let errorMessage = t('trade.close_failed') || '平仓失败，请重试';
+      let errorMessage = t('trade.close_failed') || '骞充粨澶辫触锛岃閲嶈瘯';
       if (error.response?.data?.detail) {
         errorMessage = error.response.data.detail;
       } else if (error.response?.data?.message) {
@@ -2477,21 +2466,21 @@ const handleClosePosition = async (position, index) => {
       isLoading.value = false;
     }
   } catch {
-    // 用户取消
+    // 鐢ㄦ埛鍙栨秷
   }
 };
 
-// 监听标记价格变化，更新未实现盈亏和盘口
+// 鐩戝惉鏍囪浠锋牸鍙樺寲锛屾洿鏂版湭瀹炵幇鐩堜簭鍜岀洏鍙?
 watch(markPrice, () => {
   updatePositionsPnl();
   
-  // 仅在没有真实深度数据且当前还没有数据时，才生成模拟数据作为填充
+  // 浠呭湪娌℃湁鐪熷疄娣卞害鏁版嵁涓斿綋鍓嶈繕娌℃湁鏁版嵁鏃讹紝鎵嶇敓鎴愭ā鎷熸暟鎹綔涓哄～鍏?
   if (!asks.value.length || !bids.value.length) {
     generateOrderBook();
   }
 }, { immediate: true });
 
-// 从 marketStore 获取标记价格
+// 浠?marketStore 鑾峰彇鏍囪浠锋牸
 watch(() => marketStore.getTicker(symbol.value), (ticker) => {
   if (ticker) {
     markPrice.value = ticker.price || markPrice.value;
@@ -2499,10 +2488,10 @@ watch(() => marketStore.getTicker(symbol.value), (ticker) => {
   }
 }, { immediate: true });
 
-// 监听币种对应的真实深度数据变化
+// 鐩戝惉甯佺瀵瑰簲鐨勭湡瀹炴繁搴︽暟鎹彉鍖?
 watch(() => marketStore.depths[symbol.value], (newDepth) => {
   if (newDepth && newDepth.asks && newDepth.bids) {
-    // 只有当有真实数据时才覆盖，否则保留原有数据（或模拟数据）
+    // 鍙湁褰撴湁鐪熷疄鏁版嵁鏃舵墠瑕嗙洊锛屽惁鍒欎繚鐣欏師鏈夋暟鎹紙鎴栨ā鎷熸暟鎹級
     asks.value = [...newDepth.asks];
     bids.value = [...newDepth.bids];
   }
@@ -2510,14 +2499,14 @@ watch(() => marketStore.depths[symbol.value], (newDepth) => {
 
 const formatOrderTime = (timestamp) => {
   if (!timestamp) return '';
-  // 后端返回的是秒级时间戳（Unix timestamp），需要转换为毫秒级
-  // 如果时间戳小于 1e12，说明是秒级，需要乘以 1000
+  // 鍚庣杩斿洖鐨勬槸绉掔骇鏃堕棿鎴筹紙Unix timestamp锛夛紝闇€瑕佽浆鎹负姣绾?
+  // 濡傛灉鏃堕棿鎴冲皬浜?1e12锛岃鏄庢槸绉掔骇锛岄渶瑕佷箻浠?1000
   const timestampMs = timestamp < 1e12 ? timestamp * 1000 : timestamp;
   const date = new Date(timestampMs);
   
-  // 检查日期是否有效
+  // 妫€鏌ユ棩鏈熸槸鍚︽湁鏁?
   if (isNaN(date.getTime())) {
-    console.warn(`[DEBUG] 无效的时间戳: ${timestamp}`);
+    console.warn(`[DEBUG] 鏃犳晥鐨勬椂闂存埑: ${timestamp}`);
     return '';
   }
   
@@ -2529,20 +2518,20 @@ const formatOrderTime = (timestamp) => {
 
 const scrollToTop = () => { window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
-// 获取当前委托订单列表（合约订单）
-// 获取现货当前委托订单列表
+// 鑾峰彇褰撳墠濮旀墭璁㈠崟鍒楄〃锛堝悎绾﹁鍗曪級
+// 鑾峰彇鐜拌揣褰撳墠濮旀墭璁㈠崟鍒楄〃
 const fetchSpotOrders = async () => {
   try {
     const response = await getOrders({ status: 'NEW' });
     const responseData = response.data || response;
     
     if (responseData && responseData.code === 200 && responseData.data) {
-      // 过滤：只显示状态为 NEW、PENDING 或 OPEN 的订单
+      // 杩囨护锛氬彧鏄剧ず鐘舵€佷负 NEW銆丳ENDING 鎴?OPEN 鐨勮鍗?
       const pendingOrders = responseData.data.filter(order => 
         order.status === 'NEW' || order.status === 'PENDING' || order.status === 'OPEN'
       );
       
-      // 映射后端数据格式到前端显示格式
+      // 鏄犲皠鍚庣鏁版嵁鏍煎紡鍒板墠绔樉绀烘牸寮?
       spotOrdersList.value = pendingOrders.map(order => ({
         order_id: order.order_id,
         side: order.side ? order.side.toLowerCase() : 'buy',
@@ -2558,26 +2547,26 @@ const fetchSpotOrders = async () => {
       spotOrdersList.value = [];
     }
   } catch (error) {
-    console.error('❌ 获取现货订单列表失败:', error);
+    console.error('鉂?鑾峰彇鐜拌揣璁㈠崟鍒楄〃澶辫触:', error);
     spotOrdersList.value = [];
   }
 };
 
-// 获取合约当前委托订单列表
+// 鑾峰彇鍚堢害褰撳墠濮旀墭璁㈠崟鍒楄〃
 const fetchFuturesOrders = async () => {
   try {
-    console.log('📤 [DEBUG] 开始获取合约委托订单...');
+    console.log('馃摛 [DEBUG] 寮€濮嬭幏鍙栧悎绾﹀鎵樿鍗?..');
     const response = await getFuturesOrders({ status: 'NEW' });
     const responseData = response.data || response;
-    console.log('📥 [DEBUG] 合约委托订单API返回:', responseData);
+    console.log('馃摜 [DEBUG] 鍚堢害濮旀墭璁㈠崟API杩斿洖:', responseData);
     
     if (responseData && responseData.code === 200 && responseData.data) {
-      // 过滤：只显示状态为 NEW、PENDING 或 OPEN 的订单
+      // 杩囨护锛氬彧鏄剧ず鐘舵€佷负 NEW銆丳ENDING 鎴?OPEN 鐨勮鍗?
       const pendingOrders = responseData.data.filter(order => 
         order.status === 'NEW' || order.status === 'PENDING' || order.status === 'OPEN'
       );
       
-      // 映射后端数据格式到前端显示格式
+      // 鏄犲皠鍚庣鏁版嵁鏍煎紡鍒板墠绔樉绀烘牸寮?
       futuresOrdersList.value = pendingOrders.map(order => ({
         order_id: order.order_id,
         side: order.side ? order.side.toLowerCase() : 'buy',
@@ -2589,21 +2578,21 @@ const fetchFuturesOrders = async () => {
         timestamp: order.timestamp || order.create_time || Date.now(),
         status: order.status || 'NEW'
       }));
-      console.log('✅ [DEBUG] 合约委托订单列表已更新，数量:', futuresOrdersList.value.length);
-      console.log('✅ [DEBUG] 合约委托订单详情:', futuresOrdersList.value);
+      console.log('鉁?[DEBUG] 鍚堢害濮旀墭璁㈠崟鍒楄〃宸叉洿鏂帮紝鏁伴噺:', futuresOrdersList.value.length);
+      console.log('鉁?[DEBUG] 鍚堢害濮旀墭璁㈠崟璇︽儏:', futuresOrdersList.value);
     } else {
       futuresOrdersList.value = [];
-      console.log('⚠️ [DEBUG] 合约委托订单列表为空');
+      console.log('鈿狅笍 [DEBUG] 鍚堢害濮旀墭璁㈠崟鍒楄〃涓虹┖');
     }
   } catch (error) {
-    console.error('❌ 获取合约订单列表失败:', error);
+    console.error('鉂?鑾峰彇鍚堢害璁㈠崟鍒楄〃澶辫触:', error);
     futuresOrdersList.value = [];
   }
 };
 
-// 获取合约历史成交订单列表（支持分页）
+// 鑾峰彇鍚堢害鍘嗗彶鎴愪氦璁㈠崟鍒楄〃锛堟敮鎸佸垎椤碉級
 const fetchFuturesHistory = async (isRefresh = false) => {
-  // 防止重复加载
+  // 闃叉閲嶅鍔犺浇
   if (historyLoading.value) {
     return;
   }
@@ -2611,17 +2600,17 @@ const fetchFuturesHistory = async (isRefresh = false) => {
   try {
     historyLoading.value = true;
 
-    // 刷新时重置状态
+    // 鍒锋柊鏃堕噸缃姸鎬?
     if (isRefresh) {
       futuresHistoryList.value = [];
       historyPage.value = 1;
       historyHasMore.value = true;
     }
 
-    // 计算 skip（偏移量）
+    // 璁＄畻 skip锛堝亸绉婚噺锛?
     const skip = (historyPage.value - 1) * historyPageSize.value;
 
-    console.log(`📤 [DEBUG] 获取合约历史成交订单 - 页码: ${historyPage.value}, skip: ${skip}, limit: ${historyPageSize.value}`);
+    console.log(`馃摛 [DEBUG] 鑾峰彇鍚堢害鍘嗗彶鎴愪氦璁㈠崟 - 椤电爜: ${historyPage.value}, skip: ${skip}, limit: ${historyPageSize.value}`);
     
     const response = await getFuturesOrders({ 
       status: 'HISTORY',
@@ -2629,10 +2618,10 @@ const fetchFuturesHistory = async (isRefresh = false) => {
       limit: historyPageSize.value
     });
     const responseData = response.data || response;
-    console.log('📥 [DEBUG] 合约历史成交订单API返回:', responseData);
+    console.log('馃摜 [DEBUG] 鍚堢害鍘嗗彶鎴愪氦璁㈠崟API杩斿洖:', responseData);
     
     if (responseData && responseData.code === 200 && responseData.data) {
-      // 映射后端数据格式到前端显示格式
+      // 鏄犲皠鍚庣鏁版嵁鏍煎紡鍒板墠绔樉绀烘牸寮?
       const newOrders = responseData.data.map(order => ({
         order_id: order.order_id,
         side: order.side ? order.side.toLowerCase() : 'buy',
@@ -2647,31 +2636,31 @@ const fetchFuturesHistory = async (isRefresh = false) => {
         fee: order.fee || 0
       }));
 
-      // 追加数据（刷新时直接替换）
+      // 杩藉姞鏁版嵁锛堝埛鏂版椂鐩存帴鏇挎崲锛?
       if (isRefresh) {
         futuresHistoryList.value = newOrders;
       } else {
         futuresHistoryList.value = [...futuresHistoryList.value, ...newOrders];
       }
 
-      // 判断是否还有更多数据
+      // 鍒ゆ柇鏄惁杩樻湁鏇村鏁版嵁
       if (newOrders.length < historyPageSize.value) {
         historyHasMore.value = false;
-        console.log('⚠️ [DEBUG] 已加载所有数据，没有更多了');
+        console.log('[DEBUG] All futures history loaded; no more records.');
       } else {
-        historyPage.value += 1;  // 页码自增，准备加载下一页
+        historyPage.value += 1;  // 椤电爜鑷锛屽噯澶囧姞杞戒笅涓€椤?
       }
 
-      console.log(`✅ [DEBUG] 合约历史成交订单列表已更新，当前总数: ${futuresHistoryList.value.length}, 本次加载: ${newOrders.length}`);
+      console.log(`鉁?[DEBUG] 鍚堢害鍘嗗彶鎴愪氦璁㈠崟鍒楄〃宸叉洿鏂帮紝褰撳墠鎬绘暟: ${futuresHistoryList.value.length}, 鏈鍔犺浇: ${newOrders.length}`);
     } else {
       if (isRefresh) {
         futuresHistoryList.value = [];
       }
       historyHasMore.value = false;
-      console.log('⚠️ [DEBUG] 合约历史成交订单列表为空');
+      console.log('鈿狅笍 [DEBUG] 鍚堢害鍘嗗彶鎴愪氦璁㈠崟鍒楄〃涓虹┖');
     }
   } catch (error) {
-    console.error('❌ 获取合约历史成交订单失败:', error);
+    console.error('鉂?鑾峰彇鍚堢害鍘嗗彶鎴愪氦璁㈠崟澶辫触:', error);
     if (isRefresh) {
       futuresHistoryList.value = [];
     }
@@ -2681,51 +2670,51 @@ const fetchFuturesHistory = async (isRefresh = false) => {
   }
 };
 
-// 初始化历史记录滚动监听（IntersectionObserver）
+// 鍒濆鍖栧巻鍙茶褰曟粴鍔ㄧ洃鍚紙IntersectionObserver锛?
 const initHistoryObserver = () => {
-  // 1. 如果已经有了，先断开，防止重复
+  // 1. 濡傛灉宸茬粡鏈変簡锛屽厛鏂紑锛岄槻姝㈤噸澶?
   if (historyObserver) {
     historyObserver.disconnect();
     historyObserver = null;
   }
 
-  // 2. 创建新的观察器
+  // 2. 鍒涘缓鏂扮殑瑙傚療鍣?
   historyObserver = new IntersectionObserver(
     (entries) => {
       const entry = entries[0];
-      // 核心逻辑：如果底部元素出现了 + 还有更多数据 + 没在加载中
+      // 鏍稿績閫昏緫锛氬鏋滃簳閮ㄥ厓绱犲嚭鐜颁簡 + 杩樻湁鏇村鏁版嵁 + 娌″湪鍔犺浇涓?
       if (
         entry &&
         entry.isIntersecting &&
         historyHasMore.value &&
         !historyLoading.value
       ) {
-        console.log('[DEBUG] 触底了，自动加载下一页...');
-        fetchFuturesHistory(false); // false 代表不是刷新，而是追加
+        console.log('[DEBUG] 瑙﹀簳浜嗭紝鑷姩鍔犺浇涓嬩竴椤?..');
+        fetchFuturesHistory(false); // false 浠ｈ〃涓嶆槸鍒锋柊锛岃€屾槸杩藉姞
       }
     },
     {
-      root: null, // 使用视口作为根
-      rootMargin: '0px', // 不扩展根边距
-      threshold: 0.1 // 当目标元素 10% 可见时触发
+      root: null, // 浣跨敤瑙嗗彛浣滀负鏍?
+      rootMargin: '0px', // 涓嶆墿灞曟牴杈硅窛
+      threshold: 0.1 // 褰撶洰鏍囧厓绱?10% 鍙鏃惰Е鍙?
     }
   );
 
-  // 3. 开始观察底部元素（使用 nextTick 确保 DOM 已渲染）
+  // 3. 寮€濮嬭瀵熷簳閮ㄥ厓绱狅紙浣跨敤 nextTick 纭繚 DOM 宸叉覆鏌擄級
   nextTick(() => {
     if (loadMoreTrigger.value) {
       historyObserver.observe(loadMoreTrigger.value);
-      console.log('[DEBUG] IntersectionObserver 已初始化并开始监听历史记录列表');
+      console.log('[DEBUG] IntersectionObserver initialized for futures history.');
     } else {
-      console.warn('[DEBUG] loadMoreTrigger 未找到，无法初始化 IntersectionObserver');
+      console.warn('[DEBUG] loadMoreTrigger 鏈壘鍒帮紝鏃犳硶鍒濆鍖?IntersectionObserver');
     }
   });
 };
 
-// 获取合约持仓列表
+// 鑾峰彇鍚堢害鎸佷粨鍒楄〃
 const fetchFuturesPositions = async () => {
   try {
-    // 检查钱包是否连接
+    // 妫€鏌ラ挶鍖呮槸鍚﹁繛鎺?
     if (!assetStore.isWalletConnected) {
       positions.value = [];
       return;
@@ -2735,7 +2724,7 @@ const fetchFuturesPositions = async () => {
     const responseData = response.data || response;
     
     if (responseData && responseData.code === 200 && responseData.data) {
-      // 映射后端数据格式到前端显示格式（直接使用后端返回的 unrealized_pnl）
+      // 鏄犲皠鍚庣鏁版嵁鏍煎紡鍒板墠绔樉绀烘牸寮忥紙鐩存帴浣跨敤鍚庣杩斿洖鐨?unrealized_pnl锛?
       positions.value = responseData.data.map(pos => {
         const margin = pos.margin || (pos.entry_price * pos.size / (pos.leverage || 20));
         const unrealizedPnl = pos.unrealized_pnl || 0;
@@ -2749,27 +2738,27 @@ const fetchFuturesPositions = async () => {
           leverage: pos.leverage || 20,
           margin: margin,
           liquidationPrice: pos.liquidation_price || 0,
-          unrealizedPnl: unrealizedPnl, // 直接使用后端返回的值
-          unrealizedPnlPercent: unrealizedPnlPercent, // 基于后端 PnL 计算百分比
+          unrealizedPnl: unrealizedPnl, // 鐩存帴浣跨敤鍚庣杩斿洖鐨勫€?
+          unrealizedPnlPercent: unrealizedPnlPercent, // 鍩轰簬鍚庣 PnL 璁＄畻鐧惧垎姣?
           markPrice: pos.mark_price || markPrice.value
         };
       });
       
-      console.log('✅ 持仓数据（使用后端 PnL）:', positions.value);
+      console.log('鉁?鎸佷粨鏁版嵁锛堜娇鐢ㄥ悗绔?PnL锛?', positions.value);
       
-      console.log('✅ 获取合约持仓成功:', positions.value);
+      console.log('鉁?鑾峰彇鍚堢害鎸佷粨鎴愬姛:', positions.value);
     } else {
       positions.value = [];
-      console.warn('⚠️ 获取合约持仓失败:', responseData);
+      console.warn('鈿狅笍 鑾峰彇鍚堢害鎸佷粨澶辫触:', responseData);
     }
   } catch (error) {
-    console.error('❌ 获取合约持仓失败:', error);
+    console.error('鉂?鑾峰彇鍚堢害鎸佷粨澶辫触:', error);
     positions.value = [];
   }
 };
 
 const handleSubmitOrder = async () => {
-  // 第一步：表单校验
+  // 绗竴姝ワ細琛ㄥ崟鏍￠獙
   const amountValue = parseFloat(amount.value);
   if (isNaN(amountValue) || amountValue <= 0) {
     showToast({ message: t('trade.amount_invalid'), icon: 'fail' });
@@ -2781,34 +2770,34 @@ const handleSubmitOrder = async () => {
     return;
   }
 
-  // 第二步：设置加载状态
+  // 绗簩姝ワ細璁剧疆鍔犺浇鐘舵€?
   isLoading.value = true;
 
   try {
-    // 第三步：构造发送给后端的参数对象
+    // 绗笁姝ワ細鏋勯€犲彂閫佺粰鍚庣鐨勫弬鏁板璞?
     const orderPrice = orderType.value === 'market' ? lastPrice.value : parseFloat(price.value);
     
     const params = {
-      symbol: `${symbol.value}/USDT`, // 确保格式为 "BTC/USDT"
-      side: orderSide.value.toUpperCase(), // 转换为大写：'BUY' 或 'SELL'
-      type: orderType.value.toUpperCase(), // 转换为大写：'LIMIT' 或 'MARKET'
-      price: orderType.value === 'market' ? orderPrice : parseFloat(price.value), // 市价单传当前市场价，限价单传用户输入的价格
+      symbol: `${symbol.value}/USDT`, // 纭繚鏍煎紡涓?"BTC/USDT"
+      side: orderSide.value.toUpperCase(), // 杞崲涓哄ぇ鍐欙細'BUY' 鎴?'SELL'
+      type: orderType.value.toUpperCase(), // 杞崲涓哄ぇ鍐欙細'LIMIT' 鎴?'MARKET'
+      price: orderType.value === 'market' ? orderPrice : parseFloat(price.value), // 甯備环鍗曚紶褰撳墠甯傚満浠凤紝闄愪环鍗曚紶鐢ㄦ埛杈撳叆鐨勪环鏍?
       amount: parseFloat(amount.value),
-      use_beat_discount: false // 暂时不使用 BEAT 折扣
+      use_beat_discount: false // 鏆傛椂涓嶄娇鐢?BEAT 鎶樻墸
     };
 
-    console.log('📤 发送下单请求:', params);
+    console.log('馃摛 鍙戦€佷笅鍗曡姹?', params);
 
-    // 第四步：调用后端 API
+    // 绗洓姝ワ細璋冪敤鍚庣 API
     const response = await createOrder(params);
     
 
-    // 第五步：成功处理
-    // 注意：axios 返回的是 response 对象，后端数据在 response.data 中
+    // 绗簲姝ワ細鎴愬姛澶勭悊
+    // 娉ㄦ剰锛歛xios 杩斿洖鐨勬槸 response 瀵硅薄锛屽悗绔暟鎹湪 response.data 涓?
     const responseData = response.data || response;
     
     if (responseData && responseData.code === 200) {
-      // 显示成功提示
+      // 鏄剧ず鎴愬姛鎻愮ず
       showToast({
         message: orderType.value === 'market' 
           ? t('trade.market_order_submitted') 
@@ -2817,31 +2806,31 @@ const handleSubmitOrder = async () => {
         duration: 2000
       });
 
-      // 关键：刷新用户资产余额
+      // 鍏抽敭锛氬埛鏂扮敤鎴疯祫浜т綑棰?
       await assetStore.initData();
       
-      // 刷新当前委托订单列表（现货）
+      // 鍒锋柊褰撳墠濮旀墭璁㈠崟鍒楄〃锛堢幇璐э級
       await fetchSpotOrders();
 
-      // 清空输入框
+      // 娓呯┖杈撳叆妗?
       if (orderType.value === 'limit') {
         price.value = '';
       }
       amount.value = '';
       selectedPercent.value = null;
-      spotSliderValue.value = 0; // 重置滑块
+      spotSliderValue.value = 0; // 閲嶇疆婊戝潡
 
-      console.log('✅ 订单提交成功，资产余额和订单列表已刷新');
+      console.log('[DEBUG] Spot order submitted; refreshed assets and orders.');
     } else {
       throw new Error(responseData?.message || t('trade.order_failed'));
     }
   } catch (error) {
-    // 第六步：失败处理
-    console.error('❌ 下单失败:', error);
+    // 绗叚姝ワ細澶辫触澶勭悊
+    console.error('鉂?涓嬪崟澶辫触:', error);
     
-    let errorMessage = t('trade.order_failed') || '订单提交失败，请重试';
+    let errorMessage = t('trade.order_failed') || '璁㈠崟鎻愪氦澶辫触锛岃閲嶈瘯';
     
-    // 尝试从错误响应中提取错误信息
+    // 灏濊瘯浠庨敊璇搷搴斾腑鎻愬彇閿欒淇℃伅
     if (error.response?.data?.detail) {
       errorMessage = error.response.data.detail;
     } else if (error.response?.data?.message) {
@@ -2856,16 +2845,16 @@ const handleSubmitOrder = async () => {
       duration: 3000
     });
   } finally {
-    // 第七步：重置加载状态
+    // 绗竷姝ワ細閲嶇疆鍔犺浇鐘舵€?
     isLoading.value = false;
   }
 };
 
 const cancelOrder = async (orderId) => {
-  // 根据当前 Tab 确定订单类型
+  // 鏍规嵁褰撳墠 Tab 纭畾璁㈠崟绫诲瀷
   const isSpot = activeTradeTab.value === 'spot';
   
-  // 从对应的订单列表中查找订单
+  // 浠庡搴旂殑璁㈠崟鍒楄〃涓煡鎵捐鍗?
   const orderList = isSpot ? spotOrdersList.value : futuresOrdersList.value;
   const order = orderList.find(o => o.order_id === orderId);
   
@@ -2875,13 +2864,13 @@ const cancelOrder = async (orderId) => {
   }
 
   try {
-    // 根据当前 Tab 调用对应的撤单接口
+    // 鏍规嵁褰撳墠 Tab 璋冪敤瀵瑰簲鐨勬挙鍗曟帴鍙?
     let response;
     if (isSpot) {
-      // 现货撤单
+      // 鐜拌揣鎾ゅ崟
       response = await cancelSpotOrderApi(order.order_id);
     } else {
-      // 合约撤单
+      // 鍚堢害鎾ゅ崟
       response = await cancelFuturesOrderApi(order.order_id);
     }
     
@@ -2894,7 +2883,7 @@ const cancelOrder = async (orderId) => {
         duration: 2000 
       });
       
-      // 刷新订单列表和资产余额
+      // 鍒锋柊璁㈠崟鍒楄〃鍜岃祫浜т綑棰?
       if (isSpot) {
         await fetchSpotOrders();
       } else {
@@ -2906,9 +2895,9 @@ const cancelOrder = async (orderId) => {
       throw new Error(responseData?.message || t('trade.cancel_failed'));
     }
   } catch (error) {
-    console.error('❌ 撤销订单失败:', error);
+    console.error('鉂?鎾ら攢璁㈠崟澶辫触:', error);
     
-    let errorMessage = t('trade.cancel_failed') || '撤销订单失败，请重试';
+    let errorMessage = t('trade.cancel_failed') || '鎾ら攢璁㈠崟澶辫触锛岃閲嶈瘯';
     
     if (error.response?.data?.detail) {
       errorMessage = error.response.data.detail;
@@ -2929,23 +2918,23 @@ const cancelOrder = async (orderId) => {
 const goToKlineChart = () => { router.push({ path: '/market', query: { symbol: symbol.value } }); };
 
 const switchCoin = (newSymbol) => {
-  // 1. 更新 symbol
+  // 1. 鏇存柊 symbol
   symbol.value = newSymbol;
   
-  // 2. 关闭币种选择弹窗
+  // 2. 鍏抽棴甯佺閫夋嫨寮圭獥
   showCoinSelect.value = false;
   
-  // 3. 清空 amount 输入框
+  // 3. 娓呯┖ amount 杈撳叆妗?
   amount.value = '';
   
-  // 4. 重置百分比按钮状态和滑块值
+  // 4. 閲嶇疆鐧惧垎姣旀寜閽姸鎬佸拰婊戝潡鍊?
   selectedPercent.value = null;
   spotSliderValue.value = 0;
   
-  // 5. 更新价格为新币种的当前市价
+  // 5. 鏇存柊浠锋牸涓烘柊甯佺鐨勫綋鍓嶅競浠?
   updatePriceForSymbol(newSymbol);
   
-  // 6. 更新 URL 参数（使用 replace 避免产生历史记录）
+  // 6. 鏇存柊 URL 鍙傛暟锛堜娇鐢?replace 閬垮厤浜х敓鍘嗗彶璁板綍锛?
   router.replace({ 
     path: '/trade', 
     query: { 
@@ -2954,25 +2943,25 @@ const switchCoin = (newSymbol) => {
     } 
   });
   
-  // 7. 显示切换成功提示
+  // 7. 鏄剧ず鍒囨崲鎴愬姛鎻愮ず
   showToast({ 
     message: t('trade.switched_to', { symbol: `${newSymbol}/USDT` }), 
     duration: 1500 
   });
 };
 
-// 初始化函数
+// 鍒濆鍖栧嚱鏁?
 const initializeTrade = async () => {
   generateOrderBook();
-  // 首次进入也初始化价格
+  // 棣栨杩涘叆涔熷垵濮嬪寲浠锋牸
   updatePriceForSymbol(symbol.value);
   
-  // 确保 WebSocket 连接（用于合约交易的标记价格）
+  // 纭繚 WebSocket 杩炴帴锛堢敤浜庡悎绾︿氦鏄撶殑鏍囪浠锋牸锛?
   marketStore.ensureConnection();
   
-  // 检查钱包连接状态
+  // 妫€鏌ラ挶鍖呰繛鎺ョ姸鎬?
   if (assetStore.isWalletConnected) {
-    // 根据当前 Tab 获取对应的订单列表
+    // 鏍规嵁褰撳墠 Tab 鑾峰彇瀵瑰簲鐨勮鍗曞垪琛?
     if (activeTradeTab.value === 'spot') {
       await fetchSpotOrders();
     } else {
@@ -2982,87 +2971,87 @@ const initializeTrade = async () => {
   }
 };
 
-// 监听 Tab 切换，加载对应的数据（immediate: true 确保初始化时也执行）
+// 鐩戝惉 Tab 鍒囨崲锛屽姞杞藉搴旂殑鏁版嵁锛坕mmediate: true 纭繚鍒濆鍖栨椂涔熸墽琛岋級
 watch(activeTradeTab, async (newTab) => {
   if (assetStore.isWalletConnected) {
     if (newTab === 'futures') {
-      // 切换到合约 Tab，获取持仓列表和订单列表
-      console.log('📤 [DEBUG] watch activeTradeTab: 切换到合约 Tab，刷新订单列表...');
+      // 鍒囨崲鍒板悎绾?Tab锛岃幏鍙栨寔浠撳垪琛ㄥ拰璁㈠崟鍒楄〃
+      console.log('馃摛 [DEBUG] watch activeTradeTab: 鍒囨崲鍒板悎绾?Tab锛屽埛鏂拌鍗曞垪琛?..');
       await fetchFuturesPositions();
       await fetchFuturesOrders();
       await fetchFuturesHistory();
-      // 启动定时刷新
+      // 鍚姩瀹氭椂鍒锋柊
       startPositionsRefresh();
     } else if (newTab === 'spot') {
-      // 切换到现货 Tab，获取订单列表
-      console.log('📤 [DEBUG] watch activeTradeTab: 切换到现货 Tab，刷新订单列表...');
+      // 鍒囨崲鍒扮幇璐?Tab锛岃幏鍙栬鍗曞垪琛?
+      console.log('馃摛 [DEBUG] watch activeTradeTab: 鍒囨崲鍒扮幇璐?Tab锛屽埛鏂拌鍗曞垪琛?..');
       await fetchSpotOrders();
-      // 停止定时刷新（现货不需要）
+      // 鍋滄瀹氭椂鍒锋柊锛堢幇璐т笉闇€瑕侊級
       stopPositionsRefresh();
     }
   }
 }, { immediate: true });
 
-// 监听 forceTradeTab prop 变化（子页面模式）
+// 鐩戝惉 forceTradeTab prop 鍙樺寲锛堝瓙椤甸潰妯″紡锛?
 watch(() => props.forceTradeTab, (newTab) => {
   if (props.isSubPage && newTab && newTab !== activeTradeTab.value) {
-    console.log(`📤 [DEBUG] forceTradeTab changed: ${activeTradeTab.value} -> ${newTab}`);
+    console.log(`馃摛 [DEBUG] forceTradeTab changed: ${activeTradeTab.value} -> ${newTab}`);
     activeTradeTab.value = newTab;
   }
 }, { immediate: true });
 
-// 子页面模式下，禁止手动切换标签页（防止用户通过其他方式切换）
+// 瀛愰〉闈㈡ā寮忎笅锛岀姝㈡墜鍔ㄥ垏鎹㈡爣绛鹃〉锛堥槻姝㈢敤鎴烽€氳繃鍏朵粬鏂瑰紡鍒囨崲锛?
 watch(activeTradeTab, (newTab, oldTab) => {
   if (props.isSubPage && props.forceTradeTab && newTab !== props.forceTradeTab) {
-    // 如果子页面模式下有 forceTradeTab，但 activeTradeTab 被修改了，恢复为 forceTradeTab
-    console.warn(`⚠️ [WARN] 子页面模式下 activeTradeTab 被修改为 ${newTab}，已恢复为 ${props.forceTradeTab}`);
+    // 濡傛灉瀛愰〉闈㈡ā寮忎笅鏈?forceTradeTab锛屼絾 activeTradeTab 琚慨鏀逛簡锛屾仮澶嶄负 forceTradeTab
+    console.warn(`鈿狅笍 [WARN] 瀛愰〉闈㈡ā寮忎笅 activeTradeTab 琚慨鏀逛负 ${newTab}锛屽凡鎭㈠涓?${props.forceTradeTab}`);
     activeTradeTab.value = props.forceTradeTab;
   }
 });
 
-// 监听持仓Tab切换，加载对应的数据
+// 鐩戝惉鎸佷粨Tab鍒囨崲锛屽姞杞藉搴旂殑鏁版嵁
 watch(activePositionTab, async (newTab) => {
   if (assetStore.isWalletConnected && activeTradeTab.value === 'futures') {
     if (newTab === 0) {
-      // Tab 0: 持仓列表
+      // Tab 0: 鎸佷粨鍒楄〃
       await fetchFuturesPositions();
     } else if (newTab === 1) {
-      // Tab 1: 当前委托
+      // Tab 1: 褰撳墠濮旀墭
       await fetchFuturesOrders();
     } else if (newTab === 2) {
-      // Tab 2: 历史成交
-      console.log('[DEBUG] 切换到历史成交Tab，正在刷新历史成交列表...');
-      await fetchFuturesHistory(true);  // 刷新模式
-      // 初始化 IntersectionObserver（在 nextTick 中确保 DOM 已渲染）
+      // Tab 2: 鍘嗗彶鎴愪氦
+      console.log('[DEBUG] 鍒囨崲鍒板巻鍙叉垚浜ab锛屾鍦ㄥ埛鏂板巻鍙叉垚浜ゅ垪琛?..');
+      await fetchFuturesHistory(true);  // 鍒锋柊妯″紡
+      // 鍒濆鍖?IntersectionObserver锛堝湪 nextTick 涓‘淇?DOM 宸叉覆鏌擄級
       await nextTick();
       initHistoryObserver();
     }
   }
 });
 
-// 定时刷新持仓数据的定时器
+// 瀹氭椂鍒锋柊鎸佷粨鏁版嵁鐨勫畾鏃跺櫒
 let positionsRefreshTimer = null;
 
-// 启动定时刷新持仓数据
+// 鍚姩瀹氭椂鍒锋柊鎸佷粨鏁版嵁
 const startPositionsRefresh = () => {
-  // 清除旧的定时器（如果存在）
+  // 娓呴櫎鏃х殑瀹氭椂鍣紙濡傛灉瀛樺湪锛?
   stopPositionsRefresh();
   
-  // 只在合约 Tab 且钱包已连接时刷新
+  // 鍙湪鍚堢害 Tab 涓旈挶鍖呭凡杩炴帴鏃跺埛鏂?
   if (activeTradeTab.value === 'futures' && assetStore.isWalletConnected) {
     positionsRefreshTimer = setInterval(async () => {
       try {
         await fetchFuturesPositions();
-        // 同时刷新资产数据（包含未实现盈亏）
+        // 鍚屾椂鍒锋柊璧勪骇鏁版嵁锛堝寘鍚湭瀹炵幇鐩堜簭锛?
         await assetStore.initData();
       } catch (error) {
-        console.error('❌ 定时刷新持仓失败:', error);
+        console.error('鉂?瀹氭椂鍒锋柊鎸佷粨澶辫触:', error);
       }
-    }, 5000); // 每5秒刷新一次
+    }, 5000); // 姣?绉掑埛鏂颁竴娆?
   }
 };
 
-// 停止定时刷新
+// 鍋滄瀹氭椂鍒锋柊
 const stopPositionsRefresh = () => {
   if (positionsRefreshTimer) {
     clearInterval(positionsRefreshTimer);
@@ -3071,11 +3060,11 @@ const stopPositionsRefresh = () => {
 };
 
 onMounted(async () => {
-  // DEBUG MODE: 更新屏幕高度
+  // DEBUG MODE: 鏇存柊灞忓箷楂樺害
   updateScreenHeight();
   window.addEventListener('resize', updateScreenHeight);
   
-  // 调试输出：确认当前模式
+  // 璋冭瘯杈撳嚭锛氱‘璁ゅ綋鍓嶆ā寮?
   console.log('[TradePanel] Current Mode:', isSpotMode.value ? 'Spot' : 'Futures');
   console.log('[TradePanel] isSpot (DEBUG):', isSpot.value ? 'Spot' : 'Futures');
   console.log('[TradePanel] activeTradeTab:', activeTradeTab.value);
@@ -3087,78 +3076,78 @@ onMounted(async () => {
   });
   await initializeTrade();
   
-  // 子页面模式下，根据 forceTradeTab 加载对应数据
+  // 瀛愰〉闈㈡ā寮忎笅锛屾牴鎹?forceTradeTab 鍔犺浇瀵瑰簲鏁版嵁
   if (props.isSubPage) {
     if (activeTradeTab.value === 'futures' && assetStore.isWalletConnected) {
-      console.log('📤 [DEBUG] onMounted (子页面-合约模式): 加载合约数据...');
+      console.log('馃摛 [DEBUG] onMounted (瀛愰〉闈?鍚堢害妯″紡): 鍔犺浇鍚堢害鏁版嵁...');
       await fetchFuturesPositions();
       await fetchFuturesOrders();
       await fetchFuturesHistory();
       startPositionsRefresh();
     } else if (activeTradeTab.value === 'spot' && assetStore.isWalletConnected) {
-      console.log('📤 [DEBUG] onMounted (子页面-现货模式): 加载现货数据...');
+      console.log('馃摛 [DEBUG] onMounted (瀛愰〉闈?鐜拌揣妯″紡): 鍔犺浇鐜拌揣鏁版嵁...');
       await fetchSpotOrders();
     }
   } else {
-    // 主页面模式下，确保合约 Tab 也加载订单列表（如果当前在合约 Tab）
+    // 涓婚〉闈㈡ā寮忎笅锛岀‘淇濆悎绾?Tab 涔熷姞杞借鍗曞垪琛紙濡傛灉褰撳墠鍦ㄥ悎绾?Tab锛?
     if (activeTradeTab.value === 'futures' && assetStore.isWalletConnected) {
-      console.log('📤 [DEBUG] onMounted: 当前在合约 Tab，强制刷新合约订单列表...');
+      console.log('馃摛 [DEBUG] onMounted: 褰撳墠鍦ㄥ悎绾?Tab锛屽己鍒跺埛鏂板悎绾﹁鍗曞垪琛?..');
       await fetchFuturesOrders();
     }
-  // 启动定时刷新持仓数据（每5秒）
+  // 鍚姩瀹氭椂鍒锋柊鎸佷粨鏁版嵁锛堟瘡5绉掞級
   startPositionsRefresh();
   }
   
-  // 初始化盘口动态行数计算
+  // 鍒濆鍖栫洏鍙ｅ姩鎬佽鏁拌绠?
   initOrderBookResizeObserver();
 
-  // 监听窗口大小变化
+  // 鐩戝惉绐楀彛澶у皬鍙樺寲
   window.addEventListener('resize', handleResize);
 
-  // 如果当前在历史成交Tab，初始化 IntersectionObserver（在 nextTick 中确保 DOM 已渲染）
+  // 濡傛灉褰撳墠鍦ㄥ巻鍙叉垚浜ab锛屽垵濮嬪寲 IntersectionObserver锛堝湪 nextTick 涓‘淇?DOM 宸叉覆鏌擄級
   if (activePositionTab.value === 2) {
     await nextTick();
     initHistoryObserver();
   }
 });
 
-// Keep-alive 激活时
+// Keep-alive 婵€娲绘椂
 onActivated(() => {
   initializeTrade();
   
-  // 重新启动定时刷新（防止页面切换时定时器被清除）
+  // 閲嶆柊鍚姩瀹氭椂鍒锋柊锛堥槻姝㈤〉闈㈠垏鎹㈡椂瀹氭椂鍣ㄨ娓呴櫎锛?
   startPositionsRefresh();
   
-  // 重新初始化盘口动态行数计算
+  // 閲嶆柊鍒濆鍖栫洏鍙ｅ姩鎬佽鏁拌绠?
   initOrderBookResizeObserver();
 });
 
-// Keep-alive 停用时
+// Keep-alive 鍋滅敤鏃?
 onDeactivated(() => {
-  // 组件失活时清除定时器
+  // 缁勪欢澶辨椿鏃舵竻闄ゅ畾鏃跺櫒
   stopPositionsRefresh();
   
-  // 清理 IntersectionObserver
+  // 娓呯悊 IntersectionObserver
   if (historyObserver) {
     historyObserver.disconnect();
     historyObserver = null;
   }
 });
 
-// 组件卸载时
+// 缁勪欢鍗歌浇鏃?
 onUnmounted(() => {
-  // DEBUG MODE: 清理屏幕高度监听
+  // DEBUG MODE: 娓呯悊灞忓箷楂樺害鐩戝惉
   window.removeEventListener('resize', updateScreenHeight);
   
-  // 清理 IntersectionObserver
+  // 娓呯悊 IntersectionObserver
   if (historyObserver) {
     historyObserver.disconnect();
     historyObserver = null;
   }
-  // 组件卸载时清除定时器
+  // 缁勪欢鍗歌浇鏃舵竻闄ゅ畾鏃跺櫒
   stopPositionsRefresh();
   
-  // 清理 ResizeObserver
+  // 娓呯悊 ResizeObserver
   if (resizeObserver) {
     resizeObserver.disconnect();
     resizeObserver = null;
@@ -3168,26 +3157,26 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* ========== 全局容器 - Fixed Inset-0 架构 ========== */
+/* ========== 鍏ㄥ眬瀹瑰櫒 - Fixed Inset-0 鏋舵瀯 ========== */
 .trade-page {
   position: fixed;
   inset: 0; /* top: 0, right: 0, bottom: 0, left: 0 */
-  background-color: #050505; /* 最深黑 */
-  color: #FFFFFF;
+  background-color: var(--color-bg); /* 鏈€娣遍粦 */
+  color: var(--color-text-primary);
   display: flex;
   flex-direction: column;
   z-index: 0;
-  overflow: hidden; /* 防止整体页面滚动 */
+  overflow: hidden; /* 闃叉鏁翠綋椤甸潰婊氬姩 */
 }
 
-/* 可滚动内容区域 - Safe Padding Strategy */
+/* 鍙粴鍔ㄥ唴瀹瑰尯鍩?- Safe Padding Strategy */
 .trade-scrollable-content {
   flex: 1;
-  overflow-y: auto; /* 内容区域可滚动 */
+  overflow-y: auto; /* 鍐呭鍖哄煙鍙粴鍔?*/
   overflow-x: hidden;
-  padding-bottom: 128px; /* pb-32 = 128px，防止内容被底部全局导航栏遮挡 */
+  padding-bottom: 128px; /* pb-32 = 128px锛岄槻姝㈠唴瀹硅搴曢儴鍏ㄥ眬瀵艰埅鏍忛伄鎸?*/
   scrollbar-width: thin;
-  scrollbar-color: rgba(212, 175, 55, 0.3) transparent;
+  scrollbar-color: rgb(var(--color-brand-rgb) / 0.3) transparent;
 }
 
 .trade-scrollable-content::-webkit-scrollbar {
@@ -3199,38 +3188,38 @@ onUnmounted(() => {
 }
 
 .trade-scrollable-content::-webkit-scrollbar-thumb {
-  background: rgba(212, 175, 55, 0.3);
+  background: rgb(var(--color-brand-rgb) / 0.3);
   border-radius: 3px;
 }
 
 .trade-scrollable-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(212, 175, 55, 0.5);
+  background: rgb(var(--color-brand-rgb) / 0.5);
 }
 
-/* ========== 顶部导航栏 ========== */
+/* ========== 椤堕儴瀵艰埅鏍?========== */
 .trade-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   height: 48px; /* h-12 = 48px */
   padding: 0 16px;
-  background-color: #1C1C1E; /* bg-gray-900 */
-  flex-shrink: 0; /* 防止被压缩 */
+  background-color: var(--color-bg-card); /* bg-gray-900 */
+  flex-shrink: 0; /* 闃叉琚帇缂?*/
   z-index: 20;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .header-center {
-  flex: 1; /* 占据左侧空间 */
+  flex: 1; /* 鍗犳嵁宸︿晶绌洪棿 */
   display: flex;
   align-items: center;
-  justify-content: flex-start; /* 标题靠左对齐 */
+  justify-content: flex-start; /* 鏍囬闈犲乏瀵归綈 */
 }
 
 .page-title {
   font-size: 18px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
 }
 
 .nav-right-icon-wrap {
@@ -3238,7 +3227,7 @@ onUnmounted(() => {
   height: 44px;
   display: flex;
   align-items: center;
-  justify-content: flex-end; /* 图标靠右 */
+  justify-content: flex-end; /* 鍥炬爣闈犲彸 */
   cursor: pointer;
   transition: opacity 0.2s ease;
 }
@@ -3249,29 +3238,29 @@ onUnmounted(() => {
 .kline-svg-icon {
   width: 22px;
   height: 22px;
-  fill: #FCD535;
+  fill: var(--color-brand-legacy);
   display: block;
 }
 
-/* ========== 标签栏：现货/杠杆 ========== */
+/* ========== 鏍囩鏍忥細鐜拌揣/鏉犳潌 ========== */
 .trade-tabs {
   display: flex;
   padding: 0 16px;
   gap: 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .trade-tabs .tab-item {
   padding: 12px 0;
   font-size: 14px;
-  color: #848E9C;
+  color: var(--color-text-muted);
   cursor: pointer;
   position: relative;
   transition: color 0.2s ease;
 }
 
 .trade-tabs .tab-item.active {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-weight: 600;
 }
 
@@ -3282,35 +3271,35 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   height: 2px;
-  background-color: #FCD535;
+  background-color: var(--color-brand-legacy);
 }
 
-/* ========== 交易对信息 ========== */
+/* ========== 浜ゆ槗瀵逛俊鎭?========== */
 .pair-info {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .pair-selector { display: flex; align-items: center; cursor: pointer; }
-.pair-name { font-size: 16px; font-weight: 700; color: #FFFFFF; }
+.pair-name { font-size: 16px; font-weight: 700; color: var(--color-text-primary); }
 .price-change { font-size: 14px; font-weight: 600; padding: 4px 8px; border-radius: 4px; }
-.price-change.positive { color: #0ECB81; background-color: rgba(14, 203, 129, 0.1); }
-.price-change.negative { color: #F6465D; background-color: rgba(246, 70, 93, 0.1); }
+.price-change.positive { color: var(--color-earn); background-color: rgb(var(--color-earn-rgb) / 0.1); }
+.price-change.negative { color: var(--color-loss); background-color: rgb(var(--color-loss-rgb) / 0.1); }
 
-/* ========== 交易面板容器 - 标准 Flex 布局 ========== */
+/* ========== 浜ゆ槗闈㈡澘瀹瑰櫒 - 鏍囧噯 Flex 甯冨眬 ========== */
 .trade-panel-container {
   display: flex;
   flex-direction: column;
   width: 100%;
   box-sizing: border-box;
-  position: relative; /* 使用 relative，禁止 absolute */
-  /* 移除 min-height 和 height: 100%，让内容自然高度 */
+  position: relative; /* 浣跨敤 relative锛岀姝?absolute */
+  /* 绉婚櫎 min-height 鍜?height: 100%锛岃鍐呭鑷劧楂樺害 */
 }
 
-/* ========== 核心交易区 - 统一布局结构：左右各占 50% ========== */
+/* ========== 鏍稿績浜ゆ槗鍖?- 缁熶竴甯冨眬缁撴瀯锛氬乏鍙冲悇鍗?50% ========== */
 .trade-main, .futures-trade-main {
   display: flex !important;
   flex-direction: row !important;
@@ -3319,26 +3308,26 @@ onUnmounted(() => {
   align-items: flex-start;
   width: 100%;
   box-sizing: border-box;
-  flex-wrap: nowrap; /* 防止换行 */
-  position: relative; /* 使用 relative，禁止 absolute */
+  flex-wrap: nowrap; /* 闃叉鎹㈣ */
+  position: relative; /* 浣跨敤 relative锛岀姝?absolute */
 }
 
-/* ========== 左侧：盘口区 (50%) - 使用 flex: 1 自然分配 ========== */
+/* ========== 宸︿晶锛氱洏鍙ｅ尯 (50%) - 浣跨敤 flex: 1 鑷劧鍒嗛厤 ========== */
 .orderbook-side, 
 .futures-orderbook-side,
 .left-panel {
-  flex: 1 !important; /* 左右各占 50% */
+  flex: 1 !important; /* 宸﹀彸鍚勫崰 50% */
   min-width: 0;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, rgba(5, 5, 5, 0.95) 0%, #050505 100%);
+  background: linear-gradient(180deg, rgb(var(--color-bg-rgb) / 0.95) 0%, var(--color-bg) 100%);
   border-radius: 8px;
   overflow: visible;
   padding: 0;
   align-self: flex-start;
-  border: 1px solid rgba(212, 175, 55, 0.08);
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-  position: relative; /* 使用 relative，禁止 absolute */
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.08);
+  box-shadow: 0 0 20px rgb(var(--color-shadow-rgb) / 0.5);
+  position: relative; /* 浣跨敤 relative锛岀姝?absolute */
 }
 
 .orderbook-header {
@@ -3346,13 +3335,13 @@ onUnmounted(() => {
   justify-content: space-between;
   padding: 8px 12px;
   font-size: 10px;
-  color: #8E8E93;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.03);
   flex-shrink: 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 600;
-  margin-top: 0; /* 确保顶部对齐 */
+  margin-top: 0; /* 纭繚椤堕儴瀵归綈 */
 }
 
 .header-price { flex: 1; text-align: left; }
@@ -3361,7 +3350,7 @@ onUnmounted(() => {
 .asks-list, .bids-list {
   display: flex;
   flex-direction: column;
-  /* 移除 overflow: hidden，允许自然显示所有行 */
+  /* 绉婚櫎 overflow: hidden锛屽厑璁歌嚜鐒舵樉绀烘墍鏈夎 */
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -3385,7 +3374,7 @@ onUnmounted(() => {
 }
 
 .order-row:hover {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgb(var(--color-border-rgb) / 0.02);
 }
 
 .depth-bar {
@@ -3399,24 +3388,24 @@ onUnmounted(() => {
   transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 赛博朋克红色渐变 - 卖单 */
+/* 璧涘崥鏈嬪厠绾㈣壊娓愬彉 - 鍗栧崟 */
 .ask-depth { 
   background: linear-gradient(to left, 
-    rgba(246, 70, 93, 0.25) 0%, 
-    rgba(246, 70, 93, 0.15) 50%,
-    rgba(246, 70, 93, 0.05) 100%
+    rgb(var(--color-loss-rgb) / 0.25) 0%, 
+    rgb(var(--color-loss-rgb) / 0.15) 50%,
+    rgb(var(--color-loss-rgb) / 0.05) 100%
   );
-  box-shadow: inset -2px 0 8px rgba(246, 70, 93, 0.2);
+  box-shadow: inset -2px 0 8px rgb(var(--color-loss-rgb) / 0.2);
 }
 
-/* 赛博朋克绿色渐变 - 买单 */
+/* 璧涘崥鏈嬪厠缁胯壊娓愬彉 - 涔板崟 */
 .bid-depth { 
   background: linear-gradient(to left, 
-    rgba(14, 203, 129, 0.25) 0%, 
-    rgba(14, 203, 129, 0.15) 50%,
-    rgba(14, 203, 129, 0.05) 100%
+    rgb(var(--color-earn-rgb) / 0.25) 0%, 
+    rgb(var(--color-earn-rgb) / 0.15) 50%,
+    rgb(var(--color-earn-rgb) / 0.05) 100%
   );
-  box-shadow: inset -2px 0 8px rgba(14, 203, 129, 0.2);
+  box-shadow: inset -2px 0 8px rgb(var(--color-earn-rgb) / 0.2);
 }
 
 .order-row .price { 
@@ -3430,26 +3419,26 @@ onUnmounted(() => {
 }
 
 .ask-price { 
-  color: #F6465D; 
+  color: var(--color-loss); 
   text-align: left; 
   flex: 1;
   font-weight: 600;
-  text-shadow: 0 0 6px rgba(246, 70, 93, 0.4);
+  text-shadow: 0 0 6px rgb(var(--color-loss-rgb) / 0.4);
 }
 
 .bid-price { 
-  color: #0ECB81; 
+  color: var(--color-earn); 
   text-align: left; 
   flex: 1;
   font-weight: 600;
-  text-shadow: 0 0 6px rgba(14, 203, 129, 0.4);
+  text-shadow: 0 0 6px rgb(var(--color-earn-rgb) / 0.4);
 }
 
 .order-row .quantity { 
   position: relative; 
   z-index: 1; 
   font-size: 13px; 
-  color: #8E8E93; 
+  color: var(--color-text-secondary); 
   text-align: right; 
   flex: 1; 
   font-weight: 500;
@@ -3460,13 +3449,13 @@ onUnmounted(() => {
 .last-price {
   flex-shrink: 0;
   height: 48px;
-  background: linear-gradient(180deg, rgba(212, 175, 55, 0.05) 0%, rgba(212, 175, 55, 0.02) 100%);
+  background: linear-gradient(180deg, rgb(var(--color-brand-rgb) / 0.05) 0%, rgb(var(--color-brand-rgb) / 0.02) 100%);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  border-top: 1px solid rgba(212, 175, 55, 0.15);
-  border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+  border-top: 1px solid rgb(var(--color-brand-rgb) / 0.15);
+  border-bottom: 1px solid rgb(var(--color-brand-rgb) / 0.15);
   padding: 0;
   margin: 0;
   position: relative;
@@ -3479,25 +3468,25 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at center, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle at center, rgb(var(--color-brand-rgb) / 0.1) 0%, transparent 70%);
   pointer-events: none;
 }
 
 .price-main { 
   font-size: 20px; 
   font-weight: 800; 
-  color: #FFFFFF; 
+  color: var(--color-text-primary); 
   font-variant-numeric: tabular-nums; 
   line-height: 1.2;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
   letter-spacing: -0.5px;
-  text-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
+  text-shadow: 0 0 12px rgb(var(--color-brand-rgb) / 0.4);
   transition: all 0.3s ease;
 }
 
 .price-fiat { 
   font-size: 11px; 
-  color: #8E8E93; 
+  color: var(--color-text-secondary); 
   font-variant-numeric: tabular-nums; 
   line-height: 1; 
   margin-top: 4px;
@@ -3505,48 +3494,48 @@ onUnmounted(() => {
 }
 
 .last-price.up .price-main { 
-  color: #0ECB81;
-  text-shadow: 0 0 12px rgba(14, 203, 129, 0.5);
+  color: var(--color-earn);
+  text-shadow: 0 0 12px rgb(var(--color-earn-rgb) / 0.5);
 }
 
 .last-price.down .price-main { 
-  color: #F6465D;
-  text-shadow: 0 0 12px rgba(246, 70, 93, 0.5);
+  color: var(--color-loss);
+  text-shadow: 0 0 12px rgb(var(--color-loss-rgb) / 0.5);
 }
 
-/* ========== 右侧：交易表单 (50%) - 使用 flex: 1 自然分配 ========== */
+/* ========== 鍙充晶锛氫氦鏄撹〃鍗?(50%) - 浣跨敤 flex: 1 鑷劧鍒嗛厤 ========== */
 .form-side,
 .futures-form-side,
 .right-panel {
-  flex: 1 !important; /* 左右各占 50% */
+  flex: 1 !important; /* 宸﹀彸鍚勫崰 50% */
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
   box-sizing: border-box;
-  position: relative; /* 使用 relative，禁止 absolute */
+  position: relative; /* 浣跨敤 relative锛岀姝?absolute */
 }
 
-/* 现货和合约模式容器 - 确保完全隔离，使用 flex-col 自然排列 */
+/* 鐜拌揣鍜屽悎绾︽ā寮忓鍣?- 纭繚瀹屽叏闅旂锛屼娇鐢?flex-col 鑷劧鎺掑垪 */
 .spot-mode-container,
 .futures-mode-container {
   display: flex;
   flex-direction: column;
   gap: 8px;
   width: 100%;
-  position: relative; /* 使用 relative，禁止 absolute */
-  /* 移除任何可能导致重叠的样式，让元素自然排列 */
+  position: relative; /* 浣跨敤 relative锛岀姝?absolute */
+  /* 绉婚櫎浠讳綍鍙兘瀵艰嚧閲嶅彔鐨勬牱寮忥紝璁╁厓绱犺嚜鐒舵帓鍒?*/
 }
 
 .buy-sell-toggle {
   display: flex;
   gap: 0;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(var(--color-border-rgb) / 0.03);
   border-radius: 8px;
   padding: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.05);
   position: relative;
-  margin-top: 0; /* 确保顶部对齐，与 orderbook-header 对齐 */
+  margin-top: 0; /* 纭繚椤堕儴瀵归綈锛屼笌 orderbook-header 瀵归綈 */
 }
 
 .toggle-btn {
@@ -3560,27 +3549,27 @@ onUnmounted(() => {
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   position: relative;
   z-index: 1;
 }
 
 .buy-btn.active { 
-  background: linear-gradient(135deg, #00FFA3 0%, #00D98B 100%);
-  color: #000000;
-  box-shadow: 0 0 20px rgba(0, 255, 163, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, var(--color-earn) 0%, var(--color-earn) 100%);
+  color: var(--color-text-on-accent);
+  box-shadow: 0 0 20px rgb(var(--color-earn-rgb) / 0.3), inset 0 1px 0 rgb(var(--color-border-rgb) / 0.2);
+  text-shadow: 0 1px 2px rgb(var(--color-shadow-rgb) / 0.3);
 }
 
 .sell-btn.active { 
-  background: linear-gradient(135deg, #FF2E50 0%, #E63950 100%);
-  color: #FFFFFF;
-  box-shadow: 0 0 20px rgba(255, 46, 80, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, var(--color-loss) 0%, var(--color-loss) 100%);
+  color: var(--color-text-primary);
+  box-shadow: 0 0 20px rgb(var(--color-loss-rgb) / 0.3), inset 0 1px 0 rgb(var(--color-border-rgb) / 0.1);
+  text-shadow: 0 1px 2px rgb(var(--color-shadow-rgb) / 0.3);
 }
 
 .toggle-btn:not(.active):hover {
-  color: #D4AF37;
+  color: var(--color-accent);
 }
 
 .order-type-selector {
@@ -3589,25 +3578,25 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: 4px;
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(var(--color-border-rgb) / 0.03);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(212, 175, 55, 0.15);
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.15);
   border-radius: 8px;
   font-size: 13px;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   cursor: pointer;
   transition: all 0.3s ease;
   font-weight: 600;
-  margin-top: 0; /* 确保顶部对齐，与 orderbook-header 对齐 */
+  margin-top: 0; /* 纭繚椤堕儴瀵归綈锛屼笌 orderbook-header 瀵归綈 */
 }
 
 .order-type-selector:hover {
-  background: rgba(212, 175, 55, 0.05);
-  border-color: rgba(212, 175, 55, 0.25);
+  background: rgb(var(--color-brand-rgb) / 0.05);
+  border-color: rgb(var(--color-brand-rgb) / 0.25);
 }
 
 .order-type-selector:active { 
-  background: rgba(212, 175, 55, 0.08);
+  background: rgb(var(--color-brand-rgb) / 0.08);
   transform: scale(0.98);
 }
 
@@ -3617,54 +3606,54 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   padding: 8px 14px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(var(--color-border-rgb) / 0.03);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(212, 175, 55, 0.2);
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.2);
   border-radius: 8px;
   font-size: 13px;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   cursor: pointer;
   transition: all 0.3s ease;
   font-weight: 600;
 }
 
 .leverage-btn:hover {
-  background: rgba(212, 175, 55, 0.1);
-  border-color: rgba(212, 175, 55, 0.3);
-  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
+  background: rgb(var(--color-brand-rgb) / 0.1);
+  border-color: rgb(var(--color-brand-rgb) / 0.3);
+  box-shadow: 0 4px 12px rgb(var(--color-brand-rgb) / 0.2);
 }
 
 .leverage-btn:active {
-  background: rgba(212, 175, 55, 0.15);
+  background: rgb(var(--color-brand-rgb) / 0.15);
   transform: scale(0.98);
 }
 
 .leverage-value { 
-  color: #D4AF37; 
+  color: var(--color-accent); 
   font-weight: 800; 
   font-variant-numeric: tabular-nums;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
-  text-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+  text-shadow: 0 0 8px rgb(var(--color-brand-rgb) / 0.4);
 }
-.leverage-popup, :deep(.leverage-popup .van-popup) { background: #1C1C1E; }
+.leverage-popup, :deep(.leverage-popup .van-popup) { background: var(--color-bg-card); }
 .leverage-popup-content { padding: 20px; height: 100%; display: flex; flex-direction: column; }
 .leverage-popup-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-.leverage-popup-title { font-size: 18px; font-weight: 700; color: #FFFFFF; margin: 0; }
-.close-icon { font-size: 20px; color: #848E9C; cursor: pointer; }
+.leverage-popup-title { font-size: 18px; font-weight: 700; color: var(--color-text-primary); margin: 0; }
+.close-icon { font-size: 20px; color: var(--color-text-muted); cursor: pointer; }
 .leverage-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 .leverage-option {
   display: flex; align-items: center; justify-content: space-between; padding: 12px 16px;
-  background-color: #141414; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 8px;
-  font-size: 14px; font-weight: 600; color: #EAECEF; cursor: pointer;
+  background-color: var(--color-bg-input); border: 1px solid rgb(var(--color-border-rgb) / 0.05); border-radius: 8px;
+  font-size: 14px; font-weight: 600; color: var(--color-text-primary); cursor: pointer;
 }
-.leverage-option.active { background-color: rgba(252, 213, 53, 0.1); border-color: #FCD535; color: #FCD535; }
+.leverage-option.active { background-color: rgb(var(--color-brand-legacy-rgb) / 0.1); border-color: var(--color-brand-legacy); color: var(--color-brand-legacy); }
 
 .input-row {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(var(--color-border-rgb) / 0.03);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(212, 175, 55, 0.15);
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.15);
   border-radius: 8px;
   padding: 0 14px;
   height: 44px;
@@ -3673,17 +3662,17 @@ onUnmounted(() => {
 }
 
 .input-row:focus-within {
-  border-color: #D4AF37;
-  background: rgba(212, 175, 55, 0.05);
+  border-color: var(--color-accent);
+  background: rgb(var(--color-brand-rgb) / 0.05);
   box-shadow: 
-    0 0 20px rgba(212, 175, 55, 0.15), 
-    inset 0 0 20px rgba(212, 175, 55, 0.05),
-    inset 0 0 30px rgba(212, 175, 55, 0.08); /* 内发光效果 */
+    0 0 20px rgb(var(--color-brand-rgb) / 0.15), 
+    inset 0 0 20px rgb(var(--color-brand-rgb) / 0.05),
+    inset 0 0 30px rgb(var(--color-brand-rgb) / 0.08); /* 鍐呭彂鍏夋晥鏋?*/
 }
 
 .input-label { 
   font-size: 12px; 
-  color: #8E8E93; 
+  color: var(--color-text-secondary); 
   white-space: nowrap; 
   min-width: 80px;
   text-transform: uppercase;
@@ -3695,7 +3684,7 @@ onUnmounted(() => {
   flex: 1; 
   background: transparent; 
   border: none; 
-  color: #FFFFFF; 
+  color: var(--color-text-primary); 
   font-size: 16px; 
   font-variant-numeric: tabular-nums; 
   outline: none;
@@ -3704,13 +3693,13 @@ onUnmounted(() => {
 }
 
 .input-field::placeholder { 
-  color: rgba(142, 142, 147, 0.5);
+  color: rgb(var(--color-text-muted-rgb) / 0.5);
 }
 
-/* 输入框单位标签（后缀） */
+/* 杈撳叆妗嗗崟浣嶆爣绛撅紙鍚庣紑锛?*/
 .input-suffix {
   font-size: 13px;
-  color: #D4AF37; /* text-yellow-500 / Gold */
+  color: var(--color-accent); /* text-yellow-500 / Gold */
   font-weight: 600;
   white-space: nowrap;
   margin-left: 4px;
@@ -3718,7 +3707,7 @@ onUnmounted(() => {
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
 }
 
-/* 修复3：隐藏数字输入框默认的上下箭头 */
+/* 淇3锛氶殣钘忔暟瀛楄緭鍏ユ榛樿鐨勪笂涓嬬澶?*/
 .no-spinner::-webkit-inner-spin-button,
 .no-spinner::-webkit-outer-spin-button {
   -webkit-appearance: none;
@@ -3729,7 +3718,7 @@ onUnmounted(() => {
 }
 
 .market-price-input { 
-  color: rgba(142, 142, 147, 0.6) !important; 
+  color: rgb(var(--color-text-muted-rgb) / 0.6) !important; 
   cursor: not-allowed; 
   opacity: 0.6;
   font-style: italic;
@@ -3744,7 +3733,7 @@ onUnmounted(() => {
 }
 
 .est-label { 
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   font-weight: 600;
@@ -3752,20 +3741,20 @@ onUnmounted(() => {
 }
 
 .est-value { 
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-weight: 700;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
   font-variant-numeric: tabular-nums;
 }
 
-/* 滑块容器样式 - 黑金定制 */
+/* 婊戝潡瀹瑰櫒鏍峰紡 - 榛戦噾瀹氬埗 */
 .slider-wrapper {
   padding: 16px 8px;
   margin-bottom: 16px;
   position: relative;
 }
 
-/* 刻度标签栏 - 交互式节点 */
+/* 鍒诲害鏍囩鏍?- 浜や簰寮忚妭鐐?*/
 .slider-marks {
   display: flex;
   justify-content: space-between;
@@ -3777,7 +3766,7 @@ onUnmounted(() => {
 
 .mark-item {
   font-size: 10px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   cursor: pointer;
   padding: 6px 10px;
   border-radius: 6px;
@@ -3787,38 +3776,38 @@ onUnmounted(() => {
   text-align: center;
   font-weight: 600;
   position: relative;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgb(var(--color-border-rgb) / 0.02);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .mark-item:hover {
-  color: #D4AF37;
-  background: rgba(212, 175, 55, 0.1);
-  border-color: rgba(212, 175, 55, 0.3);
+  color: var(--color-accent);
+  background: rgb(var(--color-brand-rgb) / 0.1);
+  border-color: rgb(var(--color-brand-rgb) / 0.3);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(212, 175, 55, 0.2);
+  box-shadow: 0 4px 8px rgb(var(--color-brand-rgb) / 0.2);
 }
 
 .mark-item:active {
   transform: translateY(0) scale(0.95);
 }
 
-/* 自定义滑块按钮样式 - 发光钻石 */
+/* 鑷畾涔夋粦鍧楁寜閽牱寮?- 鍙戝厜閽荤煶 */
 .custom-slider-button {
   width: 28px;
   height: 28px;
-  color: #000;
+  color: var(--color-text-on-accent);
   font-size: 10px;
   line-height: 28px;
   text-align: center;
-  background: linear-gradient(135deg, #D4AF37 0%, #FFD700 100%);
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-strong) 100%);
   border-radius: 50%;
   font-weight: 800;
   box-shadow: 
-    0 0 20px rgba(212, 175, 55, 0.6),
-    0 4px 12px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  border: 2px solid rgba(255, 255, 255, 0.2);
+    0 0 20px rgb(var(--color-brand-rgb) / 0.6),
+    0 4px 12px rgb(var(--color-shadow-rgb) / 0.3),
+    inset 0 1px 0 rgb(var(--color-border-rgb) / 0.3);
+  border: 2px solid rgb(var(--color-border-rgb) / 0.2);
   transform: scale(1);
   transition: all 0.3s ease;
 }
@@ -3826,53 +3815,53 @@ onUnmounted(() => {
 .custom-slider-button:hover {
   transform: scale(1.1);
   box-shadow: 
-    0 0 30px rgba(212, 175, 55, 0.8),
-    0 6px 16px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    0 0 30px rgb(var(--color-brand-rgb) / 0.8),
+    0 6px 16px rgb(var(--color-shadow-rgb) / 0.4),
+    inset 0 1px 0 rgb(var(--color-border-rgb) / 0.4);
 }
 
-/* Vant Slider 自定义样式 */
+/* Vant Slider 鑷畾涔夋牱寮?*/
 :deep(.van-slider) {
   margin: 0;
 }
 
 :deep(.van-slider__bar) {
-  background: linear-gradient(90deg, #D4AF37 0%, rgba(212, 175, 55, 0.3) 100%);
+  background: linear-gradient(90deg, var(--color-accent) 0%, rgb(var(--color-brand-rgb) / 0.3) 100%);
   height: 3px;
   border-radius: 2px;
-  box-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+  box-shadow: 0 0 8px rgb(var(--color-brand-rgb) / 0.4);
 }
 
 :deep(.van-slider__track) {
-  background: rgba(212, 175, 55, 0.1);
+  background: rgb(var(--color-brand-rgb) / 0.1);
   height: 3px;
   border-radius: 2px;
 }
 
-/* 保留旧样式以兼容（如果其他地方还在使用） */
+/* 淇濈暀鏃ф牱寮忎互鍏煎锛堝鏋滃叾浠栧湴鏂硅繕鍦ㄤ娇鐢級 */
 .percent-row { display: flex; gap: 8px; }
 .percent-btn {
   flex: 1; height: 32px; display: flex; align-items: center; justify-content: center;
-  background-color: #1C1C1E; border-radius: 4px; font-size: 12px; color: #EAECEF; cursor: pointer;
+  background-color: var(--color-bg-card); border-radius: 4px; font-size: 12px; color: var(--color-text-primary); cursor: pointer;
 }
-.percent-btn.active { background-color: #FCD535; color: #000000; font-weight: 600; }
+.percent-btn.active { background-color: var(--color-brand-legacy); color: var(--color-text-on-accent); font-weight: 600; }
 
 .fee-estimate-row {
   display: flex; 
   justify-content: space-between; 
   align-items: center; 
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgb(var(--color-border-rgb) / 0.02);
   backdrop-filter: blur(10px);
   border-radius: 8px; 
   height: auto; 
   margin-bottom: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .fee-estimate-label { 
   font-size: 11px; 
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 600;
@@ -3880,7 +3869,7 @@ onUnmounted(() => {
 
 .fee-estimate-value { 
   font-size: 13px; 
-  color: #FFFFFF; 
+  color: var(--color-text-primary); 
   font-weight: 700; 
   font-variant-numeric: tabular-nums;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
@@ -3891,16 +3880,16 @@ onUnmounted(() => {
 
 .fee-usdt-note { 
   font-size: 10px; 
-  color: #8E8E93; 
+  color: var(--color-text-secondary); 
   font-weight: 400; 
   margin-left: 4px;
 }
 
 .discount-badge { 
   font-size: 11px; 
-  color: #D4AF37; 
+  color: var(--color-accent); 
   font-weight: 600;
-  text-shadow: 0 0 4px rgba(212, 175, 55, 0.4);
+  text-shadow: 0 0 4px rgb(var(--color-brand-rgb) / 0.4);
 }
 
 .total-row {
@@ -3908,17 +3897,17 @@ onUnmounted(() => {
   justify-content: space-between; 
   align-items: center; 
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgb(var(--color-border-rgb) / 0.02);
   backdrop-filter: blur(10px);
   border-radius: 8px; 
   height: auto; 
   margin-bottom: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .total-label { 
   font-size: 11px; 
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 600;
@@ -3926,7 +3915,7 @@ onUnmounted(() => {
 
 .total-value { 
   font-size: 14px; 
-  color: #FFFFFF; 
+  color: var(--color-text-primary); 
   font-weight: 700; 
   font-variant-numeric: tabular-nums;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
@@ -3937,18 +3926,18 @@ onUnmounted(() => {
   justify-content: space-between; 
   align-items: center; 
   padding: 14px 16px;
-  background: rgba(212, 175, 55, 0.06);
+  background: rgb(var(--color-brand-rgb) / 0.06);
   backdrop-filter: blur(10px);
   border-radius: 8px; 
   height: auto; 
   margin-bottom: 16px;
-  border: 1px solid rgba(212, 175, 55, 0.15);
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.1), inset 0 0 20px rgba(212, 175, 55, 0.05);
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.15);
+  box-shadow: 0 0 20px rgb(var(--color-brand-rgb) / 0.1), inset 0 0 20px rgb(var(--color-brand-rgb) / 0.05);
 }
 
 .received-label { 
   font-size: 12px; 
-  color: rgba(212, 175, 55, 0.8); 
+  color: rgb(var(--color-brand-rgb) / 0.8); 
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -3956,12 +3945,12 @@ onUnmounted(() => {
 
 .received-value { 
   font-size: 16px; 
-  color: #D4AF37; 
+  color: var(--color-accent); 
   font-weight: 800; 
   font-variant-numeric: tabular-nums; 
   letter-spacing: -0.3px;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
-  text-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+  text-shadow: 0 0 8px rgb(var(--color-brand-rgb) / 0.4);
 }
 
 .available-row { 
@@ -3980,7 +3969,7 @@ onUnmounted(() => {
 }
 
 .avail-label { 
-  color: #8E8E93; 
+  color: var(--color-text-secondary); 
   margin-right: 6px;
   font-weight: 500;
   text-transform: uppercase;
@@ -3989,14 +3978,14 @@ onUnmounted(() => {
 }
 
 .avail-value { 
-  color: #FFFFFF; 
+  color: var(--color-text-primary); 
   font-variant-numeric: tabular-nums;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
   font-weight: 700;
   font-size: 12px;
 }
 
-/* 可用余额行 - 移到按钮上方，更易读 */
+/* 鍙敤浣欓琛?- 绉诲埌鎸夐挳涓婃柟锛屾洿鏄撹 */
 .available-balance-row {
   display: flex;
   align-items: center;
@@ -4008,7 +3997,7 @@ onUnmounted(() => {
 
 .available-balance-label {
   font-size: 12px;
-  color: #8E8E93; /* Grey */
+  color: var(--color-text-secondary); /* Grey */
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -4016,11 +4005,11 @@ onUnmounted(() => {
 
 .available-balance-value {
   font-size: 15px;
-  color: #FFFFFF; /* Bright White/Gold */
+  color: var(--color-text-primary); /* Bright White/Gold */
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
-  text-shadow: 0 0 8px rgba(212, 175, 55, 0.3); /* 轻微金色发光 */
+  text-shadow: 0 0 8px rgb(var(--color-brand-rgb) / 0.3); /* 杞诲井閲戣壊鍙戝厜 */
 }
 
 .submit-btn {
@@ -4047,7 +4036,7 @@ onUnmounted(() => {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgb(var(--color-border-rgb) / 0.2), transparent);
   transition: left 0.5s ease;
 }
 
@@ -4057,23 +4046,23 @@ onUnmounted(() => {
 
 .submit-btn.buy { 
   background: var(--color-brand);
-  color: #000000;
-  box-shadow: 0 4px 16px rgba(240, 185, 11, 0.25);
+  color: var(--color-text-on-accent);
+  box-shadow: 0 4px 16px rgb(var(--color-brand-rgb) / 0.25);
 }
 
 .submit-btn.buy:hover:not(:disabled) {
-  box-shadow: 0 6px 20px rgba(240, 185, 11, 0.35);
+  box-shadow: 0 6px 20px rgb(var(--color-brand-rgb) / 0.35);
   transform: translateY(-2px);
 }
 
 .submit-btn.sell { 
   background: var(--color-loss);
-  color: #FFFFFF;
-  box-shadow: 0 4px 16px rgba(246, 70, 93, 0.25);
+  color: var(--color-text-primary);
+  box-shadow: 0 4px 16px rgb(var(--color-loss-rgb) / 0.25);
 }
 
 .submit-btn.sell:hover:not(:disabled) {
-  box-shadow: 0 6px 30px rgba(255, 46, 80, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow: 0 6px 30px rgb(var(--color-loss-rgb) / 0.5), inset 0 1px 0 rgb(var(--color-border-rgb) / 0.3);
   transform: translateY(-2px);
 }
 
@@ -4087,34 +4076,34 @@ onUnmounted(() => {
   transform: translateY(0) scale(0.98);
 }
 
-/* ========== 底部：委托与资产 - 自然流式布局 ========== */
+/* ========== 搴曢儴锛氬鎵樹笌璧勪骇 - 鑷劧娴佸紡甯冨眬 ========== */
 .bottom-section { 
-  background: linear-gradient(180deg, #050505 0%, rgba(5, 5, 5, 0.98) 100%);
-  border-top: 1px solid rgba(212, 175, 55, 0.1);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(180deg, var(--color-bg) 0%, rgb(var(--color-bg-rgb) / 0.98) 100%);
+  border-top: 1px solid rgb(var(--color-brand-rgb) / 0.1);
+  box-shadow: 0 -4px 20px rgb(var(--color-shadow-rgb) / 0.5);
   display: flex;
   flex-direction: column;
-  margin-top: 8px; /* mt-2 = 8px，与交易表单的间距 */
+  margin-top: 8px; /* mt-2 = 8px锛屼笌浜ゆ槗琛ㄥ崟鐨勯棿璺?*/
   padding: 0 8px; /* px-2 = 8px */
-  /* 使用自然流式布局，不限制高度 */
+  /* 浣跨敤鑷劧娴佸紡甯冨眬锛屼笉闄愬埗楂樺害 */
 }
 
 .bottom-tabs { 
   display: flex; 
   padding: 8px 16px; 
   gap: 32px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  flex-shrink: 0; /* 防止被压缩 */
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
+  flex-shrink: 0; /* 闃叉琚帇缂?*/
   position: sticky;
   top: 0;
-  background: linear-gradient(180deg, #050505 0%, rgba(5, 5, 5, 0.98) 100%);
+  background: linear-gradient(180deg, var(--color-bg) 0%, rgb(var(--color-bg-rgb) / 0.98) 100%);
   z-index: 10;
   backdrop-filter: blur(10px);
 }
 
 .bottom-tabs .tab-item {
   font-size: 14px; 
-  color: #8E8E93; 
+  color: var(--color-text-secondary); 
   cursor: pointer; 
   padding-bottom: 8px; 
   position: relative; 
@@ -4125,11 +4114,11 @@ onUnmounted(() => {
 }
 
 .bottom-tabs .tab-item:hover {
-  color: rgba(212, 175, 55, 0.7);
+  color: rgb(var(--color-brand-rgb) / 0.7);
 }
 
 .bottom-tabs .tab-item.active { 
-  color: #D4AF37; 
+  color: var(--color-accent); 
   font-weight: 700;
 }
 
@@ -4140,8 +4129,8 @@ onUnmounted(() => {
   left: 0; 
   right: 0; 
   height: 3px; 
-  background: linear-gradient(90deg, #D4AF37 0%, #FFD700 100%);
-  box-shadow: 0 0 12px rgba(212, 175, 55, 0.6);
+  background: linear-gradient(90deg, var(--color-accent) 0%, var(--color-accent-strong) 100%);
+  box-shadow: 0 0 12px rgb(var(--color-brand-rgb) / 0.6);
   border-radius: 2px 2px 0 0;
 }
 
@@ -4149,8 +4138,8 @@ onUnmounted(() => {
   padding: 12px 16px;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, rgba(5, 5, 5, 0.98) 0%, #050505 100%);
-  /* 移除固定高度和 overflow，使用自然流式布局 */
+  background: linear-gradient(180deg, rgb(var(--color-bg-rgb) / 0.98) 0%, var(--color-bg) 100%);
+  /* 绉婚櫎鍥哄畾楂樺害鍜?overflow锛屼娇鐢ㄨ嚜鐒舵祦寮忓竷灞€ */
 }
 
 .panel-full {
@@ -4165,64 +4154,64 @@ onUnmounted(() => {
   flex: 1; 
   display: flex; 
   flex-direction: column; 
-  min-height: 60px; /* 确保有最小高度 */
+  min-height: 60px; /* 纭繚鏈夋渶灏忛珮搴?*/
   width: 100%;
-  overflow: visible; /* 确保内容可见 */
+  overflow: visible; /* 纭繚鍐呭鍙 */
 }
 
-/* ========== 紧凑订单列表 - 固定高度滚动 ========== */
+/* ========== 绱у噾璁㈠崟鍒楄〃 - 鍥哄畾楂樺害婊氬姩 ========== */
 .orders-list-compact { 
   display: flex; 
   flex-direction: column; 
   gap: 6px; 
-  min-height: 60px; /* 确保有最小高度 */
-  max-height: 200px; /* 增加最大高度，显示更多订单 */
-  overflow-y: auto; /* 内部滚动 */
+  min-height: 60px; /* 纭繚鏈夋渶灏忛珮搴?*/
+  max-height: 200px; /* 澧炲姞鏈€澶ч珮搴︼紝鏄剧ず鏇村璁㈠崟 */
+  overflow-y: auto; /* 鍐呴儴婊氬姩 */
   overflow-x: hidden;
-  padding: 4px 4px 4px 0; /* 为滚动条留出空间 */
-  scrollbar-width: none; /* Firefox 隐藏滚动条 */
-  -ms-overflow-style: none; /* IE/Edge 隐藏滚动条 */
+  padding: 4px 4px 4px 0; /* 涓烘粴鍔ㄦ潯鐣欏嚭绌洪棿 */
+  scrollbar-width: none; /* Firefox 闅愯棌婊氬姩鏉?*/
+  -ms-overflow-style: none; /* IE/Edge 闅愯棌婊氬姩鏉?*/
 }
 
 .orders-list-compact::-webkit-scrollbar {
-  display: none; /* Chrome/Safari 隐藏滚动条 */
+  display: none; /* Chrome/Safari 闅愯棌婊氬姩鏉?*/
 }
 
 .orders-empty-compact {
   display: flex; 
   align-items: center; 
   justify-content: center;
-  height: 60px; /* 紧凑的空状态高度 */
+  height: 60px; /* 绱у噾鐨勭┖鐘舵€侀珮搴?*/
   padding: 0;
 }
 
 .empty-text-compact {
   font-size: 12px; 
-  color: #8E8E93; 
+  color: var(--color-text-secondary); 
   font-weight: 500;
 }
 
-/* 紧凑空状态样式已在上面定义 */
+/* 绱у噾绌虹姸鎬佹牱寮忓凡鍦ㄤ笂闈㈠畾涔?*/
 
 .order-item {
   display: flex; 
   align-items: center; 
-  padding: 10px 12px; /* 减少内边距，更紧凑 */
-  background: rgba(255, 255, 255, 0.02);
+  padding: 10px 12px; /* 鍑忓皯鍐呰竟璺濓紝鏇寸揣鍑?*/
+  background: rgb(var(--color-border-rgb) / 0.02);
   backdrop-filter: blur(10px);
-  border-radius: 8px; /* 更小的圆角 */
-  border: 1px solid rgba(212, 175, 55, 0.1); 
+  border-radius: 8px; /* 鏇村皬鐨勫渾瑙?*/
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.1); 
   transition: all 0.2s ease;
-  flex-shrink: 0; /* 防止压缩 */
+  flex-shrink: 0; /* 闃叉鍘嬬缉 */
 }
 
 .order-item:hover {
-  background: rgba(212, 175, 55, 0.05);
-  border-color: rgba(212, 175, 55, 0.2);
+  background: rgb(var(--color-brand-rgb) / 0.05);
+  border-color: rgb(var(--color-brand-rgb) / 0.2);
 }
 
 .order-item:active { 
-  background: rgba(212, 175, 55, 0.08);
+  background: rgb(var(--color-brand-rgb) / 0.08);
 }
 
 .order-left { 
@@ -4230,28 +4219,28 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px; 
   flex: 0 0 auto; 
-  min-width: 100px; /* 稍微减小 */
+  min-width: 100px; /* 绋嶅井鍑忓皬 */
 }
 
 .order-side-badge { 
-  padding: 3px 6px; /* 更紧凑 */
+  padding: 3px 6px; /* 鏇寸揣鍑?*/
   border-radius: 4px; 
-  font-size: 10px; /* 更小字体 */
+  font-size: 10px; /* 鏇村皬瀛椾綋 */
   font-weight: 700; 
   white-space: nowrap; 
 }
 
 .order-side-badge.buy { 
-  background-color: rgba(0, 255, 163, 0.15); 
-  color: #00FFA3; 
+  background-color: rgb(var(--color-earn-rgb) / 0.15); 
+  color: var(--color-earn); 
 }
 
 .order-side-badge.sell { 
-  background-color: rgba(255, 46, 80, 0.15); 
-  color: #FF2E50; 
+  background-color: rgb(var(--color-loss-rgb) / 0.15); 
+  color: var(--color-loss); 
 }
 
-/* 强平订单标签样式 - 醒目的红色标签 */
+/* 寮哄钩璁㈠崟鏍囩鏍峰紡 - 閱掔洰鐨勭孩鑹叉爣绛?*/
 .liquidation-badge {
   padding: 4px 10px;
   border-radius: 4px;
@@ -4260,49 +4249,49 @@ onUnmounted(() => {
   white-space: nowrap;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  background-color: rgba(239, 68, 68, 0.2); /* bg-red-500/20 - 浅红色背景 */
-  color: #EF4444; /* text-red-500 - 鲜艳的红色 */
-  border: 1px solid rgba(239, 68, 68, 0.3); /* 细红线边框 */
-  box-shadow: 0 0 8px rgba(239, 68, 68, 0.2);
+  background-color: rgb(var(--color-loss-rgb) / 0.2); /* bg-red-500/20 - 娴呯孩鑹茶儗鏅?*/
+  color: var(--color-loss); /* text-red-500 - 椴滆壋鐨勭孩鑹?*/
+  border: 1px solid rgb(var(--color-loss-rgb) / 0.3); /* 缁嗙孩绾胯竟妗?*/
+  box-shadow: 0 0 8px rgb(var(--color-loss-rgb) / 0.2);
 }
 
-/* 强平订单整体样式 */
+/* 寮哄钩璁㈠崟鏁翠綋鏍峰紡 */
 .order-item.liquidation-order {
-  border-left: 3px solid #EF4444; /* 左侧红色边框标识 */
-  background-color: rgba(239, 68, 68, 0.05); /* 轻微红色背景 */
+  border-left: 3px solid var(--color-loss); /* 宸︿晶绾㈣壊杈规鏍囪瘑 */
+  background-color: rgb(var(--color-loss-rgb) / 0.05); /* 杞诲井绾㈣壊鑳屾櫙 */
 }
 
-/* 强平订单的已实现盈亏样式 - 巨额负数红色加粗 */
+/* 寮哄钩璁㈠崟鐨勫凡瀹炵幇鐩堜簭鏍峰紡 - 宸ㄩ璐熸暟绾㈣壊鍔犵矖 */
 .order-pnl.pnl-liquidation {
   font-weight: 900;
   font-size: 14px;
-  color: #EF4444 !important; /* 强制红色 */
-  text-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+  color: var(--color-loss) !important; /* 寮哄埗绾㈣壊 */
+  text-shadow: 0 0 8px rgb(var(--color-loss-rgb) / 0.5);
 }
 
 .order-pnl.pnl-liquidation.pnl-negative {
-  color: #DC2626 !important; /* text-red-600 - 更深的红色 */
+  color: var(--color-loss) !important; /* text-red-600 - 鏇存繁鐨勭孩鑹?*/
   font-weight: 900;
   text-shadow: 
-    0 0 10px rgba(220, 38, 38, 0.6),
-    0 0 20px rgba(220, 38, 38, 0.3);
+    0 0 10px rgb(var(--color-loss-rgb) / 0.6),
+    0 0 20px rgb(var(--color-loss-rgb) / 0.3);
 }
 
 .order-symbol-time { 
   display: flex; 
   flex-direction: column; 
-  gap: 2px; /* 更紧凑 */
+  gap: 2px; /* 鏇寸揣鍑?*/
 }
 
 .order-symbol { 
-  font-size: 12px; /* 更小 */
+  font-size: 12px; /* 鏇村皬 */
   font-weight: 700; 
-  color: #FFFFFF; 
+  color: var(--color-text-primary); 
 }
 
 .order-time { 
-  font-size: 10px; /* 更小 */
-  color: #8E8E93; 
+  font-size: 10px; /* 鏇村皬 */
+  color: var(--color-text-secondary); 
   font-family: 'DIN Alternate', monospace; 
 }
 
@@ -4310,21 +4299,21 @@ onUnmounted(() => {
   flex: 1; 
   display: flex; 
   flex-direction: column; 
-  gap: 2px; /* 更紧凑 */
+  gap: 2px; /* 鏇寸揣鍑?*/
   padding: 0 10px; 
   min-width: 0; 
 }
 
 .order-price { 
-  font-size: 13px; /* 更小 */
+  font-size: 13px; /* 鏇村皬 */
   font-weight: 700; 
-  color: #FFFFFF; 
+  color: var(--color-text-primary); 
   font-family: 'DIN Alternate', monospace; 
 }
 
 .order-quantity { 
-  font-size: 11px; /* 更小 */
-  color: #8E8E93; 
+  font-size: 11px; /* 鏇村皬 */
+  color: var(--color-text-secondary); 
   font-family: 'DIN Alternate', monospace; 
 }
 
@@ -4332,7 +4321,7 @@ onUnmounted(() => {
   flex: 0 0 auto;
 }
 
-/* ========== 历史成交列表 Pro Max 布局 ========== */
+/* ========== 鍘嗗彶鎴愪氦鍒楄〃 Pro Max 甯冨眬 ========== */
 .history-order-item {
   display: flex;
   justify-content: space-between;
@@ -4341,13 +4330,13 @@ onUnmounted(() => {
   gap: 16px;
 }
 
-/* 左侧：操作详情 */
+/* 宸︿晶锛氭搷浣滆鎯?*/
 .history-order-left {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  min-width: 0; /* 允许收缩 */
+  min-width: 0; /* 鍏佽鏀剁缉 */
 }
 
 .history-order-header {
@@ -4360,7 +4349,7 @@ onUnmounted(() => {
 .history-order-symbol {
   font-size: 13px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
 }
 
@@ -4371,12 +4360,12 @@ onUnmounted(() => {
 
 .history-order-price-quantity {
   font-size: 11px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
   font-variant-numeric: tabular-nums;
 }
 
-/* 右侧：核心结果（盈亏 + 时间） */
+/* 鍙充晶锛氭牳蹇冪粨鏋滐紙鐩堜簭 + 鏃堕棿锛?*/
 .history-order-right {
   display: flex;
   flex-direction: column;
@@ -4384,12 +4373,12 @@ onUnmounted(() => {
   justify-content: flex-start;
   gap: 4px;
   flex-shrink: 0;
-  min-width: 120px; /* 确保有足够空间显示盈亏 */
+  min-width: 120px; /* 纭繚鏈夎冻澶熺┖闂存樉绀虹泩浜?*/
 }
 
 .history-order-pnl {
-  font-size: 16px; /* text-base - 大字号 */
-  font-weight: 800; /* font-bold - 加粗 */
+  font-size: 16px; /* text-base - 澶у瓧鍙?*/
+  font-weight: 800; /* font-bold - 鍔犵矖 */
   font-variant-numeric: tabular-nums;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
   text-align: right;
@@ -4397,48 +4386,48 @@ onUnmounted(() => {
 }
 
 .history-order-pnl.pnl-positive {
-  color: #0ECB81; /* 正数绿色 */
+  color: var(--color-earn); /* 姝ｆ暟缁胯壊 */
 }
 
 .history-order-pnl.pnl-negative {
-  color: #F6465D; /* 负数红色 */
+  color: var(--color-loss); /* 璐熸暟绾㈣壊 */
 }
 
 .history-order-pnl.pnl-zero {
-  color: #8E8E93; /* 0 显示灰色 */
+  color: var(--color-text-secondary); /* 0 鏄剧ず鐏拌壊 */
   font-weight: 600;
 }
 
 .history-order-pnl.pnl-liquidation {
-  color: #EF4444 !important;
+  color: var(--color-loss) !important;
   font-weight: 900;
-  font-size: 17px; /* 强平订单更大字号 */
-  text-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+  font-size: 17px; /* 寮哄钩璁㈠崟鏇村ぇ瀛楀彿 */
+  text-shadow: 0 0 8px rgb(var(--color-loss-rgb) / 0.5);
 }
 
 .history-order-pnl.pnl-liquidation.pnl-negative {
-  color: #DC2626 !important;
+  color: var(--color-loss) !important;
   text-shadow: 
-    0 0 10px rgba(220, 38, 38, 0.6),
-    0 0 20px rgba(220, 38, 38, 0.3);
+    0 0 10px rgb(var(--color-loss-rgb) / 0.6),
+    0 0 20px rgb(var(--color-loss-rgb) / 0.3);
 }
 
 .history-order-time {
   font-size: 10px; /* text-xs */
-  color: #8E8E93; /* text-gray-500 */
+  color: var(--color-text-secondary); /* text-gray-500 */
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
   text-align: right;
   white-space: nowrap;
 }
 
-/* IntersectionObserver 监听目标（触底锚点） */
+/* IntersectionObserver 鐩戝惉鐩爣锛堣Е搴曢敋鐐癸級 */
 .history-observer-target {
   height: 1px;
   width: 100%;
   flex-shrink: 0;
 }
 
-/* 底部状态栏 */
+/* 搴曢儴鐘舵€佹爮 */
 .history-footer {
   padding: 16px;
   display: flex;
@@ -4447,26 +4436,26 @@ onUnmounted(() => {
   min-height: 60px;
 }
 
-/* 加载中状态 */
+/* 鍔犺浇涓姸鎬?*/
 .history-loading {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: #D4AF37;
+  color: var(--color-accent);
 }
 
 .loading-text {
   font-size: 12px;
-  color: #D4AF37;
+  color: var(--color-accent);
   font-weight: 600;
   letter-spacing: 0.5px;
 }
 
-/* 没有更多数据状态 */
+/* 娌℃湁鏇村鏁版嵁鐘舵€?*/
 .history-no-more {
   font-size: 10px; /* text-xs */
-  color: #6B7280; /* text-gray-600 */
+  color: var(--color-text-muted); /* text-gray-600 */
   text-align: center;
   padding: 16px 0;
   letter-spacing: 0.3px; /* tracking-wider */
@@ -4475,46 +4464,46 @@ onUnmounted(() => {
 }
 
 .cancel-btn { 
-  padding: 5px 12px; /* 更紧凑 */
-  background: rgba(255, 46, 80, 0.1); 
-  color: #FF2E50; 
-  border: 1px solid rgba(255, 46, 80, 0.2); 
+  padding: 5px 12px; /* 鏇寸揣鍑?*/
+  background: rgb(var(--color-loss-rgb) / 0.1); 
+  color: var(--color-loss); 
+  border: 1px solid rgb(var(--color-loss-rgb) / 0.2); 
   border-radius: 6px; 
-  font-size: 11px; /* 更小 */
+  font-size: 11px; /* 鏇村皬 */
   font-weight: 600; 
   transition: all 0.2s ease;
   cursor: pointer;
 }
 
 .cancel-btn:hover {
-  background: rgba(255, 46, 80, 0.15);
-  border-color: rgba(255, 46, 80, 0.3);
+  background: rgb(var(--color-loss-rgb) / 0.15);
+  border-color: rgb(var(--color-loss-rgb) / 0.3);
 }
 
 .cancel-btn:active { 
-  background: rgba(255, 46, 80, 0.2); 
+  background: rgb(var(--color-loss-rgb) / 0.2); 
 }
 
-/* ========== 资产玻璃拟态卡片 ========== */
+/* ========== 璧勪骇鐜荤拑鎷熸€佸崱鐗?========== */
 .assets-glass-card {
-  background: rgba(255, 255, 255, 0.05); /* bg-white/5 */
+  background: rgb(var(--color-border-rgb) / 0.05); /* bg-white/5 */
   border-radius: 12px; /* rounded-xl */
   padding: 16px; /* p-4 */
   margin-top: 16px; /* mt-4 */
-  border: 1px solid rgba(255, 255, 255, 0.1); /* border border-white/10 */
+  border: 1px solid rgb(var(--color-border-rgb) / 0.1); /* border border-white/10 */
   backdrop-filter: blur(10px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgb(var(--color-shadow-rgb) / 0.3);
 }
 
-/* ========== 紧凑资产 HUD 条 - 单行水平布局 ========== */
+/* ========== 绱у噾璧勪骇 HUD 鏉?- 鍗曡姘村钩甯冨眬 ========== */
 .assets-hud-strip {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-around;
-  height: 48px; /* 固定高度，非常紧凑 */
+  height: 48px; /* 鍥哄畾楂樺害锛岄潪甯哥揣鍑?*/
   padding: 0;
-  background: transparent; /* 透明背景 */
+  background: transparent; /* 閫忔槑鑳屾櫙 */
 }
 
 .asset-hud-item {
@@ -4530,13 +4519,13 @@ onUnmounted(() => {
 .asset-hud-divider {
   width: 1px;
   height: 24px;
-  background: rgba(212, 175, 55, 0.15);
+  background: rgb(var(--color-brand-rgb) / 0.15);
   flex-shrink: 0;
 }
 
 .asset-hud-label { 
-  font-size: 10px; /* 非常小的标签 */
-  color: #8E8E93; 
+  font-size: 10px; /* 闈炲父灏忕殑鏍囩 */
+  color: var(--color-text-secondary); 
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -4544,12 +4533,12 @@ onUnmounted(() => {
 }
 
 .asset-hud-value { 
-  font-size: 14px; /* 适中大小的数值 */
+  font-size: 14px; /* 閫備腑澶у皬鐨勬暟鍊?*/
   font-weight: 800; 
-  color: #D4AF37; 
+  color: var(--color-accent); 
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 6px rgba(212, 175, 55, 0.3);
+  text-shadow: 0 0 6px rgb(var(--color-brand-rgb) / 0.3);
   letter-spacing: -0.2px;
   line-height: 1.2;
   white-space: nowrap;
@@ -4559,8 +4548,8 @@ onUnmounted(() => {
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 
 .coin-select-popup { 
-  background: linear-gradient(180deg, #050505 0%, rgba(5, 5, 5, 0.98) 100%) !important;
-  border-top: 1px solid rgba(212, 175, 55, 0.1);
+  background: linear-gradient(180deg, var(--color-bg) 0%, rgb(var(--color-bg-rgb) / 0.98) 100%) !important;
+  border-top: 1px solid rgb(var(--color-brand-rgb) / 0.1);
 }
 
 .coin-select-container { 
@@ -4572,18 +4561,18 @@ onUnmounted(() => {
 
 .coin-select-header { 
   padding: 20px 16px 16px; 
-  border-bottom: 1px solid rgba(212, 175, 55, 0.1); 
+  border-bottom: 1px solid rgb(var(--color-brand-rgb) / 0.1); 
   flex-shrink: 0;
-  background: linear-gradient(180deg, rgba(5, 5, 5, 0.95) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgb(var(--color-bg-rgb) / 0.95) 0%, transparent 100%);
 }
 
 .coin-select-title { 
   font-size: 18px; 
   font-weight: 800; 
-  color: #D4AF37; 
+  color: var(--color-accent); 
   margin: 0; 
   text-align: left;
-  text-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+  text-shadow: 0 0 8px rgb(var(--color-brand-rgb) / 0.3);
 }
 
 .coin-list { 
@@ -4591,7 +4580,7 @@ onUnmounted(() => {
   overflow-y: auto; 
   padding: 0;
   scrollbar-width: thin;
-  scrollbar-color: rgba(212, 175, 55, 0.3) transparent;
+  scrollbar-color: rgb(var(--color-brand-rgb) / 0.3) transparent;
 }
 
 .coin-list::-webkit-scrollbar {
@@ -4603,19 +4592,19 @@ onUnmounted(() => {
 }
 
 .coin-list::-webkit-scrollbar-thumb {
-  background: rgba(212, 175, 55, 0.3);
+  background: rgb(var(--color-brand-rgb) / 0.3);
   border-radius: 3px;
 }
 
 .coin-list::-webkit-scrollbar-thumb:hover {
-  background: rgba(212, 175, 55, 0.5);
+  background: rgb(var(--color-brand-rgb) / 0.5);
 }
 
 .coin-item { 
   padding: 16px; 
   display: flex; 
   flex-direction: column; 
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05); 
   cursor: pointer; 
   transition: all 0.3s ease;
   position: relative;
@@ -4628,22 +4617,22 @@ onUnmounted(() => {
   top: 0;
   bottom: 0;
   width: 3px;
-  background: linear-gradient(180deg, #D4AF37 0%, #FFD700 100%);
+  background: linear-gradient(180deg, var(--color-accent) 0%, var(--color-accent-strong) 100%);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
 .coin-item:hover {
-  background: rgba(212, 175, 55, 0.05);
+  background: rgb(var(--color-brand-rgb) / 0.05);
 }
 
 .coin-item:active { 
-  background: rgba(212, 175, 55, 0.08);
+  background: rgb(var(--color-brand-rgb) / 0.08);
 }
 
 .coin-item-active { 
-  background: rgba(212, 175, 55, 0.08);
-  border-left: 3px solid #D4AF37;
+  background: rgb(var(--color-brand-rgb) / 0.08);
+  border-left: 3px solid var(--color-accent);
 }
 
 .coin-item-active::before {
@@ -4653,75 +4642,75 @@ onUnmounted(() => {
 .coin-name { 
   font-size: 16px; 
   font-weight: 700; 
-  color: #FFFFFF; 
+  color: var(--color-text-primary); 
   margin: 0;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
 }
 
 .coin-item-active .coin-name {
-  color: #D4AF37;
-  text-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+  color: var(--color-accent);
+  text-shadow: 0 0 8px rgb(var(--color-brand-rgb) / 0.4);
 }
 
 .coin-pair { 
   font-size: 12px; 
-  color: #8E8E93; 
+  color: var(--color-text-secondary); 
   margin-top: 6px;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
   font-variant-numeric: tabular-nums;
 }
-:deep(.van-empty__description) { color: #848E9C; font-size: 12px; }
+:deep(.van-empty__description) { color: var(--color-text-muted); font-size: 12px; }
 
-/* 修复3：ActionSheet 黑金风格 */
+/* 淇3锛欰ctionSheet 榛戦噾椋庢牸 */
 .custom-action-sheet {
-  --van-action-sheet-background: #1C1C1E;
-  --van-action-sheet-item-background: #1C1C1E;
-  --van-action-sheet-item-text-color: #EAECEF;
+  --van-action-sheet-background: var(--color-bg-card);
+  --van-action-sheet-item-background: var(--color-bg-card);
+  --van-action-sheet-item-text-color: var(--color-text-primary);
   --van-action-sheet-cancel-padding-top: 8px;
-  --van-action-sheet-cancel-padding-color: #000000;
-  --van-popup-background: #1C1C1E;
+  --van-action-sheet-cancel-padding-color: var(--color-bg);
+  --van-popup-background: var(--color-bg-card);
 }
 
 :deep(.van-action-sheet__item), :deep(.van-action-sheet__cancel) {
-  background-color: #1C1C1E;
-  color: #EAECEF;
+  background-color: var(--color-bg-card);
+  color: var(--color-text-primary);
 }
 
 :deep(.van-action-sheet__item:active), :deep(.van-action-sheet__cancel:active) {
-  background-color: #252A32;
+  background-color: var(--color-surface-muted);
 }
 
 :deep(.van-action-sheet__gap) {
-  background-color: #000000;
+  background-color: var(--color-bg);
   height: 8px;
 }
 
 :deep(.van-action-sheet__header) {
-  background-color: #1C1C1E;
-  color: #FFFFFF;
+  background-color: var(--color-bg-card);
+  color: var(--color-text-primary);
   font-weight: 700;
 }
 
-/* ========== 合约交易样式 - 自然流式布局 ========== */
+/* ========== 鍚堢害浜ゆ槗鏍峰紡 - 鑷劧娴佸紡甯冨眬 ========== */
 .futures-trade-container {
   display: flex;
   flex-direction: column;
   width: 100%;
   box-sizing: border-box;
-  position: relative; /* 使用 relative，禁止 absolute */
+  position: relative; /* 浣跨敤 relative锛岀姝?absolute */
   display: flex;
   flex-direction: column;
-  /* 移除固定高度和 overflow，使用自然流式布局 */
+  /* 绉婚櫎鍥哄畾楂樺害鍜?overflow锛屼娇鐢ㄨ嚜鐒舵祦寮忓竷灞€ */
 }
 
-/* 顶部控制栏 - 与现货页面的 pair-info 高度完全一致 */
+/* 椤堕儴鎺у埗鏍?- 涓庣幇璐ч〉闈㈢殑 pair-info 楂樺害瀹屽叏涓€鑷?*/
 .futures-control-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px; /* 与 pair-info 完全一致 */
-  background: linear-gradient(180deg, rgba(5, 5, 5, 0.95) 0%, #050505 100%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05); /* 与 pair-info 一致 */
+  padding: 12px 16px; /* 涓?pair-info 瀹屽叏涓€鑷?*/
+  background: linear-gradient(180deg, rgb(var(--color-bg-rgb) / 0.95) 0%, var(--color-bg) 100%);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05); /* 涓?pair-info 涓€鑷?*/
   gap: 12px;
   box-sizing: border-box;
 }
@@ -4734,7 +4723,7 @@ onUnmounted(() => {
 
 .margin-mode-text {
   font-size: 12px;
-  color: rgba(212, 175, 55, 0.8);
+  color: rgb(var(--color-brand-rgb) / 0.8);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -4751,15 +4740,15 @@ onUnmounted(() => {
   align-items: flex-end;
   gap: 4px;
   padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgb(var(--color-border-rgb) / 0.02);
   backdrop-filter: blur(10px);
   border-radius: 8px;
-  border: 1px solid rgba(212, 175, 55, 0.1);
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.1);
 }
 
 .funding-rate-label {
   font-size: 10px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -4773,31 +4762,31 @@ onUnmounted(() => {
 }
 
 .funding-rate-value.positive {
-  color: #00FFA3;
-  text-shadow: 0 0 8px rgba(0, 255, 163, 0.4);
+  color: var(--color-earn);
+  text-shadow: 0 0 8px rgb(var(--color-earn-rgb) / 0.4);
 }
 
 .funding-rate-value.negative {
-  color: #FF2E50;
-  text-shadow: 0 0 8px rgba(255, 46, 80, 0.4);
+  color: var(--color-loss);
+  text-shadow: 0 0 8px rgb(var(--color-loss-rgb) / 0.4);
 }
 
-/* 中间交易区域 - 自然流式布局 */
+/* 涓棿浜ゆ槗鍖哄煙 - 鑷劧娴佸紡甯冨眬 */
 .futures-trade-main {
   display: flex;
   gap: 8px;
   padding: 8px 8px 8px 0;
   align-items: flex-start;
-  /* 移除固定高度和 overflow，使用自然流式布局 */
+  /* 绉婚櫎鍥哄畾楂樺害鍜?overflow锛屼娇鐢ㄨ嚜鐒舵祦寮忓竷灞€ */
 }
 
-/* 合约盘口样式已与现货共享，无需重复定义 */
+/* 鍚堢害鐩樺彛鏍峰紡宸蹭笌鐜拌揣鍏变韩锛屾棤闇€閲嶅瀹氫箟 */
 
-/* 资产信息面板 */
+/* 璧勪骇淇℃伅闈㈡澘 */
 .futures-asset-panel {
-  background: rgba(20, 20, 20, 0.6);
+  background: rgb(var(--color-bg-rgb) / 0.6);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.08);
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 16px;
@@ -4822,7 +4811,7 @@ onUnmounted(() => {
 }
 
 .asset-label {
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-size: 10px;
   font-weight: 500;
   text-transform: uppercase;
@@ -4830,18 +4819,18 @@ onUnmounted(() => {
 }
 
 .asset-value {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-size: 13px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
 .asset-value.pnl-positive {
-  color: #32D74B;
+  color: var(--color-earn);
 }
 
 .asset-value.pnl-negative {
-  color: #FF453A;
+  color: var(--color-loss);
 }
 
 .asset-value.pnl-flash {
@@ -4859,11 +4848,11 @@ onUnmounted(() => {
 }
 
 .futures-form-side {
-  width: 40%; /* w-[40%] - 与现货页面一致 */
+  width: 40%; /* w-[40%] - 涓庣幇璐ч〉闈竴鑷?*/
   display: flex;
   flex-direction: column;
   gap: 8px;
-  /* 使用自然流式布局，不限制高度 */
+  /* 浣跨敤鑷劧娴佸紡甯冨眬锛屼笉闄愬埗楂樺害 */
 }
 
 .futures-action-buttons {
@@ -4874,7 +4863,7 @@ onUnmounted(() => {
   padding-top: 16px;
 }
 
-/* 合约页面按钮 - Grid 布局，确保总高度与现货页面一致 */
+/* 鍚堢害椤甸潰鎸夐挳 - Grid 甯冨眬锛岀‘淇濇€婚珮搴︿笌鐜拌揣椤甸潰涓€鑷?*/
 .futures-action-buttons-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr); /* grid-cols-2 */
@@ -4907,7 +4896,7 @@ onUnmounted(() => {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgb(var(--color-border-rgb) / 0.2), transparent);
   transition: left 0.5s ease;
 }
 
@@ -4915,22 +4904,22 @@ onUnmounted(() => {
   left: 100%;
 }
 
-/* 开多按钮 - 霓虹绿色渐变 */
+/* 寮€澶氭寜閽?- 闇撹櫣缁胯壊娓愬彉 */
 .long-btn {
-  background: linear-gradient(135deg, #00FFA3 0%, #00D98B 50%, #00C97A 100%);
-  color: #000000;
+  background: linear-gradient(135deg, var(--color-earn) 0%, var(--color-earn) 50%, var(--color-earn) 100%);
+  color: var(--color-text-on-accent);
   box-shadow: 
-    0 4px 20px rgba(0, 255, 163, 0.4),
-    0 0 30px rgba(0, 255, 163, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    0 4px 20px rgb(var(--color-earn-rgb) / 0.4),
+    0 0 30px rgb(var(--color-earn-rgb) / 0.2),
+    inset 0 1px 0 rgb(var(--color-border-rgb) / 0.3);
+  text-shadow: 0 1px 2px rgb(var(--color-shadow-rgb) / 0.3);
 }
 
 .long-btn:hover:not(:disabled) {
   box-shadow: 
-    0 6px 30px rgba(0, 255, 163, 0.6),
-    0 0 40px rgba(0, 255, 163, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    0 6px 30px rgb(var(--color-earn-rgb) / 0.6),
+    0 0 40px rgb(var(--color-earn-rgb) / 0.3),
+    inset 0 1px 0 rgb(var(--color-border-rgb) / 0.4);
   transform: translateY(-2px);
 }
 
@@ -4938,22 +4927,22 @@ onUnmounted(() => {
   transform: translateY(0) scale(0.98);
 }
 
-/* 开空按钮 - 霓虹红色渐变 */
+/* 寮€绌烘寜閽?- 闇撹櫣绾㈣壊娓愬彉 */
 .short-btn {
-  background: linear-gradient(135deg, #FF2E50 0%, #E63950 50%, #D62847 100%);
-  color: #FFFFFF;
+  background: linear-gradient(135deg, var(--color-loss) 0%, var(--color-loss) 50%, var(--color-loss) 100%);
+  color: var(--color-text-primary);
   box-shadow: 
-    0 4px 20px rgba(255, 46, 80, 0.4),
-    0 0 30px rgba(255, 46, 80, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    0 4px 20px rgb(var(--color-loss-rgb) / 0.4),
+    0 0 30px rgb(var(--color-loss-rgb) / 0.2),
+    inset 0 1px 0 rgb(var(--color-border-rgb) / 0.2);
+  text-shadow: 0 1px 2px rgb(var(--color-shadow-rgb) / 0.3);
 }
 
 .short-btn:hover:not(:disabled) {
   box-shadow: 
-    0 6px 30px rgba(255, 46, 80, 0.6),
-    0 0 40px rgba(255, 46, 80, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    0 6px 30px rgb(var(--color-loss-rgb) / 0.6),
+    0 0 40px rgb(var(--color-loss-rgb) / 0.3),
+    inset 0 1px 0 rgb(var(--color-border-rgb) / 0.3);
   transform: translateY(-2px);
 }
 
@@ -4968,10 +4957,10 @@ onUnmounted(() => {
   box-shadow: none;
 }
 
-/* Grid 布局按钮样式 - 确保总高度与现货页面单个按钮一致（48px） */
+/* Grid 甯冨眬鎸夐挳鏍峰紡 - 纭繚鎬婚珮搴︿笌鐜拌揣椤甸潰鍗曚釜鎸夐挳涓€鑷达紙48px锛?*/
 .long-btn-grid, .short-btn-grid {
   width: 100%;
-  height: 48px; /* 与现货页面 submit-btn 高度一致 */
+  height: 48px; /* 涓庣幇璐ч〉闈?submit-btn 楂樺害涓€鑷?*/
   border: none;
   border-radius: 8px;
   font-size: 16px;
@@ -4993,7 +4982,7 @@ onUnmounted(() => {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgb(var(--color-border-rgb) / 0.2), transparent);
   transition: left 0.5s ease;
 }
 
@@ -5001,23 +4990,23 @@ onUnmounted(() => {
   left: 100%;
 }
 
-/* 开多按钮 - Grid 版本 - 霓虹绿色渐变 */
+/* 寮€澶氭寜閽?- Grid 鐗堟湰 - 闇撹櫣缁胯壊娓愬彉 */
 .long-btn-grid {
-  background: linear-gradient(to right, #10b981 0%, #059669 100%); /* emerald-500 to green-600 */
-  color: #FFFFFF;
+  background: linear-gradient(to right, var(--color-earn) 0%, var(--color-earn) 100%); /* emerald-500 to green-600 */
+  color: var(--color-text-primary);
   font-weight: 800;
   box-shadow: 
-    0 4px 20px rgba(16, 185, 129, 0.3), /* shadow-lg shadow-green-500/30 */
-    0 0 30px rgba(16, 185, 129, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    0 4px 20px rgb(var(--color-earn-rgb) / 0.3), /* shadow-lg shadow-green-500/30 */
+    0 0 30px rgb(var(--color-earn-rgb) / 0.15),
+    inset 0 1px 0 rgb(var(--color-border-rgb) / 0.2);
+  text-shadow: 0 1px 2px rgb(var(--color-shadow-rgb) / 0.3);
 }
 
 .long-btn-grid:hover:not(:disabled) {
   box-shadow: 
-    0 6px 30px rgba(16, 185, 129, 0.5),
-    0 0 40px rgba(16, 185, 129, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    0 6px 30px rgb(var(--color-earn-rgb) / 0.5),
+    0 0 40px rgb(var(--color-earn-rgb) / 0.25),
+    inset 0 1px 0 rgb(var(--color-border-rgb) / 0.3);
   transform: translateY(-2px);
 }
 
@@ -5025,23 +5014,23 @@ onUnmounted(() => {
   transform: translateY(0) scale(0.98);
 }
 
-/* 开空按钮 - Grid 版本 - 霓虹红色渐变 */
+/* 寮€绌烘寜閽?- Grid 鐗堟湰 - 闇撹櫣绾㈣壊娓愬彉 */
 .short-btn-grid {
-  background: linear-gradient(to right, #f43f5e 0%, #e11d48 100%); /* rose-500 to red-600 */
-  color: #FFFFFF;
+  background: linear-gradient(to right, var(--color-loss) 0%, var(--color-loss) 100%); /* rose-500 to red-600 */
+  color: var(--color-text-primary);
   font-weight: 800;
   box-shadow: 
-    0 4px 20px rgba(244, 63, 94, 0.3), /* shadow-lg shadow-red-500/30 */
-    0 0 30px rgba(244, 63, 94, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    0 4px 20px rgb(var(--color-loss-rgb) / 0.3), /* shadow-lg shadow-red-500/30 */
+    0 0 30px rgb(var(--color-loss-rgb) / 0.15),
+    inset 0 1px 0 rgb(var(--color-border-rgb) / 0.2);
+  text-shadow: 0 1px 2px rgb(var(--color-shadow-rgb) / 0.3);
 }
 
 .short-btn-grid:hover:not(:disabled) {
   box-shadow: 
-    0 6px 30px rgba(244, 63, 94, 0.5),
-    0 0 40px rgba(244, 63, 94, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    0 6px 30px rgb(var(--color-loss-rgb) / 0.5),
+    0 0 40px rgb(var(--color-loss-rgb) / 0.25),
+    inset 0 1px 0 rgb(var(--color-border-rgb) / 0.3);
   transform: translateY(-2px);
 }
 
@@ -5056,40 +5045,40 @@ onUnmounted(() => {
   box-shadow: none;
 }
 
-/* 底部面板 - 自然流式布局 */
+/* 搴曢儴闈㈡澘 - 鑷劧娴佸紡甯冨眬 */
 .futures-bottom-section {
-  background: linear-gradient(180deg, #050505 0%, rgba(5, 5, 5, 0.98) 100%);
-  border-top: 1px solid rgba(212, 175, 55, 0.1);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(180deg, var(--color-bg) 0%, rgb(var(--color-bg-rgb) / 0.98) 100%);
+  border-top: 1px solid rgb(var(--color-brand-rgb) / 0.1);
+  box-shadow: 0 -4px 20px rgb(var(--color-shadow-rgb) / 0.5);
   display: flex;
   flex-direction: column;
-  margin-top: 8px; /* mt-2 = 8px，与交易表单的间距 */
+  margin-top: 8px; /* mt-2 = 8px锛屼笌浜ゆ槗琛ㄥ崟鐨勯棿璺?*/
   padding: 0 8px; /* px-2 = 8px */
-  /* 使用自然流式布局，不限制高度 */
+  /* 浣跨敤鑷劧娴佸紡甯冨眬锛屼笉闄愬埗楂樺害 */
 }
 
 .position-tabs {
   display: flex;
   flex-direction: column;
-  /* 移除固定高度和 overflow，使用自然流式布局 */
+  /* 绉婚櫎鍥哄畾楂樺害鍜?overflow锛屼娇鐢ㄨ嚜鐒舵祦寮忓竷灞€ */
 }
 
 :deep(.position-tabs .van-tabs__wrap) {
-  background: linear-gradient(180deg, #050505 0%, rgba(5, 5, 5, 0.98) 100%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  flex-shrink: 0; /* 防止被压缩 */
+  background: linear-gradient(180deg, var(--color-bg) 0%, rgb(var(--color-bg-rgb) / 0.98) 100%);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
+  flex-shrink: 0; /* 闃叉琚帇缂?*/
   position: sticky;
   top: 0;
   z-index: 10;
   backdrop-filter: blur(10px);
-  height: 48px; /* 固定标签栏高度 */
-  padding: 8px 16px; /* 与现货页面一致 */
+  height: 48px; /* 鍥哄畾鏍囩鏍忛珮搴?*/
+  padding: 8px 16px; /* 涓庣幇璐ч〉闈竴鑷?*/
 }
 
-/* 统一标签页样式，与现货页面一致 */
+/* 缁熶竴鏍囩椤垫牱寮忥紝涓庣幇璐ч〉闈竴鑷?*/
 :deep(.position-tabs .van-tab) {
   font-size: 14px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -5098,25 +5087,25 @@ onUnmounted(() => {
 }
 
 :deep(.position-tabs .van-tab--active) {
-  color: #D4AF37;
+  color: var(--color-accent);
   font-weight: 700;
 }
 
 :deep(.position-tabs .van-tabs__line) {
-  background: linear-gradient(90deg, #D4AF37 0%, #FFD700 100%);
-  box-shadow: 0 0 12px rgba(212, 175, 55, 0.6);
+  background: linear-gradient(90deg, var(--color-accent) 0%, var(--color-accent-strong) 100%);
+  box-shadow: 0 0 12px rgb(var(--color-brand-rgb) / 0.6);
   border-radius: 2px 2px 0 0;
   height: 3px;
 }
 
 :deep(.position-tabs .van-tabs__content) {
-  /* 移除固定高度和 overflow，使用自然流式布局 */
+  /* 绉婚櫎鍥哄畾楂樺害鍜?overflow锛屼娇鐢ㄨ嚜鐒舵祦寮忓竷灞€ */
   position: relative;
 }
 
 :deep(.position-tabs .van-tab__panel) {
   width: 100%;
-  /* 移除固定高度和 overflow，使用自然流式布局 */
+  /* 绉婚櫎鍥哄畾楂樺害鍜?overflow锛屼娇鐢ㄨ嚜鐒舵祦寮忓竷灞€ */
   transition: opacity 0.2s ease;
 }
 
@@ -5129,12 +5118,12 @@ onUnmounted(() => {
 }
 
 :deep(.position-tabs .van-tab__panel::-webkit-scrollbar-thumb) {
-  background: rgba(212, 175, 55, 0.3);
+  background: rgb(var(--color-brand-rgb) / 0.3);
   border-radius: 3px;
 }
 
 :deep(.position-tabs .van-tab__panel::-webkit-scrollbar-thumb:hover) {
-  background: rgba(212, 175, 55, 0.5);
+  background: rgb(var(--color-brand-rgb) / 0.5);
 }
 
 .positions-list, .orders-list, .history-list {
@@ -5144,7 +5133,7 @@ onUnmounted(() => {
   gap: 12px;
   padding-bottom: 20px;
   box-sizing: border-box;
-  /* 使用自然流式布局，不限制高度 */
+  /* 浣跨敤鑷劧娴佸紡甯冨眬锛屼笉闄愬埗楂樺害 */
 }
 
 .empty-state {
@@ -5152,9 +5141,9 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 200px; /* 最小高度，确保空状态可见 */
+  min-height: 200px; /* 鏈€灏忛珮搴︼紝纭繚绌虹姸鎬佸彲瑙?*/
   padding: 40px 20px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-size: 14px;
   font-weight: 500;
   width: 100%;
@@ -5164,25 +5153,25 @@ onUnmounted(() => {
 .empty-state .empty-icon {
   margin-bottom: 16px;
   opacity: 0.6;
-  filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.2));
+  filter: drop-shadow(0 0 8px rgb(var(--color-brand-rgb) / 0.2));
 }
 
 .empty-state .empty-text {
   font-size: 14px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-weight: 500;
 }
 
 .position-card {
-  background: rgba(255, 255, 255, 0.05); /* bg-white/5 - 玻璃拟态效果 */
+  background: rgb(var(--color-border-rgb) / 0.05); /* bg-white/5 - 鐜荤拑鎷熸€佹晥鏋?*/
   backdrop-filter: blur(16px); /* backdrop-blur-md */
   border-radius: 16px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1); /* border-white/10 */
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.1); /* border-white/10 */
+  box-shadow: 0 4px 20px rgb(var(--color-shadow-rgb) / 0.3);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -5195,15 +5184,15 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgb(var(--color-brand-rgb) / 0.3), transparent);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
 .position-card:hover {
-  background: rgba(212, 175, 55, 0.05);
-  border-color: rgba(212, 175, 55, 0.25);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  background: rgb(var(--color-brand-rgb) / 0.05);
+  border-color: rgb(var(--color-brand-rgb) / 0.25);
+  box-shadow: 0 8px 32px rgb(var(--color-shadow-rgb) / 0.4);
   transform: translateY(-2px);
 }
 
@@ -5233,19 +5222,19 @@ onUnmounted(() => {
 .position-symbol {
   font-size: 16px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
 }
 
 .position-perpetual {
   font-size: 11px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   padding: 2px 6px;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgb(var(--color-border-rgb) / 0.05);
   border-radius: 4px;
 }
 
-/* 持仓方向标签 - 多/空 */
+/* 鎸佷粨鏂瑰悜鏍囩 - 澶?绌?*/
 .position-side-badge {
   padding: 3px 8px;
   border-radius: 4px;
@@ -5257,20 +5246,20 @@ onUnmounted(() => {
 }
 
 .position-side-badge.side-long {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgb(var(--color-border-rgb) / 0.08);
   color: var(--color-earn);
   box-shadow: none;
 }
 
 .position-side-badge.side-short {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgb(var(--color-border-rgb) / 0.08);
   color: var(--color-loss);
   box-shadow: none;
 }
 
 .position-leverage {
   font-size: 13px;
-  color: #FCD535;
+  color: var(--color-brand-legacy);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -5287,7 +5276,7 @@ onUnmounted(() => {
 
 .unrealized-pnl-label {
   font-size: 11px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   margin-bottom: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -5295,7 +5284,7 @@ onUnmounted(() => {
 }
 
 .unrealized-pnl-value {
-  font-size: 32px; /* text-3xl - 更大更醒目 */
+  font-size: 32px; /* text-3xl - 鏇村ぇ鏇撮啋鐩?*/
   font-weight: 900;
   font-variant-numeric: tabular-nums;
   margin-bottom: 8px;
@@ -5305,17 +5294,17 @@ onUnmounted(() => {
 }
 
 .unrealized-pnl-value.positive {
-  color: #0ECB81;
+  color: var(--color-earn);
   text-shadow: 
-    0 0 20px rgba(14, 203, 129, 0.6),
-    0 0 40px rgba(14, 203, 129, 0.3);
+    0 0 20px rgb(var(--color-earn-rgb) / 0.6),
+    0 0 40px rgb(var(--color-earn-rgb) / 0.3);
 }
 
 .unrealized-pnl-value.negative {
-  color: #F6465D;
+  color: var(--color-loss);
   text-shadow: 
-    0 0 20px rgba(246, 70, 93, 0.6),
-    0 0 40px rgba(246, 70, 93, 0.3);
+    0 0 20px rgb(var(--color-loss-rgb) / 0.6),
+    0 0 40px rgb(var(--color-loss-rgb) / 0.3);
 }
 
 .unrealized-pnl-percent {
@@ -5326,13 +5315,13 @@ onUnmounted(() => {
 }
 
 .unrealized-pnl-percent.positive {
-  color: #0ECB81;
-  text-shadow: 0 0 8px rgba(14, 203, 129, 0.4);
+  color: var(--color-earn);
+  text-shadow: 0 0 8px rgb(var(--color-earn-rgb) / 0.4);
 }
 
 .unrealized-pnl-percent.negative {
-  color: #F6465D;
-  text-shadow: 0 0 8px rgba(246, 70, 93, 0.4);
+  color: var(--color-loss);
+  text-shadow: 0 0 8px rgb(var(--color-loss-rgb) / 0.4);
 }
 
 .position-right {
@@ -5351,7 +5340,7 @@ onUnmounted(() => {
 }
 
 .info-label {
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-size: 11px;
   font-weight: 500;
   text-transform: uppercase;
@@ -5359,29 +5348,29 @@ onUnmounted(() => {
 }
 
 .info-value {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-size: 14px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
 }
 
-/* 开仓均价颜色 - 根据方向变化 */
+/* 寮€浠撳潎浠烽鑹?- 鏍规嵁鏂瑰悜鍙樺寲 */
 .entry-price-value.side-long {
-  color: #0ECB81; /* 多单绿色 */
-  text-shadow: 0 0 8px rgba(14, 203, 129, 0.4);
+  color: var(--color-earn); /* 澶氬崟缁胯壊 */
+  text-shadow: 0 0 8px rgb(var(--color-earn-rgb) / 0.4);
 }
 
 .entry-price-value.side-short {
-  color: #F6465D; /* 空单红色 */
-  text-shadow: 0 0 8px rgba(246, 70, 93, 0.4);
+  color: var(--color-loss); /* 绌哄崟绾㈣壊 */
+  text-shadow: 0 0 8px rgb(var(--color-loss-rgb) / 0.4);
 }
 
 .liquidation-price {
-  color: #F6465D;
+  color: var(--color-loss);
   font-weight: 800;
   font-size: 14px;
-  text-shadow: 0 0 8px rgba(255, 46, 80, 0.4);
+  text-shadow: 0 0 8px rgb(var(--color-loss-rgb) / 0.4);
 }
 
 .position-actions {
@@ -5389,7 +5378,7 @@ onUnmounted(() => {
   gap: 10px;
   margin-top: 8px;
   padding-top: 16px;
-  border-top: 1px solid rgba(212, 175, 55, 0.1);
+  border-top: 1px solid rgb(var(--color-brand-rgb) / 0.1);
 }
 
 .action-btn {
@@ -5406,66 +5395,66 @@ onUnmounted(() => {
 }
 
 .tp-sl-btn {
-  background: rgba(212, 175, 55, 0.1);
-  color: #D4AF37;
-  border: 1px solid rgba(212, 175, 55, 0.3);
+  background: rgb(var(--color-brand-rgb) / 0.1);
+  color: var(--color-accent);
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.3);
   backdrop-filter: blur(10px);
 }
 
 .tp-sl-btn:hover {
-  background: rgba(212, 175, 55, 0.15);
-  border-color: rgba(212, 175, 55, 0.4);
-  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
+  background: rgb(var(--color-brand-rgb) / 0.15);
+  border-color: rgb(var(--color-brand-rgb) / 0.4);
+  box-shadow: 0 4px 12px rgb(var(--color-brand-rgb) / 0.2);
   transform: translateY(-2px);
 }
 
 .tp-sl-btn:active {
-  background: rgba(212, 175, 55, 0.2);
+  background: rgb(var(--color-brand-rgb) / 0.2);
   transform: translateY(0);
 }
 
 .close-btn {
-  background: rgba(255, 46, 80, 0.1);
-  color: #FF2E50;
-  border: 1px solid rgba(255, 46, 80, 0.3);
+  background: rgb(var(--color-loss-rgb) / 0.1);
+  color: var(--color-loss);
+  border: 1px solid rgb(var(--color-loss-rgb) / 0.3);
   backdrop-filter: blur(10px);
 }
 
 .close-btn:hover {
-  background: rgba(255, 46, 80, 0.15);
-  border-color: rgba(255, 46, 80, 0.4);
-  box-shadow: 0 4px 12px rgba(255, 46, 80, 0.2);
+  background: rgb(var(--color-loss-rgb) / 0.15);
+  border-color: rgb(var(--color-loss-rgb) / 0.4);
+  box-shadow: 0 4px 12px rgb(var(--color-loss-rgb) / 0.2);
   transform: translateY(-2px);
 }
 
 .close-btn:active {
-  background: rgba(255, 46, 80, 0.2);
+  background: rgb(var(--color-loss-rgb) / 0.2);
   transform: translateY(0);
 }
 
-/* ========== 彻底重构的黑金样式 ========== */
+/* ========== 褰诲簳閲嶆瀯鐨勯粦閲戞牱寮?========== */
 
-/* 1. 弹窗基础容器 */
+/* 1. 寮圭獥鍩虹瀹瑰櫒 */
 :deep(.van-popup.premium-tpsl-popup) {
-  background: #0a0a0a !important; /* 纯深色底 */
-  border-top: 1px solid rgba(212, 175, 55, 0.2);
+  background: var(--color-bg) !important; /* 绾繁鑹插簳 */
+  border-top: 1px solid rgb(var(--color-brand-rgb) / 0.2);
   padding-bottom: env(safe-area-inset-bottom);
 }
 
 .premium-modal-container {
   padding: 12px 24px 32px;
-  background: linear-gradient(180deg, rgba(212, 175, 55, 0.03) 0%, rgba(0, 0, 0, 0) 100%);
+  background: linear-gradient(180deg, rgb(var(--color-brand-rgb) / 0.03) 0%, rgb(var(--color-shadow-rgb) / 0) 100%);
 }
 
 .modal-drag-indicator {
   width: 36px;
   height: 4px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(var(--color-border-rgb) / 0.1);
   border-radius: 2px;
   margin: 0 auto 20px;
 }
 
-/* 2. 头部标题 */
+/* 2. 澶撮儴鏍囬 */
 .premium-modal-header {
   display: flex;
   justify-content: space-between;
@@ -5482,13 +5471,13 @@ onUnmounted(() => {
 .gold-dot {
   width: 6px;
   height: 6px;
-  background: #D4AF37;
+  background: var(--color-accent);
   border-radius: 50%;
-  box-shadow: 0 0 8px #D4AF37;
+  box-shadow: 0 0 8px var(--color-accent);
 }
 
 .premium-modal-header h3 {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-size: 18px;
   font-weight: 700;
   letter-spacing: -0.5px;
@@ -5497,13 +5486,13 @@ onUnmounted(() => {
 
 .premium-close-btn {
   font-size: 22px;
-  color: #4a4a4a;
+  color: var(--color-text-muted);
   transition: color 0.3s;
 }
 
-.premium-close-btn:active { color: #D4AF37; }
+.premium-close-btn:active { color: var(--color-accent); }
 
-/* 3. 输入组样式 */
+/* 3. 杈撳叆缁勬牱寮?*/
 .premium-form-group {
   margin-bottom: 24px;
 }
@@ -5515,7 +5504,7 @@ onUnmounted(() => {
 }
 
 .group-label-row label {
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-size: 13px;
   font-weight: 500;
   text-transform: uppercase;
@@ -5523,35 +5512,35 @@ onUnmounted(() => {
 }
 
 .mark-price-ref {
-  color: #4a4a4a;
+  color: var(--color-text-muted);
   font-size: 12px;
   font-family: 'DIN Alternate', sans-serif;
 }
 
-/* 4. 核心输入框盒模型 */
+/* 4. 鏍稿績杈撳叆妗嗙洅妯″瀷 */
 .premium-input-box {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.03); /* 玻璃拟态底色 */
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgb(var(--color-border-rgb) / 0.03); /* 鐜荤拑鎷熸€佸簳鑹?*/
+  border: 1px solid rgb(var(--color-border-rgb) / 0.08);
   border-radius: 12px;
   padding: 4px;
   transition: all 0.3s ease;
 }
 
 .premium-input-box:focus-within {
-  border-color: #D4AF37;
-  background: rgba(212, 175, 55, 0.05);
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
+  border-color: var(--color-accent);
+  background: rgb(var(--color-brand-rgb) / 0.05);
+  box-shadow: 0 0 20px rgb(var(--color-brand-rgb) / 0.1);
 }
 
 .step-btn {
   width: 44px;
   height: 44px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--color-border-rgb) / 0.05);
   border: none;
   border-radius: 8px;
-  color: #D4AF37;
+  color: var(--color-accent);
   font-size: 24px;
   font-weight: 300;
   display: flex;
@@ -5562,7 +5551,7 @@ onUnmounted(() => {
 }
 
 .step-btn:active {
-  background: rgba(212, 175, 55, 0.2);
+  background: rgb(var(--color-brand-rgb) / 0.2);
   transform: scale(0.95);
 }
 
@@ -5577,7 +5566,7 @@ onUnmounted(() => {
   width: 100%;
   background: transparent;
   border: none;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-size: 20px;
   font-weight: 600;
   text-align: center;
@@ -5585,7 +5574,7 @@ onUnmounted(() => {
   outline: none;
 }
 
-/* 移除数字输入框箭头 */
+/* 绉婚櫎鏁板瓧杈撳叆妗嗙澶?*/
 .premium-input-box input::-webkit-outer-spin-button,
 .premium-input-box input::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -5599,12 +5588,12 @@ onUnmounted(() => {
 .input-suffix {
   position: absolute;
   right: 12px;
-  color: #4a4a4a;
+  color: var(--color-text-muted);
   font-size: 11px;
   font-weight: 700;
 }
 
-/* 5. 快捷选择标签 */
+/* 5. 蹇嵎閫夋嫨鏍囩 */
 .quick-select-row {
   display: flex;
   gap: 8px;
@@ -5613,8 +5602,8 @@ onUnmounted(() => {
 
 .percent-tag {
   padding: 6px 12px;
-  background: rgba(50, 215, 75, 0.1);
-  color: #32D74B;
+  background: rgb(var(--color-earn-rgb) / 0.1);
+  color: var(--color-earn);
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
@@ -5622,38 +5611,38 @@ onUnmounted(() => {
 }
 
 .percent-tag.sl {
-  background: rgba(255, 69, 58, 0.1);
-  color: #FF453A;
+  background: rgb(var(--color-loss-rgb) / 0.1);
+  color: var(--color-loss);
 }
 
 .percent-tag:active { opacity: 0.7; }
 
-/* 6. 黄金渐变按钮 */
+/* 6. 榛勯噾娓愬彉鎸夐挳 */
 .premium-gold-button {
   width: 100%;
   margin-top: 12px;
   padding: 18px;
-  background: linear-gradient(135deg, #FFD700 0%, #D4AF37 100%);
+  background: linear-gradient(135deg, var(--color-accent-strong) 0%, var(--color-accent) 100%);
   border: none;
   border-radius: 14px;
-  color: #000000;
+  color: var(--color-text-on-accent);
   font-size: 16px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
-  box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
+  box-shadow: 0 10px 20px rgb(var(--color-brand-rgb) / 0.2);
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .premium-gold-button:active {
   transform: scale(0.97);
-  box-shadow: 0 5px 10px rgba(212, 175, 55, 0.1);
+  box-shadow: 0 5px 10px rgb(var(--color-brand-rgb) / 0.1);
   filter: brightness(0.9);
 }
 
 .premium-gold-button.disabled {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.3);
+  background: rgb(var(--color-border-rgb) / 0.1);
+  color: rgb(var(--color-border-rgb) / 0.3);
   cursor: not-allowed;
   filter: none;
 }
@@ -5662,30 +5651,173 @@ onUnmounted(() => {
   transform: none;
 }
 
-/* 错误提示样式 */
+/* 閿欒鎻愮ず鏍峰紡 */
 .tpsl-error-message {
   margin-top: 8px;
   font-size: 12px;
-  color: #FF453A;
+  color: var(--color-loss);
   font-weight: 600;
   padding: 8px 12px;
-  background: rgba(255, 69, 58, 0.1);
+  background: rgb(var(--color-loss-rgb) / 0.1);
   border-radius: 6px;
-  border-left: 3px solid #FF453A;
+  border-left: 3px solid var(--color-loss);
 }
 
-/* 输入框错误状态 */
+/* 杈撳叆妗嗛敊璇姸鎬?*/
 .input-error {
-  border-color: #FF453A !important;
-  background: rgba(255, 69, 58, 0.05) !important;
+  border-color: var(--color-loss) !important;
+  background: rgb(var(--color-loss-rgb) / 0.05) !important;
 }
 
-/* 百分比按钮禁用状态 */
+/* 鐧惧垎姣旀寜閽鐢ㄧ姸鎬?*/
 .percent-tag.disabled {
   opacity: 0.4;
   cursor: not-allowed;
   pointer-events: none;
-  background: rgba(255, 255, 255, 0.05) !important;
-  color: rgba(255, 255, 255, 0.3) !important;
+  background: rgb(var(--color-border-rgb) / 0.05) !important;
+  color: rgb(var(--color-border-rgb) / 0.3) !important;
 }
+
+/* Trading form polish */
+.right-form-panel {
+  background: var(--color-surface-2) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--shadow-md) !important;
+  padding: 6px !important;
+}
+
+.buy-sell-toggle {
+  background: var(--color-surface-1);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.toggle-btn {
+  border-radius: 10px;
+  color: var(--color-text-secondary);
+}
+
+.buy-btn.active {
+  background: rgb(var(--color-success-rgb) / 0.12) !important;
+  color: var(--color-success) !important;
+  border: 1px solid rgb(var(--color-success-rgb) / 0.28) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+.sell-btn.active {
+  background: rgb(var(--color-danger-rgb) / 0.12) !important;
+  color: var(--color-danger) !important;
+  border: 1px solid rgb(var(--color-danger-rgb) / 0.28) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+.order-type-selector,
+.input-row,
+.fee-estimate-row,
+.total-row,
+.estimated-received-row {
+  background: var(--color-surface-2) !important;
+  border: 1px solid var(--color-border) !important;
+  box-shadow: var(--shadow-sm) !important;
+  border-radius: 12px !important;
+}
+
+.input-row {
+  min-height: 52px;
+  height: auto;
+  padding: 0 14px;
+}
+
+.input-row:focus-within {
+  border-color: var(--color-primary-border) !important;
+  box-shadow: 0 0 0 3px var(--color-focus-ring) !important;
+  background: var(--color-surface-2) !important;
+}
+
+.input-label {
+  min-width: 0;
+  flex-shrink: 0;
+  max-width: 46%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--color-text-secondary);
+  letter-spacing: 0;
+}
+
+.input-field {
+  min-width: 0;
+  text-align: right;
+  color: var(--color-text-primary);
+  font-size: 15px;
+}
+
+.input-field::placeholder {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.estimated-received-row {
+  background: rgb(var(--color-primary-rgb) / 0.08) !important;
+  border-color: rgb(var(--color-primary-rgb) / 0.18) !important;
+  box-shadow: none !important;
+}
+
+.received-label,
+.received-value {
+  color: var(--color-primary-hover) !important;
+  text-shadow: none !important;
+}
+
+.available-row {
+  background: var(--color-surface-1);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.avail-item {
+  justify-content: space-between;
+}
+
+.submit-btn {
+  border-radius: 12px;
+  box-shadow: none !important;
+}
+
+.submit-btn:disabled {
+  background: var(--color-surface-muted) !important;
+  color: var(--color-text-muted) !important;
+  border: 1px solid var(--color-border) !important;
+  opacity: 1;
+  filter: none;
+}
+
+/* Compact viewport tuning */
+.orderbook-header { padding: 5px 10px !important; min-height: 22px !important; }
+.order-row { height: 18px !important; line-height: 18px !important; padding: 0 10px !important; }
+.order-row .price,
+.order-row .quantity { font-size: 12px !important; line-height: 18px !important; }
+.last-price { height: 40px !important; min-height: 40px !important; }
+.price-main { font-size: 18px !important; line-height: 1.1 !important; }
+.price-fiat { font-size: 10px !important; }
+.right-form-panel { gap: 6px !important; padding: 6px !important; }
+.toggle-btn { height: 36px !important; font-size: 14px !important; }
+.order-type-selector { min-height: 42px !important; padding: 8px 12px !important; }
+.input-row { min-height: 42px !important; height: 42px !important; padding: 0 12px !important; }
+.estimated-row { padding: 4px !important; }
+.slider-wrapper { padding: 10px 8px 6px !important; margin-bottom: 6px !important; }
+.slider-marks { padding-top: 6px !important; margin-top: 4px !important; }
+.mark-item { padding: 4px 6px !important; min-width: 28px !important; }
+.fee-estimate-row,
+.total-row,
+.estimated-received-row { padding: 8px 12px !important; margin-bottom: 6px !important; }
+.available-row { gap: 2px !important; padding: 6px 10px !important; }
+.avail-item { padding: 3px 0 !important; }
+.submit-btn { height: 44px !important; min-height: 44px !important; }
 </style>
+

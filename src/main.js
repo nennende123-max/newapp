@@ -1,13 +1,16 @@
-import { createApp } from 'vue'
+﻿import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { createI18n } from 'vue-i18n'
 import App from './App.vue'
 import router from './router'
 import Vant from 'vant'
-// 确保 Vant 样式在全局样式之前引入，保证图标字体优先级
+// 纭繚 Vant 鏍峰紡鍦ㄥ叏灞€鏍峰紡涔嬪墠寮曞叆锛屼繚璇佸浘鏍囧瓧浣撲紭鍏堢骇
 import 'vant/lib/index.css'
-// 引入全局样式（包含图标字体修复）
+// 寮曞叆鍏ㄥ眬鏍峰紡锛堝寘鍚浘鏍囧瓧浣撲慨澶嶏級
 import './style.css'
+import { useThemeStore } from '@/stores/theme'
+import enLocale from './locales/en.json'
+import zhLocale from './locales/zh.json'
 
 const messages = {
   en: {
@@ -15,7 +18,7 @@ const messages = {
     common: {
       loading: 'Loading...',
       no_data: 'No Data',
-      live_on_chain: '🚀 Live On-Chain:',
+      live_on_chain: '馃殌 Live On-Chain:',
       left: 'Left',
       cancel: 'Cancel',
       confirm: 'Confirm',
@@ -44,7 +47,7 @@ const messages = {
       market_overview: 'Market Overview',
       all_markets: 'All Markets',
       ticker: {
-        prefix: '🚀 Live On-Chain:',
+        prefix: '馃殌 Live On-Chain:',
         withdraw: 'User {user} just withdrew {amount} USDT (Tx: {tx})',
         battle: 'User {user} won Price Battle (+{amount} USDT)',
         treasury: 'Treasury added {amount} assets today',
@@ -53,14 +56,14 @@ const messages = {
     },
     tab: {
       home: 'Home',
-      miner: 'Miner',
+      miner: 'Earn',
       trade: 'Trade',
       ido: 'IDO',
       me: 'Me'
     },
     connect: 'Connect Wallet',
 
-    // 认证相关
+    // 璁よ瘉鐩稿叧
     auth: {
       signMessage: 'Welcome to TruthFi. Sign to verify your identity and access institutional services.',
       connectSuccess: 'Wallet connected successfully',
@@ -73,20 +76,24 @@ const messages = {
       disconnected: 'Wallet disconnected'
     },
 
-    // 充值页面（新增 subtitle）
+    // 鍏呭€奸〉闈紙鏂板 subtitle锛?
     deposit: {
       title: 'Deposit Crypto',
-      subtitle: 'Deposit USDT via supported networks',  // 新增
+      subtitle: 'Deposit USDT via supported networks',  // 鏂板
       net: 'Select Network',
       addr: 'Deposit Address',
       copy: 'Copy Address',
       tips: 'Send only USDT to this address. Sending any other coins may result in permanent loss.',
       copy_success: 'Address Copied!',
-      qr_tip: 'Scan to Deposit', // 新增
-      qr_hint: '(Long press to simulate +1000 USDT)'  // 新增
+      qr_tip: 'Scan to Deposit', // 鏂板
+      qr_hint: '(Long press to simulate +1000 USDT)',  // 鏂板
+      network_trc20: 'TRC20 (Tron)',
+      network_erc20: 'ERC20 (Ethereum)',
+      network_bep20: 'BEP20 (BSC)',
+      network_polygon: 'Polygon'
     },
 
-    // 提现页面（新增 subtitle）
+    // 鎻愮幇椤甸潰锛堟柊澧?subtitle锛?
     withdraw: {
       title: 'Withdraw USDT',
       subtitle: 'Withdraw USDT to your wallet',
@@ -110,8 +117,8 @@ const messages = {
       network_trc20: 'TRC20',
       network_erc20: 'ERC20',
       network_bsc: 'BSC',
-      estimated_time_prefix: ' Estimated Arrival: about',  // 前缀 + 空格
-      min_withdraw: 'Min Withdraw 10 USDT' ,  // 新增：最小提现模板
+      estimated_time_prefix: ' Estimated Arrival: about',  // 鍓嶇紑 + 绌烘牸
+      min_withdraw: 'Min Withdraw 10 USDT' ,  // 鏂板锛氭渶灏忔彁鐜版ā鏉?
       scan_coming_soon: 'Scan feature coming soon',
       scanning: 'Scanning...',
       scan_success: 'Scan successful',
@@ -121,8 +128,8 @@ const messages = {
       amount_below_fee: 'Withdrawal amount cannot cover the network fee',
       insufficient_balance: 'Insufficient balance',
       failed: 'Withdraw failed, please try again',
-      coins: {  // 新增 coins 对象
-        usdt: 'USDT',  // 英文下显示 'USDT'
+      coins: {  // 鏂板 coins 瀵硅薄
+        usdt: 'USDT',  // 鑻辨枃涓嬫樉绀?'USDT'
         btc: 'BTC',
         eth: 'ETH',
         bnb: 'BNB',
@@ -152,7 +159,7 @@ const messages = {
     min_price: 'Min Price',
     rent_btn: 'Rent Machine Now',
 
-    // 钱包/资产页面
+    // 閽卞寘/璧勪骇椤甸潰
     wallet: {
       est_total_value: 'Est. Total Value',
       wallet_connected: 'Wallet Connected',
@@ -165,13 +172,14 @@ const messages = {
       account_breakdown: 'Assets Breakdown',
       spot_account: 'Spot Account',
       earn_account: 'Earn Account',
-      ieo_locked: 'IEO Locked',
+      ieo_locked: 'IEO Account',
+      ieo_account: 'IEO Account',
       referral_title: 'Invite Friends & Earn',
       referral_desc: 'When friends trade, you can earn up to',
       referral_rebate: 'rebate',
       referral_earned: 'Earned'
     },
-    // 邀请返佣页面
+    // 閭€璇疯繑浣ｉ〉闈?
     referral: {
       title: 'Invite & Earn',
       total_earned: 'Total Earned',
@@ -234,7 +242,7 @@ const messages = {
       poster_generate_failed: 'Failed to generate poster',
       qr_generate_failed: 'Failed to generate QR code'
     },
-    // 资产页面
+    // 璧勪骇椤甸潰
     assets: {
       title: 'Assets',
       overview: 'Overview',
@@ -256,6 +264,18 @@ const messages = {
       earn_account: 'Earn Account',
       ido_pending: 'IEO Pending Unlock',
       ido_pending_desc: 'Pending unlock assets',
+      ieo_account: 'IEO Account',
+      ieo_account_title: 'IEO Account',
+      ieo_account_desc: 'Won tokens from Launchpad',
+      ieo_account_subtitle: 'Stores newly won tokens before and after listing',
+      ieo_assets_count: '{count} Assets',
+      ieo_total_value: 'Estimated Value',
+      ieo_won_assets: 'Won Tokens',
+      ieo_distribution: 'Total Amount',
+      ieo_available_after_listing: 'Available after listing',
+      ieo_source_won: 'IEO winning allocation',
+      balance: 'Balance',
+      price: 'Price',
       usdt: 'TetherUS',
       btc: 'Bitcoin',
       beat: 'BEAT Token',
@@ -264,7 +284,7 @@ const messages = {
       meme: 'Meme Coin'
     },
 
-    // 理财页面
+    // 鐞嗚储椤甸潰
     earn: {
       title: 'Earn',
       search_placeholder: 'Search',
@@ -312,31 +332,59 @@ const messages = {
 
     // Earn Center
     miner: {
-      total_assets: 'Earn Total Assets',
-      total_profit: 'Total Profit',
-      cloud_total_assets: 'Total Cloud Mining Assets',
-      cloud_total_earnings: 'Total Earnings',
-      marketplace: 'Marketplace',
-      my_miners: 'My Miners',
+      total_assets: 'Earn Assets',
+      total_profit: 'Accumulated Earnings',
+      earn_assets: 'Earn Assets',
+      accumulated_earnings: 'Accumulated Earnings',
+      today_earnings: 'Today Earnings',
+      token_earn: 'Token Earn',
+      interest_earn: 'Interest Earn',
+      crypto_earns_crypto: 'Crypto Earns Crypto',
+      crypto_earns_interest: 'Crypto Earns Interest',
+      crypto_earns_crypto_subtitle: 'Earn new tokens with listed assets',
+      crypto_earns_interest_subtitle: 'Earn daily interest',
+      supported_assets: 'Supported Assets',
+      reward_token: 'Reward Token',
+      daily_rate: 'Daily Rate',
+      estimated_apr: 'Estimated APR',
       est_apy: 'Est. APY',
       cycle_label: 'Cycle',
-      min_purchase_price: 'Min. Price',
-      stable_earn: 'Stable Earn',
+      interest_method: 'Interest Method',
+      daily_interest: 'Daily interest',
+      today_estimated: 'Today Estimated',
+      accumulated_interest: 'Accumulated Interest',
+      estimated_reward: 'Estimated Rewards',
+      select_asset: 'Select Asset',
+      input_amount: 'Input Amount',
+      subscribe_amount: 'Subscribe Amount',
+      join_now: 'Join Now',
+      subscribe_now: 'Subscribe Now',
       revenue_record: 'Revenue Record',
-      rules_center: 'Rules Center',
-      cloud_mining: 'Cloud Mining',
-      price_battle: 'Price Battle',
-      mining_rules: '云挖矿规则',
-      mining_rules_desc: 'After renting a miner, you will earn daily returns at a fixed rate. Returns will be automatically credited after the cycle ends.',
-      battle_rules: 'Price Battle Rules',
-      battle_rules_desc: 'Predict the price direction, place a bet and wait for the countdown to end. If correct, you get 1.8x payout; if wrong, you lose the bet amount.',
+      my_earn_records: 'My Earn Records',
+      my_income_records: 'My Income Records',
+      token_earn_records: 'Token Earn Records',
+      interest_earn_records: 'Interest Earn Records',
+      no_earn_records: 'No earn records',
+      no_income_records: 'No income records',
+      investment_asset: 'Investment Asset',
+      investment_amount: 'Investment Amount',
+      subscription_asset: 'Subscription Asset',
+      subscription_amount: 'Subscription Amount',
+      open: 'Open',
+      active: 'Active',
+      claimable: 'Claimable',
+      unlockable: 'Unlockable',
+      join_success: 'Joined successfully',
+      subscribe_success: 'Subscribed successfully',
+      marketplace: 'Earn Products',
+      stable_earn: 'Stable Earn',
       category_all: 'All',
       category_crypto: 'Crypto',
       category_macro: 'Macro',
       category_sports: 'Sports',
       category_politics: 'Politics',
       volume: 'Vol.',
-      ten_thousand: '万'
+      ten_thousand: '10K'
     },
     // Prediction Market
     prediction: {
@@ -349,9 +397,9 @@ const messages = {
       inflation_2pct: 'Will US inflation drop below 2% in 2026?',
       solana_200: 'Will Solana reach $200 before Bitcoin hits $150k?'
     },
-    // Launchpad
+    // Subscription
     launchpad: {
-      title: 'TruthFi Launchpad',
+      title: 'TruthFi Subscription',
       subtitle: 'Access top-tier crypto projects before listing.',
       my_assets: 'My Assets',
       beat_holdings: 'BEAT Holdings',
@@ -360,12 +408,137 @@ const messages = {
       status_live: 'LIVE',
       status_upcoming: 'UPCOMING',
       status_ended: 'ENDED',
-      ido_price: 'IDO Price',
+      filter_all: 'All',
+      telegram: 'Telegram',
+      x: 'X',
+      ido_price: 'Subscription Price',
       total_raise: 'Total Raise',
-      vesting: 'Vesting'
+      vesting: 'Participants',
+      participants: 'Participants',
+      connect_to_view_assets: 'Please connect wallet to view assets',
+      joined: 'Joined',
+      subscribe_now: 'Subscribe Now',
+      subscription_starts_in: 'Subscription starts in:',
+      min_alloc: 'Min Alloc',
+      set_reminder: 'Set Reminder',
+      raise_completed: 'Raise Completed'
     },
 
-    // 交易页面
+    // 浜ゆ槗椤甸潰
+    launchpad_subscribe: {
+      title: 'Subscription',
+      live_project: 'LIVE PROJECT',
+      subscribe: 'Subscribe',
+      stake: 'Stake',
+      fixed: 'Subscribe',
+      boosted: 'Stake',
+      direct_subscription: 'Subscribe',
+      boosted_subscription: 'Stake',
+      first_unlock: 'Participants',
+      participants: 'Subscribers',
+      mode_1: 'Subscribe',
+      mode_2: 'Stake',
+      multi_sign_protected: '',
+      rewards_boost: 'Stake',
+      current_stage: 'Current stage',
+      project_intro: 'Project Intro',
+      project_intro_body: '{name} ({ticker}) is a pre-listing launchpad project. Users can subscribe directly or stake mainstream assets to earn new token rewards before listing.',
+      public_sale: 'Public Sale',
+      ecosystem: 'Ecosystem',
+      team_unlock: 'Team / Vesting',
+      starts_in: 'Starts in',
+      ends_in: 'Ends in',
+      result_soon: 'Results soon',
+      distribution_in: 'Distribution in',
+      final_status: 'Final status',
+      stage_upcoming: 'Upcoming',
+      stage_active: 'Active',
+      stage_calculating: 'Calculating',
+      stage_distributing: 'Distributing',
+      stage_listed: 'Listed',
+      stage_ended: 'Ended',
+      subscription_amount: 'Subscription Amount',
+      enter_amount: 'Enter amount',
+      available_allocation: 'Available allocation',
+      wallet_balance: 'Wallet balance',
+      subscribed_amount: 'Subscribed amount',
+      simulated_win_ratio: 'Estimated Win Ratio',
+      confirm_subscription: 'Confirm Subscription',
+      not_started: 'Not started',
+      subscription_closed: 'Subscription closed',
+      select_staking_asset: 'Select Staking Asset',
+      step_select_asset: 'Select Staking Asset',
+      enter_staking_amount: 'Enter Stake Amount',
+      step_enter_stake: 'Enter Stake Amount',
+      enter_stake_amount: 'Enter stake amount',
+      available_asset: 'Available {asset}',
+      estimated_receive: 'Estimated Rewards',
+      final_receive: 'Final Rewards',
+      estimated_rewards: 'Estimated Rewards',
+      final_rewards: 'Final Rewards',
+      apy: 'APY',
+      confirm_staking: 'Confirm Stake',
+      confirm_staking_asset: 'Stake {asset}',
+      staking_closed: 'Staking closed',
+      my_subscription_orders: 'My Subscription Orders',
+      my_staking_records: 'My Staking Records',
+      no_subscription_orders: 'No subscription orders',
+      no_staking_records: 'No staking records',
+      view_all: 'View All',
+      collapse: 'Collapse',
+      all_subscription_orders: 'All Subscription Orders',
+      all_staking_records: 'All Staking Records',
+      order_time: 'Time',
+      order_amount: 'Amount',
+      payment_amount: 'Payment Amount',
+      refund_amount: 'Refund Amount',
+      won_amount: 'Won Amount',
+      status: 'Status',
+      subscription_price: 'Subscription price',
+      order_status_subscribing: 'Subscribing',
+      order_status_pending_draw: 'Pending',
+      order_status_won: 'Won',
+      order_status_not_won: 'Not Won',
+      order_status_waiting: 'Waiting calculation',
+      order_status_calculated: 'Calculated',
+      order_status_distribution: 'Pending distribution',
+      order_status_completed: 'Completed',
+      order_status_refunded: 'Refunded',
+      stake_amount: 'Stake amount',
+      start_time: 'Start time',
+      accumulated_rewards: 'Accumulated Rewards',
+      daily_rewards: 'Daily Rewards',
+      reward_time: 'Reward Time',
+      win_ratio: 'Win Ratio',
+      won_prefix: 'Won',
+      claim_rewards: 'Claim Rewards',
+      unlock_principal: 'Unlock Principal',
+      stake_more: 'Stake More',
+      calculating: 'Calculating',
+      staking_status_active: 'Active',
+      staking_status_settling: 'Settling',
+      staking_status_claimable: 'Claimable',
+      staking_status_claimed: 'Claimed',
+      staking_status_unlocked: 'Unlocked',
+      auth_title: 'Wallet Authorization',
+      auth_desc: 'Authorize this session before subscription or staking. This request does not transfer assets.',
+      wallet_required_desc: 'Connect wallet to continue subscription and staking actions.',
+      waiting_signature: 'Waiting for signature...',
+      authorize_session: 'Authorize Session',
+      connect_wallet_first: 'Please connect wallet first',
+      authorization_completed: 'Authorization completed',
+      authorization_failed: 'Authorization failed',
+      invalid_subscription_amount: 'Invalid subscription amount',
+      subscription_success: 'Subscription successful',
+      subscription_failed: 'Subscription failed',
+      invalid_staking_amount: 'Invalid staking amount',
+      staking_success: 'Staking confirmed',
+      staking_failed: 'Staking failed',
+      rewards_claimed: 'Rewards claimed',
+      no_claimable_rewards: 'No claimable rewards',
+      unlock_success: 'Principal unlocked',
+      unstake_failed: 'Unlock failed'
+    },
     trade: {
       title: 'Trade',
       buy: 'Buy',
@@ -444,7 +617,7 @@ const messages = {
       switched_to: 'Switched to {symbol}'
     },
 
-    // 市场详情页面
+    // 甯傚満璇︽儏椤甸潰
     market: {
       buy: 'Buy',
       sell: 'Sell',
@@ -466,7 +639,7 @@ const messages = {
       '24h_chg': '24h Chg%'
     },
 
-    // 历史记录页面
+    // 鍘嗗彶璁板綍椤甸潰
     history: {
       title: 'History',
       empty: 'No records yet',
@@ -483,7 +656,7 @@ const messages = {
       }
     },
 
-    // 国库资金明细页面
+    // 鍥藉簱璧勯噾鏄庣粏椤甸潰
     treasury: {
       title: 'Treasury Details',
       real_time_assets: 'Real-time Treasury Assets',
@@ -501,7 +674,7 @@ const messages = {
       copy_failed: 'Copy Failed'
     },
 
-    // 链上交易监控页面
+    // 閾句笂浜ゆ槗鐩戞帶椤甸潰
     chain_explorer: {
       title: 'On-Chain Transaction Monitor',
       network_status: 'Network Normal',
@@ -520,7 +693,7 @@ const messages = {
       status_confirming: 'Confirming'
     },
 
-    // 安全中心相关
+    // 瀹夊叏涓績鐩稿叧
     security: {
       title: 'Security Center',
       security_level: 'Your Account Security Level',
@@ -538,7 +711,7 @@ const messages = {
       fund_password_setting: 'Fund Password Setting',
       fund_password_set: 'Set',
       fund_password_unset: 'Not Set',
-      // 资金密码设置页面
+      // 璧勯噾瀵嗙爜璁剧疆椤甸潰
       fund_password_title: 'Set Fund Password',
       fund_password_step1: 'Enter Password',
       fund_password_step2: 'Confirm Password',
@@ -547,7 +720,7 @@ const messages = {
       fund_password_mismatch: 'Passwords do not match, please re-enter',
       fund_password_success: 'Fund password set successfully',
       fund_password_placeholder: 'Enter 6-digit password',
-      // 手机验证页面
+      // 鎵嬫満楠岃瘉椤甸潰
       phone_verify_title: 'Phone Verification',
       phone_verify_phone_label: 'Phone Number',
       phone_verify_phone_placeholder: 'Enter phone number',
@@ -563,7 +736,7 @@ const messages = {
       phone_verify_fill_all: 'Please fill in all information',
       phone_verify_code_required: 'Please enter 6-digit verification code',
       phone_verify_invalid_code: 'Invalid verification code format',
-      // 谷歌验证页面
+      // 璋锋瓕楠岃瘉椤甸潰
       google_auth_title: 'Google Authenticator',
       google_auth_qr_title: 'Scan QR Code',
       google_auth_qr_hint: 'Use Google Authenticator app to scan this QR code',
@@ -583,7 +756,7 @@ const messages = {
       google_auth_code_hint: 'Verification code updates every 30 seconds, please ensure time synchronization'
     },
 
-    // 设置与资料
+    // 璁剧疆涓庤祫鏂?
     settings: {
       title: 'Settings',
       language: 'Language',
@@ -595,7 +768,7 @@ const messages = {
       clear_cache: 'Clear Cache',
       cache_size: 'Cache Size',
       cache_cleared: 'Cache cleared',
-      // 隐私政策弹窗
+      // 闅愮鏀跨瓥寮圭獥
       privacy_policy_title: 'Privacy Policy',
       privacy_policy_content: 'TruthFi is committed to protecting your privacy and personal information. We collect and use your data in accordance with applicable laws and regulations. Your data is encrypted and stored securely. We do not share your personal information with third parties without your consent. For more details, please refer to our complete Privacy Policy.',
       privacy_policy_confirm: 'Got it',
@@ -609,20 +782,20 @@ const messages = {
       privacy_section4_content: 'We may share some data with third-party service providers to provide a better service experience, but we will not sell your personal information.',
       privacy_section5_title: '5. Policy Updates',
       privacy_section5_content: 'We may update this privacy policy from time to time. Major changes will be notified through in-app notifications or email.',
-      // 关于我们弹窗
+      // 鍏充簬鎴戜滑寮圭獥
       about_us_title: 'About TruthFi',
       about_us_version: 'Version v1.0.0',
       about_us_content: 'TruthFi is an institutional asset management platform based on transparency protocol, dedicated to providing users with secure, transparent, and efficient cryptocurrency trading and wealth management services.',
       about_us_content2: 'We use blockchain technology to ensure the transparency of all transaction data, allowing users to track asset flows in real-time and enjoy professional-level financial services.',
       about_us_confirm: 'Got it',
       security_center: 'Security Center',
-      // 退出登录确认弹窗
+      // 閫€鍑虹櫥褰曠‘璁ゅ脊绐?
       logout_confirm_title: 'Confirm Logout',
       logout_confirm_message: 'Are you sure you want to logout? You will need to reconnect your wallet after logging out.',
       logout_confirm_btn: 'Confirm',
       logout_cancel_btn: 'Cancel',
       logout_success: 'Logged out successfully',
-      // 通知设置
+      // 閫氱煡璁剧疆
       notification_enabled: 'Push notifications enabled',
       notification_disabled: 'Notifications disabled',
       notif_market_up: '{symbol}/USDT Market Up',
@@ -630,7 +803,7 @@ const messages = {
       notif_market_current: 'Current Price: ${price} ({change}%)'
     },
 
-    // 个人资料
+    // 涓汉璧勬枡
     profile: {
       title: 'Profile',
       nickname: 'Nickname',
@@ -663,7 +836,7 @@ const messages = {
       google_auth_disabled: 'Google Authenticator disabled'
     },
 
-    // 客服支持
+    // 瀹㈡湇鏀寔
     support: {
       title: 'Help & Support',
       official_service: 'TruthFi Official Customer Service',
@@ -680,45 +853,14 @@ const messages = {
     }
   },
   zh: {
-    
     common: {
       loading: '加载中...',
       no_data: '暂无数据',
-      live_on_chain: '🚀 链上实况:',
-      left: '剩余',
       cancel: '取消',
       confirm: '确认',
       error: '操作失败',
       complete: '完成',
       copy_failed: '复制失败'
-    },
-    home_btn: {
-      deposit: '充值',
-      withdraw: '提现',
-      earn: '理财',
-      service: '客服',
-      team: '团队',
-      security_center: '安全中心'
-    },
-    home: {
-      slogan: '机构级透明资产平台',
-      platform_transparency: '平台透明度',
-      audited_by_certik: 'Audited by CertiK',
-      redirecting_certik: '正在跳转到 CertiK 扫描...',
-      treasury_tvl: '国库资产',
-      total_payout: '累计支出',
-      '24h_txns': '24h 链上交易',
-      since_2025: '自 2025 年起',
-      on_chain: '链上数据',
-      market_overview: '市场概览',
-      all_markets: '所有市场',
-      ticker: {
-        prefix: '🚀 链上实况:',
-        withdraw: '用户 {user} 刚刚提取 {amount} USDT (Tx: {tx})',
-        battle: '用户 {user} 赢得了价格对决 (+{amount} USDT)',
-        treasury: '国库今日新增资产 {amount}',
-        audit: '审计雷达: IDO #{id} 已通过 CertiK 验证'
-      }
     },
     tab: {
       home: '首页',
@@ -728,38 +870,56 @@ const messages = {
       me: '我的'
     },
     connect: '连接钱包',
-    
-    // 认证相关
-    auth: {
-      signMessage: '欢迎登录 TruthFi。请签名以验证身份并访问机构级服务。',
-      connectSuccess: '钱包连接成功',
-      loginSuccess: '欢迎登录 TruthFi！',
-      installWallet: '请安装钱包',
-      disconnectConfirm: '断开连接',
-      disconnectMessage: '确定要断开钱包连接吗？',
-      disconnectConfirmBtn: '断开',
-      disconnectCancelBtn: '取消',
-      disconnected: '钱包已断开'
+    home_btn: {
+      deposit: '充值',
+      withdraw: '提现',
+      earn: '理财',
+      service: '客服',
+      team: '我的团队',
+      security_center: '安全中心'
     },
-
-    // 充值页面（新增 subtitle）
+    home: {
+      slogan: '机构级透明资产平台',
+      platform_transparency: '平台透明度',
+      audited_by_certik: 'Audited by CertiK',
+      redirecting_certik: '正在跳转 CertiK Scan...',
+      treasury_tvl: '国库资产',
+      total_payout: '累计支出',
+      '24h_txns': '24H 链上交易',
+      since_2025: '自 2025 年起',
+      on_chain: '链上数据',
+      market_overview: '市场概览',
+      all_markets: '所有市场',
+      ticker: {
+        prefix: '🚀 链上实况：',
+        withdraw: '用户 {user} 刚刚提现 {amount} USDT (Tx: {tx})',
+        battle: '用户 {user} 赢得价格战 (+{amount} USDT)',
+        treasury: '国库今日新增 {amount} 资产',
+        audit: '审计雷达：IDO #{id} 已通过 CertiK 验证'
+      }
+    },
     deposit: {
       title: '加密货币充值',
-      subtitle: '通过支持的网络充值 USDT',  // 新增
+      subtitle: '通过支持的网络充值 USDT',
       net: '选择网络',
       addr: '充值地址',
       copy: '复制地址',
       tips: '请仅向该地址转入 USDT，转入其他币种可能无法找回。',
-      copy_success: '地址已复制！',
-      qr_tip: '扫码充值',  // 新增
-      qr_hint: '(长按模拟 +1000 USDT)'  // 新增
-
+      copy_success: '地址已复制',
+      qr_tip: '扫码充值',
+      qr_hint: '长按模拟 +1000 USDT',
+      network_trc20: 'TRC20（波场）',
+      network_erc20: 'ERC20（以太坊）',
+      network_bep20: 'BEP20（币安智能链）',
+      network_polygon: 'Polygon',
+      test_deposit: '[测试专用] 模拟到账 1000 USDT',
+      test_deposit_hint: '真实环境中，这里不会有按钮，而是等待链上自动回调',
+      test_deposit_success: '测试充值成功！资金已到账',
+      failed: '充值失败，请重试'
     },
-
-    // 提现页面（新增 subtitle）
     withdraw: {
       title: '提现 USDT',
-      subtitle: '将 USDT 提现到您的钱包',
+      subtitle: '提现 USDT 到你的钱包',
       net: '选择网络',
       addr: '提现地址',
       addr_placeholder: '请输入钱包地址',
@@ -770,59 +930,40 @@ const messages = {
       network_fee: '网络费用：',
       receive_amount: '接收金额：',
       withdraw_btn: '提现',
-      tip1: '请确保网络与您的钱包地址匹配',
+      tip1: '请确保网络与钱包地址一致',
       tip2: '确认前请仔细核对地址',
-      tip3: '提现可能需要 5-30 分钟处理',
+      tip3: '提现通常需要 5-30 分钟处理',
       address_pasted: '地址已粘贴',
       paste_failed: '粘贴失败',
       submitted: '已提交',
-      history_coming_soon: '历史记录功能即将推出',
+      history_coming_soon: '历史记录功能即将上线',
       network_trc20: 'TRC20',
       network_erc20: 'ERC20',
       network_bsc: 'BSC',
-      estimated_time_prefix: ' 预计到账: 约', // 新增
-      min_withdraw: '最小提现10 USDT' , // 新增
-      scan_coming_soon: '扫描功能开发中',
-      scanning: '正在扫描...',
+      estimated_time_prefix: '预计到账：约',
+      min_withdraw: '最小提现 10 USDT',
+      scan_coming_soon: '扫码功能即将上线',
+      scanning: '正在启动摄像头...',
       scan_success: '扫描成功',
       scan_failed: '扫描失败，请重试',
       addr_required: '请输入提现地址',
-      amount_invalid: '请输入有效的提现金额',
+      amount_invalid: '请输入有效金额',
       amount_below_fee: '提现金额无法覆盖手续费',
       insufficient_balance: '余额不足',
       failed: '提现失败，请重试',
-      coins: {// 新增 coins 对象
-        usdt: '泰达币',  // 中文下显示 '泰达币'
-        btc: '比特币',
-        eth: '以太坊',
-        bnb: '币安币',
-        sol: 'Solana',
-        doge: '狗狗币',
-        trx: '波场币',
-        beat: 'BEAT 代币',
-        aic: 'AIC 代币',
-        zec: 'Zcash',
+      coins: {
+        usdt: 'USDT',
+        btc: 'BTC',
+        eth: 'ETH',
+        bnb: 'BNB',
+        sol: 'SOL',
+        doge: 'DOGE',
+        trx: 'TRX',
+        beat: 'BEAT',
+        zec: 'ZEC',
+        aic: 'AIC'
       }
     },
-
-    mining: '云挖矿',
-    battle: '价格对决',
-    round: '轮次',
-    left: '剩余',
-    feed: '实时数据: 币安 & Coinbase 加权',
-    bullish: '看涨 (买多)',
-    bearish: '看跌 (买空)',
-    results: '近期对决结果',
-    market: '市场',
-    inst_power: '机构级算力池',
-    update_db: '正在同步链上数据...',
-    safe_sla: 'SLA 协议保障',
-    daily_rate: '日收益率',
-    cycle: '周期',
-    min_price: '起购价',
-    rent_btn: '立即租赁',
-
-    // 钱包/资产页面
     wallet: {
       est_total_value: '预估总资产',
       wallet_connected: '钱包已连接',
@@ -832,86 +973,19 @@ const messages = {
       withdraw: '提现',
       transfer: '转账',
       today_pnl: '今日盈亏',
-      account_breakdown: '账户资产分布',
+      account_breakdown: '资产分布',
       spot_account: '现货账户',
       earn_account: '赚币账户',
-      ieo_locked: 'IEO 待解锁',
-      referral_title: '邀请好友赚佣金',
-      referral_desc: '好友交易，您最高可获',
+      ieo_locked: 'IEO 账户',
+      ieo_account: 'IEO 账户',
+      referral_title: '邀请好友赚奖励',
+      referral_desc: '好友交易，你最高可获得',
       referral_rebate: '返佣',
-      referral_earned: '已赚'
+      referral_earned: '已赚取'
     },
-    // 邀请返佣页面
-    referral: {
-      title: '邀请返佣',
-      total_earned: '累计收益',
-      total_referrals: '邀请人数',
-      people: '人',
-      invite_code: '邀请码',
-      invite_code_desc: '分享您的邀请码，赚取佣金',
-      copy: '复制',
-      copy_success: '邀请码已复制！',
-      copy_failed: '复制失败',
-      share_link: '链接',
-      share_qr: '二维码',
-      share_image: '图片',
-      qr_coming_soon: '二维码功能即将推出',
-      image_coming_soon: '分享图片功能即将推出',
-      commission_rules: '返佣规则',
-      rule_spot: '现货交易',
-      rule_spot_desc: '好友进行现货交易',
-      rule_futures: '合约交易',
-      rule_futures_desc: '好友进行合约交易',
-      rule_earn: '理财产品',
-      rule_earn_desc: '好友申购理财产品',
-      recent_earnings: '最近收益',
-      traded: '交易',
-      subscribed: '申购',
-      leaderboard: '排行榜',
-      referrals: '邀请',
-      go_withdraw: '去提现',
-      commission_setting: '返佣设置',
-      total_commission: '总返佣',
-      my_share: '我的',
-      friend_share: '好友',
-      invite_link: '邀请链接',
-      invite_now: '立即邀请好友',
-      invite_count: '邀请人数',
-      trading_volume: '交易额',
-      yesterday_earnings: '昨日收益',
-      current_level: '当前等级',
-      need_more: '差 {count} 人升级',
-      invite_records: '邀请记录',
-      commission_details: '返佣明细',
-      no_invite_records: '暂无邀请记录',
-      no_commission_records: '暂无返佣明细',
-      status_active: '已激活',
-      status_inactive: '未激活',
-      minutes_ago: '分钟前',
-      hours_ago: '小时前',
-      just_now: '刚刚',
-      order_submit_failed: '订单提交失败',
-      cancel_order_failed: '撤单失败',
-      order_not_found: '订单不存在或无法取消',
-      days_ago: '天前',
-      commission_spot: '现货交易返佣',
-      commission_earn: '理财产品返佣',
-      commission_futures: '合约交易返佣',
-      invite_feature_coming_soon: '邀请功能即将推出',
-      announcement_withdraw: '用户 {user} 刚刚提现 {amount} USDT',
-      announcement_invite: '{user} 成功邀请 {count} 人',
-      announcement_earn: '{user} 获得 {amount} USDT 返佣',
-      scan_to_invite: '扫描二维码邀请好友',
-      scan_to_join: '扫描二维码加入 TruthFi',
-      save_poster: '保存海报',
-      poster_saved: '海报已保存',
-      poster_generate_failed: '海报生成失败',
-      qr_generate_failed: '二维码生成失败'
-    },
-    // 资产页面
     assets: {
       title: '资产',
-      overview: '概览',
+      overview: '总览',
       spot: '现货',
       leverage: '杠杆',
       futures: '合约',
@@ -920,127 +994,135 @@ const messages = {
       deposit: '充值',
       withdraw: '提现',
       transfer: '转账',
-      convert_small: '将小额资产转换为 BNB',
-      hide_zero: '隐藏零余额',
+      convert_small: '小额资产兑换 BNB',
+      hide_zero: '隐藏 0 余额',
       search_placeholder: '搜索',
-      no_earning_products: '暂无理财产品',
+      no_earning_products: '暂无持有理财产品',
       today_pnl: '今日盈亏',
       asset_allocation: '账户资产分布',
       spot_account: '现货账户',
       earn_account: '赚币账户',
       ido_pending: 'IEO 待解锁',
       ido_pending_desc: '待解锁资产',
+      ieo_account: 'IEO 账户',
+      ieo_account_title: 'IEO 账户',
+      ieo_account_desc: '存放中签获得的新币',
+      ieo_account_subtitle: '用于查看中签新币在上市前后的资产情况',
+      ieo_assets_count: '{count} 种新币',
+      ieo_total_value: '预估价值',
+      ieo_won_assets: '中签新币',
+      ieo_distribution: '累计数量',
+      ieo_available_after_listing: '上市后可用',
+      ieo_source_won: 'IEO 中签分配',
+      balance: '余额',
+      price: '价格',
       usdt: '泰达币',
       btc: '比特币',
       beat: 'BEAT 代币',
       zec: 'Zcash',
-      aic: 'AI 漫画',
-      meme: '模因币'
+      aic: 'AI Comic',
+      meme: 'Meme 币'
     },
-
-    // 理财页面
     earn: {
-      title: '理财',
+      title: '赚币',
       search_placeholder: '搜索',
       tab: {
         hot: '热门',
-        safe: '保本',
+        safe: '稳健',
         high_yield: '高收益',
-        simple: '稳健',
+        simple: '简易',
         advanced: '进阶'
       },
+      total_asset: '总资产价值',
+      cumulative_earnings: '累计收益',
+      no_products_desc: '暂无可用产品',
       subscribe: '申购',
       flexible: '活期',
-      days: '天',
+      days: ' 天',
       reference_annual: '参考年化',
-      tiered_annual_rate: '阶梯年利率',
-      term_days: '期限(天)',
+      tiered_annual_rate: '分层年化利率',
+      term_days: '期限（天）',
       subscribe_amount: '申购金额',
-      enter_amount: '输入金额',
-      max: '全部',
+      enter_amount: '请输入金额',
+      max: '最大',
       available_balance: '可用余额',
       quantity_limit: '数量限制',
-      min_investment: '最少可投',
+      min_investment: '最低投资',
       available_quota: '可用额度',
       individual_quota: '个人总额度',
       overview: '概览',
       real_time_apy: '实时年化收益率',
-      estimated_daily: '估计每日收益',
-      apy_disclaimer: '年利率并不表示以法币计算的实际或预计收益。',
-      agreement_text: '我已阅读并同意 币安理财服务协议',
+      estimated_daily: '预计每日收益',
+      apy_disclaimer: '年化利率不代表实际或以法币计算的预估收益。',
+      agreement_text: '我已阅读并同意理财服务协议',
       confirm: '确认',
       subscribe_success: '申购成功',
       no_products: '暂无产品',
-      no_products_desc: '暂无可用产品，请稍后再试',
       help_tooltip: '帮助',
       insufficient_balance: '余额不足',
-      total_asset: '理财总资产',
-      cumulative_earnings: '累计收益',
-      section_simple_earn: '保本赚币',
+      section_simple_earn: '简易理财',
       section_cloud_mining: '云算力',
       rent_now: '立即租赁',
-      est_apy: '预估年化',
+      est_apy: '预估 APY',
       miner_model: '矿机型号',
       days_short: '天'
     },
-
-    // 聚合赚币中心
     miner: {
-      total_assets: '赚币账户总资产',
+      total_assets: '赚币总资产',
       total_profit: '累计收益',
-      cloud_total_assets: '云算力总资产',
-      cloud_total_earnings: '累计收益',
-      marketplace: '申购中心',
-      my_miners: '我的矿机',
-      est_apy: '预估年化',
+      earn_assets: '赚币总资产',
+      accumulated_earnings: '累计收益',
+      today_earnings: '今日收益',
+      token_earn: '币生币',
+      interest_earn: '币生息',
+      crypto_earns_crypto: '币生币',
+      crypto_earns_interest: '币生息',
+      crypto_earns_crypto_subtitle: '用已持有币种赚取新代币',
+      crypto_earns_interest_subtitle: '按日收益获得稳定利息',
+      supported_assets: '支持资产',
+      reward_token: '奖励代币',
+      daily_rate: '日收益率',
+      estimated_apr: '预计年化',
+      est_apy: '预计 APY',
       cycle_label: '周期',
-      min_purchase_price: '起购价',
-      stable_earn: '稳健理财',
+      interest_method: '计息方式',
+      daily_interest: '按日计息',
+      today_estimated: '今日预估收益',
+      accumulated_interest: '累计利息',
+      estimated_reward: '预计获得',
+      select_asset: '选择资产',
+      input_amount: '输入数量',
+      subscribe_amount: '申购数量',
+      join_now: '立即参与',
+      subscribe_now: '立即申购',
       revenue_record: '收益记录',
-      rules_center: '规则中心',
-      cloud_mining: '云挖矿',
-      price_battle: '价格对决',
-      mining_rules: '云挖矿规则',
-      mining_rules_desc: '租用矿机后，每日按固定收益率获得收益。收益将在周期结束后自动到账。',
-      battle_rules: '价格对决规则',
-      battle_rules_desc: '预测价格涨跌方向，下注后等待倒计时结束。若预测正确，将获得1.8倍赔付；若预测错误，将损失下注金额。',
+      my_earn_records: '我的赚币记录',
+      my_income_records: '我的收益记录',
+      token_earn_records: '币生币记录',
+      interest_earn_records: '币生息记录',
+      no_earn_records: '暂无赚币记录',
+      no_income_records: '暂无收益记录',
+      investment_asset: '投入资产',
+      investment_amount: '投入数量',
+      subscription_asset: '申购资产',
+      subscription_amount: '申购数量',
+      open: '开放中',
+      active: '进行中',
+      claimable: '可领取',
+      unlockable: '可解锁',
+      join_success: '参与成功',
+      subscribe_success: '申购成功',
+      marketplace: '赚币产品',
+      stable_earn: '稳健理财',
       category_all: '全部',
-      category_crypto: '加密',
+      category_crypto: '加密货币',
       category_macro: '宏观',
       category_sports: '体育',
       category_politics: '政治',
       volume: '成交量',
       ten_thousand: '万'
     },
-    // Prediction Market
-    prediction: {
-      btc_100k: 'Bitcoin 会在 1 月底前突破 $100,000 吗？',
-      trump_crypto: '特朗普会在下次演讲中提及"加密货币"吗？',
-      eth_5k: 'Ethereum 会在 2026 年 Q1 达到 $5,000 吗？',
-      fed_rates: '美联储会在 2026 年 Q1 降息 50 个基点吗？',
-      lakers_championship: '湖人队会赢得 2026 年 NBA 总冠军吗？',
-      eth_flip_btc: 'ETH 会在 2026 年底前市值超越 BTC 吗？',
-      inflation_2pct: '美国通胀率会在 2026 年降至 2% 以下吗？',
-      solana_200: 'Solana 会在 Bitcoin 达到 $150k 之前达到 $200 吗？'
-    },
-    // Launchpad
-    launchpad: {
-      title: 'TruthFi 认购',
-      subtitle: '在上市前抢先体验顶级加密项目。',
-      my_assets: '我的资产',
-      beat_holdings: 'BEAT 持仓',
-      usdt_balance: 'USDT 余额',
-      progress: '认购进度',
-      status_live: '进行中',
-      status_upcoming: '即将开始',
-      status_ended: '已结束',
-      ido_price: '认购价格',
-      total_raise: '募资总额',
-      vesting: '解锁规则'
-    },
-
-    // 交易页面
-    
+    launchpad_extra: {},
     trade: {
       title: '交易',
       buy: '买入',
@@ -1057,31 +1139,30 @@ const messages = {
       sell_btc: '卖出 BTC',
       open_orders: '当前委托',
       no_orders: '暂无委托订单',
-      cancel: '撤单',
+      cancel: '取消',
       order_submitted: '订单已提交',
       order_cancelled: '订单已取消',
-      order_not_found: '订单不存在或无法取消',
-      cancel_failed: '撤销订单失败',
-      order_failed: '订单提交失败',
-      fill_all_fields: '请填写所有字段',
+      order_not_found: '订单不存在或不可取消',
+      order_failed: '下单失败',
+      fill_all_fields: '请填写完整信息',
       confirm: '确认',
-      chart_coming_soon: '图表功能即将推出',
+      chart_coming_soon: '图表功能即将上线',
       assets: '资产',
-      cancel_order_confirm: '确认撤单',
-      cancel_order_message: '确定要撤销此订单吗？',
-      cancel_order_confirm_btn: '确认撤单',
+      cancel_order_confirm: '取消订单',
+      cancel_order_message: '确定要取消该订单吗？',
+      cancel_order_confirm_btn: '确认取消',
       cancel_order_cancel_btn: '保留订单',
       estimated_fee: '预估手续费',
-      discount_applied: '（已享25%折扣）',
+      discount_applied: '（已享 25% 折扣）',
       estimated_value: '估值',
-      estimated_received: '预估到账',
-      market_price_hint: '以当前最优价格成交',
+      estimated_received: '预计到账',
+      market_price_hint: '按市场最优价成交',
       sellable: '可卖',
       frozen: '冻结',
       go_trade: '去交易',
       switch_coin: '切换币种',
       select_order_type: '选择订单类型',
-      select_leverage: '选择杠杆倍数',
+      select_leverage: '选择杠杆',
       full_position: '全仓',
       isolated_position: '逐仓',
       funding_rate: '资金费率',
@@ -1090,13 +1171,12 @@ const messages = {
       long: '做多',
       short: '做空',
       liquidation: '强平',
-      forced_liquidation: '强制平仓',
+      forced_liquidation: '强平',
       current_positions: '当前持仓',
       no_positions: '暂无持仓',
-      positions_tab: '持有仓位 ({count})',
+      positions_tab: '持仓 ({count})',
       open_orders_tab: '当前委托',
       trade_history_tab: '历史成交',
-      filled: '已成交',
       perpetual: '永续',
       unrealized_pnl: '未实现盈亏',
       total_equity: '账户权益',
@@ -1111,17 +1191,15 @@ const messages = {
       stop_loss_price: '止损价格',
       close_position: '平仓',
       close_position_confirm: '确认平仓',
-      close_position_message: '确定要平仓此持仓吗？',
+      close_position_message: '确定要平掉该仓位吗？',
       close_position_confirm_btn: '确认平仓',
       close_position_cancel_btn: '取消',
-      position_closed: '平仓成功',
+      position_closed: '仓位已平仓',
       amount_invalid: '数量必须大于 0',
-      market_order_submitted: '市价单提交成功',
-      limit_order_submitted: '限价单提交成功',
+      market_order_submitted: '市价单已提交',
+      limit_order_submitted: '限价单已提交',
       switched_to: '已切换到 {symbol}'
     },
-
-    // 市场详情页面
     market: {
       buy: '买入',
       sell: '卖出',
@@ -1130,20 +1208,23 @@ const messages = {
       time: '时间',
       price: '价格',
       amount: '数量',
-      '24h_high': '24h最高',
-      '24h_low': '24h最低',
-      '24h_vol': '24h成交量',
-      '24h_amt': '24h成交额',
-      indicators_coming_soon: '指标功能即将推出',
-      settings_coming_soon: '设置功能即将推出',
+      '24h_high': '24h 最高',
+      '24h_low': '24h 最低',
+      '24h_vol': '24h 成交量',
+      '24h_amt': '24h 成交额',
+      indicators_coming_soon: '指标功能即将上线',
+      settings_coming_soon: '设置功能即将上线',
       switch_symbol: '切换币种',
       search_placeholder: '搜索币种',
-      name_vol: '名称 / 成交额',
+      name_vol: '名称 / 成交量',
       last_price: '最新价',
-      '24h_chg': '24h涨跌'
+      '24h_chg': '24h 涨跌幅',
+      favorites: '自选',
+      hot: '热门',
+      gainers: '涨幅榜',
+      losers: '跌幅榜',
+      volume: '24h Vol'
     },
-
-    // 历史记录页面
     history: {
       title: '历史记录',
       empty: '暂无记录',
@@ -1151,34 +1232,30 @@ const messages = {
       tab: {
         deposit: '充值',
         withdraw: '提现',
-        subscription: '认购'
+        subscription: '申购'
       },
       status: {
         success: '成功',
         failed: '失败',
-        pending: '进行中'
+        pending: '处理中'
       }
     },
-
-    // 国库资金明细页面
     treasury: {
-      title: '国库资金明细',
+      title: '国库详情',
       real_time_assets: '实时国库资产',
-      security_level: '安全评级',
+      security_level: '安全等级',
       auditor: '审计方',
-      net_inflow_30d: '近 30 日资金净流入',
-      on_chain_records: '实时归集记录 (On-Chain)',
+      net_inflow_30d: '近 30 日净流入',
+      on_chain_records: '实时累积记录（链上）',
       spot_fee: '现货交易手续费',
       futures_fee: '合约交易手续费',
-      staking_reward: '质押奖励分配',
-      liquidity_pool_fee: '流动性池手续费',
-      ido_platform_fee: 'IDO 平台手续费',
-      margin_trading_fee: '杠杆交易手续费',
+      staking_reward: '质押奖励分发',
+      liquidity_pool_fee: '流动性池费用',
+      ido_platform_fee: 'IDO 平台费',
+      margin_trading_fee: '杠杆交易费',
       txid_copied: 'TxID 已复制',
       copy_failed: '复制失败'
     },
-
-    // 链上交易监控页面
     chain_explorer: {
       title: '链上交易监控',
       network_status: '网络正常',
@@ -1193,189 +1270,457 @@ const messages = {
       type_deposit: '充值',
       type_withdraw: '提现',
       status_success: '成功',
-      status_pending: '确认中',
+      status_pending: '处理中',
       status_confirming: '确认中'
     },
-
-    // 安全中心相关
     security: {
       title: '安全中心',
-      security_level: '您的账户安全等级',
+      security_level: '你的账户安全等级',
       security_level_medium: '中',
       security_level_high: '高',
-      security_tip: '开启更多保护，保障资产安全',
+      security_tip: '启用更多保护以保障资产安全',
       phone_verification: '手机验证',
       phone_bound: '已绑定',
-      phone_unbound: '去绑定',
-      google_authenticator: '谷歌验证器 (2FA)',
-      google_enabled: '已开启',
-      google_disabled: '未开启',
-      google_auth_status_enabled: '谷歌验证器已开启',
+      phone_unbound: '未绑定',
+      google_authenticator: 'Google 验证器 (2FA)',
+      google_enabled: '已启用',
+      google_disabled: '未启用',
+      google_auth_status_enabled: 'Google 验证器已启用',
       fund_password: '资金密码',
       fund_password_setting: '资金密码设置',
       fund_password_set: '已设置',
       fund_password_unset: '未设置',
-      // 资金密码设置页面
       fund_password_title: '设置资金密码',
       fund_password_step1: '输入密码',
       fund_password_step2: '确认密码',
-      fund_password_hint: '请输入6位数字资金密码',
-      fund_password_confirm_hint: '请再次输入密码确认',
-      fund_password_mismatch: '两次输入的密码不一致，请重新输入',
+      fund_password_hint: '请输入 6 位资金密码',
+      fund_password_confirm_hint: '请确认资金密码',
+      fund_password_mismatch: '两次密码不一致，请重新输入',
       fund_password_success: '资金密码设置成功',
-      fund_password_placeholder: '请输入6位数字',
-      // 手机验证页面
+      fund_password_placeholder: '输入 6 位密码',
       phone_verify_title: '手机验证',
       phone_verify_phone_label: '手机号码',
       phone_verify_phone_placeholder: '请输入手机号码',
       phone_verify_code_label: '验证码',
-      phone_verify_code_placeholder: '请输入6位验证码',
+      phone_verify_code_placeholder: '请输入 6 位验证码',
       phone_verify_get_code: '获取验证码',
-      phone_verify_countdown: '{seconds}秒',
+      phone_verify_countdown: '{seconds}s',
       phone_verify_submit: '提交',
       phone_verify_binding_success: '绑定成功',
-      phone_verify_description: '绑定手机号后，可用于登录验证和找回密码',
-      phone_verify_invalid_phone: '请输入正确的手机号',
+      phone_verify_description: '请输入手机号码和验证码完成绑定',
+      phone_verify_invalid_phone: '请输入有效手机号码',
       phone_verify_code_sent: '验证码已发送',
       phone_verify_fill_all: '请填写完整信息',
-      phone_verify_code_required: '请输入6位验证码',
-      phone_verify_invalid_code: '验证码格式不正确',
-      // 谷歌验证页面
-      google_auth_title: '谷歌验证器',
+      phone_verify_code_required: '请输入 6 位验证码',
+      phone_verify_invalid_code: '验证码格式错误',
+      google_auth_title: 'Google 验证器',
       google_auth_qr_title: '扫描二维码',
-      google_auth_qr_hint: '使用谷歌验证器 App 扫描此二维码',
+      google_auth_qr_hint: '请使用 Google Authenticator 扫描二维码',
       google_auth_secret_title: '密钥',
       google_auth_secret_copy: '复制',
       google_auth_secret_copied: '密钥已复制',
       google_auth_refresh_qr: '刷新二维码',
       google_auth_code_label: '验证码',
-      google_auth_code_placeholder: '请输入6位验证码',
-      google_auth_enable_btn: '开启验证',
-      google_auth_enable_success: '谷歌验证器开启成功',
-      google_auth_description: '使用谷歌验证器 App 扫描二维码，然后输入验证码以开启',
+      google_auth_code_placeholder: '请输入 6 位验证码',
+      google_auth_enable_btn: '启用验证',
+      google_auth_enable_success: 'Google 验证器启用成功',
+      google_auth_description: '请扫描二维码并输入验证码完成启用',
       google_auth_qr_refreshed: '二维码已刷新',
       google_auth_qr_generate_failed: '二维码生成失败',
-      google_auth_code_required: '请输入6位验证码',
-      google_auth_code_invalid: '验证码格式不正确',
-      google_auth_code_hint: '验证码每30秒更新一次，请确保时间同步'
+      google_auth_code_required: '请输入 6 位验证码',
+      google_auth_code_invalid: '验证码格式错误',
+      google_auth_code_hint: '验证码每 30 秒更新一次，请确保时间同步'
     },
-
-    // 设置与资料
     settings: {
-      title: '通用设置',
+      title: '设置',
       language: '语言',
-      currency_unit: '汇率单位',
-      currency_unit_value: 'USD',
-      notification: '通知设置',
+      currency_unit: '计价单位',
+      currency_unit_value: '美元',
+      notification: '通知',
       privacy_policy: '隐私政策',
       about_us: '关于我们',
       clear_cache: '清除缓存',
       cache_size: '缓存大小',
       cache_cleared: '缓存已清除',
-      // 隐私政策弹窗
       privacy_policy_title: '隐私政策',
-      privacy_policy_content: 'TruthFi 致力于保护您的隐私和个人信息。我们根据适用的法律法规收集和使用您的数据。您的数据经过加密并安全存储。未经您同意，我们不会与第三方分享您的个人信息。更多详情，请参阅我们的完整隐私政策。',
-      privacy_policy_confirm: '我知道了',
+      privacy_policy_content: 'TruthFi 致力于保护你的隐私和个人信息。我们会依据适用法律法规收集和使用数据，并通过加密方式安全存储。',
+      privacy_policy_confirm: '知道了',
       privacy_section1_title: '1. 数据收集',
-      privacy_section1_content: '我们仅收集提供服务所必需的用户信息，包括账户信息、交易记录等。所有数据均经过加密处理，确保您的信息安全。',
+      privacy_section1_content: '我们仅收集提供服务所必需的信息，包括账户信息、交易记录等。',
       privacy_section2_title: '2. 信息安全',
-      privacy_section2_content: '我们采用行业领先的安全技术保护您的个人信息，包括但不限于SSL加密传输、多重身份验证等措施。',
+      privacy_section2_content: '我们采用行业领先的安全技术保护你的个人信息。',
       privacy_section3_title: '3. 用户权利',
-      privacy_section3_content: '您有权随时查看、修改或删除您的个人信息。如需帮助，请联系我们的客服团队。',
+      privacy_section3_content: '你可以随时查看、修改或删除个人信息。',
       privacy_section4_title: '4. 第三方服务',
-      privacy_section4_content: '我们可能与第三方服务提供商共享部分数据以提供更好的服务体验，但不会出售您的个人信息。',
+      privacy_section4_content: '我们可能与第三方服务商共享必要数据以提供更好的服务体验，但不会出售个人信息。',
       privacy_section5_title: '5. 政策更新',
-      privacy_section5_content: '我们可能会不定期更新本隐私政策。重大变更将通过站内通知或邮件方式告知您。',
-      // 关于我们弹窗
+      privacy_section5_content: '我们可能不定期更新隐私政策，重大变更会通过应用内通知或邮件告知。',
       about_us_title: '关于 TruthFi',
       about_us_version: '版本 v1.0.0',
-      about_us_content: 'TruthFi 是机构级透明资产平台，致力于为用户提供安全、透明、高效的加密资产交易与理财服务。',
-      about_us_content2: '我们通过区块链技术确保所有交易数据的公开透明，让用户能够实时追踪资产流向，享受专业级的金融服务体验。',
-      about_us_confirm: '我知道了',
+      about_us_content: 'TruthFi 是基于透明协议的机构级资产管理平台，致力于提供安全、透明、高效的加密交易与理财服务。',
+      about_us_content2: '我们使用区块链技术确保交易数据透明，让用户实时追踪资产流向并享受专业金融服务。',
+      about_us_confirm: '知道了',
       security_center: '安全中心',
-      // 退出登录确认弹窗
       logout_confirm_title: '确认退出',
       logout_confirm_message: '确定要退出登录吗？退出后需要重新连接钱包。',
       logout_confirm_btn: '确认',
       logout_cancel_btn: '取消',
-      logout_success: '退出成功',
-      // 通知设置
+      logout_success: '已退出登录',
       notification_enabled: '推送通知已开启',
-      notification_disabled: '通知已停用',
+      notification_disabled: '通知已关闭',
       notif_market_up: '{symbol}/USDT 行情上涨',
       notif_market_down: '{symbol}/USDT 行情下跌',
-      notif_market_current: '当前价格: ${price} ({change}%)'
+      notif_market_current: '当前价格：${price} ({change}%)'
     },
-
-    // 个人资料
     profile: {
       title: '个人资料',
       nickname: '昵称',
       nickname_placeholder: '请输入昵称',
-      nickname_rule: '昵称长度必须在 2-12 位之间，仅允许输入中英文和数字',
-      nickname_success: '昵称修改成功',
+      nickname_rule: '昵称需为 2-12 个字符，仅支持字母、数字和中文',
+      nickname_success: '昵称更新成功',
       avatar: '头像',
       avatar_take_photo: '拍照',
-      avatar_choose_album: '相册',
-      avatar_upload_demo: '演示环境暂不支持实际上传',
+      avatar_choose_album: '从相册选择',
+      avatar_upload_demo: '演示环境暂不支持真实上传',
       uid: 'UID',
       register_time: '注册时间',
-      bnb_fee_discount: '使用BNB支付交易手续费',
-      bnb_fee_discount_desc: '享受 25%折扣',
-      bnb_interest_discount: '使用BNB支付杠杆利息',
-      bnb_interest_discount_desc: '享受 5%折扣',
+      bnb_fee_discount: '使用 BNB 抵扣交易手续费',
+      bnb_fee_discount_desc: '享受 25% 折扣',
+      bnb_interest_discount: '使用 BNB 抵扣杠杆利息',
+      bnb_interest_discount_desc: '享受 5% 折扣',
       spot_fee_rate: '现货费率',
       spot_fee_maker: '挂单',
       spot_fee_taker: '吃单',
-      futures_fee_rate: 'U本位费率',
+      futures_fee_rate: '合约费率',
       futures_fee_maker: '挂单',
       futures_fee_taker: '吃单',
-      google_auth: '谷歌验证',
+      google_auth: 'Google 验证器',
       logout: '退出登录',
       id_copied: 'ID 已复制',
-      bnb_fee_enabled: '已开启BNB手续费折抵',
-      bnb_fee_disabled: '已关闭BNB手续费折抵',
-      bnb_interest_enabled: '已开启BNB利息折抵',
-      bnb_interest_disabled: '已关闭BNB利息折抵',
-      google_auth_disabled: '已关闭谷歌验证'
+      bnb_fee_enabled: 'BNB 手续费折扣已开启',
+      bnb_fee_disabled: 'BNB 手续费折扣已关闭',
+      bnb_interest_enabled: 'BNB 利息折扣已开启',
+      bnb_interest_disabled: 'BNB 利息折扣已关闭',
+      google_auth_disabled: 'Google 验证器已关闭'
     },
-
-    // 客服支持
     support: {
-      title: '帮助与支持',
+      title: '帮助与客服',
       official_service: 'TruthFi 官方客服',
-      service_subtitle: '专业客服团队 7×24h 在线',
+      service_subtitle: '专业客服团队 7x24 小时在线',
       service_promise: '服务承诺',
       privacy_encryption: '隐私加密',
-      fast_response: '极速响应',
-      human_service: '真人服务',
+      fast_response: '快速响应',
+      human_service: '人工服务',
       contact_service: '联系在线客服',
-      connecting: '正在为您接入安全线路...',
-      service_busy: '当前咨询人数较多，请稍后再试或联系 Telegram 社区',
+      connecting: '正在连接安全线路...',
+      service_busy: '当前咨询较多，请稍后重试或联系 Telegram 社区',
       telegram_community: '加入官方 Telegram 社区',
-      telegram_redirect: '正在跳转到 Telegram 社区...'
+      telegram_redirect: '正在跳转 Telegram 社区...'
+    },
+    referral: {
+      title: '邀请返佣',
+      total_earned: '累计收益',
+      total_referrals: '邀请人数',
+      people: '人',
+      invite_code: '邀请码',
+      invite_code_desc: '分享邀请码赚取佣金',
+      copy: '复制',
+      copy_success: '已复制',
+      copy_failed: '复制失败',
+      share_link: '链接',
+      share_qr: '二维码',
+      share_image: '图片',
+      qr_coming_soon: '二维码功能即将上线',
+      image_coming_soon: '分享图片功能即将上线',
+      commission_rules: '返佣规则',
+      rule_spot: '现货交易',
+      rule_spot_desc: '好友进行现货交易',
+      rule_futures: '合约交易',
+      rule_futures_desc: '好友进行合约交易',
+      rule_earn: '理财产品',
+      rule_earn_desc: '好友申购理财产品',
+      recent_earnings: '近期收益',
+      traded: '交易了',
+      subscribed: '申购了',
+      leaderboard: '排行榜',
+      referrals: '邀请',
+      go_withdraw: '提现',
+      commission_setting: '返佣设置',
+      total_commission: '总佣金',
+      my_share: '我的分成',
+      friend_share: '好友分成',
+      invite_link: '邀请链接',
+      invite_now: '立即邀请好友',
+      invite_count: '邀请数量',
+      trading_volume: '交易量',
+      yesterday_earnings: '昨日收益',
+      current_level: '当前等级',
+      need_more: '还需 {count} 人升级',
+      invite_records: '邀请记录',
+      commission_details: '佣金明细',
+      no_invite_records: '暂无邀请记录',
+      no_commission_records: '暂无佣金记录',
+      status_active: '活跃',
+      status_inactive: '未活跃',
+      minutes_ago: ' 分钟前',
+      hours_ago: ' 小时前',
+      days_ago: ' 天前',
+      commission_spot: '现货交易返佣',
+      commission_earn: '理财产品返佣',
+      commission_futures: '合约交易返佣',
+      invite_feature_coming_soon: '邀请功能即将上线',
+      announcement_withdraw: '用户 {user} 刚刚提现 {amount} USDT',
+      announcement_invite: '{user} 成功邀请 {count} 人',
+      announcement_earn: '{user} 获得 {amount} USDT 返佣',
+      scan_to_invite: '扫码邀请好友',
+      scan_to_join: '扫码加入 TruthFi',
+      save_poster: '保存海报',
+      poster_saved: '海报保存成功',
+      poster_generate_failed: '生成海报失败',
+      qr_generate_failed: '生成二维码失败'
+    },
+    prediction: {
+      btc_100k: '比特币会在一月底前突破 100,000 美元吗？',
+      trump_crypto: '特朗普会在下一次演讲中提到“Crypto”吗？',
+      eth_5k: '以太坊会在 2026 年 Q1 达到 5,000 美元吗？',
+      fed_rates: '美联储会在 2026 年 Q1 降息 50 个基点吗？',
+      lakers_championship: '湖人会赢得 2026 年 NBA 总冠军吗？',
+      eth_flip_btc: 'ETH 市值会在 2026 年底前超过 BTC 吗？',
+      inflation_2pct: '美国通胀会在 2026 年降至 2% 以下吗？',
+      solana_200: 'Solana 会在比特币达到 150k 前到达 200 美元吗？'
+    },
+    tpsl: {
+      title: '设置止盈止损',
+      position: '持仓',
+      side: '方向',
+      long: '做多',
+      short: '做空',
+      current_price: '当前价格',
+      tp_price: '止盈价格 (TP)',
+      tp_hint: '价格达到后自动平仓获利',
+      tp_placeholder: '输入止盈价格',
+      sl_price: '止损价格 (SL)',
+      sl_hint: '价格达到后自动平仓止损',
+      sl_placeholder: '输入止损价格',
+      restored: '已从本地记忆恢复',
+      at_least_one: '请至少设置止盈或止损价格',
+      tp_invalid: '止盈价格格式错误',
+      sl_invalid: '止损价格格式错误',
+      success: '设置成功',
+      failed_local_saved: '设置失败，但已保存到本地'
+    },
+    chart: {
+      loading: '加载图表...',
+      retry: '重试',
+      container_not_ready: '图表容器未就绪，请稍后重试',
+      init_failed: '图表初始化失败，请重试'
+    },
+    auth: {
+      signMessage: '欢迎登录 TruthFi。请签名以验证身份并访问机构级服务。',
+      connectSuccess: '钱包连接成功',
+      loginSuccess: '欢迎登录 TruthFi！',
+      installWallet: '请安装钱包',
+      disconnectConfirm: '断开钱包',
+      disconnectMessage: '确定要断开当前钱包连接吗？',
+      disconnectConfirmBtn: '断开',
+      disconnectCancelBtn: '取消',
+      disconnected: '钱包已断开'
+    },
+    launchpad: {
+      title: 'TruthFi 认购',
+      subtitle: '抢先参与优质加密项目。',
+      my_assets: '我的资产',
+      beat_holdings: 'BEAT 持仓',
+      usdt_balance: 'USDT 余额',
+      progress: '进度',
+      status_live: '进行中',
+      status_upcoming: '即将开始',
+      status_ended: '已结束',
+      filter_all: '全部',
+      telegram: 'Telegram',
+      x: 'X',
+      ido_price: '认购价格',
+      total_raise: '募集总额',
+      vesting: '认购人数',
+      participants: '认购人数',
+      connect_to_view_assets: '请连接钱包以查看资产',
+      joined: '已参与',
+      subscribe_now: '立即认购',
+      subscription_starts_in: '认购开始倒计时：',
+      min_alloc: '最少可投',
+      set_reminder: '设置提醒',
+      raise_completed: '募集完成'
+    },
+    launchpad_subscribe: {
+      title: '认购',
+      live_project: '进行中项目',
+      subscribe: '认购',
+      stake: '质押',
+      fixed: '认购',
+      boosted: '质押',
+      direct_subscription: '认购',
+      boosted_subscription: '质押',
+      first_unlock: '认购人数',
+      participants: '认购人数',
+      mode_1: '认购',
+      mode_2: '质押',
+      multi_sign_protected: '',
+      rewards_boost: '质押',
+      current_stage: '当前阶段',
+      project_intro: '项目简介',
+      project_intro_body: '{name}（{ticker}）是一个上市前认购项目。用户可直接认购，或质押主流资产，在项目上线前获得新币奖励。',
+      public_sale: '公开认购',
+      ecosystem: '生态激励',
+      team_unlock: '团队 / 锁仓',
+      starts_in: '距离开始',
+      ends_in: '距离结束',
+      result_soon: '结果即将公布',
+      distribution_in: '距离发放',
+      final_status: '最终状态',
+      stage_upcoming: '预热中',
+      stage_active: '认购中',
+      stage_calculating: '计算中',
+      stage_distributing: '待发放',
+      stage_listed: '已上市',
+      stage_ended: '已结束',
+      subscription_amount: '认购金额',
+      enter_amount: '请输入金额',
+      available_allocation: '可认购额度',
+      wallet_balance: '钱包余额',
+      subscribed_amount: '已认购金额',
+      simulated_win_ratio: '预计中签比例',
+      confirm_subscription: '确认认购',
+      not_started: '未开始',
+      subscription_closed: '认购已结束',
+      select_staking_asset: '选择质押资产',
+      step_select_asset: '选择质押资产',
+      enter_staking_amount: '输入质押数量',
+      step_enter_stake: '输入质押数量',
+      enter_stake_amount: '请输入质押数量',
+      available_asset: '可用 {asset}',
+      estimated_receive: '预计获得',
+      final_receive: '最终获得',
+      estimated_rewards: '预计获得',
+      final_rewards: '最终奖励',
+      apy: '预计 APY',
+      confirm_staking: '确认质押',
+      confirm_staking_asset: '质押 {asset}',
+      staking_closed: '质押已结束',
+      my_subscription_orders: '我的认购记录',
+      my_staking_records: '我的质押记录',
+      no_subscription_orders: '暂无认购记录',
+      no_staking_records: '暂无质押记录',
+      view_all: '查看全部',
+      collapse: '收起',
+      all_subscription_orders: '全部认购记录',
+      all_staking_records: '全部质押记录',
+      order_time: '时间',
+      order_amount: '金额',
+      payment_amount: '支付金额',
+      refund_amount: '退款金额',
+      won_amount: '中签数量',
+      status: '状态',
+      subscription_price: '认购价格',
+      order_status_subscribing: '认购中',
+      order_status_pending_draw: '待中签',
+      order_status_won: '已中签',
+      order_status_not_won: '未中签',
+      order_status_waiting: '等待计算',
+      order_status_calculated: '计算完成',
+      order_status_distribution: '待发放',
+      order_status_completed: '已完成',
+      order_status_refunded: '已退款',
+      stake_amount: '质押数量',
+      start_time: '开始时间',
+      accumulated_rewards: '已累计奖励',
+      daily_rewards: '每日收益',
+      reward_time: '收益发放',
+      win_ratio: '中签比例',
+      won_prefix: '中签',
+      claim_rewards: '领取奖励',
+      unlock_principal: '解锁本金',
+      stake_more: '继续质押',
+      calculating: '计算中',
+      staking_status_active: '质押中',
+      staking_status_settling: '结算中',
+      staking_status_claimable: '可领取',
+      staking_status_claimed: '已领取',
+      staking_status_unlocked: '已解锁',
+      auth_title: '钱包授权',
+      auth_desc: '认购或质押前需要授权本次会话。该请求不会转移资产。',
+      wallet_required_desc: '连接钱包后可继续认购与质押操作。',
+      waiting_signature: '等待签名中...',
+      authorize_session: '授权本次会话',
+      connect_wallet_first: '请先连接钱包',
+      authorization_completed: '授权完成',
+      authorization_failed: '授权失败',
+      invalid_subscription_amount: '认购金额无效',
+      subscription_success: '认购成功',
+      subscription_failed: '认购失败',
+      invalid_staking_amount: '质押数量无效',
+      staking_success: '质押成功',
+      staking_failed: '质押失败',
+      rewards_claimed: '奖励已领取',
+      no_claimable_rewards: '暂无可领取奖励',
+      unlock_success: '本金已解锁',
+      unstake_failed: '解锁失败'
     }
   }
 }
+const mergeMessages = (target, source) => {
+  Object.entries(source).forEach(([key, value]) => {
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      target[key] = mergeMessages(target[key] || {}, value)
+    } else {
+      target[key] = value
+    }
+  })
+  return target
+}
 
-// 在 createI18n 之前添加这行代码，从 localStorage 获取保存的语言，如果没有则默认 'en'（或 'zh'，根据您的偏好）
-const savedLanguage = localStorage.getItem('language') || 'en';  // 默认英文，您可以改为 'zh' 如果想默认中文
+mergeMessages(messages.en, enLocale)
+mergeMessages(messages.zh, zhLocale)
+
+// 鍦?createI18n 涔嬪墠娣诲姞杩欒浠ｇ爜锛屼粠 localStorage 鑾峰彇淇濆瓨鐨勮瑷€锛屽鏋滄病鏈夊垯榛樿 'en'锛堟垨 'zh'锛屾牴鎹偍鐨勫亸濂斤級
+const savedLanguage = localStorage.getItem('language') || 'en';  // 榛樿鑻辨枃锛屾偍鍙互鏀逛负 'zh' 濡傛灉鎯抽粯璁や腑鏂?
 
 const i18n = createI18n({
   legacy: false,
-  locale: savedLanguage,  // 修改为动态从 localStorage 获取
+  locale: savedLanguage,  // 淇敼涓哄姩鎬佷粠 localStorage 鑾峰彇
+  fallbackLocale: 'en',
   globalInjection: true,
   messages
 })
 
-// 导出 i18n 实例，供 Pinia store 使用
+// 瀵煎嚭 i18n 瀹炰緥锛屼緵 Pinia store 浣跨敤
 export { i18n }
 
 const app = createApp(App)
 const pinia = createPinia()
+app.config.errorHandler = (error, instance, info) => {
+  console.error('[Vue errorHandler]', {
+    error,
+    component: instance?.type?.name || instance?.type?.__name || 'AnonymousComponent',
+    info
+  })
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('unhandledrejection', (event) => {
+    console.error('[Global unhandledrejection]', event.reason)
+  })
+
+  window.addEventListener('error', (event) => {
+    console.error('[Global error]', event.error || event.message)
+  })
+}
+
 app.use(pinia)
+useThemeStore(pinia).initializeTheme()
 app.use(i18n)
 app.use(router)
 app.use(Vant)
 app.mount('#app')
+
+
 

@@ -11,7 +11,7 @@
       <template #left>
         <div class="force-custom-back" @click="$router.back()">
           <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" class="back-svg-icon">
-            <path d="M669.6 849.6c8.8 8 22.4 7.2 30.4-1.6s7.2-22.4-1.6-30.4l-304-277.6 304-277.6c8.8-8 9.6-21.6 1.6-30.4s-21.6-9.6-30.4-1.6l-320 292.8c-4.4 4-6.4 9.6-6.4 15.2s2 11.2 6.4 15.2l320 292.8z" fill="#FCD535"></path>
+            <path d="M669.6 849.6c8.8 8 22.4 7.2 30.4-1.6s7.2-22.4-1.6-30.4l-304-277.6 304-277.6c8.8-8 9.6-21.6 1.6-30.4s-21.6-9.6-30.4-1.6l-320 292.8c-4.4 4-6.4 9.6-6.4 15.2s2 11.2 6.4 15.2l320 292.8z" fill="var(--color-brand-legacy)"></path>
           </svg>
         </div>
       </template>
@@ -170,11 +170,11 @@
     <van-tabs 
       v-model:active="activeTab" 
       background="transparent" 
-      title-active-color="#FCD535" 
-      title-inactive-color="#8E8E93" 
+      title-active-color="var(--color-brand-legacy)" 
+      title-inactive-color="var(--color-text-secondary)" 
       line-width="40px" 
       line-height="2px" 
-      color="#FCD535" 
+      color="var(--color-brand-legacy)" 
       :border="false"
       class="market-tabs"
     >
@@ -208,7 +208,7 @@
                 :style="{ 
                   display: 'block', 
                   fontSize: '10px', 
-                  color: '#8E8E93', 
+                  color: 'var(--color-text-secondary)', 
                   marginTop: '2px',
                   animation: 'blink 1s infinite'
                 }">
@@ -1030,10 +1030,10 @@ const generateTrades = (basePrice) => {
 
 <style scoped>
 .market-detail-page {
-  background-color: #000000;
+  background-color: var(--color-bg);
   min-height: 100vh;
   padding-bottom: 100px; /* 为底部操作栏留出空间，防止内容被遮挡 */
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Segoe UI, Arial, Roboto, 'PingFang SC', 'miui', 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;
   display: flex;
   flex-direction: column;
@@ -1067,23 +1067,23 @@ const generateTrades = (basePrice) => {
 .back-svg-icon {
   width: 24px !important;
   height: 24px !important;
-  fill: #FCD535 !important; /* 金色返回键 */
+  fill: var(--color-brand-legacy) !important; /* 金色返回键 */
 }
 
 /* 3. 确保导航栏整体背景为 App 纯黑 */
 :deep(.van-nav-bar) {
-  background-color: #0E0E0E !important;
+  background-color: var(--color-bg) !important;
   border-bottom: none !important;
 }
 
 :deep(.van-nav-bar__title) {
-  color: #FFFFFF !important;
+  color: var(--color-text-primary) !important;
   font-weight: 700 !important;
   font-size: 18px !important;
 }
 
 .header-title {
-  color: #FFFFFF !important;
+  color: var(--color-text-primary) !important;
   font-size: 18px !important;
   font-weight: 700 !important;
   display: flex;
@@ -1097,20 +1097,20 @@ const generateTrades = (basePrice) => {
 
 .header-title:active {
   opacity: 0.7;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgb(var(--color-border-rgb) / 0.05);
 }
 
 /* 选择币种的箭头设为灰色 */
 .coin-select-arrow {
   margin-left: 4px;
-  color: #8E8E93 !important; /* 灰色 */
+  color: var(--color-text-secondary) !important; /* 灰色 */
 }
 
 /* 当前价格区 - 币安风格 */
 .price-section {
   padding: 20px 16px;
-  background-color: #000000;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: var(--color-bg);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.08);
   flex-shrink: 0;
 }
 .price-header {
@@ -1134,10 +1134,10 @@ const generateTrades = (basePrice) => {
   letter-spacing: -0.5px;
 }
 .current-price-large.up {
-  color: #0ECB81;
+  color: var(--color-earn);
 }
 .current-price-large.down {
-  color: #F6465D;
+  color: var(--color-loss);
 }
 .price-change-badge {
   display: inline-block;
@@ -1163,42 +1163,42 @@ const generateTrades = (basePrice) => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: #848E9C;
+  background-color: var(--color-surface-muted);
   transition: background-color 0.3s ease;
 }
 
 .ws-status-indicator.connected .ws-status-dot {
-  background-color: #0ECB81;
-  box-shadow: 0 0 4px rgba(14, 203, 129, 0.5);
+  background-color: var(--color-earn);
+  box-shadow: 0 0 4px rgb(var(--color-earn-rgb) / 0.5);
 }
 
 .ws-status-indicator.connecting .ws-status-dot {
-  background-color: #F0B90B;
-  box-shadow: 0 0 4px rgba(240, 185, 11, 0.5);
+  background-color: var(--color-brand);
+  box-shadow: 0 0 4px rgb(var(--color-brand-rgb) / 0.5);
   animation: pulse 1.5s ease-in-out infinite;
 }
 
 .ws-status-indicator.disconnected .ws-status-dot {
-  background-color: #F6465D;
-  box-shadow: 0 0 4px rgba(246, 70, 93, 0.5);
+  background-color: var(--color-loss);
+  box-shadow: 0 0 4px rgb(var(--color-loss-rgb) / 0.5);
 }
 
 .ws-status-text {
-  color: #848E9C;
+  color: var(--color-text-muted);
   font-size: 11px;
   transition: color 0.3s ease;
 }
 
 .ws-status-indicator.connected .ws-status-text {
-  color: #0ECB81;
+  color: var(--color-earn);
 }
 
 .ws-status-indicator.connecting .ws-status-text {
-  color: #F0B90B;
+  color: var(--color-brand);
 }
 
 .ws-status-indicator.disconnected .ws-status-text {
-  color: #F6465D;
+  color: var(--color-loss);
 }
 
 @keyframes pulse {
@@ -1210,12 +1210,12 @@ const generateTrades = (basePrice) => {
   }
 }
 .price-change-badge.up {
-  background-color: rgba(14, 203, 129, 0.15);
-  color: #0ECB81;
+  background-color: rgb(var(--color-earn-rgb) / 0.15);
+  color: var(--color-earn);
 }
 .price-change-badge.down {
-  background-color: rgba(246, 70, 93, 0.15);
-  color: #F6465D;
+  background-color: rgb(var(--color-loss-rgb) / 0.15);
+  color: var(--color-loss);
 }
 
 /* 24小时数据概览 - 2x2网格 */
@@ -1233,13 +1233,13 @@ const generateTrades = (basePrice) => {
 }
 .stat-label {
   font-size: 11px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-weight: 400;
   line-height: 1.2;
 }
 .stat-value {
   font-size: 13px;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', 'Arial', 'DIN Alternate', sans-serif;
   font-variant-numeric: tabular-nums;
   font-weight: 500;
@@ -1253,8 +1253,8 @@ const generateTrades = (basePrice) => {
   justify-content: space-between;
   align-items: center;
   padding: 8px 16px;
-  background-color: #000000;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: var(--color-bg);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.08);
   flex-shrink: 0;
 }
 .timeframe-tabs {
@@ -1266,7 +1266,7 @@ const generateTrades = (basePrice) => {
 .timeframe-btn {
   padding: 6px 12px;
   font-size: 13px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   background-color: transparent;
   border: none;
   cursor: pointer;
@@ -1277,7 +1277,7 @@ const generateTrades = (basePrice) => {
   border-radius: 0;
 }
 .timeframe-btn.active {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-weight: 600;
 }
 .timeframe-btn.active::after {
@@ -1287,7 +1287,7 @@ const generateTrades = (basePrice) => {
   left: 12px;
   right: 12px;
   height: 2px;
-  background-color: #FCD535;
+  background-color: var(--color-brand-legacy);
   border-radius: 1px;
 }
 .timeframe-btn:active {
@@ -1301,13 +1301,13 @@ const generateTrades = (basePrice) => {
 }
 .toolbar-icon {
   font-size: 18px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: color 0.2s ease;
   padding: 4px;
 }
 .toolbar-icon:active {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   opacity: 0.8;
 }
 
@@ -1319,7 +1319,7 @@ const generateTrades = (basePrice) => {
   height: 450px; /* 固定高度，与 TradingView 容器一致 */
   width: 100%;
   overflow: hidden;
-  background-color: #000000;
+  background-color: var(--color-bg);
   min-height: 450px;
   margin: 0; /* 移除多余的 margin */
   padding: 0; /* 移除多余的 padding */
@@ -1339,7 +1339,7 @@ const generateTrades = (basePrice) => {
 .market-tabs {
   margin-top: 0; /* 确保紧贴 K 线图下方 */
   padding-top: 0;
-  background-color: #000000;
+  background-color: var(--color-bg);
 }
 :deep(.market-tabs .van-tab) {
   font-size: 13px;
@@ -1347,12 +1347,12 @@ const generateTrades = (basePrice) => {
   padding: 12px 16px;
 }
 :deep(.market-tabs .van-tabs__content) {
-  background-color: #000000;
+  background-color: var(--color-bg);
 }
 
 /* 盘口容器 */
 .orderbook-container {
-  background-color: #000000;
+  background-color: var(--color-bg);
   min-height: 400px;
   display: flex;
   flex-direction: column;
@@ -1368,11 +1368,11 @@ const generateTrades = (basePrice) => {
 }
 
 .asks-section {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .bids-section {
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 /* 盘口行 - 原生 App 风格紧凑布局 */
@@ -1390,10 +1390,10 @@ const generateTrades = (basePrice) => {
   overflow: hidden;
 }
 .orderbook-row:hover {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgb(var(--color-border-rgb) / 0.02);
 }
 .orderbook-row:active {
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: rgb(var(--color-border-rgb) / 0.03);
 }
 
 /* 深度条 - 透明渐变风格 */
@@ -1409,11 +1409,11 @@ const generateTrades = (basePrice) => {
 }
 /* 卖单深度条：从右向左延伸（红色透明渐变） */
 .ask-depth {
-  background: linear-gradient(to left, rgba(246, 70, 93, 0.15) 0%, rgba(246, 70, 93, 0.05) 100%);
+  background: linear-gradient(to left, rgb(var(--color-loss-rgb) / 0.15) 0%, rgb(var(--color-loss-rgb) / 0.05) 100%);
 }
 /* 买单深度条：从右向左延伸（绿色透明渐变） */
 .bid-depth {
-  background: linear-gradient(to left, rgba(14, 203, 129, 0.15) 0%, rgba(14, 203, 129, 0.05) 100%);
+  background: linear-gradient(to left, rgb(var(--color-earn-rgb) / 0.15) 0%, rgb(var(--color-earn-rgb) / 0.05) 100%);
 }
 
 .row-content {
@@ -1438,19 +1438,19 @@ const generateTrades = (basePrice) => {
 }
 
 .ask-price {
-  color: #F6465D;
+  color: var(--color-loss);
   font-weight: 600;
-  text-shadow: 0 0 6px rgba(246, 70, 93, 0.4);
+  text-shadow: 0 0 6px rgb(var(--color-loss-rgb) / 0.4);
 }
 
 .bid-price {
-  color: #0ECB81;
+  color: var(--color-earn);
   font-weight: 600;
-  text-shadow: 0 0 6px rgba(14, 203, 129, 0.4);
+  text-shadow: 0 0 6px rgb(var(--color-earn-rgb) / 0.4);
 }
 
 .amount {
-  color: #EAECEF;
+  color: var(--color-text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', 'Arial', 'DIN Alternate', sans-serif;
   font-variant-numeric: tabular-nums;
   font-size: 13px;
@@ -1464,9 +1464,9 @@ const generateTrades = (basePrice) => {
 .current-price-row {
   padding: 8px 12px;
   text-align: center;
-  background-color: #111111;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: var(--color-bg);
+  border-top: 1px solid rgb(var(--color-border-rgb) / 0.05);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
   position: relative;
   z-index: 2;
   flex-shrink: 0;
@@ -1485,21 +1485,21 @@ const generateTrades = (basePrice) => {
   line-height: 1.2;
 }
 .current-price-text.up {
-  color: #0ECB81;
+  color: var(--color-earn);
 }
 .current-price-text.down {
-  color: #F6465D;
+  color: var(--color-loss);
 }
 .price-fiat {
   font-size: 11px;
-  color: #848E9C;
+  color: var(--color-text-muted);
   font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', 'Arial', 'DIN Alternate', sans-serif;
   font-variant-numeric: tabular-nums;
 }
 
 /* 成交列表容器 */
 .trades-container {
-  background-color: #000000;
+  background-color: var(--color-bg);
   min-height: 400px;
 }
 
@@ -1507,10 +1507,10 @@ const generateTrades = (basePrice) => {
   display: flex;
   justify-content: space-between;
   padding: 8px 12px;
-  background-color: #111111;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: var(--color-bg);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
   font-size: 12px;
-  color: #848E9C;
+  color: var(--color-text-muted);
   font-weight: 500;
   font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', 'Arial', 'DIN Alternate', sans-serif;
 }
@@ -1545,13 +1545,13 @@ const generateTrades = (basePrice) => {
   min-height: 24px;
   height: 24px;
   line-height: 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.03);
   transition: background-color 0.2s ease;
   gap: 12px;
 }
 
 .trade-row:hover {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgb(var(--color-border-rgb) / 0.02);
 }
 
 .trade-price {
@@ -1564,17 +1564,17 @@ const generateTrades = (basePrice) => {
 }
 
 .trade-price.buy {
-  color: #0ECB81;
+  color: var(--color-earn);
 }
 
 .trade-price.sell {
-  color: #F6465D;
+  color: var(--color-loss);
 }
 
 .trade-amount {
   flex: 1;
   text-align: right;
-  color: #EAECEF;
+  color: var(--color-text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', 'Arial', 'DIN Alternate', sans-serif;
   font-variant-numeric: tabular-nums;
   font-size: 13px;
@@ -1584,7 +1584,7 @@ const generateTrades = (basePrice) => {
 .trade-time {
   flex: 0 0 70px;
   text-align: right;
-  color: #848E9C;
+  color: var(--color-text-muted);
   font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', 'Arial', 'DIN Alternate', sans-serif;
   font-variant-numeric: tabular-nums;
   font-size: 11px;
@@ -1600,10 +1600,10 @@ const generateTrades = (basePrice) => {
   gap: 12px;
   padding: 8px 16px;
   padding-bottom: calc(8px + env(safe-area-inset-bottom));
-  background-color: #1E2329;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: var(--color-bg-elevated);
+  border-top: 1px solid rgb(var(--color-border-rgb) / 0.08);
   z-index: 100;
-  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 -2px 12px rgb(var(--color-shadow-rgb) / 0.4);
 }
 .action-btn {
   flex: 1;
@@ -1616,16 +1616,16 @@ const generateTrades = (basePrice) => {
   font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', 'Arial', 'DIN Alternate', sans-serif;
 }
 .buy-btn {
-  background-color: #0ECB81;
-  color: #FFFFFF;
+  background-color: var(--color-earn);
+  color: var(--color-text-primary);
 }
 .buy-btn:active {
   opacity: 0.85;
   transform: scale(0.98);
 }
 .sell-btn {
-  background-color: #F6465D;
-  color: #FFFFFF;
+  background-color: var(--color-loss);
+  color: var(--color-text-primary);
 }
 .sell-btn:active {
   opacity: 0.85;
@@ -1634,18 +1634,18 @@ const generateTrades = (basePrice) => {
 
 /* 币种切换抽屉 - 强制深色主题 */
 :deep(.coin-drawer-popup) {
-  background-color: rgba(0, 0, 0, 0.7) !important;
+  background-color: rgb(var(--color-shadow-rgb) / 0.7) !important;
   backdrop-filter: blur(10px);
 }
 
 :deep(.coin-drawer-popup .van-popup) {
-  background-color: #1E2329 !important;
-  color: #FFFFFF !important;
+  background-color: var(--color-bg-elevated) !important;
+  color: var(--color-text-primary) !important;
 }
 
 :deep(.coin-drawer-popup .van-popup__content) {
-  background-color: #1E2329 !important;
-  color: #FFFFFF !important;
+  background-color: var(--color-bg-elevated) !important;
+  color: var(--color-text-primary) !important;
   height: 100% !important;
   display: flex !important;
   flex-direction: column !important;
@@ -1656,8 +1656,8 @@ const generateTrades = (basePrice) => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #1E2329 !important;
-  color: #FFFFFF !important;
+  background-color: var(--color-bg-elevated) !important;
+  color: var(--color-text-primary) !important;
 }
 
 .drawer-header {
@@ -1665,34 +1665,34 @@ const generateTrades = (basePrice) => {
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background-color: #1E2329 !important;
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.08);
+  background-color: var(--color-bg-elevated) !important;
   flex-shrink: 0;
 }
 
 .drawer-title {
   font-size: 18px;
   font-weight: 600;
-  color: #FFFFFF !important;
+  color: var(--color-text-primary) !important;
 }
 
 .drawer-close {
   font-size: 20px;
-  color: #8E8E93 !important;
+  color: var(--color-text-secondary) !important;
   cursor: pointer;
   transition: color 0.2s ease;
   padding: 4px;
 }
 
 .drawer-close:active {
-  color: #FFFFFF !important;
+  color: var(--color-text-primary) !important;
 }
 
 .coin-list {
   flex: 1;
   overflow-y: auto;
   padding: 8px 0;
-  background-color: #1E2329 !important;
+  background-color: var(--color-bg-elevated) !important;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -1701,7 +1701,7 @@ const generateTrades = (basePrice) => {
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
   cursor: pointer;
   transition: background-color 0.2s ease;
   position: relative;
@@ -1709,11 +1709,11 @@ const generateTrades = (basePrice) => {
 }
 
 .coin-item:active {
-  background-color: rgba(255, 255, 255, 0.05) !important;
+  background-color: rgb(var(--color-border-rgb) / 0.05) !important;
 }
 
 .coin-item.active {
-  background-color: rgba(252, 213, 53, 0.1) !important;
+  background-color: rgb(var(--color-brand-legacy-rgb) / 0.1) !important;
 }
 
 .coin-left {
@@ -1726,12 +1726,12 @@ const generateTrades = (basePrice) => {
 .coin-symbol {
   font-size: 16px;
   font-weight: 600;
-  color: #FFFFFF !important;
+  color: var(--color-text-primary) !important;
 }
 
 .coin-pair {
   font-size: 12px;
-  color: #8E8E93 !important;
+  color: var(--color-text-secondary) !important;
 }
 
 .coin-right {
@@ -1750,11 +1750,11 @@ const generateTrades = (basePrice) => {
 }
 
 .coin-price.up {
-  color: #0ECB81 !important;
+  color: var(--color-earn) !important;
 }
 
 .coin-price.down {
-  color: #F6465D !important;
+  color: var(--color-loss) !important;
 }
 
 .coin-change {
@@ -1765,18 +1765,18 @@ const generateTrades = (basePrice) => {
 }
 
 .coin-change.up {
-  color: #0ECB81 !important;
+  color: var(--color-earn) !important;
 }
 
 .coin-change.down {
-  color: #F6465D !important;
+  color: var(--color-loss) !important;
 }
 
 .coin-check {
   position: absolute;
   right: 16px;
   font-size: 18px;
-  color: #FCD535 !important;
+  color: var(--color-brand-legacy) !important;
 }
 
 /* 闪烁动画用于时间戳 */

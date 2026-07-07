@@ -5,7 +5,7 @@
       <div class="header-left" @click="$router.back()">
         <div class="header-action-left">
           <svg viewBox="0 0 1024 1024" class="custom-back-svg">
-            <path d="M685.248 103.808L289.088 500l396.16 396.192 56.576-56.576L345.664 500l339.584-339.616z" fill="#FCD535"></path>
+            <path d="M685.248 103.808L289.088 500l396.16 396.192 56.576-56.576L345.664 500l339.584-339.616z" fill="var(--color-brand-legacy)"></path>
           </svg>
         </div>
       </div>
@@ -14,7 +14,7 @@
       </div>
       <div class="nav-right-icon-wrap" @click="goToKlineChart">
         <svg viewBox="0 0 1024 1024" class="kline-svg-icon">
-          <path d="M896 128H128a64 64 0 0 0-64 64v640a64 64 0 0 0 64 64h768a64 64 0 0 0 64-64V192a64 64 0 0 0-64-64zM320 768H192V448h128v320zm256 0H448V256h128v512zm256 0H704V512h128v256z" fill="#FCD535"></path>
+          <path d="M896 128H128a64 64 0 0 0-64 64v640a64 64 0 0 0 64 64h768a64 64 0 0 0 64-64V192a64 64 0 0 0-64-64zM320 768H192V448h128v320zm256 0H448V256h128v512zm256 0H704V512h128v256z" fill="var(--color-brand-legacy)"></path>
         </svg>
       </div>
     </div>
@@ -39,7 +39,7 @@
       </div>
       <button class="leverage-btn" @click="showLeveragePopup = true">
         <span>{{ currentLeverage }}x</span>
-        <van-icon name="arrow-down" size="12" color="#848E9C" />
+        <van-icon name="arrow-down" size="12" color="var(--color-text-muted)" />
       </button>
     </div>
 
@@ -47,7 +47,11 @@
     <div class="pair-info">
       <div class="pair-selector" @click="showCoinSelect = true">
         <span class="pair-name">{{ symbol }}/USDT</span>
-        <van-icon name="arrow-down" size="12" color="#FFFFFF" style="margin-left: 4px" />
+        <van-icon name="arrow-down" size="12" color="var(--color-text-primary)" style="margin-left: 4px" />
+      </div>
+      <div class="terminal-price">
+        <strong>{{ formatPrice(markPrice) }}</strong>
+        <span>Mark Price</span>
       </div>
       <div class="price-change" :class="{ positive: priceChange >= 0 }">
         {{ priceChange >= 0 ? '+' : '' }}{{ priceChange.toFixed(2) }}%
@@ -105,10 +109,129 @@
 
       <!-- 右侧：交易表单 (58%) -->
       <div ref="orderFormRef" class="form-side">
+        <section class="trade-panel-block leverage-block">
+          <div class="leverage-topline">
+            <div class="margin-mode-toggle">
+              <button class="mode-btn" :class="{ active: marginMode === 'cross' }" @click="marginMode = 'cross'">
+                {{ $t('trade.full_position') }}
+              </button>
+              <button class="mode-btn" :class="{ active: marginMode === 'isolated' }" @click="marginMode = 'isolated'">
+                {{ $t('trade.isolated_position') }}
+              </button>
+            </div>
+            <button class="leverage-btn" @click="showLeveragePopup = true">
+              <span>{{ currentLeverage }}x</span>
+              <van-icon name="arrow-down" size="12" color="currentColor" />
+            </button>
+          </div>
+          <p class="risk-note">Funding 0.0100% · Higher leverage increases liquidation risk.</p>
+        </section>
+
+        <section class="trade-panel-block order-type-tabs" role="tablist">
+          <button :class="{ active: orderType === 'limit' }" @click="orderType = 'limit'">
+            {{ $t('trade.limit_order') }}
+          </button>
+          <button :class="{ active: orderType === 'market' }" @click="onOrderTypeSelect({ value: 'market' })">
+            {{ $t('trade.market_order') }}
+          </button>
+        </section>
+
+        <section class="trade-panel-block input-block">
+          <label class="terminal-label">{{ $t('trade.price') }}</label>
+          <div class="terminal-input">
+            <button @click="adjustOrderPrice(-currentCoinConfig.step)">−</button>
+            <input
+              v-if="orderType === 'limit'"
+              v-model="price"
+              type="number"
+              :placeholder="markPrice.toFixed(currentCoinConfig.priceFixed)"
+              class="input-field"
+            />
+            <input
+              v-else
+              type="text"
+              :value="$t('trade.market_price_hint')"
+              disabled
+              class="input-field market-price-input"
+            />
+            <span>USDT</span>
+            <button @click="adjustOrderPrice(currentCoinConfig.step)">+</button>
+          </div>
+
+          <label class="terminal-label">{{ $t('trade.amount') }}</label>
+          <div class="terminal-input">
+            <button @click="adjustOrderAmount(-currentCoinConfig.step)">−</button>
+            <input
+              v-model="amount"
+              type="number"
+              :placeholder="$t('trade.amount_placeholder')"
+              class="input-field"
+            />
+            <span>{{ currentCoinConfig.baseCoin }}</span>
+            <button @click="adjustOrderAmount(currentCoinConfig.step)">+</button>
+          </div>
+        </section>
+
+        <section class="trade-panel-block account-metrics">
+          <div class="info-row">
+            <span>{{ $t('trade.avail') }}</span>
+            <span class="info-value">{{ availableBalance.toFixed(2) }} USDT</span>
+          </div>
+          <div class="info-row">
+            <span>Equity</span>
+            <span class="info-value">{{ accountEquity.toFixed(2) }} USDT</span>
+          </div>
+          <div class="info-row">
+            <span>{{ $t('trade.unrealized_pnl') }}</span>
+            <span class="info-value" :class="{ positive: unrealizedPnl >= 0, negative: unrealizedPnl < 0 }">
+              {{ unrealizedPnl >= 0 ? '+' : '-' }}{{ Math.abs(unrealizedPnl).toFixed(2) }} USDT
+            </span>
+          </div>
+          <div class="info-row">
+            <span>{{ $t('trade.estimated_fee') }}</span>
+            <span class="info-value">{{ estimatedFee.toFixed(2) }} USDT</span>
+          </div>
+          <div class="info-row">
+            <span>{{ $t('trade.total') }}</span>
+            <span class="info-value">{{ totalValue.toFixed(2) }} USDT</span>
+          </div>
+        </section>
+
+        <section class="trade-panel-block risk-slider-block">
+          <input
+            v-model.number="selectedPercent"
+            class="risk-slider"
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+            @input="onPercentSliderInput"
+          />
+          <div class="percent-buttons">
+            <button
+              v-for="pct in [0, 25, 50, 75, 100]"
+              :key="pct"
+              class="percent-btn"
+              :class="{ active: selectedPercent === pct }"
+              @click="selectPercent(pct)"
+            >
+              {{ pct }}%
+            </button>
+          </div>
+        </section>
+
+        <section class="trade-panel-block terminal-actions">
+          <button class="long-btn" :disabled="!isFormValid" @click="handleLong">
+            {{ $t('trade.open_long') }}
+          </button>
+          <button class="short-btn" :disabled="!isFormValid" @click="handleShort">
+            {{ $t('trade.open_short') }}
+          </button>
+        </section>
         <!-- 订单类型选择器 -->
         <div class="order-type-selector" @click="showOrderTypeSheet = true">
           <span>{{ orderType === 'limit' ? $t('trade.limit_order') : $t('trade.market_order') }}</span>
-          <van-icon name="arrow-down" size="12" color="#848E9C" />
+          <van-icon name="arrow-down" size="12" color="var(--color-text-muted)" />
         </div>
 
         <!-- 价格输入 -->
@@ -195,11 +318,11 @@
       <van-tabs 
         v-model:active="activePositionTab" 
         background="transparent" 
-        title-active-color="#FCD535" 
-        title-inactive-color="#8E8E93" 
+        title-active-color="var(--color-brand-legacy)" 
+        title-inactive-color="var(--color-text-secondary)" 
         line-width="30px" 
         line-height="3px" 
-        color="#FCD535" 
+        color="var(--color-brand-legacy)" 
         :border="false"
         class="position-tabs"
       >
@@ -360,8 +483,8 @@
       position="bottom"
       round
       class="premium-tpsl-popup"
-      :overlay-style="{ backgroundColor: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(10px)' }"
-      :style="{ height: 'auto', background: '#0a0a0a' }"
+      :overlay-style="{ backgroundColor: 'rgb(var(--color-shadow-rgb) / 0.85)', backdropFilter: 'blur(10px)' }"
+      :style="{ height: 'auto', background: 'var(--color-bg)' }"
     >
       <div class="premium-modal-container">
         <!-- 头部装饰线 -->
@@ -471,7 +594,7 @@
             @click="selectLeverage(leverage)"
           >
             <span>{{ leverage }}x</span>
-            <van-icon v-if="currentLeverage === leverage" name="success" color="#FCD535" />
+            <van-icon v-if="currentLeverage === leverage" name="success" color="var(--color-brand-legacy)" />
           </div>
         </div>
       </div>
@@ -499,7 +622,7 @@
             @click="selectCoin(coin.symbol)"
           >
             <span>{{ coin.symbol }}/USDT</span>
-            <van-icon v-if="symbol === coin.symbol" name="success" color="#FCD535" />
+            <van-icon v-if="symbol === coin.symbol" name="success" color="var(--color-brand-legacy)" />
           </div>
         </div>
       </div>
@@ -561,7 +684,7 @@ const historyList = ref([]);
 
 const orderBookContainerRef = ref(null);
 const orderFormRef = ref(null);
-const maxVisibleRows = ref(20);
+const maxVisibleRows = ref(5);
 
 // 币种列表
 const coinList = ref([
@@ -719,14 +842,14 @@ const displayedAsks = computed(() => {
   if (!asks.value || !Array.isArray(asks.value) || asks.value.length === 0) {
     return [];
   }
-  return asks.value.slice(0, maxVisibleRows.value).reverse();
+  return asks.value.slice(0, 5).reverse();
 });
 
 const displayedBids = computed(() => {
   if (!bids.value || !Array.isArray(bids.value) || bids.value.length === 0) {
     return [];
   }
-  return bids.value.slice(0, maxVisibleRows.value);
+  return bids.value.slice(0, 5);
 });
 
 // 使用 ResizeObserver 监听右侧高度
@@ -770,6 +893,14 @@ watch(() => route.query.symbol, (newSymbol) => {
 // 合约账户余额（从 assetStore 获取）
 const availableBalance = computed(() => {
   return assetStore?.usdtBalance || 0;
+});
+
+const unrealizedPnl = computed(() => {
+  return positions.value.reduce((sum, position) => sum + (Number(position.unrealizedPnl) || 0), 0);
+});
+
+const accountEquity = computed(() => {
+  return availableBalance.value + unrealizedPnl.value;
 });
 
 // 表单验证
@@ -825,12 +956,34 @@ const selectPrice = (priceValue) => {
   }
 };
 
+const adjustOrderPrice = (delta) => {
+  if (orderType.value !== 'limit') return;
+  const basePrice = parseFloat(price.value || markPrice.value || 0);
+  const nextPrice = Math.max(0, basePrice + Number(delta || 0));
+  price.value = nextPrice.toFixed(currentCoinConfig.value.priceFixed);
+};
+
+const adjustOrderAmount = (delta) => {
+  const baseAmount = parseFloat(amount.value || 0);
+  const nextAmount = Math.max(0, baseAmount + Number(delta || 0));
+  amount.value = nextAmount.toFixed(currentCoinConfig.value.amountFixed);
+  selectedPercent.value = null;
+};
+
 // 选择百分比
 const selectPercent = (pct) => {
   selectedPercent.value = pct;
+  if (pct === 0) {
+    amount.value = '';
+    return;
+  }
   const balance = availableBalance.value;
   const maxAmount = balance / (orderType.value === 'market' ? markPrice.value : parseFloat(price.value || markPrice.value));
   amount.value = (maxAmount * (pct / 100)).toFixed(currentCoinConfig.value.amountFixed);
+};
+
+const onPercentSliderInput = () => {
+  selectPercent(Number(selectedPercent.value) || 0);
 };
 
 // 选择订单类型
@@ -1005,7 +1158,7 @@ const cancelFuturesOrder = async (orderId) => {
       message: t('trade.cancel_order_message'),
       confirmButtonText: t('trade.confirm'),
       cancelButtonText: t('trade.cancel'),
-      confirmButtonColor: '#F6465D'
+      confirmButtonColor: 'var(--color-loss)'
     });
     
     const response = await cancelFuturesOrderAPI(orderId);
@@ -1309,7 +1462,7 @@ const handleClosePosition = async (position, index) => {
       message: t('trade.close_position_message'),
       confirmButtonText: t('trade.close_position_confirm_btn'),
       cancelButtonText: t('trade.close_position_cancel_btn'),
-      confirmButtonColor: '#F6465D'
+      confirmButtonColor: 'var(--color-loss)'
     });
     
     console.log('📤 [DEBUG] 开始平仓，持仓信息:', position);
@@ -1404,14 +1557,14 @@ onUnmounted(() => {
 
 <style scoped>
 .order-item.filled {
-  border-color: rgba(14, 203, 129, 0.3);  /* 成交绿色边框 */
+  border-color: rgb(var(--color-earn-rgb) / 0.3);  /* 成交绿色边框 */
 }
 .order-item.cancelled {
-  border-color: rgba(246, 70, 93, 0.3);  /* 取消红色边框 */
+  border-color: rgb(var(--color-loss-rgb) / 0.3);  /* 取消红色边框 */
 }
 .order-status {
   font-size: 11px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   margin-top: 4px;
 }
 .order-pnl {
@@ -1419,17 +1572,17 @@ onUnmounted(() => {
   margin-top: 4px;
 }
 .order-pnl.positive {
-  color: #0ECB81;
+  color: var(--color-earn);
 }
 .order-pnl.negative {
-  color: #F6465D;
+  color: var(--color-loss);
 }
 
 
 .futures-trade-page {
   min-height: 100vh;
-  background-color: #000000;
-  color: #FFFFFF;
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
   font-family: 'DIN Alternate', 'Roboto', sans-serif;
   padding-bottom: 300px; /* 关键：防止内容被底部全局导航栏（60px）遮挡 - 增加足够的缓冲空间 */
 }
@@ -1440,8 +1593,8 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background-color: #000000;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: var(--color-bg);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -1470,7 +1623,7 @@ onUnmounted(() => {
 .page-title {
   font-size: 18px;
   font-weight: 600;
-  color: #FCD535;
+  color: var(--color-brand-legacy);
 }
 
 .nav-right-icon-wrap {
@@ -1489,8 +1642,8 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background-color: #0E0E0E;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: var(--color-bg);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .margin-mode-toggle {
@@ -1502,20 +1655,20 @@ onUnmounted(() => {
 .mode-btn {
   flex: 1;
   padding: 8px 16px;
-  background-color: #1C1C1E;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--color-bg-card);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.1);
   border-radius: 8px;
   text-align: center;
   font-size: 13px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .mode-btn.active {
-  background-color: #FCD535;
-  color: #000000;
-  border-color: #FCD535;
+  background-color: var(--color-brand-legacy);
+  color: var(--color-text-on-accent);
+  border-color: var(--color-brand-legacy);
   font-weight: 600;
 }
 
@@ -1524,10 +1677,10 @@ onUnmounted(() => {
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background-color: #1C1C1E;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--color-bg-card);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.1);
   border-radius: 8px;
-  color: #FCD535;
+  color: var(--color-brand-legacy);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -1535,7 +1688,7 @@ onUnmounted(() => {
 }
 
 .leverage-btn:active {
-  background-color: #252A32;
+  background-color: var(--color-surface-muted);
 }
 
 /* 交易对信息 */
@@ -1544,7 +1697,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background-color: #0E0E0E;
+  background-color: var(--color-bg);
 }
 
 .pair-selector {
@@ -1556,17 +1709,17 @@ onUnmounted(() => {
 .pair-name {
   font-size: 16px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
 }
 
 .price-change {
   font-size: 14px;
   font-weight: 600;
-  color: #F6465D;
+  color: var(--color-loss);
 }
 
 .price-change.positive {
-  color: #0ECB81;
+  color: var(--color-earn);
 }
 
 /* 核心交易区 */
@@ -1583,7 +1736,7 @@ onUnmounted(() => {
   width: 42%;
   display: flex;
   flex-direction: column;
-  background-color: #0E0E0E;
+  background-color: var(--color-bg);
   border-radius: 4px;
   overflow: hidden;
   padding: 0;
@@ -1595,7 +1748,7 @@ onUnmounted(() => {
   justify-content: space-between;
   padding: 4px 8px;
   font-size: 11px;
-  color: #848E9C;
+  color: var(--color-text-muted);
   flex-shrink: 0;
 }
 
@@ -1625,7 +1778,7 @@ onUnmounted(() => {
 }
 
 .order-row:hover {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgb(var(--color-border-rgb) / 0.02);
 }
 
 .depth-bar {
@@ -1639,12 +1792,12 @@ onUnmounted(() => {
 }
 
 .ask-depth {
-  background-color: #F6465D;
+  background-color: var(--color-loss);
   opacity: 0.2;
 }
 
 .bid-depth {
-  background-color: #0ECB81;
+  background-color: var(--color-earn);
   opacity: 0.2;
 }
 
@@ -1658,60 +1811,60 @@ onUnmounted(() => {
 }
 
 .ask-price {
-  color: #F6465D;
+  color: var(--color-loss);
   font-weight: 600;
-  text-shadow: 0 0 6px rgba(246, 70, 93, 0.4);
+  text-shadow: 0 0 6px rgb(var(--color-loss-rgb) / 0.4);
 }
 
 .bid-price {
-  color: #0ECB81;
+  color: var(--color-earn);
   font-weight: 600;
-  text-shadow: 0 0 6px rgba(14, 203, 129, 0.4);
+  text-shadow: 0 0 6px rgb(var(--color-earn-rgb) / 0.4);
 }
 
 .quantity {
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-weight: 500;
 }
 
 .last-price {
   flex-shrink: 0;
   height: 32px;
-  background-color: #1C1C1E;
+  background-color: var(--color-bg-card);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgb(var(--color-border-rgb) / 0.05);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
   padding: 0;
 }
 
 .last-price.up {
-  background-color: rgba(14, 203, 129, 0.05);
+  background-color: rgb(var(--color-earn-rgb) / 0.05);
 }
 
 .last-price.down {
-  background-color: rgba(246, 70, 93, 0.05);
+  background-color: rgb(var(--color-loss-rgb) / 0.05);
 }
 
 .price-main {
   font-size: 20px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
 }
 
 .price-fiat {
   font-size: 12px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   margin-top: 4px;
 }
 
 /* 右侧表单区 */
 .form-side {
   flex: 0 0 58%;
-  background-color: #0E0E0E;
+  background-color: var(--color-bg);
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -1724,11 +1877,11 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background-color: #1C1C1E;
+  background-color: var(--color-bg-card);
   border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
 }
 
 .input-row {
@@ -1738,21 +1891,21 @@ onUnmounted(() => {
 .input-field {
   width: 100%;
   padding: 14px 16px;
-  background-color: #1C1C1E;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--color-bg-card);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.1);
   border-radius: 8px;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-size: 16px;
   font-variant-numeric: tabular-nums;
 }
 
 .input-field:focus {
   outline: none;
-  border-color: #FCD535;
+  border-color: var(--color-brand-legacy);
 }
 
 .input-field.market-price-input {
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   cursor: not-allowed;
 }
 
@@ -1764,19 +1917,19 @@ onUnmounted(() => {
 .percent-btn {
   flex: 1;
   padding: 10px;
-  background-color: #1C1C1E;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--color-bg-card);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.1);
   border-radius: 8px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .percent-btn.active {
-  background-color: #FCD535;
-  color: #000000;
-  border-color: #FCD535;
+  background-color: var(--color-brand-legacy);
+  color: var(--color-text-on-accent);
+  border-color: var(--color-brand-legacy);
   font-weight: 600;
 }
 
@@ -1784,11 +1937,11 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   font-size: 13px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
 }
 
 .info-value {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -1815,21 +1968,21 @@ onUnmounted(() => {
 }
 
 .long-btn {
-  background-color: #0ECB81;
-  color: #000000;
+  background-color: var(--color-earn);
+  color: var(--color-text-on-accent);
 }
 
 .long-btn:hover:not(:disabled) {
-  background-color: #0db870;
+  background-color: var(--color-earn);
 }
 
 .short-btn {
-  background-color: #F6465D;
-  color: #FFFFFF;
+  background-color: var(--color-loss);
+  color: var(--color-text-primary);
 }
 
 .short-btn:hover:not(:disabled) {
-  background-color: #e63950;
+  background-color: var(--color-loss);
 }
 
 .long-btn:disabled, .short-btn:disabled {
@@ -1839,8 +1992,8 @@ onUnmounted(() => {
 
 /* 持仓区域 */
 .positions-section {
-  background-color: #0E0E0E;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: var(--color-bg);
+  border-top: 1px solid rgb(var(--color-border-rgb) / 0.05);
   position: relative; /* 改为相对定位，不再固定 */
   margin-top: 8px; /* 与交易表单的间距 */
   margin-bottom: 100px; /* 与底部全局导航栏的间距，防止重叠 */
@@ -1857,8 +2010,8 @@ onUnmounted(() => {
 }
 
 :deep(.position-tabs .van-tabs__wrap) {
-  background-color: #0E0E0E;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: var(--color-bg);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 :deep(.position-tabs .van-tabs__content) {
@@ -1884,15 +2037,15 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 12px;
-  background-color: #1C1C1E;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: var(--color-bg-card);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.08);
   border-radius: 8px;
   transition: all 0.2s ease;
 }
 
 .order-item:hover {
-  background-color: #252525;
-  border-color: rgba(255, 255, 255, 0.12);
+  background-color: var(--color-surface-muted);
+  border-color: rgb(var(--color-border-rgb) / 0.12);
 }
 
 .order-item:active {
@@ -1918,13 +2071,13 @@ onUnmounted(() => {
 }
 
 .order-side-badge.buy {
-  background-color: rgba(14, 203, 129, 0.2);
-  color: #0ECB81;
+  background-color: rgb(var(--color-earn-rgb) / 0.2);
+  color: var(--color-earn);
 }
 
 .order-side-badge.sell {
-  background-color: rgba(246, 70, 93, 0.2);
-  color: #F6465D;
+  background-color: rgb(var(--color-loss-rgb) / 0.2);
+  color: var(--color-loss);
 }
 
 .order-symbol-time {
@@ -1936,12 +2089,12 @@ onUnmounted(() => {
 .order-symbol {
   font-size: 14px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
 }
 
 .order-time {
   font-size: 11px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
 }
 
 .order-center {
@@ -1956,13 +2109,13 @@ onUnmounted(() => {
 .order-price {
   font-size: 14px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
 }
 
 .order-quantity {
   font-size: 12px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1972,10 +2125,10 @@ onUnmounted(() => {
 
 .cancel-btn {
   padding: 8px 16px;
-  background-color: rgba(246, 70, 93, 0.15);
-  border: 1px solid rgba(246, 70, 93, 0.3);
+  background-color: rgb(var(--color-loss-rgb) / 0.15);
+  border: 1px solid rgb(var(--color-loss-rgb) / 0.3);
   border-radius: 6px;
-  color: #F6465D;
+  color: var(--color-loss);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -1983,8 +2136,8 @@ onUnmounted(() => {
 }
 
 .cancel-btn:hover {
-  background-color: rgba(246, 70, 93, 0.25);
-  border-color: rgba(246, 70, 93, 0.5);
+  background-color: rgb(var(--color-loss-rgb) / 0.25);
+  border-color: rgb(var(--color-loss-rgb) / 0.5);
 }
 
 .cancel-btn:active {
@@ -1994,19 +2147,19 @@ onUnmounted(() => {
 .empty-state {
   text-align: center;
   padding: 60px 0;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-size: 14px;
 }
 
 /* 专业持仓卡片 */
 .position-card {
-  background-color: #1C1C1E;
+  background-color: var(--color-bg-card);
   border-radius: 12px;
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .position-card-main {
@@ -2044,21 +2197,21 @@ onUnmounted(() => {
 .position-symbol {
   font-size: 16px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
 }
 
 .position-perpetual {
   font-size: 11px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   padding: 2px 6px;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgb(var(--color-border-rgb) / 0.05);
   border-radius: 4px;
 }
 
 .position-leverage {
   font-size: 13px;
-  color: #FCD535;
+  color: var(--color-brand-legacy);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -2071,7 +2224,7 @@ onUnmounted(() => {
 
 .unrealized-pnl-label {
   font-size: 12px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   margin-bottom: 8px;
 }
 
@@ -2086,13 +2239,13 @@ onUnmounted(() => {
 }
 
 .unrealized-pnl-value.positive {
-  color: #0ECB81;
-  text-shadow: 0 0 12px rgba(14, 203, 129, 0.5);
+  color: var(--color-earn);
+  text-shadow: 0 0 12px rgb(var(--color-earn-rgb) / 0.5);
 }
 
 .unrealized-pnl-value.negative {
-  color: #F6465D;
-  text-shadow: 0 0 12px rgba(246, 70, 93, 0.5);
+  color: var(--color-loss);
+  text-shadow: 0 0 12px rgb(var(--color-loss-rgb) / 0.5);
 }
 
 .unrealized-pnl-percent {
@@ -2103,13 +2256,13 @@ onUnmounted(() => {
 }
 
 .unrealized-pnl-percent.positive {
-  color: #0ECB81;
-  text-shadow: 0 0 8px rgba(14, 203, 129, 0.4);
+  color: var(--color-earn);
+  text-shadow: 0 0 8px rgb(var(--color-earn-rgb) / 0.4);
 }
 
 .unrealized-pnl-percent.negative {
-  color: #F6465D;
-  text-shadow: 0 0 8px rgba(246, 70, 93, 0.4);
+  color: var(--color-loss);
+  text-shadow: 0 0 8px rgb(var(--color-loss-rgb) / 0.4);
 }
 
 .position-right {
@@ -2129,13 +2282,13 @@ onUnmounted(() => {
 }
 
 .info-label {
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-size: 11px;
   font-weight: 500;
 }
 
 .info-value {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
@@ -2144,7 +2297,7 @@ onUnmounted(() => {
 }
 
 .liquidation-price {
-  color: #F6465D;
+  color: var(--color-loss);
   font-weight: 700;
   font-size: 14px;
 }
@@ -2154,7 +2307,7 @@ onUnmounted(() => {
   gap: 8px;
   margin-top: 8px;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .action-btn {
@@ -2169,43 +2322,43 @@ onUnmounted(() => {
 }
 
 .tp-sl-btn {
-  background-color: rgba(252, 213, 53, 0.1);
-  color: #FCD535;
-  border: 1px solid rgba(252, 213, 53, 0.3);
+  background-color: rgb(var(--color-brand-legacy-rgb) / 0.1);
+  color: var(--color-brand-legacy);
+  border: 1px solid rgb(var(--color-brand-legacy-rgb) / 0.3);
 }
 
 .tp-sl-btn:active {
-  background-color: rgba(252, 213, 53, 0.2);
+  background-color: rgb(var(--color-brand-legacy-rgb) / 0.2);
 }
 
 .close-btn {
-  background-color: rgba(246, 70, 93, 0.1);
-  color: #F6465D;
-  border: 1px solid rgba(246, 70, 93, 0.3);
+  background-color: rgb(var(--color-loss-rgb) / 0.1);
+  color: var(--color-loss);
+  border: 1px solid rgb(var(--color-loss-rgb) / 0.3);
 }
 
 .close-btn:active {
-  background-color: rgba(246, 70, 93, 0.2);
+  background-color: rgb(var(--color-loss-rgb) / 0.2);
 }
 
 /* ========== 彻底重构的黑金样式 ========== */
 
 /* 1. 弹窗基础容器 */
 :deep(.van-popup.premium-tpsl-popup) {
-  background: #0a0a0a !important; /* 纯深色底 */
-  border-top: 1px solid rgba(212, 175, 55, 0.2);
+  background: var(--color-bg) !important; /* 纯深色底 */
+  border-top: 1px solid rgb(var(--color-brand-rgb) / 0.2);
   padding-bottom: env(safe-area-inset-bottom);
 }
 
 .premium-modal-container {
   padding: 12px 24px 32px;
-  background: linear-gradient(180deg, rgba(212, 175, 55, 0.03) 0%, rgba(0, 0, 0, 0) 100%);
+  background: linear-gradient(180deg, rgb(var(--color-brand-rgb) / 0.03) 0%, rgb(var(--color-shadow-rgb) / 0) 100%);
 }
 
 .modal-drag-indicator {
   width: 36px;
   height: 4px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(var(--color-border-rgb) / 0.1);
   border-radius: 2px;
   margin: 0 auto 20px;
 }
@@ -2227,13 +2380,13 @@ onUnmounted(() => {
 .gold-dot {
   width: 6px;
   height: 6px;
-  background: #D4AF37;
+  background: var(--color-accent);
   border-radius: 50%;
-  box-shadow: 0 0 8px #D4AF37;
+  box-shadow: 0 0 8px var(--color-accent);
 }
 
 .premium-modal-header h3 {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-size: 18px;
   font-weight: 700;
   letter-spacing: -0.5px;
@@ -2242,11 +2395,11 @@ onUnmounted(() => {
 
 .premium-close-btn {
   font-size: 22px;
-  color: #4a4a4a;
+  color: var(--color-text-muted);
   transition: color 0.3s;
 }
 
-.premium-close-btn:active { color: #D4AF37; }
+.premium-close-btn:active { color: var(--color-accent); }
 
 /* 3. 输入组样式 */
 .premium-form-group {
@@ -2260,7 +2413,7 @@ onUnmounted(() => {
 }
 
 .group-label-row label {
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-size: 13px;
   font-weight: 500;
   text-transform: uppercase;
@@ -2268,7 +2421,7 @@ onUnmounted(() => {
 }
 
 .mark-price-ref {
-  color: #4a4a4a;
+  color: var(--color-text-muted);
   font-size: 12px;
   font-family: 'DIN Alternate', sans-serif;
 }
@@ -2277,26 +2430,26 @@ onUnmounted(() => {
 .premium-input-box {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.03); /* 玻璃拟态底色 */
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgb(var(--color-border-rgb) / 0.03); /* 玻璃拟态底色 */
+  border: 1px solid rgb(var(--color-border-rgb) / 0.08);
   border-radius: 12px;
   padding: 4px;
   transition: all 0.3s ease;
 }
 
 .premium-input-box:focus-within {
-  border-color: #D4AF37;
-  background: rgba(212, 175, 55, 0.05);
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
+  border-color: var(--color-accent);
+  background: rgb(var(--color-brand-rgb) / 0.05);
+  box-shadow: 0 0 20px rgb(var(--color-brand-rgb) / 0.1);
 }
 
 .step-btn {
   width: 44px;
   height: 44px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--color-border-rgb) / 0.05);
   border: none;
   border-radius: 8px;
-  color: #D4AF37;
+  color: var(--color-accent);
   font-size: 24px;
   font-weight: 300;
   display: flex;
@@ -2307,7 +2460,7 @@ onUnmounted(() => {
 }
 
 .step-btn:active {
-  background: rgba(212, 175, 55, 0.2);
+  background: rgb(var(--color-brand-rgb) / 0.2);
   transform: scale(0.95);
 }
 
@@ -2322,7 +2475,7 @@ onUnmounted(() => {
   width: 100%;
   background: transparent;
   border: none;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-size: 20px;
   font-weight: 600;
   text-align: center;
@@ -2344,7 +2497,7 @@ onUnmounted(() => {
 .input-suffix {
   position: absolute;
   right: 12px;
-  color: #4a4a4a;
+  color: var(--color-text-muted);
   font-size: 11px;
   font-weight: 700;
 }
@@ -2358,8 +2511,8 @@ onUnmounted(() => {
 
 .percent-tag {
   padding: 6px 12px;
-  background: rgba(50, 215, 75, 0.1);
-  color: #32D74B;
+  background: rgb(var(--color-earn-rgb) / 0.1);
+  color: var(--color-earn);
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
@@ -2367,8 +2520,8 @@ onUnmounted(() => {
 }
 
 .percent-tag.sl {
-  background: rgba(255, 69, 58, 0.1);
-  color: #FF453A;
+  background: rgb(var(--color-loss-rgb) / 0.1);
+  color: var(--color-loss);
 }
 
 .percent-tag:active { opacity: 0.7; }
@@ -2378,21 +2531,21 @@ onUnmounted(() => {
   width: 100%;
   margin-top: 12px;
   padding: 18px;
-  background: linear-gradient(135deg, #FFD700 0%, #D4AF37 100%);
+  background: linear-gradient(135deg, var(--color-accent-strong) 0%, var(--color-accent) 100%);
   border: none;
   border-radius: 14px;
-  color: #000000;
+  color: var(--color-text-on-accent);
   font-size: 16px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
-  box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
+  box-shadow: 0 10px 20px rgb(var(--color-brand-rgb) / 0.2);
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .premium-gold-button:active {
   transform: scale(0.97);
-  box-shadow: 0 5px 10px rgba(212, 175, 55, 0.1);
+  box-shadow: 0 5px 10px rgb(var(--color-brand-rgb) / 0.1);
   filter: brightness(0.9);
 }
 
@@ -2415,12 +2568,12 @@ onUnmounted(() => {
 .leverage-popup-title, .coin-select-header h3 {
   font-size: 18px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
 }
 
 .close-icon {
   cursor: pointer;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
 }
 
 .leverage-options {
@@ -2434,23 +2587,23 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 16px;
-  background-color: #1C1C1E;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--color-bg-card);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.1);
   border-radius: 8px;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   cursor: pointer;
   transition: all 0.2s ease;
   font-variant-numeric: tabular-nums;
 }
 
 .leverage-option:active {
-  background-color: #252A32;
+  background-color: var(--color-surface-muted);
 }
 
 .leverage-option.active {
-  background-color: rgba(252, 213, 53, 0.1);
-  border-color: #FCD535;
-  color: #FCD535;
+  background-color: rgb(var(--color-brand-legacy-rgb) / 0.1);
+  border-color: var(--color-brand-legacy);
+  color: var(--color-brand-legacy);
 }
 
 .coin-list {
@@ -2465,39 +2618,666 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 16px;
-  background-color: #1C1C1E;
+  background-color: var(--color-bg-card);
   border-radius: 8px;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .coin-item:active {
-  background-color: #252A32;
+  background-color: var(--color-surface-muted);
 }
 
 .coin-item.active {
-  background-color: rgba(252, 213, 53, 0.1);
-  border-color: #FCD535;
-  color: #FCD535;
+  background-color: rgb(var(--color-brand-legacy-rgb) / 0.1);
+  border-color: var(--color-brand-legacy);
+  color: var(--color-brand-legacy);
 }
 
 /* 深度覆盖弹窗背景 */
 :deep(.leverage-popup .van-popup),
 :deep(.coin-select-popup .van-popup) {
-  background: #1C1C1E !important;
+  background: var(--color-bg-card) !important;
 }
 
 :deep(.van-action-sheet) {
-  background: #1C1C1E !important;
+  background: var(--color-bg-card) !important;
 }
 
 :deep(.van-action-sheet__item) {
-  background: #1C1C1E !important;
-  color: #FFFFFF !important;
+  background: var(--color-bg-card) !important;
+  color: var(--color-text-primary) !important;
 }
 
 :deep(.van-action-sheet__item:active) {
-  background-color: rgba(255, 255, 255, 0.05) !important;
+  background-color: rgb(var(--color-border-rgb) / 0.05) !important;
+}
+
+/* ========== Pro Futures Terminal Refinement ========== */
+.futures-trade-page {
+  --terminal-bg: #0b0e11;
+  --terminal-surface: #0f1115;
+  --terminal-card: #151a21;
+  --terminal-card-soft: #11161d;
+  --terminal-border: #232a35;
+  --terminal-text: #e5e7eb;
+  --terminal-muted: #9ca3af;
+  --terminal-long: #22c55e;
+  --terminal-short: #ef4444;
+  --terminal-yellow: #f0b90b;
+  background: var(--terminal-bg);
+  color: var(--terminal-text);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto Mono', sans-serif;
+  font-variant-numeric: tabular-nums;
+  padding-bottom: 92px;
+}
+
+.trade-header,
+.pair-info,
+.positions-section,
+:deep(.position-tabs .van-tabs__wrap) {
+  background: var(--terminal-bg);
+  border-color: var(--terminal-border);
+}
+
+.futures-control-bar {
+  display: none;
+}
+
+.trade-header {
+  height: 52px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--terminal-border);
+}
+
+.page-title {
+  color: var(--terminal-text);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.pair-info {
+  min-height: 66px;
+  padding: 10px 14px;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 10px;
+  border-bottom: 1px solid var(--terminal-border);
+}
+
+.pair-name {
+  color: var(--terminal-text);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.terminal-price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.1;
+}
+
+.terminal-price strong {
+  color: var(--terminal-text);
+  font-family: 'Roboto Mono', 'DIN Alternate', monospace;
+  font-size: 31px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.terminal-price span {
+  margin-top: 4px;
+  color: var(--terminal-muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.price-change {
+  min-width: 72px;
+  height: 30px;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgb(239 68 68 / 0.14);
+  color: var(--terminal-short);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.price-change.positive {
+  background: rgb(34 197 94 / 0.14);
+  color: var(--terminal-long);
+}
+
+.trade-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  align-items: stretch;
+  padding: 10px;
+  background: var(--terminal-bg);
+}
+
+.orderbook-side,
+.form-side {
+  width: auto;
+  min-height: 520px;
+  background: var(--terminal-card);
+  border: 1px solid var(--terminal-border);
+  border-radius: 14px;
+  box-shadow: 0 10px 24px rgb(0 0 0 / 0.18);
+  overflow: hidden;
+}
+
+.orderbook-side {
+  padding: 10px 8px;
+}
+
+.orderbook-header {
+  padding: 0 4px 8px;
+  color: var(--terminal-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.order-row {
+  height: 22px;
+  line-height: 22px;
+  padding: 0 6px;
+  border-radius: 5px;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.order-row:hover {
+  background: rgb(255 255 255 / 0.045);
+  transform: translateX(1px);
+}
+
+.depth-bar {
+  opacity: 1;
+  border-radius: 5px;
+}
+
+.ask-depth {
+  background: linear-gradient(90deg, transparent, rgb(239 68 68 / 0.16));
+}
+
+.bid-depth {
+  background: linear-gradient(90deg, transparent, rgb(34 197 94 / 0.16));
+}
+
+.price,
+.quantity {
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Roboto Mono', 'DIN Alternate', monospace;
+}
+
+.ask-price {
+  color: #ff6b72;
+  text-shadow: none;
+}
+
+.bid-price {
+  color: #34d27a;
+  text-shadow: none;
+}
+
+.quantity {
+  color: #aeb6c2;
+  font-weight: 500;
+}
+
+.last-price {
+  height: 72px;
+  margin: 10px 2px;
+  border: 1px solid rgb(240 185 11 / 0.34);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgb(240 185 11 / 0.08), rgb(240 185 11 / 0.025));
+  box-shadow: 0 0 18px rgb(240 185 11 / 0.12);
+  animation: terminalPulse 2.6s ease-in-out infinite;
+}
+
+.last-price.up,
+.last-price.down {
+  background: linear-gradient(180deg, rgb(240 185 11 / 0.08), rgb(240 185 11 / 0.025));
+}
+
+.price-main {
+  color: var(--terminal-yellow);
+  font-family: 'Roboto Mono', 'DIN Alternate', monospace;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.7px;
+}
+
+.price-fiat {
+  color: var(--terminal-muted);
+  font-size: 11px;
+}
+
+.form-side {
+  flex: initial;
+  padding: 10px;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.form-side > .order-type-selector,
+.form-side > .input-row,
+.form-side > .percent-buttons,
+.form-side > .info-row,
+.form-side > div.futures-action-buttons {
+  display: none;
+}
+
+.trade-panel-block {
+  background: var(--terminal-card-soft);
+  border: 1px solid var(--terminal-border);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.leverage-block {
+  padding: 9px 10px;
+}
+
+.leverage-topline {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.margin-mode-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.mode-btn,
+.leverage-btn {
+  height: 32px;
+  border: 1px solid var(--terminal-border);
+  border-radius: 8px;
+  background: #0f141b;
+  color: var(--terminal-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.mode-btn.active,
+.leverage-btn {
+  color: var(--terminal-yellow);
+  border-color: rgb(240 185 11 / 0.32);
+  background: rgb(240 185 11 / 0.08);
+}
+
+.leverage-btn {
+  min-width: 62px;
+  justify-content: center;
+  padding: 0 10px;
+}
+
+.risk-note {
+  margin: 7px 0 0;
+  color: var(--terminal-muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.order-type-tabs {
+  height: 40px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 0 6px;
+  align-items: end;
+  background: transparent;
+  border-color: transparent;
+}
+
+.order-type-tabs button {
+  height: 36px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--terminal-muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.order-type-tabs button.active {
+  color: var(--terminal-text);
+  border-bottom-color: var(--terminal-yellow);
+}
+
+.input-block {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.terminal-label {
+  color: var(--terminal-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.terminal-input {
+  height: 40px;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto 28px;
+  gap: 6px;
+  align-items: center;
+  padding: 0 6px;
+  border: 1px solid var(--terminal-border);
+  border-radius: 9px;
+  background: #0e1319;
+  transition: border 160ms ease, box-shadow 160ms ease;
+}
+
+.terminal-input:focus-within {
+  border-color: rgb(240 185 11 / 0.7);
+  box-shadow: 0 0 0 3px rgb(240 185 11 / 0.10);
+}
+
+.terminal-input button {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 7px;
+  background: #151c25;
+  color: var(--terminal-muted);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.terminal-input button:active {
+  transform: scale(0.94);
+}
+
+.terminal-input span {
+  color: var(--terminal-muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.input-field {
+  height: 38px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  color: var(--terminal-text);
+  font-family: 'Roboto Mono', 'DIN Alternate', monospace;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.input-field:focus {
+  border: 0;
+  box-shadow: none;
+}
+
+.input-field::placeholder {
+  color: #687180;
+  font-weight: 600;
+}
+
+.account-metrics {
+  display: grid;
+  gap: 6px;
+  padding: 9px 10px;
+}
+
+.info-row {
+  font-size: 11px;
+  color: var(--terminal-muted);
+}
+
+.info-value {
+  color: var(--terminal-text);
+  font-family: 'Roboto Mono', 'DIN Alternate', monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.info-value.positive {
+  color: var(--terminal-long);
+}
+
+.info-value.negative {
+  color: var(--terminal-short);
+}
+
+.risk-slider-block {
+  padding: 10px;
+}
+
+.risk-slider {
+  width: 100%;
+  height: 4px;
+  appearance: none;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--terminal-yellow), #394150);
+  outline: none;
+}
+
+.risk-slider::-webkit-slider-thumb {
+  width: 14px;
+  height: 14px;
+  appearance: none;
+  border: 2px solid var(--terminal-bg);
+  border-radius: 999px;
+  background: var(--terminal-yellow);
+  box-shadow: 0 0 0 3px rgb(240 185 11 / 0.18);
+}
+
+.percent-buttons {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.percent-btn {
+  height: 26px;
+  padding: 0;
+  border-color: var(--terminal-border);
+  border-radius: 7px;
+  background: #0f141b;
+  color: var(--terminal-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.percent-btn.active {
+  background: rgb(240 185 11 / 0.12);
+  border-color: rgb(240 185 11 / 0.42);
+  color: var(--terminal-yellow);
+}
+
+.terminal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: auto;
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+
+.long-btn,
+.short-btn {
+  height: 46px;
+  padding: 0;
+  border-radius: 11px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+  box-shadow: 0 10px 18px rgb(0 0 0 / 0.20);
+}
+
+.long-btn {
+  background: linear-gradient(180deg, #2bd576, #16a34a);
+}
+
+.short-btn {
+  background: linear-gradient(180deg, #ff6b6b, #dc2626);
+}
+
+.long-btn:hover:not(:disabled),
+.short-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+}
+
+.long-btn:active:not(:disabled),
+.short-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.long-btn:disabled,
+.short-btn:disabled {
+  opacity: 0.45;
+  filter: saturate(0.55);
+}
+
+.positions-section {
+  margin: 0 10px 90px;
+  background: var(--terminal-card);
+  border: 1px solid var(--terminal-border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.positions-list,
+.orders-list,
+.history-list {
+  background: var(--terminal-card);
+}
+
+.empty-state,
+.order-status,
+.order-time,
+.order-quantity,
+.info-label {
+  color: var(--terminal-muted);
+}
+
+.position-card,
+.order-item {
+  background: var(--terminal-card-soft);
+  border-color: var(--terminal-border);
+}
+
+@keyframes terminalPulse {
+  0%, 100% {
+    box-shadow: 0 0 14px rgb(240 185 11 / 0.10);
+  }
+  50% {
+    box-shadow: 0 0 24px rgb(240 185 11 / 0.20);
+  }
+}
+
+@media (max-width: 390px) {
+  .trade-main {
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .orderbook-side,
+  .form-side {
+    min-height: 500px;
+  }
+
+  .terminal-price strong {
+    font-size: 28px;
+  }
+}
+
+/* Keep futures page aligned with app light theme */
+.futures-trade-page {
+  --terminal-bg: var(--color-bg);
+  --terminal-surface: var(--color-bg);
+  --terminal-card: #ffffff;
+  --terminal-card-soft: #ffffff;
+  --terminal-border: #eaecef;
+  --terminal-text: var(--color-text-primary);
+  --terminal-muted: var(--color-text-secondary);
+  background: var(--color-bg) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.futures-trade-page .trade-header,
+.futures-trade-page .pair-info,
+.futures-trade-page .positions-section,
+.futures-trade-page :deep(.position-tabs .van-tabs__wrap) {
+  background: var(--color-bg) !important;
+  border-color: #eaecef !important;
+}
+
+.futures-trade-page .trade-main {
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr) !important;
+  gap: 10px !important;
+  padding: 10px 12px 12px !important;
+  background: transparent !important;
+}
+
+.futures-trade-page .orderbook-side,
+.futures-trade-page .form-side {
+  height: 500px !important;
+  min-height: 500px !important;
+  max-height: 500px !important;
+  background: #ffffff !important;
+  border: 1px solid #eaecef !important;
+  border-radius: 14px !important;
+  box-shadow: 0 2px 10px rgb(17 24 39 / 0.05) !important;
+}
+
+.futures-trade-page .order-row {
+  height: 32px !important;
+  line-height: 32px !important;
+}
+
+.futures-trade-page .last-price {
+  height: 72px !important;
+  min-height: 72px !important;
+  border-color: rgb(var(--color-brand-rgb) / 0.20) !important;
+  background: linear-gradient(180deg, rgb(var(--color-brand-rgb) / 0.045), #ffffff) !important;
+}
+
+.futures-trade-page .price-main {
+  color: var(--color-earn) !important;
+  font-size: 25px !important;
+  text-shadow: none !important;
+}
+
+.futures-trade-page .terminal-price strong {
+  color: var(--color-text-primary) !important;
+}
+
+.futures-trade-page .trade-panel-block,
+.futures-trade-page .terminal-input,
+.futures-trade-page .mode-btn,
+.futures-trade-page .leverage-btn {
+  background: #ffffff !important;
+  border-color: #eaecef !important;
+  color: var(--color-text-primary) !important;
+}
+
+.futures-trade-page .terminal-actions {
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.futures-trade-page .input-field {
+  color: var(--color-text-primary) !important;
 }
 </style>

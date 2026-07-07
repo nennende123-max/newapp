@@ -1,340 +1,266 @@
 <template>
   <div class="google-auth-page">
     <van-nav-bar
-      :title="$t('security.google_auth_title')"
+      title="Google 验证器"
       left-arrow
       fixed
       placeholder
       :border="false"
+      class="page-nav-bar"
       @click-left="handleBack"
-      style="--van-nav-bar-background: #000000; --van-nav-bar-title-text-color: #FCD535; --van-nav-bar-icon-color: #FCD535;"
     />
-    
-    <div class="content-wrapper">
-      <div class="description-text">
-        {{ $t('security.google_auth_description') }}
-      </div>
 
-      <div class="qr-container">
-        <div class="qr-placeholder">
+    <main class="google-auth-content">
+      <section class="qr-card">
+        <div class="card-heading">
+          <div>
+            <h2>扫描二维码</h2>
+          </div>
+          <button class="refresh-qr" type="button" @click="refreshQRCode">
+            <van-icon name="replay" />
+            <span>刷新</span>
+          </button>
+        </div>
+
+        <div class="qr-frame">
           <canvas ref="qrCanvas" class="qr-canvas"></canvas>
         </div>
-        <div class="qr-hint">
-          <span>{{ $t('security.google_auth_qr_hint') }}</span>
-          <span class="refresh-qr" @click="refreshQRCode">
-            <van-icon name="replay" size="14" color="#FCD535" />
-            {{ $t('security.google_auth_refresh_qr') }}
-          </span>
-        </div>
-      </div>
+        <p class="qr-tip">请使用 Google Authenticator 扫描二维码</p>
+      </section>
 
-      <div class="secret-key-section">
-        <div class="secret-key-label">{{ $t('security.google_auth_secret_title') }}</div>
-        <div class="secret-key-container">
-          <div class="secret-key-value">{{ formattedSecretKey }}</div>
-          <van-icon 
-            name="doc-on-doc-o" 
-            size="18" 
-            color="#FCD535" 
-            class="copy-icon"
-            @click="handleCopySecretKey"
-          />
-        </div>
-      </div>
-
-      <div class="code-section">
-        <div class="input-label">
-          <van-icon name="shield-o" color="#FCD535" size="18" style="margin-right: 8px" />
-          {{ $t('security.google_auth_code_placeholder') }}
-        </div>
-        <div class="code-input-container" @click.stop="handleCodeInputClick">
-          <!-- 自定义 6 位验证码输入框，替代 van-password-input 以解决 Vue 渲染冲突 -->
-          <div class="custom-code-input">
-            <div 
-              v-for="i in 6" 
-              :key="i" 
-              class="code-item"
-              :class="{ 
-                'is-filled': verifyCode.length >= i,
-                'is-focused': showCodeKeyboard && verifyCode.length === i - 1
-              }"
-            >
-              {{ verifyCode[i-1] || '' }}
-            </div>
+      <section class="form-card">
+        <div class="field-block">
+          <div class="field-header">
+            <span>备用密钥</span>
+            <button type="button" class="copy-btn" @click="handleCopySecretKey">
+              <van-icon name="description-o" />
+              <span>复制</span>
+            </button>
           </div>
+          <button class="secret-key-box" type="button" @click="handleCopySecretKey">
+            <span>{{ formattedSecretKey }}</span>
+          </button>
         </div>
-      </div>
 
-      <div class="hint-text">
-        {{ $t('security.google_auth_code_hint') }}
-      </div>
+        <div class="field-block">
+          <div class="field-header">
+            <span>验证码</span>
+            <small>6 位数字</small>
+          </div>
+          <button class="code-input-trigger" type="button" @click.stop="handleCodeInputClick">
+            <span
+              v-for="i in 6"
+              :key="i"
+              :class="[
+                'auth-code-item',
+                {
+                  'is-filled': verifyCode.length >= i,
+                  'is-focused': showCodeKeyboard && verifyCode.length === i - 1
+                }
+              ]"
+            >
+              {{ verifyCode[i - 1] || '' }}
+            </span>
+          </button>
+        </div>
 
-      <div class="submit-section">
-        <van-button
-          block
-          class="submit-btn"
-          :disabled="verifyCode.length !== 6"
-          @click="handleSubmit"
-        >
-          {{ $t('security.google_auth_enable_btn') }}
-        </van-button>
-      </div>
+        <div class="sync-note">
+          <van-icon name="clock-o" />
+          <span>验证码每 30 秒更新一次，请确保设备时间同步。</span>
+        </div>
+      </section>
+
+      <van-button
+        block
+        class="submit-btn"
+        :disabled="verifyCode.length !== 6"
+        @click="handleSubmit"
+      >
+        启用验证
+      </van-button>
 
       <van-number-keyboard
-        ref="keyboardRef"
         v-model="verifyCode"
         v-model:show="showCodeKeyboard"
         :show-delete-key="true"
         theme="custom"
         extra-key=""
-        :close-button-text="$t('common.complete')"
+        close-button-text="完成"
         :z-index="5000"
         class="custom-keyboard"
         @delete="onCodeDelete"
-        @blur="closeKeyboard"
         @input="onCodeInput"
         @update:model-value="onCodeInput"
+        @blur="closeKeyboard"
         @close="closeKeyboard"
       />
-    </div>
+    </main>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { useI18n } from 'vue-i18n';
-import { showToast } from 'vant';
+import { showSuccessToast, showToast } from 'vant';
 import QRCode from 'qrcode';
 
 const router = useRouter();
-const { t } = useI18n();
 
-// 数据
 const verifyCode = ref('');
-// 修复：默认不弹出键盘
 const showCodeKeyboard = ref(false);
-const codeInputRef = ref(null);
 const qrCanvas = ref(null);
-const keyboardRef = ref(null);
 
-// 生成16位随机密钥
 const generateSecretKey = () => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
   let key = '';
-  for (let i = 0; i < 16; i++) {
+
+  for (let i = 0; i < 16; i += 1) {
     key += chars.charAt(Math.floor(Math.random() * chars.length));
   }
+
   return key;
 };
 
 const secretKey = ref(generateSecretKey());
 
-// 格式化密钥显示（每4位一组，空格分隔）
 const formattedSecretKey = computed(() => {
   const key = secretKey.value;
   return `${key.slice(0, 4)} ${key.slice(4, 8)} ${key.slice(8, 12)} ${key.slice(12, 16)}`;
 });
 
-// 生成二维码
 const generateQRCode = async () => {
   if (!qrCanvas.value) return;
-  
+
   try {
-    // 生成 Google Authenticator 格式的 otpauth URL
     const issuer = 'TruthFi';
     const accountName = 'user@truthfi.app';
     const otpauthUrl = `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(accountName)}?secret=${secretKey.value}&issuer=${encodeURIComponent(issuer)}`;
-    
+
     await QRCode.toCanvas(qrCanvas.value, otpauthUrl, {
-      width: 240,
-      margin: 2,
+      width: 212,
+      margin: 1,
       color: {
-        dark: '#000000',
+        dark: '#111111',
         light: '#FFFFFF'
       },
       errorCorrectionLevel: 'M'
     });
   } catch (error) {
-    console.error('生成二维码失败:', error);
+    console.error('Failed to generate QR code', error);
     showToast({
-      message: t('security.google_auth_qr_generate_failed') || '二维码生成失败',
+      message: '二维码生成失败，请稍后重试',
       icon: 'fail',
-      duration: 2000
+      duration: 2000,
+      position: 'middle'
     });
   }
 };
 
-// 切换二维码
 const refreshQRCode = async () => {
   secretKey.value = generateSecretKey();
   await nextTick();
   await generateQRCode();
-  showToast({
-    message: t('security.google_auth_qr_refreshed'),
-    duration: 1500,
+  showSuccessToast({
+    message: '二维码已刷新',
+    duration: 1400,
     position: 'middle'
   });
 };
 
-// 统一更新验证码显示函数
-const updateCodeDisplay = () => {
-  // 自定义实现后不再需要手动 DOM 操作，Vue 会自动处理模板中的渲染
-};
-
-// 监听键盘显示
-watch(showCodeKeyboard, (show) => {
-  // 不再需要手动逻辑
-});
-
-// 关闭键盘
 const closeKeyboard = () => {
   showCodeKeyboard.value = false;
-  if (document.activeElement) {
-    document.activeElement.blur();
-  }
+  document.activeElement?.blur?.();
 };
 
-// 返回处理
 const handleBack = () => {
   closeKeyboard();
   router.back();
 };
 
-// 监听验证码输入
-watch(verifyCode, (newVal) => {
-  updateCodeDisplay();
-  if (newVal.length === 6) {
-    setTimeout(() => {
-      closeKeyboard();
-    }, 100);
-  }
-});
-
-// 复制密钥
 const handleCopySecretKey = async () => {
   try {
     await navigator.clipboard.writeText(secretKey.value);
-    showToast({
-      message: t('security.google_auth_secret_copied'),
-      icon: 'success',
-      duration: 1500,
+    showSuccessToast({
+      message: '密钥已复制',
+      duration: 1400,
       position: 'middle'
     });
   } catch (err) {
     showToast({
-      message: t('common.copy_failed'),
+      message: '复制失败，请手动复制',
       duration: 1500,
       position: 'middle'
     });
   }
 };
 
-// 修复：点击输入框时，先失焦其他元素，再显示键盘
 const handleCodeInputClick = () => {
-  console.log('🟡 Input container clicked, showing keyboard');
-  if (document.activeElement) {
-    document.activeElement.blur();
-  }
+  document.activeElement?.blur?.();
   showCodeKeyboard.value = true;
-  
-  // 延迟后添加 PC 端点击支持
-  setTimeout(() => {
-    const keyboardEl = document.querySelector('.van-number-keyboard');
-    if (keyboardEl) {
-      const keys = keyboardEl.querySelectorAll('.van-key');
-      keys.forEach((key) => {
-        // 不要使用 replaceChild，直接添加事件监听器
-        // 先移除旧的（如果存在）以防重复
-        key.onclick = (e) => {
-          e.stopPropagation();
-          const keyText = key.textContent.trim();
-          
-          if (keyText === '删除' || keyText === 'Delete' || key.classList.contains('van-key--delete')) {
-            onCodeDelete();
-          } else if (keyText === '完成' || keyText === 'Done' || key.classList.contains('van-key--close')) {
-            closeKeyboard();
-          } else if (/^\d$/.test(keyText)) {
-            const currentValue = verifyCode.value || '';
-            if (currentValue.length < 6) {
-              verifyCode.value = currentValue + keyText;
-            }
-          }
-        };
-      });
-    }
-  }, 300);
 };
 
-// 验证码键盘输入处理
 const onCodeInput = (value) => {
-  const newValue = String(value || '').replace(/\D/g, '');
-  if (newValue.length <= 6) {
-    verifyCode.value = newValue;
-    if (window.navigator?.vibrate) {
-      window.navigator.vibrate(10);
-    }
-  } else {
-    verifyCode.value = newValue.slice(0, 6);
+  verifyCode.value = String(value || '').replace(/\D/g, '').slice(0, 6);
+
+  if (window.navigator?.vibrate) {
+    window.navigator.vibrate(10);
   }
 };
 
-// 验证码删除处理
 const onCodeDelete = () => {
-  if (verifyCode.value.length > 0) {
-    verifyCode.value = verifyCode.value.slice(0, -1);
-    if (window.navigator?.vibrate) window.navigator.vibrate(10);
+  verifyCode.value = verifyCode.value.slice(0, -1);
+
+  if (window.navigator?.vibrate) {
+    window.navigator.vibrate(10);
   }
 };
 
-// 提交表单
 const handleSubmit = () => {
   if (verifyCode.value.length !== 6) {
     showToast({
-      message: t('security.google_auth_code_required'),
-      duration: 2000,
+      message: '请输入 6 位验证码',
+      duration: 1800,
       position: 'middle'
     });
     return;
   }
 
-  // 验证码格式检查（只允许数字）
-  const codeRegex = /^\d{6}$/;
-  if (!codeRegex.test(verifyCode.value)) {
+  if (!/^\d{6}$/.test(verifyCode.value)) {
     showToast({
-      message: t('security.google_auth_code_invalid'),
-      duration: 2000,
+      message: '验证码格式错误',
+      duration: 1800,
       position: 'middle'
     });
     return;
   }
 
-  // 保存谷歌验证状态到 localStorage
   localStorage.setItem('googleAuthEnabled', 'true');
   localStorage.setItem('googleAuthStatus', '已开启');
   localStorage.setItem('googleAuthSecretKey', secretKey.value);
 
-  showToast({
-    message: t('security.google_auth_enable_success'),
-    icon: 'success',
+  showSuccessToast({
+    message: 'Google 验证器启用成功',
     duration: 1500,
     position: 'middle',
     forbidClick: true
   });
 
-  // 延迟跳转回安全中心
   setTimeout(() => {
     router.push('/security-center');
   }, 1500);
 };
 
-// 监听密钥变化，重新生成二维码
+watch(verifyCode, (value) => {
+  if (value.length === 6) {
+    setTimeout(closeKeyboard, 100);
+  }
+});
+
 watch(secretKey, async () => {
   await nextTick();
   await generateQRCode();
 });
 
-// 页面加载时生成二维码
 onMounted(async () => {
   await nextTick();
   await generateQRCode();
@@ -344,311 +270,680 @@ onMounted(async () => {
 <style scoped>
 .google-auth-page {
   min-height: 100vh;
-  background-color: #0E0E0E;
-  padding-top: 12px;
-  font-family: 'DIN Alternate', 'Roboto', sans-serif;
+  background: #F5F7FA;
+  color: #111827;
 }
 
-.content-wrapper {
-  padding: 24px 20px;
+:deep(.page-nav-bar) {
+  --van-nav-bar-background: #FFFFFF;
+  --van-nav-bar-title-text-color: #111827;
+  --van-nav-bar-icon-color: #F0B90B;
+  border-bottom: 1px solid #E6EBF2;
+}
+
+:deep(.page-nav-bar .van-nav-bar__title) {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.google-auth-content {
+  min-height: calc(100dvh - var(--van-nav-bar-height));
+  padding: 16px 16px 22px;
   display: flex;
   flex-direction: column;
+  gap: 14px;
+}
+
+.auth-hero {
+  min-height: 122px;
+  padding: 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #FFFFFF 0%, #FFF9E8 100%);
+  border: 1px solid rgba(240, 185, 11, 0.2);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.07);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 54px;
+  gap: 14px;
   align-items: center;
-  gap: 32px;
 }
 
-/* 说明文字 */
-.description-text {
-  font-size: 14px;
-  color: #8E8E93;
-  text-align: center;
-  line-height: 1.5;
-  padding: 0 20px;
-}
-
-/* QR 二维码容器 - 淡入动画 */
-.qr-container {
-  width: 100%;
-  max-width: 280px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  margin: 20px 0;
-  animation: fadeIn 0.5s ease-in;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.qr-placeholder {
-  width: 240px;
-  height: 240px;
-  background-color: #FFFFFF; /* 白色背景，确保二维码可见 */
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.qr-canvas {
-  width: 100%;
-  height: 100%;
+.hero-kicker {
   display: block;
-  border-radius: 8px;
-}
-
-.qr-hint {
-  font-size: 13px;
-  color: #8E8E93;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-}
-
-.refresh-qr {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: #FCD535;
-  cursor: pointer;
+  margin-bottom: 6px;
+  color: #B7791F;
   font-size: 12px;
-  transition: opacity 0.2s ease;
+  font-weight: 900;
+  line-height: 1;
 }
 
-.refresh-qr:active {
-  opacity: 0.7;
+.auth-hero h1 {
+  margin: 0;
+  color: #111827;
+  font-size: 25px;
+  font-weight: 950;
+  line-height: 1.15;
 }
 
-/* 密钥绑定区 */
-.secret-key-section {
-  width: 100%;
-  max-width: 320px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.auth-hero p {
+  margin: 10px 0 0;
+  color: #64748B;
+  font-size: 13px;
+  line-height: 1.48;
 }
 
-.secret-key-label {
-  font-size: 15px;
-  color: #FFFFFF;
-  font-weight: 500;
-  font-family: 'DIN Alternate', 'Roboto', sans-serif;
+.hero-badge {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  color: #111827;
+  font-size: 26px;
+  background: linear-gradient(135deg, #FCD535 0%, #F0B90B 100%);
+  box-shadow: 0 12px 24px rgba(240, 185, 11, 0.22);
 }
 
-.secret-key-container {
+.qr-card,
+.form-card {
+  border-radius: 18px;
+  background: #FFFFFF;
+  border: 1px solid #E8EEF5;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+}
+
+.qr-card {
+  padding: 16px;
+}
+
+.card-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #1C1C1E;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 14px 16px;
   gap: 12px;
+  margin-bottom: 14px;
 }
 
-.secret-key-value {
-  flex: 1;
-  font-size: 16px;
-  color: #FFFFFF;
-  font-weight: 700; /* 字体加粗 */
-  font-family: 'DIN Alternate', 'Roboto', sans-serif;
-  font-variant-numeric: tabular-nums;
+.step-label {
+  display: block;
+  margin-bottom: 4px;
+  color: #F0B90B;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.card-heading h2 {
+  margin: 0;
+  color: #111827;
+  font-size: 17px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.refresh-qr,
+.copy-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  background: #FFF8E1;
+  color: #B7791F;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.refresh-qr {
+  height: 30px;
+  padding: 0 11px;
+}
+
+.qr-frame {
+  width: 244px;
+  height: 244px;
+  margin: 0 auto;
+  padding: 16px;
+  border-radius: 16px;
+  background:
+    linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+    linear-gradient(135deg, rgba(240, 185, 11, 0.24), rgba(226, 232, 240, 0.9)) border-box;
+  border: 1px solid transparent;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
+}
+
+.qr-canvas {
+  width: 212px;
+  height: 212px;
+  display: block;
+}
+
+.qr-tip {
+  margin: 12px 0 0;
+  color: #64748B;
+  font-size: 13px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.form-card {
+  padding: 16px;
+}
+
+.field-block + .field-block {
+  margin-top: 16px;
+}
+
+.field-header {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.field-header small {
+  color: #94A3B8;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.copy-btn {
+  height: 28px;
+  padding: 0 10px;
+}
+
+.secret-key-box {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  min-height: 54px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 12px;
+  background: #F8FAFC;
+  color: #0F172A;
+  display: flex;
+  align-items: center;
+  box-shadow: inset 0 0 0 1px #E8EEF5;
+}
+
+.secret-key-box span {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 950;
   letter-spacing: 2px;
   word-spacing: 4px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.copy-icon {
-  cursor: pointer;
-  transition: opacity 0.2s ease;
-  flex-shrink: 0;
-}
-
-.copy-icon:active {
-  opacity: 0.7;
-  transform: scale(0.85); /* 明显的缩放反馈 */
-}
-
-/* 验证码输入区域 */
-.code-section {
+.code-input-trigger {
+  appearance: none;
+  -webkit-appearance: none;
   width: 100%;
-  max-width: 320px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
 }
 
-.input-label {
-  font-size: 15px;
-  color: #FFFFFF;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  font-family: 'DIN Alternate', 'Roboto', sans-serif;
-}
-
-.code-input-container {
-  width: 100%;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* 自定义验证码输入框样式 */
-.custom-code-input {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  width: 100%;
-}
-
-.code-item {
-  width: 48px;
-  height: 48px;
-  background-color: #1C1C1E;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: #FFFFFF;
+.auth-code-item {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  background: #F8FAFC;
+  border: 1px solid #E5EAF0;
+  color: #111827;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  display: grid;
+  place-items: center;
   font-size: 20px;
-  font-weight: 600;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.auth-code-item.is-filled,
+.auth-code-item.is-focused {
+  background: #FFFFFF;
+  border-color: #F0B90B;
+  box-shadow: 0 0 0 3px rgba(240, 185, 11, 0.14);
+}
+
+.sync-note {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #F8FAFC;
+  color: #64748B;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-family: 'DIN Alternate', 'Roboto', sans-serif;
-  transition: all 0.2s ease;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
-.code-item.is-filled {
-  border-color: #FCD535;
-}
-
-.code-item.is-focused {
-  border-color: #FCD535;
-  background-color: rgba(252, 213, 53, 0.1);
-  box-shadow: 0 0 8px rgba(252, 213, 53, 0.3);
-}
-
-/* 提示文字 */
-.hint-text {
-  font-size: 13px;
-  color: #8E8E93;
-  text-align: center;
-  line-height: 1.5;
-  padding: 0 20px;
-}
-
-/* 提交按钮区域 */
-.submit-section {
-  width: 100%;
-  max-width: 320px;
-  margin-top: 20px;
+.sync-note .van-icon {
+  color: #F0B90B;
+  flex: 0 0 auto;
 }
 
 .submit-btn {
-  background-color: #FCD535;
-  color: #0E0E0E;
-  border: none;
-  border-radius: 12px;
-  height: 56px;
-  font-size: 16px;
-  font-weight: 700;
-  font-family: 'DIN Alternate', 'Roboto', sans-serif;
-  font-variant-numeric: tabular-nums;
-  box-shadow: 0 4px 12px rgba(252, 213, 53, 0.2); /* 微弱的呼吸灯阴影效果 */
-  transition: all 0.3s ease;
-  animation: breathe 2s ease-in-out infinite, fadeInButton 0.5s ease-in; /* 添加进入页面的淡入动画 */
-}
-
-@keyframes fadeInButton {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes breathe {
-  0%, 100% {
-    box-shadow: 0 4px 12px rgba(252, 213, 53, 0.2);
-  }
-  50% {
-    box-shadow: 0 4px 16px rgba(252, 213, 53, 0.3);
-  }
-}
-
-.submit-btn:active {
-  opacity: 0.8;
-  transform: scale(0.98);
+  width: 100%;
+  height: 52px;
+  margin-top: 2px;
+  border: 0;
+  border-radius: 14px;
+  background: #F0B90B;
+  color: #111827;
+  font-size: 15px;
+  font-weight: 950;
+  box-shadow: 0 14px 28px rgba(240, 185, 11, 0.2);
 }
 
 .submit-btn:disabled {
-  background-color: #333;
-  color: #8E8E93;
-  opacity: 0.5;
-  animation: none; /* 禁用状态下移除呼吸灯动画 */
+  background: #E5EAF0;
+  color: #94A3B8;
+  opacity: 1;
   box-shadow: none;
+}
+
+@media (max-height: 760px) {
+  .google-auth-content {
+    gap: 10px;
+    padding-top: 12px;
+    padding-bottom: 16px;
+  }
+
+  .auth-hero {
+    min-height: 104px;
+    padding: 14px 16px;
+  }
+
+  .auth-hero h1 {
+    font-size: 22px;
+  }
+
+  .auth-hero p {
+    margin-top: 7px;
+    font-size: 12px;
+  }
+
+  .hero-badge {
+    width: 48px;
+    height: 48px;
+    font-size: 24px;
+  }
+
+  .qr-card,
+  .form-card {
+    padding: 13px;
+  }
+
+  .qr-frame {
+    width: 214px;
+    height: 214px;
+    padding: 12px;
+  }
+
+  .qr-canvas {
+    width: 190px;
+    height: 190px;
+  }
+
+  .qr-tip {
+    margin-top: 8px;
+  }
+
+  .field-block + .field-block {
+    margin-top: 12px;
+  }
+
+  .sync-note {
+    margin-top: 10px;
+    padding: 8px 10px;
+  }
+
+  .submit-btn {
+    height: 48px;
+  }
+}
+
+@media (max-width: 360px) {
+  .google-auth-content {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .auth-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hero-badge {
+    display: none;
+  }
+
+  .code-input-trigger {
+    gap: 7px;
+  }
+
+  .secret-key-box span {
+    font-size: 13px;
+    letter-spacing: 1.5px;
+  }
+}
+
+/* Airy security setup polish */
+.google-auth-page {
+  background:
+    linear-gradient(180deg, #F3F6FA 0%, #F8FAFC 48%, #F3F6FA 100%);
+}
+
+:deep(.page-nav-bar) {
+  --van-nav-bar-height: 56px;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+}
+
+:deep(.page-nav-bar .van-nav-bar__title) {
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.google-auth-content {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 22px 20px 28px;
+  gap: 18px;
+}
+
+.auth-hero {
+  min-height: 154px;
+  padding: 24px 22px;
+  border-radius: 16px;
+  grid-template-columns: minmax(0, 1fr) 60px;
+  gap: 18px;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
+}
+
+.hero-kicker {
+  margin-bottom: 12px;
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+.auth-hero h1 {
+  font-size: 30px;
+  line-height: 1.12;
+  letter-spacing: 0;
+}
+
+.auth-hero p {
+  margin-top: 14px;
+  color: #334155;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.hero-badge {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+}
+
+.qr-card,
+.form-card {
+  border-radius: 16px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.055);
+}
+
+.qr-card {
+  padding: 22px 20px 20px;
+}
+
+.card-heading {
+  margin-bottom: 18px;
+}
+
+.step-label {
+  margin-bottom: 8px;
+  letter-spacing: 0;
+}
+
+.card-heading h2 {
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.refresh-qr {
+  height: 34px;
+  padding: 0 13px;
+}
+
+.qr-frame {
+  width: min(272px, calc(100vw - 88px));
+  height: min(272px, calc(100vw - 88px));
+  padding: 18px;
+  border-radius: 16px;
+}
+
+.qr-canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.qr-tip {
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+.form-card {
+  padding: 20px;
+}
+
+.field-block + .field-block {
+  margin-top: 20px;
+}
+
+.field-header {
+  margin-bottom: 12px;
+  font-size: 15px;
+}
+
+.secret-key-box {
+  min-height: 60px;
+  padding: 0 16px;
+  border-radius: 14px;
+}
+
+.secret-key-box span {
+  font-size: 16px;
+  letter-spacing: 2.4px;
+}
+
+.code-input-trigger {
+  gap: 10px;
+}
+
+.auth-code-item {
+  border-radius: 12px;
+  font-size: 22px;
+}
+
+.sync-note {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+}
+
+.submit-btn {
+  height: 56px;
+  margin-top: 0;
+  border-radius: 14px;
+  font-size: 16px;
+}
+
+@media (max-height: 760px) {
+  .google-auth-content {
+    padding-top: 16px;
+    gap: 14px;
+  }
+
+  .auth-hero {
+    min-height: 126px;
+    padding: 18px;
+  }
+
+  .auth-hero h1 {
+    font-size: 25px;
+  }
+
+  .auth-hero p {
+    margin-top: 10px;
+    font-size: 13px;
+  }
+
+  .qr-card,
+  .form-card {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 380px) {
+  .google-auth-content {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .auth-hero {
+    grid-template-columns: minmax(0, 1fr) 52px;
+    padding: 20px 18px;
+  }
+
+  .auth-hero h1 {
+    font-size: 26px;
+  }
+
+  .auth-hero p {
+    font-size: 14px;
+  }
+
+  .hero-badge {
+    width: 52px;
+    height: 52px;
+  }
+
+  .code-input-trigger {
+    gap: 8px;
+  }
+}
+
+/* Final QR-first layout refinement */
+.google-auth-content {
+  padding-top: 28px;
+}
+
+.qr-card {
+  padding: 26px 22px 22px;
+}
+
+.card-heading {
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.card-heading h2 {
+  font-size: 25px;
+  font-weight: 950;
+  line-height: 1.16;
+  letter-spacing: 0;
+}
+
+.refresh-qr {
+  height: 36px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+@media (max-width: 380px) {
+  .google-auth-content {
+    padding-top: 22px;
+  }
+
+  .qr-card {
+    padding: 22px 18px 20px;
+  }
+
+  .card-heading {
+    margin-bottom: 18px;
+  }
+
+  .card-heading h2 {
+    font-size: 23px;
+  }
 }
 </style>
 
 <style>
+.google-auth-page .code-input-trigger {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+}
+
+.google-auth-page .auth-code-item {
+  box-sizing: border-box !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  aspect-ratio: 1 !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+.google-auth-page .submit-btn.van-button {
+  background: #F0B90B !important;
+  color: #111827 !important;
+  border: 0 !important;
+}
+
+.google-auth-page .submit-btn.van-button--disabled {
+  background: #E5EAF0 !important;
+  color: #94A3B8 !important;
+}
+
 .custom-keyboard.van-number-keyboard {
-  background-color: #0E0E0E !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: #F5F7FA !important;
+  border-top: 1px solid #E5EAF0 !important;
   padding-bottom: env(safe-area-inset-bottom) !important;
 }
 
 .custom-keyboard .van-key {
-  background-color: #1C1C1E !important;
-  color: #FFFFFF !important;
+  height: 52px !important;
+  margin-bottom: 6px !important;
   border-radius: 8px !important;
-  margin: 0 0 6px 0 !important;
-  box-shadow: 0 2px 0 rgba(0,0,0,0.5) !important;
-  font-family: 'DIN Alternate', sans-serif !important;
-  font-size: 24px !important;
-  height: 54px !important;
-  pointer-events: auto !important;
-  cursor: pointer !important;
+  background: #FFFFFF !important;
+  color: #111827 !important;
+  box-shadow: 0 2px 0 rgba(15, 23, 42, 0.08) !important;
+  font-size: 22px !important;
 }
 
 .custom-keyboard .van-key:active {
-  background-color: #FCD535 !important;
-  color: #000000 !important;
-  transform: translateY(2px);
-  box-shadow: none !important;
+  background: #F0B90B !important;
+  color: #111827 !important;
 }
 
 .custom-keyboard .van-key--close {
-  background-color: #FCD535 !important;
-  color: #000000 !important;
-  font-weight: 700 !important;
-  font-size: 16px !important;
-}
-
-.custom-keyboard .van-key--delete, 
-.custom-keyboard .van-key--gray {
-  background-color: #2B3139 !important;
-}
-
-.custom-keyboard .van-key--delete .van-key__icon {
-  font-size: 22px !important;
-  color: #FFFFFF !important;
+  background: #F0B90B !important;
+  color: #111827 !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
 }
 </style>

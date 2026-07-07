@@ -12,11 +12,11 @@
     <van-tabs 
       v-model:active="activeTab" 
       background="transparent" 
-      title-active-color="#FCD535" 
-      title-inactive-color="#8E8E93" 
+      title-active-color="var(--color-brand-legacy)" 
+      title-inactive-color="var(--color-text-secondary)" 
       line-width="40px" 
       line-height="2px" 
-      color="#FCD535" 
+      color="var(--color-brand-legacy)" 
       :border="false"
       class="history-tabs"
       @change="handleTabChange"
@@ -31,12 +31,12 @@
       <!-- 空状态 -->
       <div v-if="filteredList.length === 0" class="empty-state">
         <div class="empty-icon">
-          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" stroke-width="1.5">
+          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-secondary)" stroke-width="1.5">
             <circle cx="11" cy="11" r="8"></circle>
             <path d="m21 21-4.35-4.35"></path>
-            <rect x="6" y="6" width="12" height="12" rx="1" fill="none" stroke="#8E8E93" stroke-width="1.5"/>
-            <line x1="9" y1="9" x2="15" y2="15" stroke="#8E8E93" stroke-width="1.5"/>
-            <line x1="15" y1="9" x2="9" y2="15" stroke="#8E8E93" stroke-width="1.5"/>
+            <rect x="6" y="6" width="12" height="12" rx="1" fill="none" stroke="var(--color-text-secondary)" stroke-width="1.5"/>
+            <line x1="9" y1="9" x2="15" y2="15" stroke="var(--color-text-secondary)" stroke-width="1.5"/>
+            <line x1="15" y1="9" x2="9" y2="15" stroke="var(--color-text-secondary)" stroke-width="1.5"/>
           </svg>
         </div>
         <p class="empty-text">{{ t('history.empty') }}</p>
@@ -241,9 +241,9 @@ const handleItemClick = (item) => {
 
 <style scoped>
 .history-page {
-  background-color: #000000;
+  background-color: var(--color-bg);
   min-height: 100vh;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Segoe UI, Arial, Roboto, 'PingFang SC', 'miui', 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;
 }
 
@@ -253,8 +253,8 @@ const handleItemClick = (item) => {
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background-color: #1C1C1E;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: var(--color-bg-card);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.08);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -262,7 +262,7 @@ const handleItemClick = (item) => {
 
 .header-icon {
   font-size: 20px;
-  color: #FCD535;
+  color: var(--color-brand-legacy);
   cursor: pointer;
   transition: opacity 0.2s ease;
 }
@@ -279,17 +279,17 @@ const handleItemClick = (item) => {
 .header-title {
   font-size: 18px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
 }
 
 /* Tab 栏 */
 .history-tabs {
-  background-color: #000000;
+  background-color: var(--color-bg);
   padding: 0 16px;
 }
 
 :deep(.van-tabs__wrap) {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.08);
 }
 
 :deep(.van-tab) {
@@ -299,7 +299,7 @@ const handleItemClick = (item) => {
 }
 
 :deep(.van-tabs__line) {
-  background-color: #FCD535;
+  background-color: var(--color-brand-legacy);
   height: 2px;
 }
 
@@ -326,7 +326,7 @@ const handleItemClick = (item) => {
 
 .empty-text {
   font-size: 14px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   margin: 0;
 }
 
@@ -342,7 +342,7 @@ const handleItemClick = (item) => {
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  background-color: #1C1C1E;
+  background-color: var(--color-bg-card);
   border-radius: 12px;
   margin-bottom: 8px;
   cursor: pointer;
@@ -350,7 +350,7 @@ const handleItemClick = (item) => {
 }
 
 .history-item:active {
-  background-color: #2B3139;
+  background-color: var(--color-surface-muted);
 }
 
 .item-left {
@@ -373,18 +373,18 @@ const handleItemClick = (item) => {
 }
 
 .icon-deposit {
-  background-color: rgba(14, 203, 129, 0.15);
-  color: #0ECB81;
+  background-color: rgb(var(--color-earn-rgb) / 0.15);
+  color: var(--color-earn);
 }
 
 .icon-withdraw {
-  background-color: rgba(246, 70, 93, 0.15);
-  color: #F6465D;
+  background-color: rgb(var(--color-loss-rgb) / 0.15);
+  color: var(--color-loss);
 }
 
 .icon-subscription {
-  background-color: rgba(252, 213, 53, 0.15);
-  color: #FCD535;
+  background-color: rgb(var(--color-brand-legacy-rgb) / 0.15);
+  color: var(--color-brand-legacy);
 }
 
 .item-info {
@@ -398,7 +398,7 @@ const handleItemClick = (item) => {
 .item-title {
   font-size: 15px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   line-height: 1.2;
 }
 
@@ -411,23 +411,23 @@ const handleItemClick = (item) => {
 
 .item-time {
   font-size: 12px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-variant-numeric: tabular-nums;
 }
 
 .item-hash {
   font-size: 11px;
-  color: #5E5E5E;
+  color: var(--color-text-muted);
   font-family: monospace;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgb(var(--color-border-rgb) / 0.05);
   padding: 2px 6px;
   border-radius: 4px;
 }
 
 .item-chain {
   font-size: 11px;
-  color: #8E8E93;
-  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-secondary);
+  background-color: rgb(var(--color-border-rgb) / 0.05);
   padding: 2px 6px;
   border-radius: 4px;
 }
@@ -452,15 +452,15 @@ const handleItemClick = (item) => {
 }
 
 .amount-positive {
-  color: #0ECB81;
+  color: var(--color-earn);
 }
 
 .amount-negative {
-  color: #F6465D;
+  color: var(--color-loss);
 }
 
 .amount-subscription {
-  color: #FCD535;
+  color: var(--color-brand-legacy);
   font-size: 13px;
 }
 
@@ -472,22 +472,22 @@ const handleItemClick = (item) => {
 }
 
 .status-success {
-  color: #0ECB81;
-  background-color: rgba(14, 203, 129, 0.15);
+  color: var(--color-earn);
+  background-color: rgb(var(--color-earn-rgb) / 0.15);
 }
 
 .status-failed {
-  color: #F6465D;
-  background-color: rgba(246, 70, 93, 0.15);
+  color: var(--color-loss);
+  background-color: rgb(var(--color-loss-rgb) / 0.15);
 }
 
 .status-pending {
-  color: #FCD535;
-  background-color: rgba(252, 213, 53, 0.15);
+  color: var(--color-brand-legacy);
+  background-color: rgb(var(--color-brand-legacy-rgb) / 0.15);
 }
 
 .status-default {
-  color: #8E8E93;
-  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-secondary);
+  background-color: rgb(var(--color-border-rgb) / 0.05);
 }
 </style>

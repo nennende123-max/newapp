@@ -6,10 +6,10 @@
     :border="false"
     @click-left="router.back()"
     style="
-      background-color: #000000;
-      --van-nav-bar-background: #000000;
-      --van-nav-bar-title-text-color: #FCD535;
-      --van-nav-bar-icon-color: #FCD535;
+      background-color: var(--color-bg);
+      --van-nav-bar-background: var(--color-bg);
+      --van-nav-bar-title-text-color: var(--color-brand-legacy);
+      --van-nav-bar-icon-color: var(--color-brand-legacy);
     "
   />
 
@@ -18,7 +18,7 @@
     <div class="header-section">
       <div class="wallet-info">
         <div class="wallet-name-row">
-          <van-icon name="phone-o" size="18" color="#FFFFFF" />
+          <van-icon name="phone-o" size="18" color="var(--color-text-primary)" />
           <span class="wallet-name">{{ walletName }}</span>
         </div>
         <div class="wallet-id-row">
@@ -27,7 +27,7 @@
           <van-icon 
             name="doc-on-doc-o" 
             size="16" 
-            color="#FCD535" 
+            color="var(--color-brand-legacy)" 
             class="copy-icon"
             @click.stop="handleCopyWalletId"
           />
@@ -46,8 +46,8 @@
           :model-value="assetStore.useBNBForFees"
           @update:model-value="handleBNBFeesToggle"
           size="22" 
-          active-color="#FCD535" 
-          inactive-color="#333"
+          active-color="var(--color-brand-legacy)" 
+          inactive-color="var(--color-surface-muted)"
           class="switch-item"
         />
       </div>
@@ -61,8 +61,8 @@
           :model-value="assetStore.useBNBForInterest"
           @update:model-value="handleBNBInterestToggle"
           size="22" 
-          active-color="#FCD535" 
-          inactive-color="#333"
+          active-color="var(--color-brand-legacy)" 
+          inactive-color="var(--color-surface-muted)"
           class="switch-item"
         />
       </div>
@@ -75,8 +75,8 @@
           :model-value="googleAuthEnabled" 
           @update:model-value="handleGoogleAuthToggle"
           size="22" 
-          active-color="#FCD535" 
-          inactive-color="#333"
+          active-color="var(--color-brand-legacy)" 
+          inactive-color="var(--color-surface-muted)"
           class="switch-item"
         />
       </div>
@@ -273,18 +273,18 @@ const confirmLogout = () => {
 
 <style scoped>
 .profile-page {
-  background: #0E0E0E;
+  background: var(--color-bg);
   min-height: 100vh;
   padding-top: 46px;
   padding-bottom: 120px;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-family: sans-serif;
 }
 
 /* 顶部 Header 区域 */
 .header-section {
   padding: 15px 20px 20px;
-  background: #0E0E0E;
+  background: var(--color-bg);
 }
 
 .wallet-info {
@@ -302,7 +302,7 @@ const confirmLogout = () => {
 .wallet-name {
   font-size: 16px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
 }
 
 .wallet-id-row {
@@ -313,13 +313,13 @@ const confirmLogout = () => {
 
 .wallet-id-label {
   font-size: 14px;
-  color: #FCD535;
+  color: var(--color-brand-legacy);
   font-weight: 500;
 }
 
 .wallet-id-value {
   font-size: 14px;
-  color: #FCD535;
+  color: var(--color-brand-legacy);
   font-weight: 500;
   font-family: 'DIN Alternate', sans-serif;
   max-width: 200px;
@@ -346,9 +346,9 @@ const confirmLogout = () => {
 /* 核心功能开关区 */
 .settings-card {
   margin: 16px;
-  background: #1C1C1E;
+  background: var(--color-bg-card);
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.08);
   overflow: hidden;
 }
 
@@ -357,7 +357,7 @@ const confirmLogout = () => {
   justify-content: space-between;
   align-items: center;
   padding: 14px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .setting-item:last-child {
@@ -373,19 +373,19 @@ const confirmLogout = () => {
 
 .setting-title {
   font-size: 15px;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-weight: 500;
 }
 
 .setting-desc {
   font-size: 12px;
-  color: #FCD535;
+  color: var(--color-brand-legacy);
   font-weight: 400;
 }
 
 /* Switch 深度覆盖与动画 */
 :deep(.switch-item.van-switch) {
-  background-color: #333 !important;
+  background-color: var(--color-surface-muted) !important;
   transition: transform 0.15s ease;
 }
 
@@ -394,20 +394,20 @@ const confirmLogout = () => {
 }
 
 :deep(.switch-item.van-switch--on) {
-  background-color: #FCD535 !important;
+  background-color: var(--color-brand-legacy) !important;
 }
 
 :deep(.switch-item.van-switch__node) {
-  background-color: #FFFFFF !important;
+  background-color: var(--color-surface-elevated) !important;
 }
 
 /* 费率展示区 */
 .fee-card {
   margin: 16px;
   padding: 16px 20px;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgb(var(--color-border-rgb) / 0.02);
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.05);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -421,7 +421,7 @@ const confirmLogout = () => {
 
 .fee-label {
   font-size: 15px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-weight: 500;
 }
 
@@ -433,14 +433,14 @@ const confirmLogout = () => {
 
 .fee-text {
   font-size: 15px;
-  color: #FCD535;
+  color: var(--color-brand-legacy);
   font-weight: 500;
   font-family: 'DIN Alternate', sans-serif;
 }
 
 .fee-divider {
   font-size: 15px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-weight: 400;
 }
 
@@ -455,20 +455,20 @@ const confirmLogout = () => {
 
 .logout-gradient {
   height: 60px;
-  background: linear-gradient(to top, rgba(14, 14, 14, 0.95) 0%, rgba(14, 14, 14, 0.5) 50%, transparent 100%);
+  background: linear-gradient(to top, rgb(var(--color-bg-rgb) / 0.95) 0%, rgb(var(--color-bg-rgb) / 0.5) 50%, transparent 100%);
   backdrop-filter: blur(8px);
   pointer-events: none;
 }
 
 .logout-section {
   padding: 12px 16px 24px;
-  background: #0E0E0E;
+  background: var(--color-bg);
 }
 
 .logout-btn {
   background: transparent !important;
-  border: 1px solid #FCD535 !important;
-  color: #FCD535 !important;
+  border: 1px solid var(--color-brand-legacy) !important;
+  color: var(--color-brand-legacy) !important;
   border-radius: 12px;
   height: 48px;
   font-size: 16px;
@@ -477,7 +477,7 @@ const confirmLogout = () => {
 }
 
 .logout-btn:active {
-  background: rgba(252, 213, 53, 0.1) !important;
+  background: rgb(var(--color-brand-legacy-rgb) / 0.1) !important;
   opacity: 0.8;
 }
 
@@ -485,27 +485,27 @@ const confirmLogout = () => {
 :deep(.dark-dialog.van-dialog),
 :deep(.dark-dialog .van-dialog__content),
 :deep(.dark-dialog .van-dialog__footer) {
-  background-color: #1C1C1E !important;
+  background-color: var(--color-bg-card) !important;
 }
 
 :deep(.dark-dialog .van-dialog__header) {
-  color: #FFFFFF !important;
+  color: var(--color-text-primary) !important;
 }
 
 :deep(.dark-dialog .van-dialog__message) {
-  color: #FFFFFF !important;
+  color: var(--color-text-primary) !important;
 }
 
 :deep(.dark-dialog .van-dialog__confirm),
 :deep(.dark-dialog .van-dialog__confirm .van-button__text) {
-  color: #FCD535 !important;
+  color: var(--color-brand-legacy) !important;
   font-weight: 600;
 }
 
 :deep(.dark-dialog .van-button--default) {
   background: transparent !important;
   border: none !important;
-  color: #8E8E93 !important;
+  color: var(--color-text-secondary) !important;
 }
 </style>
 
@@ -514,26 +514,26 @@ const confirmLogout = () => {
 /* 强制覆盖 Dialog 整体背景 */
 .dark-dialog.van-dialog,
 .dark-dialog.van-dialog .van-dialog__content {
-  background-color: #1C1C1E !important;
+  background-color: var(--color-bg-card) !important;
   border-radius: 12px;
 }
 
 /* 标题和内容文字 */
 .dark-dialog .van-dialog__header {
-  color: #FFFFFF !important;
+  color: var(--color-text-primary) !important;
   padding-top: 24px;
   padding-bottom: 16px;
 }
 
 .dark-dialog .van-dialog__message {
-  color: #FFFFFF !important;
+  color: var(--color-text-primary) !important;
   padding: 0 24px 20px;
 }
 
 /* 底部按钮栏 */
 .dark-dialog .van-dialog__footer {
-  background-color: #1C1C1E !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+  background-color: var(--color-bg-card) !important;
+  border-top: 1px solid rgb(var(--color-border-rgb) / 0.05) !important;
   display: flex;
 }
 
@@ -542,12 +542,12 @@ const confirmLogout = () => {
 .dark-dialog .van-dialog__cancel .van-button__text {
   background: transparent !important;
   border: none !important;
-  color: #8E8E93 !important;
+  color: var(--color-text-secondary) !important;
   font-weight: 500;
 }
 
 .dark-dialog .van-dialog__cancel::after {
-  border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-right: 1px solid rgb(var(--color-border-rgb) / 0.05) !important;
 }
 
 /* 确认按钮 */
@@ -555,7 +555,7 @@ const confirmLogout = () => {
 .dark-dialog .van-dialog__confirm .van-button__text {
   background: transparent !important;
   border: none !important;
-  color: #FCD535 !important;
+  color: var(--color-brand-legacy) !important;
   font-weight: 600 !important;
 }
 
@@ -569,6 +569,6 @@ const confirmLogout = () => {
 }
 
 .dark-dialog .van-dialog__footer .van-button:active {
-  background-color: rgba(255, 255, 255, 0.05) !important;
+  background-color: rgb(var(--color-border-rgb) / 0.05) !important;
 }
 </style>

@@ -49,10 +49,11 @@
       <div class="amount-input-wrapper">
         <van-field
           v-model.number="amount"
-          type="digit"
+          type="number"
           :placeholder="t('withdraw.amount_placeholder')"
           class="amount-input"
           inputmode="decimal"
+          min="0"
           autocomplete="off"
         />
         <button class="max-link" @click="handleMax">{{ t('withdraw.max') }}</button>
@@ -76,8 +77,10 @@
       <van-button
         block
         class="withdraw-btn"
+        :class="{ ready: canSubmit, inactive: !canSubmit }"
         :loading="isLoading"
-        :disabled="isLoading || !address || !amount || amount <= 0"
+        :disabled="isLoading"
+        :aria-disabled="!canSubmit"
         @click="handleWithdraw"
       >
         {{ t('withdraw.withdraw_btn') }}
@@ -118,6 +121,22 @@ const receiveAmount = computed(() => {
   // 如果小于0则显示0.00
   return Math.max(0, result);
 });
+
+const canSubmit = computed(() => {
+  const numAmount = Number(amount.value) || 0;
+  return Boolean(address.value.trim()) && numAmount > fee && numAmount <= balance.value;
+});
+
+const getWithdrawValidationMessage = () => {
+  const numAmount = Number(amount.value) || 0;
+  if (!address.value.trim()) return t('withdraw.addr_required');
+  if (!numAmount || numAmount <= 0) return t('withdraw.amount_invalid');
+  if (numAmount <= fee) return t('withdraw.amount_below_fee');
+  if (numAmount > balance.value) {
+    return `${t('withdraw.insufficient_balance')}，${t('withdraw.available_balance')} ${formatBalance(balance.value)} USDT`;
+  }
+  return '';
+};
 
 // 格式化余额显示
 const formatBalance = (value) => {
@@ -178,6 +197,16 @@ const handlePaste = async () => {
 
 // 提现处理函数
 const handleWithdraw = async () => {
+  const validationMessage = getWithdrawValidationMessage();
+  if (validationMessage) {
+    showToast({
+      message: validationMessage,
+      icon: 'warning',
+      duration: 2200
+    });
+    return;
+  }
+
   // 第一步：前端严查
   if (!address.value || address.value.trim() === '') {
     showToast({
@@ -281,29 +310,31 @@ const handleWithdraw = async () => {
 /* 参考充值页面风格 - 黑金风格 */
 
 .withdraw-page {
-  background: #000000;
+  background:
+    linear-gradient(180deg, rgb(var(--color-primary-rgb) / 0.07) 0, rgb(var(--color-primary-rgb) / 0) 190px),
+    var(--color-surface-1);
   min-height: 100vh;
-  padding: 16px;
+  padding: 20px 16px;
   padding-top: 64px;
   padding-bottom: 100px;
-  color: #fff;
+  color: var(--color-text-primary);
   box-sizing: border-box;
 }
 
 /* NavBar 统一 */
 .app-sub-nav-bar {
-  background: #000000 !important;
-  border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+  background: var(--color-surface-2) !important;
+  border-bottom: 1px solid var(--color-border) !important;
   height: 52px !important;
 }
 :deep(.van-nav-bar__arrow),
 :deep(.van-nav-bar .van-icon-arrow-left) {
-  color: #D4AF37 !important;
+  color: var(--color-accent) !important;
   font-size: 28px !important;
   font-weight: bold !important;
 }
 :deep(.van-nav-bar__title) {
-  color: #D4AF37 !important;
+  color: var(--color-text-primary) !important;
   font-weight: 700 !important;
   font-size: 18px !important;
 }
@@ -314,19 +345,21 @@ const handleWithdraw = async () => {
 
 /* 卡片样式（参考充值页面） */
 .section {
-  background: #141414;
+  background: var(--color-surface-2);
   border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 12px;
-  border: 1px solid rgba(255,255,255,0.08);
+  padding: 22px 24px;
+  margin-bottom: 16px;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
 }
 
 .section-title {
   font-size: 14px;
   font-weight: 600;
-  color: #D4AF37;
+  color: var(--color-primary-hover);
   margin-bottom: 16px;
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
+  font-weight: 800;
 }
 
 /* 地址输入框（参考充值页面样式） */
@@ -334,10 +367,18 @@ const handleWithdraw = async () => {
   position: relative;
   display: flex;
   align-items: center;
-  background: #1C1C1E;
+  background: var(--color-bg-input);
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
   min-height: 56px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.address-input-wrapper:focus-within,
+.amount-input-wrapper:focus-within {
+  border-color: var(--color-primary-border);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .address-input {
@@ -345,10 +386,33 @@ const handleWithdraw = async () => {
   background: transparent !important;
   border: none !important;
   padding: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+.address-input:focus-within,
+.amount-input:focus-within {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+:deep(.address-input.van-field),
+:deep(.amount-input.van-field),
+:deep(.address-input .van-cell),
+:deep(.amount-input .van-cell) {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+:deep(.address-input .van-field__body),
+:deep(.amount-input .van-field__body) {
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 :deep(.address-input .van-field__control) {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-size: 15px;
   padding: 0 20px;
   padding-right: 100px;
@@ -358,7 +422,7 @@ const handleWithdraw = async () => {
 }
 
 :deep(.address-input .van-field__control::placeholder) {
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   opacity: 0.6;
 }
 
@@ -371,7 +435,7 @@ const handleWithdraw = async () => {
 }
 
 .action-icon {
-  color: #848E9C; /* 默认灰色 */
+  color: var(--color-text-muted); /* 默认灰色 */
   font-size: 20px;
   cursor: pointer; /* 鼠标变为手型 */
   transition: all 0.2s ease;
@@ -379,7 +443,7 @@ const handleWithdraw = async () => {
 }
 
 .action-icon:hover {
-  color: #FCD535; /* 悬停时变成金色 */
+  color: var(--color-brand-legacy); /* 悬停时变成金色 */
 }
 
 .action-icon:active {
@@ -389,19 +453,21 @@ const handleWithdraw = async () => {
 
 /* 网络卡片（参考充值页面） */
 .network-card {
-  background: #1C1C1E;
+  background: var(--color-bg-card);
   border-radius: 12px;
   padding: 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
 }
 
 .network-card.selected {
-  border-color: #D4AF37;
-  background: rgba(212, 175, 55, 0.05);
+  border-color: var(--color-primary-border);
+  background: rgb(var(--color-brand-rgb) / 0.05);
+  box-shadow: 0 0 0 3px rgb(var(--color-primary-rgb) / 0.08);
 }
 
 .network-info {
@@ -412,13 +478,13 @@ const handleWithdraw = async () => {
 
 .network-name {
   font-size: 16px;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-weight: 600;
   letter-spacing: 0.3px;
 }
 
 .check-icon {
-  color: #D4AF37;
+  color: var(--color-accent);
   font-size: 20px;
 }
 
@@ -432,12 +498,12 @@ const handleWithdraw = async () => {
 
 .available-balance {
   font-size: 12px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-weight: 400;
 }
 
 .balance-number {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-weight: 600;
   font-family: 'DIN Alternate', 'Roboto', sans-serif;
   font-variant-numeric: tabular-nums;
@@ -447,10 +513,12 @@ const handleWithdraw = async () => {
   position: relative;
   display: flex;
   align-items: center;
-  background: #1C1C1E;
+  background: var(--color-bg-input);
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
   min-height: 72px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .amount-input {
@@ -458,10 +526,12 @@ const handleWithdraw = async () => {
   background: transparent !important;
   border: none !important;
   padding: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
 }
 
 :deep(.amount-input .van-field__control) {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-size: 32px;
   padding: 20px;
   padding-right: 90px;
@@ -473,7 +543,7 @@ const handleWithdraw = async () => {
 }
 
 :deep(.amount-input .van-field__control::placeholder) {
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   opacity: 0.4;
   font-size: 32px;
 }
@@ -481,7 +551,7 @@ const handleWithdraw = async () => {
 .max-link {
   position: absolute;
   right: 20px;
-  color: #D4AF37;
+  color: var(--color-accent);
   font-size: 14px;
   font-weight: 600;
   background: transparent;
@@ -511,18 +581,18 @@ const handleWithdraw = async () => {
 .highlight-row {
   padding-top: 16px;
   margin-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgb(var(--color-border-rgb) / 0.08);
 }
 
 .summary-label {
   font-size: 14px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-weight: 400;
 }
 
 .summary-value {
   font-size: 14px;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-weight: 600;
   font-family: 'DIN Alternate', 'Roboto', sans-serif;
   font-variant-numeric: tabular-nums;
@@ -531,7 +601,7 @@ const handleWithdraw = async () => {
 .summary-value.highlight {
   font-size: 20px;
   font-weight: 700;
-  color: #D4AF37;
+  color: var(--color-accent);
   letter-spacing: -0.3px;
 }
 
@@ -543,32 +613,51 @@ const handleWithdraw = async () => {
   right: 0;
   padding: 16px 20px;
   padding-bottom: calc(16px + env(safe-area-inset-bottom));
-  background: #000000;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgb(var(--color-surface-2-rgb) / 0.96);
+  border-top: 1px solid var(--color-border);
+  box-shadow: 0 -8px 24px rgb(var(--color-shadow-rgb) / 0.08);
   z-index: 100;
 }
 
 .withdraw-btn {
-  background: #FCD535 !important;
-  color: #000000 !important;
+  background: var(--color-surface-2) !important;
+  color: var(--color-text-primary) !important;
   height: 50px !important;
   font-size: 16px !important;
   font-weight: 700 !important;
   border-radius: 8px !important;
-  border: none !important;
+  border: 1px solid var(--color-border-strong) !important;
   transition: all 0.2s ease !important;
   letter-spacing: 0.5px !important;
+  box-shadow: var(--shadow-md) !important;
 }
 
 .withdraw-btn:active:not(:disabled) {
-  opacity: 0.85;
+  background: var(--color-surface-muted) !important;
+  opacity: 1;
   transform: scale(0.98);
 }
 
 .withdraw-btn:disabled {
-  background: rgba(252, 213, 53, 0.3) !important;
-  color: rgba(0, 0, 0, 0.4) !important;
+  background: var(--color-surface-muted) !important;
+  color: var(--color-text-muted) !important;
+  border-color: var(--color-border) !important;
+  box-shadow: none !important;
   cursor: not-allowed !important;
+}
+
+.withdraw-btn.inactive:not(:disabled) {
+  background: var(--color-surface-2) !important;
+  color: var(--color-text-muted) !important;
+  border-color: var(--color-border) !important;
+  box-shadow: none !important;
+}
+
+.withdraw-btn.ready {
+  background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-hover) 100%) !important;
+  color: var(--color-text-on-accent) !important;
+  border-color: rgb(var(--color-primary-rgb) / 0.48) !important;
+  box-shadow: 0 10px 22px rgb(var(--color-primary-rgb) / 0.22) !important;
 }
 
 /* 自动填充样式处理 */
@@ -580,8 +669,8 @@ const handleWithdraw = async () => {
 :deep(.amount-input .van-field__control:-webkit-autofill:hover),
 :deep(.amount-input .van-field__control:-webkit-autofill:focus),
 :deep(.amount-input .van-field__control:-webkit-autofill:active) {
-  -webkit-box-shadow: 0 0 0 1000px #1C1C1E inset !important;
-  -webkit-text-fill-color: #FFFFFF !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--color-bg-card) inset !important;
+  -webkit-text-fill-color: var(--color-text-primary) !important;
   transition: background-color 5000s ease-in-out 0s;
 }
 </style>

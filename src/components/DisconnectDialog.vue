@@ -76,7 +76,7 @@ const handleCancel = () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgb(var(--color-shadow-rgb) / 0.6);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   z-index: 9999;
@@ -91,17 +91,17 @@ const handleCancel = () => {
   width: 100%;
   max-width: 400px;
   /* 深色渐变半透明背景 */
-  background: linear-gradient(to bottom, rgba(31, 31, 31, 0.9), rgba(17, 17, 17, 0.9));
+  background: linear-gradient(to bottom, rgb(var(--color-surface-rgb) / 0.9), rgb(var(--color-bg-rgb) / 0.9));
   /* 强力背景模糊 */
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border-radius: 16px;
   /* 精细边框，营造玻璃边缘反光感 */
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.1);
   overflow: hidden;
   box-shadow: 
-    0 20px 60px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    0 20px 60px rgb(var(--color-shadow-rgb) / 0.5),
+    0 0 0 1px rgb(var(--color-border-rgb) / 0.05) inset;
 }
 
 /* 标题区域：p-8 内边距，不让文字贴边 */
@@ -112,7 +112,7 @@ const handleCancel = () => {
 .disconnect-dialog-title {
   font-size: 18px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   margin: 0;
   line-height: 1.5;
   text-align: center;
@@ -127,7 +127,7 @@ const handleCancel = () => {
 .disconnect-dialog-message {
   font-size: 15px;
   line-height: 1.7;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   margin: 0;
   text-align: center;
   font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Segoe UI, Arial, Roboto, 'PingFang SC', 'miui', 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;
@@ -136,7 +136,7 @@ const handleCancel = () => {
 /* 按钮区域 */
 .disconnect-dialog-footer {
   display: flex;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgb(var(--color-border-rgb) / 0.1);
 }
 
 /* 按钮基础样式 */
@@ -154,37 +154,37 @@ const handleCancel = () => {
 
 /* 辅按钮 (Cancel)：纯文本样式 */
 .disconnect-dialog-btn-cancel {
-  color: #8E8E93;
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-text-secondary);
+  border-right: 1px solid rgb(var(--color-border-rgb) / 0.1);
 }
 
 .disconnect-dialog-btn-cancel:hover {
-  color: #FFFFFF;
-  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-primary);
+  background-color: rgb(var(--color-border-rgb) / 0.05);
 }
 
 .disconnect-dialog-btn-cancel:active {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgb(var(--color-border-rgb) / 0.1);
 }
 
 /* 主按钮 (Disconnect)：红色渐变 + 发光效果 */
 .disconnect-dialog-btn-confirm {
-  color: #FF453A;
+  color: var(--color-loss);
   font-weight: 600;
   position: relative;
-  background: linear-gradient(135deg, rgba(255, 69, 58, 0.15), rgba(255, 69, 58, 0.08));
+  background: linear-gradient(135deg, rgb(var(--color-loss-rgb) / 0.15), rgb(var(--color-loss-rgb) / 0.08));
 }
 
 .disconnect-dialog-btn-confirm:hover {
-  color: #FFFFFF;
-  background: linear-gradient(135deg, rgba(255, 69, 58, 0.25), rgba(255, 69, 58, 0.15));
+  color: var(--color-text-primary);
+  background: linear-gradient(135deg, rgb(var(--color-loss-rgb) / 0.25), rgb(var(--color-loss-rgb) / 0.15));
   /* 轻微发光效果 */
-  box-shadow: 0 0 20px rgba(255, 69, 58, 0.2), 0 0 40px rgba(255, 69, 58, 0.1);
+  box-shadow: 0 0 20px rgb(var(--color-loss-rgb) / 0.2), 0 0 40px rgb(var(--color-loss-rgb) / 0.1);
 }
 
 .disconnect-dialog-btn-confirm:active {
-  background: linear-gradient(135deg, rgba(255, 69, 58, 0.3), rgba(255, 69, 58, 0.2));
-  box-shadow: 0 0 30px rgba(255, 69, 58, 0.3), 0 0 60px rgba(255, 69, 58, 0.15);
+  background: linear-gradient(135deg, rgb(var(--color-loss-rgb) / 0.3), rgb(var(--color-loss-rgb) / 0.2));
+  box-shadow: 0 0 30px rgb(var(--color-loss-rgb) / 0.3), 0 0 60px rgb(var(--color-loss-rgb) / 0.15);
 }
 
 /* 过渡动画 */

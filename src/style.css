@@ -20,10 +20,38 @@ body::-webkit-scrollbar {
   -ms-overflow-style: none !important; /* IE/Edge */
 }
 
+html {
+  transition: background-color 0.22s ease, color 0.22s ease;
+}
+
+body,
+#app,
+.app-header,
+.van-tabbar,
+.van-nav-bar,
+.van-cell,
+.van-popup,
+.van-dialog,
+.van-button,
+.section,
+.card-surface,
+.asset-card,
+.product-card,
+.project-card,
+.miner-card,
+.summary-card,
+.chart-wrapper {
+  transition:
+    background-color 0.22s ease,
+    border-color 0.22s ease,
+    color 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
 /* 2. Global Toast Overrides (轻提示优化) */
 .van-toast {
-  background-color: rgba(30, 30, 30, 0.95) !important;
-  color: #FFFFFF !important;
+  background-color: rgb(var(--color-bg-rgb) / 0.95) !important;
+  color: var(--color-text-primary) !important;
   border-radius: 8px !important;
   width: auto !important;
   min-width: 120px !important;
@@ -32,34 +60,36 @@ body::-webkit-scrollbar {
   line-height: 1.6 !important;
   overflow: hidden !important;
   backdrop-filter: blur(10px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid var(--color-border) !important;
+  box-shadow: var(--shadow-elevated) !important;
 }
 
 .van-toast__text {
   white-space: normal !important;
   word-break: break-word !important;
-  color: #FFFFFF !important;
+  color: var(--color-text-primary) !important;
   font-size: 14px !important;
   font-family: 'SF Pro Text', 'PingFang SC', sans-serif !important;
 }
 
 .van-toast__icon {
-  color: #FCD535 !important; /* 统一图标颜色为品牌金 */
+  color: var(--color-brand-legacy) !important; /* 统一图标颜色为品牌金 */
   font-size: 36px !important;
 }
 
 /* 3. Global Dialog Overrides (对话框优化) */
 .van-dialog {
-  background-color: #1C1C1E !important;
+  background-color: var(--color-bg-card) !important;
   border-radius: 16px !important;
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--color-border) !important;
+  box-shadow: var(--shadow-elevated) !important;
   overflow: hidden !important;
   width: 85% !important;
   max-width: 400px !important;
 }
 
 .van-dialog__header {
-  color: #FFFFFF !important;
+  color: var(--color-text-primary) !important;
   font-weight: 600 !important;
   font-size: 18px !important;
   padding: 32px 28px 8px 28px !important;
@@ -68,7 +98,7 @@ body::-webkit-scrollbar {
 }
 
 .van-dialog__message {
-  color: #8E8E93 !important;
+  color: var(--color-text-secondary) !important;
   font-size: 15px !important;
   line-height: 1.7 !important;
   white-space: normal !important;
@@ -82,7 +112,7 @@ body::-webkit-scrollbar {
 
 /* Dialog Buttons */
 .van-dialog__footer {
-  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-top: 1px solid var(--color-border-subtle) !important;
   padding: 0 !important;
   margin-top: 0 !important;
   display: flex !important;
@@ -101,23 +131,23 @@ body::-webkit-scrollbar {
 }
 
 .van-dialog__cancel {
-  color: #8E8E93 !important;
+  color: var(--color-text-secondary) !important;
   font-weight: 500 !important;
 }
 
 .van-dialog__cancel:active {
-  background-color: rgba(255, 255, 255, 0.05) !important;
+  background-color: var(--color-surface-muted) !important;
 }
 
 .van-dialog__confirm, 
 .van-dialog__confirm:active {
-  color: #F6465D !important;
+  color: var(--color-loss) !important;
   font-weight: 600 !important;
-  border-left: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-left: 1px solid var(--color-border-subtle) !important;
 }
 
 .van-dialog__confirm:active {
-  background-color: rgba(246, 70, 93, 0.1) !important;
+  background-color: rgb(var(--color-loss-rgb) / 0.1) !important;
 }
 
 .van-hairline--top::after,
@@ -125,7 +155,7 @@ body::-webkit-scrollbar {
 .van-hairline--right::after,
 .van-hairline--bottom::after,
 .van-hairline--surround::after {
-  border-color: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgb(var(--color-border-rgb) / 0.05) !important;
 }
 
 /* 4. Global Active State (点击反馈) */
@@ -140,9 +170,21 @@ body::-webkit-scrollbar {
 body,
 html,
 #app {
-  background-color: var(--color-bg);
+  background-color: var(--color-surface-1);
   color: var(--color-text-primary);
   font-family: var(--font-ui);
+}
+
+button,
+input,
+textarea,
+select {
+  color: var(--color-text-primary);
+}
+
+::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
 }
 
 /* Numbers — monospace tabular alignment */
@@ -175,30 +217,94 @@ html,
 
 /* Primary CTA — brand yellow only */
 .btn-cta,
+.van-button--primary,
 .van-button--primary.btn-cta {
   background-color: var(--color-brand) !important;
-  color: #000000 !important;
+  color: var(--color-text-on-accent) !important;
   border: none !important;
   border-radius: var(--radius-button) !important;
   font-weight: 700;
+  box-shadow: 0 4px 12px rgb(var(--color-brand-rgb) / 0.22);
+}
+
+.van-button--primary:active,
+.btn-cta:active {
+  background-color: var(--color-brand-legacy) !important;
 }
 
 .btn-cta:disabled,
-.btn-cta.van-button--disabled {
-  background-color: var(--color-bg-elevated) !important;
-  color: var(--color-text-secondary) !important;
+.btn-cta.van-button--disabled,
+.van-button--primary.van-button--disabled {
+  background-color: var(--color-surface-muted) !important;
+  color: var(--color-text-muted) !important;
+  box-shadow: none;
   opacity: 1 !important;
+}
+
+.van-button--default:not(.van-button--primary),
+.van-button--normal:not(.van-button--primary) {
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  background-color: var(--color-bg-card) !important;
 }
 
 /* Cards & inputs */
 .card-surface {
-  background-color: var(--color-bg-elevated);
+  background-color: var(--color-bg-card);
   border-radius: var(--radius-card);
-  border: 1px solid var(--color-border-subtle);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
 }
 
 .input-surface {
+  background-color: var(--color-bg-input);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-input);
+  box-shadow: var(--shadow-surface);
+}
+
+.input-surface:focus-within {
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+.van-cell,
+.van-field,
+.van-search,
+.van-cell-group,
+.van-cell-group--inset {
+  background-color: var(--color-bg-card) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.van-field,
+.van-search__content {
+  border: 1px solid var(--color-border) !important;
+  box-shadow: var(--shadow-surface);
+}
+
+.van-field:focus-within,
+.van-search__content:focus-within {
+  border-color: var(--color-brand) !important;
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+.van-field__control,
+.van-field__body,
+.van-search__field,
+.van-search__content {
+  color: var(--color-text-primary) !important;
+  background-color: var(--color-bg-input) !important;
+}
+
+.van-field__control::placeholder {
+  color: var(--color-text-muted) !important;
+}
+
+.van-field__label,
+.van-cell__label,
+.van-cell__value {
+  color: var(--color-text-secondary) !important;
 }
 
 /* Tabs — yellow underline only; active label stays neutral */
@@ -217,8 +323,9 @@ html,
 
 /* Tabbar — active icon/text neutral + yellow top indicator */
 .van-tabbar {
-  background-color: var(--color-bg-elevated) !important;
-  border-top: 1px solid var(--color-border-subtle) !important;
+  background-color: var(--color-bg-card) !important;
+  border-top: 1px solid var(--color-border) !important;
+  box-shadow: 0 -4px 18px rgb(var(--color-shadow-rgb) / 0.06);
 }
 
 .van-tabbar-item {
@@ -253,4 +360,807 @@ html,
 .van-cell-group--inset,
 .section-group {
   border-radius: var(--radius-card) !important;
+}
+
+.van-card,
+.van-popup,
+.van-action-sheet,
+.van-picker,
+.van-dropdown-menu__bar,
+.card,
+.glass-card,
+.asset-card,
+.stats-card,
+.product-card,
+.project-card,
+.info-card,
+.section-card,
+.wallet-card,
+.balance-card,
+.market-card,
+.position-card,
+.order-card {
+  border-color: var(--color-border) !important;
+  box-shadow: var(--shadow-card);
+}
+
+/* ---------------------------------------------------------
+   6. Financial Product Visual System
+   --------------------------------------------------------- */
+
+.deposit-page,
+.withdraw-page,
+.trade-page,
+.trade-sub-content,
+.home-page,
+.assets-page,
+.me-page,
+.earn-page,
+.miner-page,
+.history-page,
+.market-detail-page,
+.chain-explorer-page,
+.treasury-page,
+.settings-page,
+.support-page,
+.referral-page,
+.security-center-page,
+.google-auth-page,
+.fund-password-page,
+.user-profile-page {
+  background: var(--color-surface-1) !important;
+}
+
+.section,
+.card-surface,
+.asset-card,
+.stats-card,
+.product-card,
+.project-card,
+.info-card,
+.section-card,
+.wallet-card,
+.balance-card,
+.market-card,
+.position-card,
+.order-card,
+.glass-card,
+.network-section,
+.address-section,
+.amount-section,
+.summary-section,
+.warning-section {
+  background: var(--color-surface-2) !important;
+  border: 1px solid var(--color-border) !important;
+  box-shadow: var(--shadow-md) !important;
+  border-radius: var(--radius-card) !important;
+}
+
+.section,
+.card-surface,
+.asset-card,
+.stats-card,
+.product-card,
+.project-card,
+.info-card,
+.section-card,
+.wallet-card,
+.balance-card {
+  padding: var(--space-card-md);
+}
+
+.section + .section,
+.card-surface + .card-surface,
+.asset-card + .asset-card,
+.product-card + .product-card,
+.project-card + .project-card,
+.info-card + .info-card {
+  margin-top: 16px;
+}
+
+.section:hover,
+.card-surface:hover,
+.asset-card:hover,
+.product-card:hover,
+.project-card:hover,
+.info-card:hover,
+.market-card:hover,
+.order-card:hover {
+  border-color: var(--color-border-strong) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+.active,
+.selected,
+.is-active {
+  --visual-active-border: var(--color-primary-border);
+}
+
+.network-card.selected,
+.leverage-option.active,
+.percent-btn.active,
+.toggle-btn.active,
+.mark-item.active {
+  border-color: var(--color-primary-border) !important;
+  background: var(--color-primary-soft) !important;
+}
+
+.app-sub-nav-bar,
+.trade-header,
+.pair-info,
+.van-nav-bar {
+  background: var(--color-surface-2) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+  box-shadow: var(--shadow-sm);
+}
+
+.section-title,
+.input-label,
+.summary-label,
+.header-price,
+.header-quantity,
+.est-label {
+  color: var(--color-text-secondary) !important;
+  font-weight: 600;
+}
+
+.van-button:not(.van-button--primary):not(.btn-cta),
+.copy-btn:not(.btn-cta),
+.withdraw-btn,
+.secondary-btn,
+.neutral-btn {
+  background: var(--color-surface-2) !important;
+  color: var(--color-text-primary) !important;
+  border: 1px solid var(--color-border) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.van-button:not(.van-button--primary):not(.btn-cta):active,
+.copy-btn:not(.btn-cta):active,
+.withdraw-btn:active,
+.secondary-btn:active,
+.neutral-btn:active {
+  background: var(--color-surface-muted) !important;
+  border-color: var(--color-border-strong) !important;
+}
+
+.connect-btn,
+.buy-btn.primary,
+.rent-btn,
+.rent-now,
+.deposit-primary,
+.btn-cta {
+  background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-hover) 100%) !important;
+  color: var(--color-text-on-accent) !important;
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.5) !important;
+  box-shadow: 0 6px 16px rgb(var(--color-primary-rgb) / 0.22) !important;
+}
+
+.address-box,
+.network-selector,
+.network-card,
+.amount-input-wrapper,
+.address-input-wrapper,
+.input-row,
+.premium-input-box,
+.custom-field,
+.code-item,
+.password-item,
+.leverage-option {
+  background: var(--color-bg-input) !important;
+  border: 1px solid var(--color-border) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.address-box:focus-within,
+.network-selector:focus-within,
+.amount-input-wrapper:focus-within,
+.address-input-wrapper:focus-within,
+.input-row:focus-within,
+.premium-input-box:focus-within,
+.custom-field:focus-within,
+.code-item.is-focused,
+.password-item.is-focused {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px var(--color-focus-ring) !important;
+}
+
+.orderbook-side,
+.futures-orderbook-side,
+.left-order-book,
+.left-panel,
+.form-side,
+.futures-form-side,
+.right-panel,
+.right-trade-form,
+.orders-panel,
+.assets-panel,
+.futures-asset-panel {
+  background: var(--color-surface-2) !important;
+  border: 1px solid var(--color-border) !important;
+  box-shadow: var(--shadow-md) !important;
+  border-radius: var(--radius-card) !important;
+}
+
+.orderbook-header,
+.orders-header,
+.assets-header {
+  background: var(--color-surface-1);
+  border-bottom: 1px solid var(--color-border) !important;
+}
+
+.ask-depth {
+  background: linear-gradient(to left, rgb(var(--color-danger-rgb) / 0.16), rgb(var(--color-danger-rgb) / 0.05)) !important;
+  box-shadow: none !important;
+}
+
+.bid-depth {
+  background: linear-gradient(to left, rgb(var(--color-success-rgb) / 0.16), rgb(var(--color-success-rgb) / 0.05)) !important;
+  box-shadow: none !important;
+}
+
+.ask-price {
+  color: var(--color-danger) !important;
+  text-shadow: none !important;
+}
+
+.bid-price {
+  color: var(--color-success) !important;
+  text-shadow: none !important;
+}
+
+.price-main,
+.last-price.up .price-main,
+.last-price.down .price-main,
+.leverage-value {
+  text-shadow: none !important;
+}
+
+.last-price {
+  background: var(--color-surface-1) !important;
+  border-top: 1px solid var(--color-border) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+}
+
+.buy-btn.active {
+  background: rgb(var(--color-success-rgb) / 0.12) !important;
+  color: var(--color-success) !important;
+  border: 1px solid rgb(var(--color-success-rgb) / 0.24) !important;
+  box-shadow: none !important;
+}
+
+.sell-btn.active {
+  background: rgb(var(--color-danger-rgb) / 0.12) !important;
+  color: var(--color-danger) !important;
+  border: 1px solid rgb(var(--color-danger-rgb) / 0.24) !important;
+  box-shadow: none !important;
+}
+
+/* 7. Trading workspace polish */
+.trade-page,
+.trade-sub-content,
+.market-detail-page {
+  background:
+    linear-gradient(180deg, rgb(var(--color-primary-rgb) / 0.045) 0, rgb(var(--color-primary-rgb) / 0) 180px),
+    var(--color-surface-1) !important;
+}
+
+.chart-toolbar,
+.time-tabs,
+.trade-tabs,
+.orderbook-tabs {
+  background: var(--color-surface-2) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+}
+
+.chart-box,
+.chart-section,
+.chart-wrapper,
+.trade-main,
+.trading-content,
+.trade-layout,
+.orderbook-container,
+.latest-trades,
+.bottom-trade-panel {
+  background: var(--color-surface-2) !important;
+  border-color: var(--color-border) !important;
+}
+
+.chart-box,
+.chart-section,
+.trade-main,
+.trading-content,
+.orderbook-container,
+.latest-trades {
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.bottom-trade-panel,
+.bottom-action-bar,
+.trade-action-bar {
+  background: rgb(var(--color-surface-2-rgb) / 0.97) !important;
+  border-top: 1px solid var(--color-border) !important;
+  box-shadow: 0 -10px 30px rgb(var(--color-shadow-rgb) / 0.1) !important;
+  backdrop-filter: blur(14px);
+}
+
+.bottom-trade-panel button,
+.bottom-action-bar button,
+.trade-action-bar button {
+  min-height: 48px;
+  border-radius: 10px !important;
+  font-weight: 800 !important;
+  box-shadow: var(--shadow-sm);
+}
+
+.bottom-trade-panel .buy-btn,
+.bottom-action-bar .buy-btn,
+.trade-action-bar .buy-btn,
+.submit-btn.buy {
+  background: var(--color-success) !important;
+  color: var(--color-text-inverse) !important;
+  border: 1px solid rgb(var(--color-success-rgb) / 0.28) !important;
+}
+
+.bottom-trade-panel .sell-btn,
+.bottom-action-bar .sell-btn,
+.trade-action-bar .sell-btn,
+.submit-btn.sell {
+  background: var(--color-danger) !important;
+  color: var(--color-text-inverse) !important;
+  border: 1px solid rgb(var(--color-danger-rgb) / 0.28) !important;
+}
+
+.chart-error .van-button,
+.chart-state .van-button {
+  background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-hover) 100%) !important;
+  color: var(--color-text-on-accent) !important;
+  border: 0 !important;
+  box-shadow: 0 8px 18px rgb(var(--color-primary-rgb) / 0.2) !important;
+}
+
+/* 8. Compact trading viewport */
+.orderbook-side,
+.futures-orderbook-side,
+.left-order-book,
+.left-panel {
+  align-self: stretch !important;
+  overflow: hidden !important;
+}
+
+.orderbook-header {
+  min-height: 22px !important;
+  padding: 5px 10px !important;
+  font-size: 10px !important;
+}
+
+.order-row {
+  height: 18px !important;
+  line-height: 18px !important;
+  padding: 0 10px !important;
+}
+
+.order-row .price,
+.order-row .quantity {
+  font-size: 12px !important;
+  line-height: 18px !important;
+}
+
+.last-price {
+  height: 40px !important;
+  min-height: 40px !important;
+}
+
+.price-main {
+  font-size: 18px !important;
+  line-height: 1.1 !important;
+}
+
+.price-fiat {
+  font-size: 10px !important;
+}
+
+.right-form-panel,
+.right-trade-form,
+.form-side,
+.futures-form-side {
+  gap: 6px !important;
+  padding: 6px !important;
+}
+
+.buy-sell-toggle {
+  padding: 3px !important;
+}
+
+.toggle-btn {
+  height: 36px !important;
+  font-size: 14px !important;
+}
+
+.order-type-selector {
+  min-height: 42px !important;
+  padding: 8px 12px !important;
+}
+
+.input-row {
+  min-height: 42px !important;
+  height: 42px !important;
+  padding: 0 12px !important;
+}
+
+.input-label,
+.est-label,
+.fee-estimate-label,
+.total-label,
+.received-label,
+.avail-label {
+  font-size: 10px !important;
+}
+
+.input-field {
+  font-size: 14px !important;
+}
+
+.estimated-row {
+  padding: 4px 4px !important;
+}
+
+.slider-wrapper {
+  padding: 10px 8px 6px !important;
+  margin-bottom: 6px !important;
+}
+
+.custom-slider-button {
+  width: 24px !important;
+  height: 24px !important;
+  line-height: 24px !important;
+  pointer-events: none !important;
+}
+
+.van-slider {
+  cursor: pointer;
+  touch-action: none;
+}
+
+.van-slider__button-wrapper {
+  width: 36px !important;
+  height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  touch-action: none !important;
+  cursor: grab !important;
+}
+
+.van-slider__button-wrapper:active {
+  cursor: grabbing !important;
+}
+
+.slider-marks {
+  padding-top: 6px !important;
+  margin-top: 4px !important;
+}
+
+.mark-item {
+  padding: 4px 6px !important;
+  min-width: 28px !important;
+}
+
+.fee-estimate-row,
+.total-row,
+.estimated-received-row {
+  padding: 8px 12px !important;
+  margin-bottom: 6px !important;
+}
+
+.available-row {
+  gap: 2px !important;
+  padding: 6px 10px !important;
+}
+
+.avail-item {
+  padding: 3px 0 !important;
+}
+
+.submit-btn {
+  height: 44px !important;
+  min-height: 44px !important;
+}
+
+.bottom-section,
+.futures-bottom-section {
+  margin-top: 8px !important;
+}
+
+/* 9. Trading page breathing-room refinements */
+.trade-page .bottom-section,
+.trade-container .bottom-section,
+.market-page .bottom-section {
+  margin-top: 10px !important;
+  padding: 0 16px 14px !important;
+  background: var(--color-surface-1) !important;
+  border-top: 1px solid var(--color-border) !important;
+  box-shadow: 0 -8px 20px rgb(var(--color-shadow-rgb) / 0.08) !important;
+}
+
+.trade-page .bottom-tabs,
+.trade-container .bottom-tabs,
+.market-page .bottom-tabs {
+  position: static !important;
+  display: flex !important;
+  gap: 30px !important;
+  padding: 12px 2px 10px !important;
+  background: transparent !important;
+  border-bottom: 0 !important;
+  backdrop-filter: none !important;
+}
+
+.trade-page .bottom-tabs .tab-item,
+.trade-container .bottom-tabs .tab-item,
+.market-page .bottom-tabs .tab-item {
+  padding: 0 0 8px !important;
+  color: var(--color-text-secondary) !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.trade-page .bottom-tabs .tab-item.active,
+.trade-container .bottom-tabs .tab-item.active,
+.market-page .bottom-tabs .tab-item.active {
+  color: var(--color-primary) !important;
+}
+
+.trade-page .bottom-tabs .tab-item.active::after,
+.trade-container .bottom-tabs .tab-item.active::after,
+.market-page .bottom-tabs .tab-item.active::after {
+  height: 3px !important;
+  left: 0 !important;
+  right: 0 !important;
+  border-radius: 999px !important;
+  background: var(--color-primary) !important;
+  box-shadow: none !important;
+}
+
+.trade-page .bottom-content,
+.trade-container .bottom-content,
+.market-page .bottom-content {
+  padding: 6px 0 0 !important;
+  background: transparent !important;
+}
+
+.trade-page .orders-panel,
+.trade-page .assets-panel,
+.trade-container .orders-panel,
+.trade-container .assets-panel,
+.market-page .orders-panel,
+.market-page .assets-panel {
+  min-height: 76px !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.trade-page .orders-empty-compact,
+.trade-container .orders-empty-compact,
+.market-page .orders-empty-compact {
+  height: 76px !important;
+  min-height: 76px !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 14px !important;
+  background: var(--color-surface-2) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.trade-page .empty-text-compact,
+.trade-container .empty-text-compact,
+.market-page .empty-text-compact {
+  color: var(--color-text-secondary) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+.trade-page .assets-glass-card,
+.trade-container .assets-glass-card,
+.market-page .assets-glass-card {
+  margin-top: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 14px !important;
+  background: var(--color-surface-2) !important;
+  box-shadow: var(--shadow-sm) !important;
+  backdrop-filter: none !important;
+}
+
+.trade-page .assets-hud-strip,
+.trade-container .assets-hud-strip,
+.market-page .assets-hud-strip {
+  height: 76px !important;
+  padding: 0 !important;
+}
+
+.trade-page .asset-hud-item,
+.trade-container .asset-hud-item,
+.market-page .asset-hud-item {
+  gap: 5px !important;
+  padding: 14px 10px !important;
+}
+
+.trade-page .asset-hud-label,
+.trade-container .asset-hud-label,
+.market-page .asset-hud-label {
+  color: var(--color-text-secondary) !important;
+  font-size: 11px !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.trade-page .asset-hud-value,
+.trade-container .asset-hud-value,
+.market-page .asset-hud-value {
+  color: var(--color-primary) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  text-shadow: none !important;
+}
+
+.trade-page .asset-hud-divider,
+.trade-container .asset-hud-divider,
+.market-page .asset-hud-divider {
+  height: 28px !important;
+  background: var(--color-border) !important;
+}
+
+.trade-page .futures-control-bar,
+.trade-container .futures-control-bar,
+.market-page .futures-control-bar {
+  min-height: 56px !important;
+  padding: 8px 16px !important;
+  background: var(--color-surface-1) !important;
+  border-top: 1px solid var(--color-border-subtle) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+  gap: 10px !important;
+}
+
+.trade-page .control-left,
+.trade-container .control-left,
+.market-page .control-left {
+  gap: 10px !important;
+}
+
+.trade-page .margin-mode-text,
+.trade-container .margin-mode-text,
+.market-page .margin-mode-text {
+  color: var(--color-primary) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.trade-page .leverage-btn,
+.trade-container .leverage-btn,
+.market-page .leverage-btn {
+  height: 38px !important;
+  padding: 0 14px !important;
+  border-radius: 12px !important;
+  background: var(--color-surface-2) !important;
+  border: 1px solid var(--color-border-strong) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.trade-page .funding-rate-info,
+.trade-container .funding-rate-info,
+.market-page .funding-rate-info {
+  min-width: 104px !important;
+  padding: 7px 10px !important;
+  gap: 2px !important;
+  background: var(--color-surface-2) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--shadow-sm) !important;
+  backdrop-filter: none !important;
+}
+
+.trade-page .funding-rate-label,
+.trade-container .funding-rate-label,
+.market-page .funding-rate-label {
+  font-size: 10px !important;
+  letter-spacing: 0 !important;
+}
+
+.trade-page .funding-rate-value,
+.trade-container .funding-rate-value,
+.market-page .funding-rate-value {
+  font-size: 13px !important;
+  text-shadow: none !important;
+}
+
+.van-tabbar .van-tabbar-item {
+  transition: color 180ms ease, transform 180ms ease !important;
+}
+
+.van-tabbar .van-tabbar-item::after {
+  transition: opacity 180ms ease, transform 180ms ease !important;
+}
+
+.van-tabbar .van-tabbar-item--active::after {
+  opacity: 1 !important;
+  transform: translateX(-50%) scaleX(1) !important;
+}
+
+:where(.trade-page, .trade-sub-page, .trade-container, .market-page) .bottom-section {
+  margin-top: 10px !important;
+  padding: 0 16px 14px !important;
+  background: var(--color-surface-1) !important;
+  border-top: 1px solid var(--color-border) !important;
+  box-shadow: 0 -8px 20px rgb(var(--color-shadow-rgb) / 0.08) !important;
+}
+
+:where(.trade-page, .trade-sub-page, .trade-container, .market-page) .bottom-tabs {
+  position: static !important;
+  gap: 30px !important;
+  padding: 12px 2px 10px !important;
+  background: transparent !important;
+  border-bottom: 0 !important;
+  backdrop-filter: none !important;
+}
+
+:where(.trade-page, .trade-sub-page, .trade-container, .market-page) .bottom-tabs .tab-item {
+  padding: 0 0 8px !important;
+  color: var(--color-text-secondary) !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+:where(.trade-page, .trade-sub-page, .trade-container, .market-page) .bottom-tabs .tab-item.active {
+  color: var(--color-primary) !important;
+}
+
+:where(.trade-page, .trade-sub-page, .trade-container, .market-page) .bottom-content {
+  padding: 6px 0 0 !important;
+  background: transparent !important;
+}
+
+:where(.trade-page, .trade-sub-page, .trade-container, .market-page) .orders-empty-compact {
+  height: 76px !important;
+  min-height: 76px !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 14px !important;
+  background: var(--color-surface-2) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+:where(.trade-page, .trade-sub-page, .trade-container, .market-page) .assets-glass-card {
+  margin-top: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 14px !important;
+  background: var(--color-surface-2) !important;
+  box-shadow: var(--shadow-sm) !important;
+  backdrop-filter: none !important;
+}
+
+:where(.trade-page, .trade-sub-page, .trade-container, .market-page) .assets-hud-strip {
+  height: 76px !important;
+}
+
+:where(.trade-page, .trade-sub-page, .trade-container, .market-page) .futures-control-bar {
+  min-height: 56px !important;
+  padding: 8px 16px !important;
+  background: var(--color-surface-1) !important;
+  border-top: 1px solid var(--color-border-subtle) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+  gap: 10px !important;
+}
+
+:where(.trade-page, .trade-sub-page, .trade-container, .market-page) .funding-rate-info,
+:where(.trade-page, .trade-sub-page, .trade-container, .market-page) .leverage-btn {
+  border-radius: 12px !important;
+  background: var(--color-surface-2) !important;
+  box-shadow: var(--shadow-sm) !important;
 }

@@ -8,7 +8,7 @@
       
       <div class="nav-right-icon-wrap" @click="goToKlineChart">
         <svg viewBox="0 0 1024 1024" class="kline-svg-icon">
-          <path d="M896 128H128a64 64 0 0 0-64 64v640a64 64 0 0 0 64 64h768a64 64 0 0 0 64-64V192a64 64 0 0 0-64-64zM320 768H192V448h128v320zm256 0H448V256h128v512zm256 0H704V512h128v256z" fill="#FCD535"></path>
+          <path d="M896 128H128a64 64 0 0 0-64 64v640a64 64 0 0 0 64 64h768a64 64 0 0 0 64-64V192a64 64 0 0 0-64-64zM320 768H192V448h128v320zm256 0H448V256h128v512zm256 0H704V512h128v256z" fill="var(--color-brand-legacy)"></path>
         </svg>
       </div>
     </div>
@@ -35,7 +35,7 @@
     <div class="pair-info">
       <div class="pair-selector" @click="showCoinSelect = true">
         <span class="pair-name">{{ symbol }}/USDT</span>
-        <van-icon name="arrow-down" size="12" color="#FFFFFF" style="margin-left: 4px" />
+        <van-icon name="arrow-down" size="12" color="var(--color-text-primary)" style="margin-left: 4px" />
       </div>
       <div class="price-change" :class="{ positive: priceChange >= 0 }">
         {{ priceChange >= 0 ? '+' : '' }}{{ priceChange.toFixed(2) }}%
@@ -89,14 +89,14 @@
           <div 
             class="toggle-btn buy-btn" 
             :class="{ active: orderSide === 'buy' }"
-            @click="() => { orderSide = 'buy'; spotSliderValue = 0; amount.value = ''; }"
+            @click="switchOrderSide('buy')"
           >
             {{ t('trade.buy') }}
           </div>
           <div 
             class="toggle-btn sell-btn" 
             :class="{ active: orderSide === 'sell' }"
-            @click="() => { orderSide = 'sell'; spotSliderValue = 0; amount.value = ''; }"
+            @click="switchOrderSide('sell')"
           >
             {{ t('trade.sell') }}
           </div>
@@ -104,7 +104,7 @@
 
         <div class="order-type-selector" @click="showOrderTypeSheet = true">
           <span>{{ orderType === 'limit' ? t('trade.limit_order') : t('trade.market_order') }}</span>
-          <van-icon name="arrow-down" size="12" color="#848E9C" />
+          <van-icon name="arrow-down" size="12" color="var(--color-text-muted)" />
         </div>
 
         <div class="input-row">
@@ -150,8 +150,8 @@
             :step="1"
             bar-height="4px"
             button-size="16px"
-            active-color="#FCD535"
-            inactive-color="#2A2D35"
+            active-color="var(--color-brand-legacy)"
+            inactive-color="var(--color-surface-muted)"
             @update:model-value="onSpotSliderChange"
           >
             <template #button>
@@ -195,7 +195,7 @@
             <van-icon 
               name="plus" 
               size="12" 
-              color="#FCD535" 
+              color="var(--color-brand-legacy)" 
               style="margin-left: 4px; cursor: pointer;" 
               @click.stop="router.push('/deposit')" 
             />
@@ -220,27 +220,6 @@
 
     <!-- 合约交易界面 -->
     <div v-else-if="activeTradeTab === 'futures'" class="futures-trade-container">
-      <!-- 合约控制栏：全仓文本 + 杠杆倍数（左边），资金费率（右边） - 仅在合约模式下显示 -->
-      <div v-if="!isSpotMode" class="futures-control-bar">
-        <div class="control-left">
-          <div class="margin-mode-text">
-            {{ t('trade.full_position') }}
-          </div>
-          <button class="leverage-btn" @click="showLeveragePopup = true">
-            <span>{{ currentLeverage }}x</span>
-            <van-icon name="arrow-down" size="12" color="#848E9C" />
-          </button>
-        </div>
-        <div class="control-right">
-          <div class="funding-rate-info">
-            <span class="funding-rate-label">{{ t('trade.funding_rate') }}</span>
-            <span class="funding-rate-value" :class="{ positive: fundingRate >= 0, negative: fundingRate < 0 }">
-              {{ fundingRate >= 0 ? '+' : '' }}{{ (fundingRate * 100).toFixed(4) }}%
-            </span>
-          </div>
-        </div>
-      </div>
-
       <!-- 核心交易区 - 左右布局 -->
       <div class="futures-trade-main">
         <!-- 左侧：盘口区 (42%) -->
@@ -291,14 +270,14 @@
             <div 
               class="toggle-btn buy-btn" 
               :class="{ active: orderSide === 'buy' }"
-              @click="() => { orderSide = 'buy'; spotSliderValue = 0; amount = ''; }"
+              @click="switchOrderSide('buy')"
             >
               {{ t('trade.buy') }}
             </div>
             <div 
               class="toggle-btn sell-btn" 
               :class="{ active: orderSide === 'sell' }"
-              @click="() => { orderSide = 'sell'; spotSliderValue = 0; amount = ''; }"
+              @click="switchOrderSide('sell')"
             >
               {{ t('trade.sell') }}
             </div>
@@ -344,9 +323,20 @@
             </div>
           </div>
 
-          <div class="order-type-selector" @click="showOrderTypeSheet = true">
-            <span>{{ orderType === 'limit' ? t('trade.limit_order') : t('trade.market_order') }}</span>
-            <van-icon name="arrow-down" size="12" color="#848E9C" />
+          <div class="form-tools-row" :class="{ 'futures-tools-row': !isSpotMode }">
+            <div class="order-type-selector" @click="showOrderTypeSheet = true">
+              <span>{{ orderType === 'limit' ? t('trade.limit_order') : t('trade.market_order') }}</span>
+              <van-icon name="arrow-down" size="12" color="var(--color-text-muted)" />
+            </div>
+            <button
+              v-if="!isSpotMode"
+              type="button"
+              class="leverage-inline-btn"
+              @click="showLeveragePopup = true"
+            >
+              <span>{{ currentLeverage }}x</span>
+              <van-icon name="arrow-down" size="12" color="var(--color-text-muted)" />
+            </button>
           </div>
 
           <div class="input-row">
@@ -422,8 +412,8 @@
               :step="1"
               bar-height="4px"
               button-size="16px"
-              active-color="#FCD535"
-              inactive-color="#2A2D35"
+              active-color="var(--color-brand-legacy)"
+              inactive-color="var(--color-surface-muted)"
               @update:model-value="onFuturesSliderChange"
             >
               <template #button>
@@ -450,8 +440,8 @@
               :step="1"
               bar-height="4px"
               button-size="16px"
-              active-color="#FCD535"
-              inactive-color="#2A2D35"
+              active-color="var(--color-brand-legacy)"
+              inactive-color="var(--color-surface-muted)"
               @update:model-value="onSpotSliderChange"
             >
               <template #button>
@@ -538,11 +528,11 @@
         <van-tabs 
           v-model:active="activePositionTab" 
           background="transparent" 
-          title-active-color="#FCD535" 
-          title-inactive-color="#8E8E93" 
+          title-active-color="var(--color-brand-legacy)" 
+          title-inactive-color="var(--color-text-secondary)" 
           line-width="30px" 
           line-height="3px" 
-          color="#FCD535" 
+          color="var(--color-brand-legacy)" 
           :border="false"
           class="position-tabs"
         >
@@ -551,7 +541,7 @@
             <div class="positions-list">
               <div v-if="positions.length === 0" class="empty-state">
                 <div class="empty-icon">
-                  <van-icon name="orders-o" size="48" color="#8E8E93" />
+                  <van-icon name="orders-o" size="48" color="var(--color-text-secondary)" />
                 </div>
                 <div class="empty-text">{{ t('trade.no_positions') }}</div>
               </div>
@@ -633,7 +623,7 @@
             <div class="orders-list">
               <div v-if="!futuresOrdersList || futuresOrdersList.length === 0" class="empty-state">
                 <div class="empty-icon">
-                  <van-icon name="orders-o" size="48" color="#8E8E93" />
+                  <van-icon name="orders-o" size="48" color="var(--color-text-secondary)" />
                 </div>
                 <div class="empty-text">{{ t('trade.no_orders') }}</div>
               </div>
@@ -669,7 +659,7 @@
             <div class="history-list">
               <div v-if="!futuresHistoryList || futuresHistoryList.length === 0" class="empty-state">
                 <div class="empty-icon">
-                  <van-icon name="orders-o" size="48" color="#8E8E93" />
+                  <van-icon name="orders-o" size="48" color="var(--color-text-secondary)" />
                 </div>
                 <div class="empty-text">{{ t('trade.no_orders') }}</div>
               </div>
@@ -732,7 +722,7 @@
                 <div class="history-footer">
                   <!-- 加载中 -->
                   <div v-if="historyLoading" class="history-loading">
-                    <van-loading type="spinner" color="#D4AF37" size="16px" />
+                    <van-loading type="spinner" color="var(--color-accent)" size="16px" />
                     <span class="loading-text">{{ t('common.loading') || '加载中...' }}</span>
                   </div>
                   <!-- 没有更多了 -->
@@ -878,7 +868,7 @@
             @click="selectLeverage(leverage)"
           >
             <span>{{ leverage }}x</span>
-            <van-icon v-if="currentLeverage === leverage" name="success" color="#FCD535" />
+            <van-icon v-if="currentLeverage === leverage" name="success" color="var(--color-brand-legacy)" />
           </div>
         </div>
       </div>
@@ -891,8 +881,8 @@
       position="bottom"
       round
       class="premium-tpsl-popup"
-      :overlay-style="{ backgroundColor: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(10px)' }"
-      :style="{ height: 'auto', background: '#0a0a0a' }"
+      :overlay-style="{ backgroundColor: 'rgb(var(--color-shadow-rgb) / 0.85)', backdropFilter: 'blur(10px)' }"
+      :style="{ height: 'auto', background: 'var(--color-bg)' }"
     >
       <div class="premium-modal-container">
         <!-- 头部装饰线 -->
@@ -1122,6 +1112,18 @@ const selectedFuturesPercent = ref(null);
 const futuresSliderValue = ref(0); // 合约滑块值 (0-100)
 // 现货模式下默认选中"当前委托"Tab（索引1），合约模式下默认选中"持有仓位"Tab（索引0）
 // 注意：由于 van-tabs 需要 ref，我们使用 ref + watch 来实现动态切换
+const resetSpotAmountInput = () => {
+  amount.value = '';
+  selectedPercent.value = null;
+  spotSliderValue.value = 0;
+};
+
+const switchOrderSide = (side) => {
+  if (side !== 'buy' && side !== 'sell') return;
+  orderSide.value = side;
+  resetSpotAmountInput();
+};
+
 const activePositionTab = ref(0);
 
 // 监听 isSpotMode 变化，自动切换 Tab
@@ -1223,7 +1225,7 @@ const asks = ref([]);
 const bids = ref([]);
 const orderBookContainerRef = ref(null);
 const orderFormRef = ref(null);
-const maxVisibleRows = ref(50); // 默认最大可见行数
+const maxVisibleRows = ref(5); // compact 5-level orderbook for terminal layout
 
 // 缓存最大数量值，避免重复计算
 const maxQuantityCache = {
@@ -1297,18 +1299,18 @@ const calculateMaxRows = () => {
   const rowsPerSide = Math.floor(halfHeight / rowHeight);
   
   // 返回单侧应显示的行数，最小显示10行，最大100行
-  return Math.max(10, Math.min(100, rowsPerSide));
+  return Math.max(8, Math.min(12, rowsPerSide));
 };
 
 // 动态计算显示的买卖单数量
 const displayedAsks = computed(() => {
   // 卖单：取最低的 n 行，并倒序排列（高价在上，低价在下）
-  return asks.value.slice(0, maxVisibleRows.value).reverse();
+  return asks.value.slice(0, 5).reverse();
 });
 
 const displayedBids = computed(() => {
   // 买单：取最高的 n 行（高价在上，低价在下）
-  return bids.value.slice(0, maxVisibleRows.value);
+  return bids.value.slice(0, 5);
 });
 
 // 监听窗口大小变化，重新计算行数
@@ -1558,13 +1560,11 @@ const updateSpotSliderFromAmount = () => {
     
     const balance = availableBalance.value;
     if (balance <= 0) {
-      spotSliderValue.value = 0;
       return;
     }
     
     const orderPrice = parseFloat(price.value) || lastPrice.value;
     if (!orderPrice || orderPrice <= 0) {
-      spotSliderValue.value = 0;
       return;
     }
     
@@ -1609,7 +1609,6 @@ const setAmountPercent = (percent) => {
   try {
     const balance = availableBalance.value;
     if (balance <= 0) { 
-      spotSliderValue.value = 0;
       amount.value = '';
       return; 
     }
@@ -1618,7 +1617,6 @@ const setAmountPercent = (percent) => {
     const orderPrice = parseFloat(price.value) || lastPrice.value;
     
     if (!orderPrice || orderPrice <= 0) {
-      spotSliderValue.value = 0;
       amount.value = '';
       return;
     }
@@ -1651,7 +1649,6 @@ const setAmountPercent = (percent) => {
     }
   } catch (error) { 
     console.error('Error setting amount percent:', error); 
-    spotSliderValue.value = 0;
     amount.value = '';
   }
 };
@@ -1809,13 +1806,11 @@ const updateFuturesSliderFromAmount = () => {
     
     const balance = assetStore?.usdtBalance || 0;
     if (balance <= 0) {
-      futuresSliderValue.value = 0;
       return;
     }
     
     const orderPrice = orderType.value === 'market' ? markPrice.value : parseFloat(futuresPrice.value || markPrice.value);
     if (!orderPrice || orderPrice <= 0) {
-      futuresSliderValue.value = 0;
       return;
     }
     
@@ -1823,7 +1818,6 @@ const updateFuturesSliderFromAmount = () => {
     const maxAmount = (balance * currentLeverage.value) / orderPrice;
     
     if (maxAmount <= 0) {
-      futuresSliderValue.value = 0;
       return;
     }
     
@@ -1859,14 +1853,12 @@ const setFuturesAmountPercent = (percent) => {
   try {
     const balance = assetStore?.usdtBalance || 0;
     if (balance <= 0) {
-      futuresSliderValue.value = 0;
       futuresAmount.value = '';
       return;
     }
     
     const orderPrice = orderType.value === 'market' ? markPrice.value : parseFloat(futuresPrice.value || markPrice.value);
     if (!orderPrice || orderPrice <= 0) {
-      futuresSliderValue.value = 0;
       futuresAmount.value = '';
       return;
     }
@@ -1885,7 +1877,6 @@ const setFuturesAmountPercent = (percent) => {
     futuresAmount.value = calculatedAmount > 0 ? calculatedAmount.toFixed(currentCoinConfig.value.amountFixed) : '';
   } catch (error) {
     console.error('Error setting futures amount percent:', error);
-    futuresSliderValue.value = 0;
     futuresAmount.value = '';
   }
 };
@@ -2317,7 +2308,7 @@ const handleClosePosition = async (position, index) => {
       message: t('trade.close_position_message'),
       confirmButtonText: t('trade.close_position_confirm_btn'),
       cancelButtonText: t('trade.close_position_cancel_btn'),
-      confirmButtonColor: '#F6465D'
+      confirmButtonColor: 'var(--color-loss)'
     });
     
     isLoading.value = true;
@@ -3054,8 +3045,8 @@ onUnmounted(() => {
 .trade-page {
   position: fixed;
   inset: 0; /* top: 0, right: 0, bottom: 0, left: 0 */
-  background-color: #050505; /* 最深黑 */
-  color: #FFFFFF;
+  background-color: var(--color-bg); /* 最深黑 */
+  color: var(--color-text-primary);
   display: flex;
   flex-direction: column;
   z-index: 0;
@@ -3069,7 +3060,7 @@ onUnmounted(() => {
   overflow-x: hidden;
   padding-bottom: 128px; /* pb-32 = 128px，防止内容被底部全局导航栏遮挡 */
   scrollbar-width: thin;
-  scrollbar-color: rgba(212, 175, 55, 0.3) transparent;
+  scrollbar-color: rgb(var(--color-brand-rgb) / 0.3) transparent;
 }
 
 .trade-scrollable-content::-webkit-scrollbar {
@@ -3081,12 +3072,12 @@ onUnmounted(() => {
 }
 
 .trade-scrollable-content::-webkit-scrollbar-thumb {
-  background: rgba(212, 175, 55, 0.3);
+  background: rgb(var(--color-brand-rgb) / 0.3);
   border-radius: 3px;
 }
 
 .trade-scrollable-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(212, 175, 55, 0.5);
+  background: rgb(var(--color-brand-rgb) / 0.5);
 }
 
 /* ========== 顶部导航栏 ========== */
@@ -3096,10 +3087,10 @@ onUnmounted(() => {
   justify-content: space-between;
   height: 48px; /* h-12 = 48px */
   padding: 0 16px;
-  background-color: #1C1C1E; /* bg-gray-900 */
+  background-color: var(--color-bg-card); /* bg-gray-900 */
   flex-shrink: 0; /* 防止被压缩 */
   z-index: 20;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .header-center {
@@ -3112,7 +3103,7 @@ onUnmounted(() => {
 .page-title {
   font-size: 18px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
 }
 
 .nav-right-icon-wrap {
@@ -3131,7 +3122,7 @@ onUnmounted(() => {
 .kline-svg-icon {
   width: 22px;
   height: 22px;
-  fill: #FCD535;
+  fill: var(--color-brand-legacy);
   display: block;
 }
 
@@ -3140,20 +3131,20 @@ onUnmounted(() => {
   display: flex;
   padding: 0 16px;
   gap: 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .trade-tabs .tab-item {
   padding: 12px 0;
   font-size: 14px;
-  color: #848E9C;
+  color: var(--color-text-muted);
   cursor: pointer;
   position: relative;
   transition: color 0.2s ease;
 }
 
 .trade-tabs .tab-item.active {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-weight: 600;
 }
 
@@ -3164,7 +3155,7 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   height: 2px;
-  background-color: #FCD535;
+  background-color: var(--color-brand-legacy);
 }
 
 /* ========== 交易对信息 ========== */
@@ -3173,14 +3164,14 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .pair-selector { display: flex; align-items: center; cursor: pointer; }
-.pair-name { font-size: 16px; font-weight: 700; color: #FFFFFF; }
+.pair-name { font-size: 16px; font-weight: 700; color: var(--color-text-primary); }
 .price-change { font-size: 14px; font-weight: 600; padding: 4px 8px; border-radius: 4px; }
-.price-change.positive { color: #0ECB81; background-color: rgba(14, 203, 129, 0.1); }
-.price-change.negative { color: #F6465D; background-color: rgba(246, 70, 93, 0.1); }
+.price-change.positive { color: var(--color-earn); background-color: rgb(var(--color-earn-rgb) / 0.1); }
+.price-change.negative { color: var(--color-loss); background-color: rgb(var(--color-loss-rgb) / 0.1); }
 
 /* ========== 核心交易区 - 统一布局结构 ========== */
 .trade-main, .futures-trade-main {
@@ -3197,13 +3188,13 @@ onUnmounted(() => {
   width: 60%; /* w-[60%] - 与现货页面一致 */
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, rgba(5, 5, 5, 0.95) 0%, #050505 100%);
+  background: linear-gradient(180deg, rgb(var(--color-bg-rgb) / 0.95) 0%, var(--color-bg) 100%);
   border-radius: 8px;
   overflow: visible; /* 允许内容自然显示 */
   padding: 0;
   align-self: flex-start; /* 使用 flex-start，确保高度由内容决定 */
-  border: 1px solid rgba(212, 175, 55, 0.08);
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.08);
+  box-shadow: 0 0 20px rgb(var(--color-shadow-rgb) / 0.5);
   /* 使用自然高度，显示完整的 15-20 行 */
 }
 
@@ -3212,8 +3203,8 @@ onUnmounted(() => {
   justify-content: space-between;
   padding: 8px 12px;
   font-size: 10px;
-  color: #8E8E93;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.03);
   flex-shrink: 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -3251,7 +3242,7 @@ onUnmounted(() => {
 }
 
 .order-row:hover {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgb(var(--color-border-rgb) / 0.02);
 }
 
 .depth-bar {
@@ -3268,21 +3259,21 @@ onUnmounted(() => {
 /* 赛博朋克红色渐变 - 卖单 */
 .ask-depth { 
   background: linear-gradient(to left, 
-    rgba(246, 70, 93, 0.25) 0%, 
-    rgba(246, 70, 93, 0.15) 50%,
-    rgba(246, 70, 93, 0.05) 100%
+    rgb(var(--color-loss-rgb) / 0.25) 0%, 
+    rgb(var(--color-loss-rgb) / 0.15) 50%,
+    rgb(var(--color-loss-rgb) / 0.05) 100%
   );
-  box-shadow: inset -2px 0 8px rgba(246, 70, 93, 0.2);
+  box-shadow: inset -2px 0 8px rgb(var(--color-loss-rgb) / 0.2);
 }
 
 /* 赛博朋克绿色渐变 - 买单 */
 .bid-depth { 
   background: linear-gradient(to left, 
-    rgba(14, 203, 129, 0.25) 0%, 
-    rgba(14, 203, 129, 0.15) 50%,
-    rgba(14, 203, 129, 0.05) 100%
+    rgb(var(--color-earn-rgb) / 0.25) 0%, 
+    rgb(var(--color-earn-rgb) / 0.15) 50%,
+    rgb(var(--color-earn-rgb) / 0.05) 100%
   );
-  box-shadow: inset -2px 0 8px rgba(14, 203, 129, 0.2);
+  box-shadow: inset -2px 0 8px rgb(var(--color-earn-rgb) / 0.2);
 }
 
 .order-row .price { 
@@ -3296,26 +3287,26 @@ onUnmounted(() => {
 }
 
 .ask-price { 
-  color: #F6465D; 
+  color: var(--color-loss); 
   text-align: left; 
   flex: 1;
   font-weight: 600;
-  text-shadow: 0 0 6px rgba(246, 70, 93, 0.4);
+  text-shadow: 0 0 6px rgb(var(--color-loss-rgb) / 0.4);
 }
 
 .bid-price { 
-  color: #0ECB81; 
+  color: var(--color-earn); 
   text-align: left; 
   flex: 1;
   font-weight: 600;
-  text-shadow: 0 0 6px rgba(14, 203, 129, 0.4);
+  text-shadow: 0 0 6px rgb(var(--color-earn-rgb) / 0.4);
 }
 
 .order-row .quantity { 
   position: relative; 
   z-index: 1; 
   font-size: 13px; 
-  color: #8E8E93; 
+  color: var(--color-text-secondary); 
   text-align: right; 
   flex: 1; 
   font-weight: 500;
@@ -3326,13 +3317,13 @@ onUnmounted(() => {
 .last-price {
   flex-shrink: 0;
   height: 48px;
-  background: linear-gradient(180deg, rgba(212, 175, 55, 0.05) 0%, rgba(212, 175, 55, 0.02) 100%);
+  background: linear-gradient(180deg, rgb(var(--color-brand-rgb) / 0.05) 0%, rgb(var(--color-brand-rgb) / 0.02) 100%);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  border-top: 1px solid rgba(212, 175, 55, 0.15);
-  border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+  border-top: 1px solid rgb(var(--color-brand-rgb) / 0.15);
+  border-bottom: 1px solid rgb(var(--color-brand-rgb) / 0.15);
   padding: 0;
   margin: 0;
   position: relative;
@@ -3345,25 +3336,25 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at center, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle at center, rgb(var(--color-brand-rgb) / 0.1) 0%, transparent 70%);
   pointer-events: none;
 }
 
 .price-main { 
   font-size: 20px; 
   font-weight: 800; 
-  color: #FFFFFF; 
+  color: var(--color-text-primary); 
   font-variant-numeric: tabular-nums; 
   line-height: 1.2;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
   letter-spacing: -0.5px;
-  text-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
+  text-shadow: 0 0 12px rgb(var(--color-brand-rgb) / 0.4);
   transition: all 0.3s ease;
 }
 
 .price-fiat { 
   font-size: 11px; 
-  color: #8E8E93; 
+  color: var(--color-text-secondary); 
   font-variant-numeric: tabular-nums; 
   line-height: 1; 
   margin-top: 4px;
@@ -3371,13 +3362,13 @@ onUnmounted(() => {
 }
 
 .last-price.up .price-main { 
-  color: #0ECB81;
-  text-shadow: 0 0 12px rgba(14, 203, 129, 0.5);
+  color: var(--color-earn);
+  text-shadow: 0 0 12px rgb(var(--color-earn-rgb) / 0.5);
 }
 
 .last-price.down .price-main { 
-  color: #F6465D;
-  text-shadow: 0 0 12px rgba(246, 70, 93, 0.5);
+  color: var(--color-loss);
+  text-shadow: 0 0 12px rgb(var(--color-loss-rgb) / 0.5);
 }
 
 .form-side {
@@ -3391,10 +3382,10 @@ onUnmounted(() => {
 .buy-sell-toggle {
   display: flex;
   gap: 0;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(var(--color-border-rgb) / 0.03);
   border-radius: 8px;
   padding: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.05);
   position: relative;
   margin-top: 0; /* 确保顶部对齐，与 orderbook-header 对齐 */
 }
@@ -3410,27 +3401,27 @@ onUnmounted(() => {
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   position: relative;
   z-index: 1;
 }
 
 .buy-btn.active { 
-  background: linear-gradient(135deg, #00FFA3 0%, #00D98B 100%);
-  color: #000000;
-  box-shadow: 0 0 20px rgba(0, 255, 163, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, var(--color-earn) 0%, var(--color-earn) 100%);
+  color: var(--color-text-on-accent);
+  box-shadow: 0 0 20px rgb(var(--color-earn-rgb) / 0.3), inset 0 1px 0 rgb(var(--color-border-rgb) / 0.2);
+  text-shadow: 0 1px 2px rgb(var(--color-shadow-rgb) / 0.3);
 }
 
 .sell-btn.active { 
-  background: linear-gradient(135deg, #FF2E50 0%, #E63950 100%);
-  color: #FFFFFF;
-  box-shadow: 0 0 20px rgba(255, 46, 80, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, var(--color-loss) 0%, var(--color-loss) 100%);
+  color: var(--color-text-primary);
+  box-shadow: 0 0 20px rgb(var(--color-loss-rgb) / 0.3), inset 0 1px 0 rgb(var(--color-border-rgb) / 0.1);
+  text-shadow: 0 1px 2px rgb(var(--color-shadow-rgb) / 0.3);
 }
 
 .toggle-btn:not(.active):hover {
-  color: #D4AF37;
+  color: var(--color-accent);
 }
 
 .order-type-selector {
@@ -3439,12 +3430,12 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: 4px;
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(var(--color-border-rgb) / 0.03);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(212, 175, 55, 0.15);
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.15);
   border-radius: 8px;
   font-size: 13px;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   cursor: pointer;
   transition: all 0.3s ease;
   font-weight: 600;
@@ -3452,12 +3443,12 @@ onUnmounted(() => {
 }
 
 .order-type-selector:hover {
-  background: rgba(212, 175, 55, 0.05);
-  border-color: rgba(212, 175, 55, 0.25);
+  background: rgb(var(--color-brand-rgb) / 0.05);
+  border-color: rgb(var(--color-brand-rgb) / 0.25);
 }
 
 .order-type-selector:active { 
-  background: rgba(212, 175, 55, 0.08);
+  background: rgb(var(--color-brand-rgb) / 0.08);
   transform: scale(0.98);
 }
 
@@ -3467,54 +3458,54 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   padding: 8px 14px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(var(--color-border-rgb) / 0.03);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(212, 175, 55, 0.2);
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.2);
   border-radius: 8px;
   font-size: 13px;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   cursor: pointer;
   transition: all 0.3s ease;
   font-weight: 600;
 }
 
 .leverage-btn:hover {
-  background: rgba(212, 175, 55, 0.1);
-  border-color: rgba(212, 175, 55, 0.3);
-  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
+  background: rgb(var(--color-brand-rgb) / 0.1);
+  border-color: rgb(var(--color-brand-rgb) / 0.3);
+  box-shadow: 0 4px 12px rgb(var(--color-brand-rgb) / 0.2);
 }
 
 .leverage-btn:active {
-  background: rgba(212, 175, 55, 0.15);
+  background: rgb(var(--color-brand-rgb) / 0.15);
   transform: scale(0.98);
 }
 
 .leverage-value { 
-  color: #D4AF37; 
+  color: var(--color-accent); 
   font-weight: 800; 
   font-variant-numeric: tabular-nums;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
-  text-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+  text-shadow: 0 0 8px rgb(var(--color-brand-rgb) / 0.4);
 }
-.leverage-popup, :deep(.leverage-popup .van-popup) { background: #1C1C1E; }
+.leverage-popup, :deep(.leverage-popup .van-popup) { background: var(--color-bg-card); }
 .leverage-popup-content { padding: 20px; height: 100%; display: flex; flex-direction: column; }
 .leverage-popup-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-.leverage-popup-title { font-size: 18px; font-weight: 700; color: #FFFFFF; margin: 0; }
-.close-icon { font-size: 20px; color: #848E9C; cursor: pointer; }
+.leverage-popup-title { font-size: 18px; font-weight: 700; color: var(--color-text-primary); margin: 0; }
+.close-icon { font-size: 20px; color: var(--color-text-muted); cursor: pointer; }
 .leverage-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 .leverage-option {
   display: flex; align-items: center; justify-content: space-between; padding: 12px 16px;
-  background-color: #141414; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 8px;
-  font-size: 14px; font-weight: 600; color: #EAECEF; cursor: pointer;
+  background-color: var(--color-bg-input); border: 1px solid rgb(var(--color-border-rgb) / 0.05); border-radius: 8px;
+  font-size: 14px; font-weight: 600; color: var(--color-text-primary); cursor: pointer;
 }
-.leverage-option.active { background-color: rgba(252, 213, 53, 0.1); border-color: #FCD535; color: #FCD535; }
+.leverage-option.active { background-color: rgb(var(--color-brand-legacy-rgb) / 0.1); border-color: var(--color-brand-legacy); color: var(--color-brand-legacy); }
 
 .input-row {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(var(--color-border-rgb) / 0.03);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(212, 175, 55, 0.15);
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.15);
   border-radius: 8px;
   padding: 0 14px;
   height: 44px;
@@ -3523,17 +3514,17 @@ onUnmounted(() => {
 }
 
 .input-row:focus-within {
-  border-color: #D4AF37;
-  background: rgba(212, 175, 55, 0.05);
+  border-color: var(--color-accent);
+  background: rgb(var(--color-brand-rgb) / 0.05);
   box-shadow: 
-    0 0 20px rgba(212, 175, 55, 0.15), 
-    inset 0 0 20px rgba(212, 175, 55, 0.05),
-    inset 0 0 30px rgba(212, 175, 55, 0.08); /* 内发光效果 */
+    0 0 20px rgb(var(--color-brand-rgb) / 0.15), 
+    inset 0 0 20px rgb(var(--color-brand-rgb) / 0.05),
+    inset 0 0 30px rgb(var(--color-brand-rgb) / 0.08); /* 内发光效果 */
 }
 
 .input-label { 
   font-size: 12px; 
-  color: #8E8E93; 
+  color: var(--color-text-secondary); 
   white-space: nowrap; 
   min-width: 80px;
   text-transform: uppercase;
@@ -3545,7 +3536,7 @@ onUnmounted(() => {
   flex: 1; 
   background: transparent; 
   border: none; 
-  color: #FFFFFF; 
+  color: var(--color-text-primary); 
   font-size: 16px; 
   font-variant-numeric: tabular-nums; 
   outline: none;
@@ -3554,13 +3545,13 @@ onUnmounted(() => {
 }
 
 .input-field::placeholder { 
-  color: rgba(142, 142, 147, 0.5);
+  color: rgb(var(--color-text-muted-rgb) / 0.5);
 }
 
 /* 输入框单位标签（后缀） */
 .input-suffix {
   font-size: 13px;
-  color: #D4AF37; /* text-yellow-500 / Gold */
+  color: var(--color-accent); /* text-yellow-500 / Gold */
   font-weight: 600;
   white-space: nowrap;
   margin-left: 4px;
@@ -3579,7 +3570,7 @@ onUnmounted(() => {
 }
 
 .market-price-input { 
-  color: rgba(142, 142, 147, 0.6) !important; 
+  color: rgb(var(--color-text-muted-rgb) / 0.6) !important; 
   cursor: not-allowed; 
   opacity: 0.6;
   font-style: italic;
@@ -3594,7 +3585,7 @@ onUnmounted(() => {
 }
 
 .est-label { 
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   font-weight: 600;
@@ -3602,7 +3593,7 @@ onUnmounted(() => {
 }
 
 .est-value { 
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-weight: 700;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
   font-variant-numeric: tabular-nums;
@@ -3627,7 +3618,7 @@ onUnmounted(() => {
 
 .mark-item {
   font-size: 10px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   cursor: pointer;
   padding: 6px 10px;
   border-radius: 6px;
@@ -3637,16 +3628,16 @@ onUnmounted(() => {
   text-align: center;
   font-weight: 600;
   position: relative;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgb(var(--color-border-rgb) / 0.02);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .mark-item:hover {
-  color: #D4AF37;
-  background: rgba(212, 175, 55, 0.1);
-  border-color: rgba(212, 175, 55, 0.3);
+  color: var(--color-accent);
+  background: rgb(var(--color-brand-rgb) / 0.1);
+  border-color: rgb(var(--color-brand-rgb) / 0.3);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(212, 175, 55, 0.2);
+  box-shadow: 0 4px 8px rgb(var(--color-brand-rgb) / 0.2);
 }
 
 .mark-item:active {
@@ -3657,18 +3648,18 @@ onUnmounted(() => {
 .custom-slider-button {
   width: 28px;
   height: 28px;
-  color: #000;
+  color: var(--color-text-on-accent);
   font-size: 10px;
   line-height: 28px;
   text-align: center;
-  background: linear-gradient(135deg, #D4AF37 0%, #FFD700 100%);
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-strong) 100%);
   border-radius: 50%;
   font-weight: 800;
   box-shadow: 
-    0 0 20px rgba(212, 175, 55, 0.6),
-    0 4px 12px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  border: 2px solid rgba(255, 255, 255, 0.2);
+    0 0 20px rgb(var(--color-brand-rgb) / 0.6),
+    0 4px 12px rgb(var(--color-shadow-rgb) / 0.3),
+    inset 0 1px 0 rgb(var(--color-border-rgb) / 0.3);
+  border: 2px solid rgb(var(--color-border-rgb) / 0.2);
   transform: scale(1);
   transition: all 0.3s ease;
 }
@@ -3676,9 +3667,9 @@ onUnmounted(() => {
 .custom-slider-button:hover {
   transform: scale(1.1);
   box-shadow: 
-    0 0 30px rgba(212, 175, 55, 0.8),
-    0 6px 16px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    0 0 30px rgb(var(--color-brand-rgb) / 0.8),
+    0 6px 16px rgb(var(--color-shadow-rgb) / 0.4),
+    inset 0 1px 0 rgb(var(--color-border-rgb) / 0.4);
 }
 
 /* Vant Slider 自定义样式 */
@@ -3687,14 +3678,14 @@ onUnmounted(() => {
 }
 
 :deep(.van-slider__bar) {
-  background: linear-gradient(90deg, #D4AF37 0%, rgba(212, 175, 55, 0.3) 100%);
+  background: linear-gradient(90deg, var(--color-accent) 0%, rgb(var(--color-brand-rgb) / 0.3) 100%);
   height: 3px;
   border-radius: 2px;
-  box-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+  box-shadow: 0 0 8px rgb(var(--color-brand-rgb) / 0.4);
 }
 
 :deep(.van-slider__track) {
-  background: rgba(212, 175, 55, 0.1);
+  background: rgb(var(--color-brand-rgb) / 0.1);
   height: 3px;
   border-radius: 2px;
 }
@@ -3703,26 +3694,26 @@ onUnmounted(() => {
 .percent-row { display: flex; gap: 8px; }
 .percent-btn {
   flex: 1; height: 32px; display: flex; align-items: center; justify-content: center;
-  background-color: #1C1C1E; border-radius: 4px; font-size: 12px; color: #EAECEF; cursor: pointer;
+  background-color: var(--color-bg-card); border-radius: 4px; font-size: 12px; color: var(--color-text-primary); cursor: pointer;
 }
-.percent-btn.active { background-color: #FCD535; color: #000000; font-weight: 600; }
+.percent-btn.active { background-color: var(--color-brand-legacy); color: var(--color-text-on-accent); font-weight: 600; }
 
 .fee-estimate-row {
   display: flex; 
   justify-content: space-between; 
   align-items: center; 
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgb(var(--color-border-rgb) / 0.02);
   backdrop-filter: blur(10px);
   border-radius: 8px; 
   height: auto; 
   margin-bottom: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .fee-estimate-label { 
   font-size: 11px; 
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 600;
@@ -3730,7 +3721,7 @@ onUnmounted(() => {
 
 .fee-estimate-value { 
   font-size: 13px; 
-  color: #FFFFFF; 
+  color: var(--color-text-primary); 
   font-weight: 700; 
   font-variant-numeric: tabular-nums;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
@@ -3741,16 +3732,16 @@ onUnmounted(() => {
 
 .fee-usdt-note { 
   font-size: 10px; 
-  color: #8E8E93; 
+  color: var(--color-text-secondary); 
   font-weight: 400; 
   margin-left: 4px;
 }
 
 .discount-badge { 
   font-size: 11px; 
-  color: #D4AF37; 
+  color: var(--color-accent); 
   font-weight: 600;
-  text-shadow: 0 0 4px rgba(212, 175, 55, 0.4);
+  text-shadow: 0 0 4px rgb(var(--color-brand-rgb) / 0.4);
 }
 
 .total-row {
@@ -3758,17 +3749,17 @@ onUnmounted(() => {
   justify-content: space-between; 
   align-items: center; 
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgb(var(--color-border-rgb) / 0.02);
   backdrop-filter: blur(10px);
   border-radius: 8px; 
   height: auto; 
   margin-bottom: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.05);
 }
 
 .total-label { 
   font-size: 11px; 
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 600;
@@ -3776,7 +3767,7 @@ onUnmounted(() => {
 
 .total-value { 
   font-size: 14px; 
-  color: #FFFFFF; 
+  color: var(--color-text-primary); 
   font-weight: 700; 
   font-variant-numeric: tabular-nums;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
@@ -3787,18 +3778,18 @@ onUnmounted(() => {
   justify-content: space-between; 
   align-items: center; 
   padding: 14px 16px;
-  background: rgba(212, 175, 55, 0.06);
+  background: rgb(var(--color-brand-rgb) / 0.06);
   backdrop-filter: blur(10px);
   border-radius: 8px; 
   height: auto; 
   margin-bottom: 16px;
-  border: 1px solid rgba(212, 175, 55, 0.15);
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.1), inset 0 0 20px rgba(212, 175, 55, 0.05);
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.15);
+  box-shadow: 0 0 20px rgb(var(--color-brand-rgb) / 0.1), inset 0 0 20px rgb(var(--color-brand-rgb) / 0.05);
 }
 
 .received-label { 
   font-size: 12px; 
-  color: rgba(212, 175, 55, 0.8); 
+  color: rgb(var(--color-brand-rgb) / 0.8); 
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -3806,12 +3797,12 @@ onUnmounted(() => {
 
 .received-value { 
   font-size: 16px; 
-  color: #D4AF37; 
+  color: var(--color-accent); 
   font-weight: 800; 
   font-variant-numeric: tabular-nums; 
   letter-spacing: -0.3px;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
-  text-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+  text-shadow: 0 0 8px rgb(var(--color-brand-rgb) / 0.4);
 }
 
 .available-row { 
@@ -3830,7 +3821,7 @@ onUnmounted(() => {
 }
 
 .avail-label { 
-  color: #8E8E93; 
+  color: var(--color-text-secondary); 
   margin-right: 6px;
   font-weight: 500;
   text-transform: uppercase;
@@ -3839,7 +3830,7 @@ onUnmounted(() => {
 }
 
 .avail-value { 
-  color: #FFFFFF; 
+  color: var(--color-text-primary); 
   font-variant-numeric: tabular-nums;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
   font-weight: 700;
@@ -3858,7 +3849,7 @@ onUnmounted(() => {
 
 .available-balance-label {
   font-size: 12px;
-  color: #8E8E93; /* Grey */
+  color: var(--color-text-secondary); /* Grey */
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -3866,11 +3857,11 @@ onUnmounted(() => {
 
 .available-balance-value {
   font-size: 15px;
-  color: #FFFFFF; /* Bright White/Gold */
+  color: var(--color-text-primary); /* Bright White/Gold */
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
-  text-shadow: 0 0 8px rgba(212, 175, 55, 0.3); /* 轻微金色发光 */
+  text-shadow: 0 0 8px rgb(var(--color-brand-rgb) / 0.3); /* 轻微金色发光 */
 }
 
 .submit-btn {
@@ -3897,7 +3888,7 @@ onUnmounted(() => {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgb(var(--color-border-rgb) / 0.2), transparent);
   transition: left 0.5s ease;
 }
 
@@ -3907,23 +3898,23 @@ onUnmounted(() => {
 
 .submit-btn.buy { 
   background: var(--color-brand);
-  color: #000000;
-  box-shadow: 0 4px 16px rgba(240, 185, 11, 0.25);
+  color: var(--color-text-on-accent);
+  box-shadow: 0 4px 16px rgb(var(--color-brand-rgb) / 0.25);
 }
 
 .submit-btn.buy:hover:not(:disabled) {
-  box-shadow: 0 6px 20px rgba(240, 185, 11, 0.35);
+  box-shadow: 0 6px 20px rgb(var(--color-brand-rgb) / 0.35);
   transform: translateY(-2px);
 }
 
 .submit-btn.sell { 
   background: var(--color-loss);
-  color: #FFFFFF;
-  box-shadow: 0 4px 16px rgba(246, 70, 93, 0.25);
+  color: var(--color-text-primary);
+  box-shadow: 0 4px 16px rgb(var(--color-loss-rgb) / 0.25);
 }
 
 .submit-btn.sell:hover:not(:disabled) {
-  box-shadow: 0 6px 30px rgba(255, 46, 80, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow: 0 6px 30px rgb(var(--color-loss-rgb) / 0.5), inset 0 1px 0 rgb(var(--color-border-rgb) / 0.3);
   transform: translateY(-2px);
 }
 
@@ -3939,9 +3930,9 @@ onUnmounted(() => {
 
 /* ========== 底部：委托与资产 - 自然流式布局 ========== */
 .bottom-section { 
-  background: linear-gradient(180deg, #050505 0%, rgba(5, 5, 5, 0.98) 100%);
-  border-top: 1px solid rgba(212, 175, 55, 0.1);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(180deg, var(--color-bg) 0%, rgb(var(--color-bg-rgb) / 0.98) 100%);
+  border-top: 1px solid rgb(var(--color-brand-rgb) / 0.1);
+  box-shadow: 0 -4px 20px rgb(var(--color-shadow-rgb) / 0.5);
   display: flex;
   flex-direction: column;
   margin-top: 8px; /* mt-2 = 8px，与交易表单的间距 */
@@ -3953,18 +3944,18 @@ onUnmounted(() => {
   display: flex; 
   padding: 8px 16px; 
   gap: 32px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
   flex-shrink: 0; /* 防止被压缩 */
   position: sticky;
   top: 0;
-  background: linear-gradient(180deg, #050505 0%, rgba(5, 5, 5, 0.98) 100%);
+  background: linear-gradient(180deg, var(--color-bg) 0%, rgb(var(--color-bg-rgb) / 0.98) 100%);
   z-index: 10;
   backdrop-filter: blur(10px);
 }
 
 .bottom-tabs .tab-item {
   font-size: 14px; 
-  color: #8E8E93; 
+  color: var(--color-text-secondary); 
   cursor: pointer; 
   padding-bottom: 8px; 
   position: relative; 
@@ -3975,11 +3966,11 @@ onUnmounted(() => {
 }
 
 .bottom-tabs .tab-item:hover {
-  color: rgba(212, 175, 55, 0.7);
+  color: rgb(var(--color-brand-rgb) / 0.7);
 }
 
 .bottom-tabs .tab-item.active { 
-  color: #D4AF37; 
+  color: var(--color-accent); 
   font-weight: 700;
 }
 
@@ -3990,8 +3981,8 @@ onUnmounted(() => {
   left: 0; 
   right: 0; 
   height: 3px; 
-  background: linear-gradient(90deg, #D4AF37 0%, #FFD700 100%);
-  box-shadow: 0 0 12px rgba(212, 175, 55, 0.6);
+  background: linear-gradient(90deg, var(--color-accent) 0%, var(--color-accent-strong) 100%);
+  box-shadow: 0 0 12px rgb(var(--color-brand-rgb) / 0.6);
   border-radius: 2px 2px 0 0;
 }
 
@@ -3999,7 +3990,7 @@ onUnmounted(() => {
   padding: 12px 16px;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, rgba(5, 5, 5, 0.98) 0%, #050505 100%);
+  background: linear-gradient(180deg, rgb(var(--color-bg-rgb) / 0.98) 0%, var(--color-bg) 100%);
   /* 移除固定高度和 overflow，使用自然流式布局 */
 }
 
@@ -4048,7 +4039,7 @@ onUnmounted(() => {
 
 .empty-text-compact {
   font-size: 12px; 
-  color: #8E8E93; 
+  color: var(--color-text-secondary); 
   font-weight: 500;
 }
 
@@ -4058,21 +4049,21 @@ onUnmounted(() => {
   display: flex; 
   align-items: center; 
   padding: 10px 12px; /* 减少内边距，更紧凑 */
-  background: rgba(255, 255, 255, 0.02);
+  background: rgb(var(--color-border-rgb) / 0.02);
   backdrop-filter: blur(10px);
   border-radius: 8px; /* 更小的圆角 */
-  border: 1px solid rgba(212, 175, 55, 0.1); 
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.1); 
   transition: all 0.2s ease;
   flex-shrink: 0; /* 防止压缩 */
 }
 
 .order-item:hover {
-  background: rgba(212, 175, 55, 0.05);
-  border-color: rgba(212, 175, 55, 0.2);
+  background: rgb(var(--color-brand-rgb) / 0.05);
+  border-color: rgb(var(--color-brand-rgb) / 0.2);
 }
 
 .order-item:active { 
-  background: rgba(212, 175, 55, 0.08);
+  background: rgb(var(--color-brand-rgb) / 0.08);
 }
 
 .order-left { 
@@ -4092,13 +4083,13 @@ onUnmounted(() => {
 }
 
 .order-side-badge.buy { 
-  background-color: rgba(0, 255, 163, 0.15); 
-  color: #00FFA3; 
+  background-color: rgb(var(--color-earn-rgb) / 0.15); 
+  color: var(--color-earn); 
 }
 
 .order-side-badge.sell { 
-  background-color: rgba(255, 46, 80, 0.15); 
-  color: #FF2E50; 
+  background-color: rgb(var(--color-loss-rgb) / 0.15); 
+  color: var(--color-loss); 
 }
 
 /* 强平订单标签样式 - 醒目的红色标签 */
@@ -4110,32 +4101,32 @@ onUnmounted(() => {
   white-space: nowrap;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  background-color: rgba(239, 68, 68, 0.2); /* bg-red-500/20 - 浅红色背景 */
-  color: #EF4444; /* text-red-500 - 鲜艳的红色 */
-  border: 1px solid rgba(239, 68, 68, 0.3); /* 细红线边框 */
-  box-shadow: 0 0 8px rgba(239, 68, 68, 0.2);
+  background-color: rgb(var(--color-loss-rgb) / 0.2); /* bg-red-500/20 - 浅红色背景 */
+  color: var(--color-loss); /* text-red-500 - 鲜艳的红色 */
+  border: 1px solid rgb(var(--color-loss-rgb) / 0.3); /* 细红线边框 */
+  box-shadow: 0 0 8px rgb(var(--color-loss-rgb) / 0.2);
 }
 
 /* 强平订单整体样式 */
 .order-item.liquidation-order {
-  border-left: 3px solid #EF4444; /* 左侧红色边框标识 */
-  background-color: rgba(239, 68, 68, 0.05); /* 轻微红色背景 */
+  border-left: 3px solid var(--color-loss); /* 左侧红色边框标识 */
+  background-color: rgb(var(--color-loss-rgb) / 0.05); /* 轻微红色背景 */
 }
 
 /* 强平订单的已实现盈亏样式 - 巨额负数红色加粗 */
 .order-pnl.pnl-liquidation {
   font-weight: 900;
   font-size: 14px;
-  color: #EF4444 !important; /* 强制红色 */
-  text-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+  color: var(--color-loss) !important; /* 强制红色 */
+  text-shadow: 0 0 8px rgb(var(--color-loss-rgb) / 0.5);
 }
 
 .order-pnl.pnl-liquidation.pnl-negative {
-  color: #DC2626 !important; /* text-red-600 - 更深的红色 */
+  color: var(--color-loss) !important; /* text-red-600 - 更深的红色 */
   font-weight: 900;
   text-shadow: 
-    0 0 10px rgba(220, 38, 38, 0.6),
-    0 0 20px rgba(220, 38, 38, 0.3);
+    0 0 10px rgb(var(--color-loss-rgb) / 0.6),
+    0 0 20px rgb(var(--color-loss-rgb) / 0.3);
 }
 
 .order-symbol-time { 
@@ -4147,12 +4138,12 @@ onUnmounted(() => {
 .order-symbol { 
   font-size: 12px; /* 更小 */
   font-weight: 700; 
-  color: #FFFFFF; 
+  color: var(--color-text-primary); 
 }
 
 .order-time { 
   font-size: 10px; /* 更小 */
-  color: #8E8E93; 
+  color: var(--color-text-secondary); 
   font-family: 'DIN Alternate', monospace; 
 }
 
@@ -4168,13 +4159,13 @@ onUnmounted(() => {
 .order-price { 
   font-size: 13px; /* 更小 */
   font-weight: 700; 
-  color: #FFFFFF; 
+  color: var(--color-text-primary); 
   font-family: 'DIN Alternate', monospace; 
 }
 
 .order-quantity { 
   font-size: 11px; /* 更小 */
-  color: #8E8E93; 
+  color: var(--color-text-secondary); 
   font-family: 'DIN Alternate', monospace; 
 }
 
@@ -4210,7 +4201,7 @@ onUnmounted(() => {
 .history-order-symbol {
   font-size: 13px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
 }
 
@@ -4221,7 +4212,7 @@ onUnmounted(() => {
 
 .history-order-price-quantity {
   font-size: 11px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
   font-variant-numeric: tabular-nums;
 }
@@ -4247,35 +4238,35 @@ onUnmounted(() => {
 }
 
 .history-order-pnl.pnl-positive {
-  color: #0ECB81; /* 正数绿色 */
+  color: var(--color-earn); /* 正数绿色 */
 }
 
 .history-order-pnl.pnl-negative {
-  color: #F6465D; /* 负数红色 */
+  color: var(--color-loss); /* 负数红色 */
 }
 
 .history-order-pnl.pnl-zero {
-  color: #8E8E93; /* 0 显示灰色 */
+  color: var(--color-text-secondary); /* 0 显示灰色 */
   font-weight: 600;
 }
 
 .history-order-pnl.pnl-liquidation {
-  color: #EF4444 !important;
+  color: var(--color-loss) !important;
   font-weight: 900;
   font-size: 17px; /* 强平订单更大字号 */
-  text-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+  text-shadow: 0 0 8px rgb(var(--color-loss-rgb) / 0.5);
 }
 
 .history-order-pnl.pnl-liquidation.pnl-negative {
-  color: #DC2626 !important;
+  color: var(--color-loss) !important;
   text-shadow: 
-    0 0 10px rgba(220, 38, 38, 0.6),
-    0 0 20px rgba(220, 38, 38, 0.3);
+    0 0 10px rgb(var(--color-loss-rgb) / 0.6),
+    0 0 20px rgb(var(--color-loss-rgb) / 0.3);
 }
 
 .history-order-time {
   font-size: 10px; /* text-xs */
-  color: #8E8E93; /* text-gray-500 */
+  color: var(--color-text-secondary); /* text-gray-500 */
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
   text-align: right;
   white-space: nowrap;
@@ -4303,12 +4294,12 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: #D4AF37;
+  color: var(--color-accent);
 }
 
 .loading-text {
   font-size: 12px;
-  color: #D4AF37;
+  color: var(--color-accent);
   font-weight: 600;
   letter-spacing: 0.5px;
 }
@@ -4316,7 +4307,7 @@ onUnmounted(() => {
 /* 没有更多数据状态 */
 .history-no-more {
   font-size: 10px; /* text-xs */
-  color: #6B7280; /* text-gray-600 */
+  color: var(--color-text-muted); /* text-gray-600 */
   text-align: center;
   padding: 16px 0;
   letter-spacing: 0.3px; /* tracking-wider */
@@ -4326,9 +4317,9 @@ onUnmounted(() => {
 
 .cancel-btn { 
   padding: 5px 12px; /* 更紧凑 */
-  background: rgba(255, 46, 80, 0.1); 
-  color: #FF2E50; 
-  border: 1px solid rgba(255, 46, 80, 0.2); 
+  background: rgb(var(--color-loss-rgb) / 0.1); 
+  color: var(--color-loss); 
+  border: 1px solid rgb(var(--color-loss-rgb) / 0.2); 
   border-radius: 6px; 
   font-size: 11px; /* 更小 */
   font-weight: 600; 
@@ -4337,23 +4328,23 @@ onUnmounted(() => {
 }
 
 .cancel-btn:hover {
-  background: rgba(255, 46, 80, 0.15);
-  border-color: rgba(255, 46, 80, 0.3);
+  background: rgb(var(--color-loss-rgb) / 0.15);
+  border-color: rgb(var(--color-loss-rgb) / 0.3);
 }
 
 .cancel-btn:active { 
-  background: rgba(255, 46, 80, 0.2); 
+  background: rgb(var(--color-loss-rgb) / 0.2); 
 }
 
 /* ========== 资产玻璃拟态卡片 ========== */
 .assets-glass-card {
-  background: rgba(255, 255, 255, 0.05); /* bg-white/5 */
+  background: rgb(var(--color-border-rgb) / 0.05); /* bg-white/5 */
   border-radius: 12px; /* rounded-xl */
   padding: 16px; /* p-4 */
   margin-top: 16px; /* mt-4 */
-  border: 1px solid rgba(255, 255, 255, 0.1); /* border border-white/10 */
+  border: 1px solid rgb(var(--color-border-rgb) / 0.1); /* border border-white/10 */
   backdrop-filter: blur(10px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgb(var(--color-shadow-rgb) / 0.3);
 }
 
 /* ========== 紧凑资产 HUD 条 - 单行水平布局 ========== */
@@ -4380,13 +4371,13 @@ onUnmounted(() => {
 .asset-hud-divider {
   width: 1px;
   height: 24px;
-  background: rgba(212, 175, 55, 0.15);
+  background: rgb(var(--color-brand-rgb) / 0.15);
   flex-shrink: 0;
 }
 
 .asset-hud-label { 
   font-size: 10px; /* 非常小的标签 */
-  color: #8E8E93; 
+  color: var(--color-text-secondary); 
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -4396,10 +4387,10 @@ onUnmounted(() => {
 .asset-hud-value { 
   font-size: 14px; /* 适中大小的数值 */
   font-weight: 800; 
-  color: #D4AF37; 
+  color: var(--color-accent); 
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 6px rgba(212, 175, 55, 0.3);
+  text-shadow: 0 0 6px rgb(var(--color-brand-rgb) / 0.3);
   letter-spacing: -0.2px;
   line-height: 1.2;
   white-space: nowrap;
@@ -4409,8 +4400,8 @@ onUnmounted(() => {
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 
 .coin-select-popup { 
-  background: linear-gradient(180deg, #050505 0%, rgba(5, 5, 5, 0.98) 100%) !important;
-  border-top: 1px solid rgba(212, 175, 55, 0.1);
+  background: linear-gradient(180deg, var(--color-bg) 0%, rgb(var(--color-bg-rgb) / 0.98) 100%) !important;
+  border-top: 1px solid rgb(var(--color-brand-rgb) / 0.1);
 }
 
 .coin-select-container { 
@@ -4422,18 +4413,18 @@ onUnmounted(() => {
 
 .coin-select-header { 
   padding: 20px 16px 16px; 
-  border-bottom: 1px solid rgba(212, 175, 55, 0.1); 
+  border-bottom: 1px solid rgb(var(--color-brand-rgb) / 0.1); 
   flex-shrink: 0;
-  background: linear-gradient(180deg, rgba(5, 5, 5, 0.95) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgb(var(--color-bg-rgb) / 0.95) 0%, transparent 100%);
 }
 
 .coin-select-title { 
   font-size: 18px; 
   font-weight: 800; 
-  color: #D4AF37; 
+  color: var(--color-accent); 
   margin: 0; 
   text-align: left;
-  text-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+  text-shadow: 0 0 8px rgb(var(--color-brand-rgb) / 0.3);
 }
 
 .coin-list { 
@@ -4441,7 +4432,7 @@ onUnmounted(() => {
   overflow-y: auto; 
   padding: 0;
   scrollbar-width: thin;
-  scrollbar-color: rgba(212, 175, 55, 0.3) transparent;
+  scrollbar-color: rgb(var(--color-brand-rgb) / 0.3) transparent;
 }
 
 .coin-list::-webkit-scrollbar {
@@ -4453,19 +4444,19 @@ onUnmounted(() => {
 }
 
 .coin-list::-webkit-scrollbar-thumb {
-  background: rgba(212, 175, 55, 0.3);
+  background: rgb(var(--color-brand-rgb) / 0.3);
   border-radius: 3px;
 }
 
 .coin-list::-webkit-scrollbar-thumb:hover {
-  background: rgba(212, 175, 55, 0.5);
+  background: rgb(var(--color-brand-rgb) / 0.5);
 }
 
 .coin-item { 
   padding: 16px; 
   display: flex; 
   flex-direction: column; 
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05); 
   cursor: pointer; 
   transition: all 0.3s ease;
   position: relative;
@@ -4478,22 +4469,22 @@ onUnmounted(() => {
   top: 0;
   bottom: 0;
   width: 3px;
-  background: linear-gradient(180deg, #D4AF37 0%, #FFD700 100%);
+  background: linear-gradient(180deg, var(--color-accent) 0%, var(--color-accent-strong) 100%);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
 .coin-item:hover {
-  background: rgba(212, 175, 55, 0.05);
+  background: rgb(var(--color-brand-rgb) / 0.05);
 }
 
 .coin-item:active { 
-  background: rgba(212, 175, 55, 0.08);
+  background: rgb(var(--color-brand-rgb) / 0.08);
 }
 
 .coin-item-active { 
-  background: rgba(212, 175, 55, 0.08);
-  border-left: 3px solid #D4AF37;
+  background: rgb(var(--color-brand-rgb) / 0.08);
+  border-left: 3px solid var(--color-accent);
 }
 
 .coin-item-active::before {
@@ -4503,52 +4494,52 @@ onUnmounted(() => {
 .coin-name { 
   font-size: 16px; 
   font-weight: 700; 
-  color: #FFFFFF; 
+  color: var(--color-text-primary); 
   margin: 0;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
 }
 
 .coin-item-active .coin-name {
-  color: #D4AF37;
-  text-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+  color: var(--color-accent);
+  text-shadow: 0 0 8px rgb(var(--color-brand-rgb) / 0.4);
 }
 
 .coin-pair { 
   font-size: 12px; 
-  color: #8E8E93; 
+  color: var(--color-text-secondary); 
   margin-top: 6px;
   font-family: 'Roboto Mono', 'DIN Alternate', monospace;
   font-variant-numeric: tabular-nums;
 }
-:deep(.van-empty__description) { color: #848E9C; font-size: 12px; }
+:deep(.van-empty__description) { color: var(--color-text-muted); font-size: 12px; }
 
 /* 修复3：ActionSheet 黑金风格 */
 .custom-action-sheet {
-  --van-action-sheet-background: #1C1C1E;
-  --van-action-sheet-item-background: #1C1C1E;
-  --van-action-sheet-item-text-color: #EAECEF;
+  --van-action-sheet-background: var(--color-bg-card);
+  --van-action-sheet-item-background: var(--color-bg-card);
+  --van-action-sheet-item-text-color: var(--color-text-primary);
   --van-action-sheet-cancel-padding-top: 8px;
-  --van-action-sheet-cancel-padding-color: #000000;
-  --van-popup-background: #1C1C1E;
+  --van-action-sheet-cancel-padding-color: var(--color-bg);
+  --van-popup-background: var(--color-bg-card);
 }
 
 :deep(.van-action-sheet__item), :deep(.van-action-sheet__cancel) {
-  background-color: #1C1C1E;
-  color: #EAECEF;
+  background-color: var(--color-bg-card);
+  color: var(--color-text-primary);
 }
 
 :deep(.van-action-sheet__item:active), :deep(.van-action-sheet__cancel:active) {
-  background-color: #252A32;
+  background-color: var(--color-surface-muted);
 }
 
 :deep(.van-action-sheet__gap) {
-  background-color: #000000;
+  background-color: var(--color-bg);
   height: 8px;
 }
 
 :deep(.van-action-sheet__header) {
-  background-color: #1C1C1E;
-  color: #FFFFFF;
+  background-color: var(--color-bg-card);
+  color: var(--color-text-primary);
   font-weight: 700;
 }
 
@@ -4565,8 +4556,8 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px; /* 与 pair-info 完全一致 */
-  background: linear-gradient(180deg, rgba(5, 5, 5, 0.95) 0%, #050505 100%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05); /* 与 pair-info 一致 */
+  background: linear-gradient(180deg, rgb(var(--color-bg-rgb) / 0.95) 0%, var(--color-bg) 100%);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05); /* 与 pair-info 一致 */
   gap: 12px;
   box-sizing: border-box;
 }
@@ -4579,7 +4570,7 @@ onUnmounted(() => {
 
 .margin-mode-text {
   font-size: 12px;
-  color: rgba(212, 175, 55, 0.8);
+  color: rgb(var(--color-brand-rgb) / 0.8);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -4596,15 +4587,15 @@ onUnmounted(() => {
   align-items: flex-end;
   gap: 4px;
   padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgb(var(--color-border-rgb) / 0.02);
   backdrop-filter: blur(10px);
   border-radius: 8px;
-  border: 1px solid rgba(212, 175, 55, 0.1);
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.1);
 }
 
 .funding-rate-label {
   font-size: 10px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -4618,13 +4609,13 @@ onUnmounted(() => {
 }
 
 .funding-rate-value.positive {
-  color: #00FFA3;
-  text-shadow: 0 0 8px rgba(0, 255, 163, 0.4);
+  color: var(--color-earn);
+  text-shadow: 0 0 8px rgb(var(--color-earn-rgb) / 0.4);
 }
 
 .funding-rate-value.negative {
-  color: #FF2E50;
-  text-shadow: 0 0 8px rgba(255, 46, 80, 0.4);
+  color: var(--color-loss);
+  text-shadow: 0 0 8px rgb(var(--color-loss-rgb) / 0.4);
 }
 
 /* 中间交易区域 - 自然流式布局 */
@@ -4640,9 +4631,9 @@ onUnmounted(() => {
 
 /* 资产信息面板 */
 .futures-asset-panel {
-  background: rgba(20, 20, 20, 0.6);
+  background: rgb(var(--color-bg-rgb) / 0.6);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.08);
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 16px;
@@ -4667,7 +4658,7 @@ onUnmounted(() => {
 }
 
 .asset-label {
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-size: 10px;
   font-weight: 500;
   text-transform: uppercase;
@@ -4675,18 +4666,18 @@ onUnmounted(() => {
 }
 
 .asset-value {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-size: 13px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
 .asset-value.pnl-positive {
-  color: #32D74B;
+  color: var(--color-earn);
 }
 
 .asset-value.pnl-negative {
-  color: #FF453A;
+  color: var(--color-loss);
 }
 
 .asset-value.pnl-flash {
@@ -4752,7 +4743,7 @@ onUnmounted(() => {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgb(var(--color-border-rgb) / 0.2), transparent);
   transition: left 0.5s ease;
 }
 
@@ -4762,20 +4753,20 @@ onUnmounted(() => {
 
 /* 开多按钮 - 霓虹绿色渐变 */
 .long-btn {
-  background: linear-gradient(135deg, #00FFA3 0%, #00D98B 50%, #00C97A 100%);
-  color: #000000;
+  background: linear-gradient(135deg, var(--color-earn) 0%, var(--color-earn) 50%, var(--color-earn) 100%);
+  color: var(--color-text-on-accent);
   box-shadow: 
-    0 4px 20px rgba(0, 255, 163, 0.4),
-    0 0 30px rgba(0, 255, 163, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    0 4px 20px rgb(var(--color-earn-rgb) / 0.4),
+    0 0 30px rgb(var(--color-earn-rgb) / 0.2),
+    inset 0 1px 0 rgb(var(--color-border-rgb) / 0.3);
+  text-shadow: 0 1px 2px rgb(var(--color-shadow-rgb) / 0.3);
 }
 
 .long-btn:hover:not(:disabled) {
   box-shadow: 
-    0 6px 30px rgba(0, 255, 163, 0.6),
-    0 0 40px rgba(0, 255, 163, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    0 6px 30px rgb(var(--color-earn-rgb) / 0.6),
+    0 0 40px rgb(var(--color-earn-rgb) / 0.3),
+    inset 0 1px 0 rgb(var(--color-border-rgb) / 0.4);
   transform: translateY(-2px);
 }
 
@@ -4785,20 +4776,20 @@ onUnmounted(() => {
 
 /* 开空按钮 - 霓虹红色渐变 */
 .short-btn {
-  background: linear-gradient(135deg, #FF2E50 0%, #E63950 50%, #D62847 100%);
-  color: #FFFFFF;
+  background: linear-gradient(135deg, var(--color-loss) 0%, var(--color-loss) 50%, var(--color-loss) 100%);
+  color: var(--color-text-primary);
   box-shadow: 
-    0 4px 20px rgba(255, 46, 80, 0.4),
-    0 0 30px rgba(255, 46, 80, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    0 4px 20px rgb(var(--color-loss-rgb) / 0.4),
+    0 0 30px rgb(var(--color-loss-rgb) / 0.2),
+    inset 0 1px 0 rgb(var(--color-border-rgb) / 0.2);
+  text-shadow: 0 1px 2px rgb(var(--color-shadow-rgb) / 0.3);
 }
 
 .short-btn:hover:not(:disabled) {
   box-shadow: 
-    0 6px 30px rgba(255, 46, 80, 0.6),
-    0 0 40px rgba(255, 46, 80, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    0 6px 30px rgb(var(--color-loss-rgb) / 0.6),
+    0 0 40px rgb(var(--color-loss-rgb) / 0.3),
+    inset 0 1px 0 rgb(var(--color-border-rgb) / 0.3);
   transform: translateY(-2px);
 }
 
@@ -4838,7 +4829,7 @@ onUnmounted(() => {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgb(var(--color-border-rgb) / 0.2), transparent);
   transition: left 0.5s ease;
 }
 
@@ -4848,20 +4839,20 @@ onUnmounted(() => {
 
 /* 开多按钮 - Grid 版本 - 霓虹绿色渐变 */
 .long-btn-grid {
-  background: linear-gradient(to right, #10b981 0%, #059669 100%); /* emerald-500 to green-600 */
-  color: #FFFFFF;
+  background: linear-gradient(to right, var(--color-earn) 0%, var(--color-earn) 100%); /* emerald-500 to green-600 */
+  color: var(--color-text-primary);
   font-weight: 800;
   box-shadow: 
-    0 4px 20px rgba(16, 185, 129, 0.3), /* shadow-lg shadow-green-500/30 */
-    0 0 30px rgba(16, 185, 129, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    0 4px 20px rgb(var(--color-earn-rgb) / 0.3), /* shadow-lg shadow-green-500/30 */
+    0 0 30px rgb(var(--color-earn-rgb) / 0.15),
+    inset 0 1px 0 rgb(var(--color-border-rgb) / 0.2);
+  text-shadow: 0 1px 2px rgb(var(--color-shadow-rgb) / 0.3);
 }
 .long-btn-grid:hover:not(:disabled) {
   box-shadow: 
-    0 6px 30px rgba(16, 185, 129, 0.5),
-    0 0 40px rgba(16, 185, 129, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    0 6px 30px rgb(var(--color-earn-rgb) / 0.5),
+    0 0 40px rgb(var(--color-earn-rgb) / 0.25),
+    inset 0 1px 0 rgb(var(--color-border-rgb) / 0.3);
   transform: translateY(-2px);
 }
 
@@ -4871,21 +4862,21 @@ onUnmounted(() => {
 
 /* 开空按钮 - Grid 版本 - 霓虹红色渐变 */
 .short-btn-grid {
-  background: linear-gradient(to right, #f43f5e 0%, #e11d48 100%); /* rose-500 to red-600 */
-  color: #FFFFFF;
+  background: linear-gradient(to right, var(--color-loss) 0%, var(--color-loss) 100%); /* rose-500 to red-600 */
+  color: var(--color-text-primary);
   font-weight: 800;
   box-shadow: 
-    0 4px 20px rgba(244, 63, 94, 0.3), /* shadow-lg shadow-red-500/30 */
-    0 0 30px rgba(244, 63, 94, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    0 4px 20px rgb(var(--color-loss-rgb) / 0.3), /* shadow-lg shadow-red-500/30 */
+    0 0 30px rgb(var(--color-loss-rgb) / 0.15),
+    inset 0 1px 0 rgb(var(--color-border-rgb) / 0.2);
+  text-shadow: 0 1px 2px rgb(var(--color-shadow-rgb) / 0.3);
 }
 
 .short-btn-grid:hover:not(:disabled) {
   box-shadow: 
-    0 6px 30px rgba(244, 63, 94, 0.5),
-    0 0 40px rgba(244, 63, 94, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    0 6px 30px rgb(var(--color-loss-rgb) / 0.5),
+    0 0 40px rgb(var(--color-loss-rgb) / 0.25),
+    inset 0 1px 0 rgb(var(--color-border-rgb) / 0.3);
   transform: translateY(-2px);
 }
 
@@ -4902,9 +4893,9 @@ onUnmounted(() => {
 
 /* 底部面板 - 自然流式布局 */
 .futures-bottom-section {
-  background: linear-gradient(180deg, #050505 0%, rgba(5, 5, 5, 0.98) 100%);
-  border-top: 1px solid rgba(212, 175, 55, 0.1);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(180deg, var(--color-bg) 0%, rgb(var(--color-bg-rgb) / 0.98) 100%);
+  border-top: 1px solid rgb(var(--color-brand-rgb) / 0.1);
+  box-shadow: 0 -4px 20px rgb(var(--color-shadow-rgb) / 0.5);
   display: flex;
   flex-direction: column;
   margin-top: 8px; /* mt-2 = 8px，与交易表单的间距 */
@@ -4919,8 +4910,8 @@ onUnmounted(() => {
 }
 
 :deep(.position-tabs .van-tabs__wrap) {
-  background: linear-gradient(180deg, #050505 0%, rgba(5, 5, 5, 0.98) 100%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: linear-gradient(180deg, var(--color-bg) 0%, rgb(var(--color-bg-rgb) / 0.98) 100%);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
   flex-shrink: 0; /* 防止被压缩 */
   position: sticky;
   top: 0;
@@ -4933,7 +4924,7 @@ onUnmounted(() => {
 /* 统一标签页样式，与现货页面一致 */
 :deep(.position-tabs .van-tab) {
   font-size: 14px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -4942,13 +4933,13 @@ onUnmounted(() => {
 }
 
 :deep(.position-tabs .van-tab--active) {
-  color: #D4AF37;
+  color: var(--color-accent);
   font-weight: 700;
 }
 
 :deep(.position-tabs .van-tabs__line) {
-  background: linear-gradient(90deg, #D4AF37 0%, #FFD700 100%);
-  box-shadow: 0 0 12px rgba(212, 175, 55, 0.6);
+  background: linear-gradient(90deg, var(--color-accent) 0%, var(--color-accent-strong) 100%);
+  box-shadow: 0 0 12px rgb(var(--color-brand-rgb) / 0.6);
   border-radius: 2px 2px 0 0;
   height: 3px;
 }
@@ -4973,12 +4964,12 @@ onUnmounted(() => {
 }
 
 :deep(.position-tabs .van-tab__panel::-webkit-scrollbar-thumb) {
-  background: rgba(212, 175, 55, 0.3);
+  background: rgb(var(--color-brand-rgb) / 0.3);
   border-radius: 3px;
 }
 
 :deep(.position-tabs .van-tab__panel::-webkit-scrollbar-thumb:hover) {
-  background: rgba(212, 175, 55, 0.5);
+  background: rgb(var(--color-brand-rgb) / 0.5);
 }
 
 .positions-list, .orders-list, .history-list {
@@ -4998,7 +4989,7 @@ onUnmounted(() => {
   justify-content: center;
   min-height: 200px; /* 最小高度，确保空状态可见 */
   padding: 40px 20px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-size: 14px;
   font-weight: 500;
   width: 100%;
@@ -5008,25 +4999,25 @@ onUnmounted(() => {
 .empty-state .empty-icon {
   margin-bottom: 16px;
   opacity: 0.6;
-  filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.2));
+  filter: drop-shadow(0 0 8px rgb(var(--color-brand-rgb) / 0.2));
 }
 
 .empty-state .empty-text {
   font-size: 14px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-weight: 500;
 }
 
 .position-card {
-  background: rgba(255, 255, 255, 0.05); /* bg-white/5 - 玻璃拟态效果 */
+  background: rgb(var(--color-border-rgb) / 0.05); /* bg-white/5 - 玻璃拟态效果 */
   backdrop-filter: blur(16px); /* backdrop-blur-md */
   border-radius: 16px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1); /* border-white/10 */
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgb(var(--color-border-rgb) / 0.1); /* border-white/10 */
+  box-shadow: 0 4px 20px rgb(var(--color-shadow-rgb) / 0.3);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -5039,15 +5030,15 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgb(var(--color-brand-rgb) / 0.3), transparent);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
 .position-card:hover {
-  background: rgba(212, 175, 55, 0.05);
-  border-color: rgba(212, 175, 55, 0.25);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  background: rgb(var(--color-brand-rgb) / 0.05);
+  border-color: rgb(var(--color-brand-rgb) / 0.25);
+  box-shadow: 0 8px 32px rgb(var(--color-shadow-rgb) / 0.4);
   transform: translateY(-2px);
 }
 
@@ -5077,15 +5068,15 @@ onUnmounted(() => {
 .position-symbol {
   font-size: 16px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
 }
 
 .position-perpetual {
   font-size: 11px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   padding: 2px 6px;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgb(var(--color-border-rgb) / 0.05);
   border-radius: 4px;
 }
 
@@ -5101,20 +5092,20 @@ onUnmounted(() => {
 }
 
 .position-side-badge.side-long {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgb(var(--color-border-rgb) / 0.08);
   color: var(--color-earn);
   box-shadow: none;
 }
 
 .position-side-badge.side-short {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgb(var(--color-border-rgb) / 0.08);
   color: var(--color-loss);
   box-shadow: none;
 }
 
 .position-leverage {
   font-size: 13px;
-  color: #FCD535;
+  color: var(--color-brand-legacy);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -5131,7 +5122,7 @@ onUnmounted(() => {
 
 .unrealized-pnl-label {
   font-size: 11px;
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   margin-bottom: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -5149,17 +5140,17 @@ onUnmounted(() => {
 }
 
 .unrealized-pnl-value.positive {
-  color: #0ECB81;
+  color: var(--color-earn);
   text-shadow: 
-    0 0 20px rgba(14, 203, 129, 0.6),
-    0 0 40px rgba(14, 203, 129, 0.3);
+    0 0 20px rgb(var(--color-earn-rgb) / 0.6),
+    0 0 40px rgb(var(--color-earn-rgb) / 0.3);
 }
 
 .unrealized-pnl-value.negative {
-  color: #F6465D;
+  color: var(--color-loss);
   text-shadow: 
-    0 0 20px rgba(246, 70, 93, 0.6),
-    0 0 40px rgba(246, 70, 93, 0.3);
+    0 0 20px rgb(var(--color-loss-rgb) / 0.6),
+    0 0 40px rgb(var(--color-loss-rgb) / 0.3);
 }
 
 .unrealized-pnl-percent {
@@ -5170,13 +5161,13 @@ onUnmounted(() => {
 }
 
 .unrealized-pnl-percent.positive {
-  color: #0ECB81;
-  text-shadow: 0 0 8px rgba(14, 203, 129, 0.4);
+  color: var(--color-earn);
+  text-shadow: 0 0 8px rgb(var(--color-earn-rgb) / 0.4);
 }
 
 .unrealized-pnl-percent.negative {
-  color: #F6465D;
-  text-shadow: 0 0 8px rgba(246, 70, 93, 0.4);
+  color: var(--color-loss);
+  text-shadow: 0 0 8px rgb(var(--color-loss-rgb) / 0.4);
 }
 
 .position-right {
@@ -5195,7 +5186,7 @@ onUnmounted(() => {
 }
 
 .info-label {
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-size: 11px;
   font-weight: 500;
   text-transform: uppercase;
@@ -5203,7 +5194,7 @@ onUnmounted(() => {
 }
 
 .info-value {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-size: 14px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -5212,20 +5203,20 @@ onUnmounted(() => {
 
 /* 开仓均价颜色 - 根据方向变化 */
 .entry-price-value.side-long {
-  color: #0ECB81; /* 多单绿色 */
-  text-shadow: 0 0 8px rgba(14, 203, 129, 0.4);
+  color: var(--color-earn); /* 多单绿色 */
+  text-shadow: 0 0 8px rgb(var(--color-earn-rgb) / 0.4);
 }
 
 .entry-price-value.side-short {
-  color: #F6465D; /* 空单红色 */
-  text-shadow: 0 0 8px rgba(246, 70, 93, 0.4);
+  color: var(--color-loss); /* 空单红色 */
+  text-shadow: 0 0 8px rgb(var(--color-loss-rgb) / 0.4);
 }
 
 .liquidation-price {
-  color: #F6465D;
+  color: var(--color-loss);
   font-weight: 800;
   font-size: 14px;
-  text-shadow: 0 0 8px rgba(255, 46, 80, 0.4);
+  text-shadow: 0 0 8px rgb(var(--color-loss-rgb) / 0.4);
 }
 
 .position-actions {
@@ -5233,7 +5224,7 @@ onUnmounted(() => {
   gap: 10px;
   margin-top: 8px;
   padding-top: 16px;
-  border-top: 1px solid rgba(212, 175, 55, 0.1);
+  border-top: 1px solid rgb(var(--color-brand-rgb) / 0.1);
 }
 
 .action-btn {
@@ -5250,40 +5241,40 @@ onUnmounted(() => {
 }
 
 .tp-sl-btn {
-  background: rgba(212, 175, 55, 0.1);
-  color: #D4AF37;
-  border: 1px solid rgba(212, 175, 55, 0.3);
+  background: rgb(var(--color-brand-rgb) / 0.1);
+  color: var(--color-accent);
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.3);
   backdrop-filter: blur(10px);
 }
 
 .tp-sl-btn:hover {
-  background: rgba(212, 175, 55, 0.15);
-  border-color: rgba(212, 175, 55, 0.4);
-  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
+  background: rgb(var(--color-brand-rgb) / 0.15);
+  border-color: rgb(var(--color-brand-rgb) / 0.4);
+  box-shadow: 0 4px 12px rgb(var(--color-brand-rgb) / 0.2);
   transform: translateY(-2px);
 }
 
 .tp-sl-btn:active {
-  background: rgba(212, 175, 55, 0.2);
+  background: rgb(var(--color-brand-rgb) / 0.2);
   transform: translateY(0);
 }
 
 .close-btn {
-  background: rgba(255, 46, 80, 0.1);
-  color: #FF2E50;
-  border: 1px solid rgba(255, 46, 80, 0.3);
+  background: rgb(var(--color-loss-rgb) / 0.1);
+  color: var(--color-loss);
+  border: 1px solid rgb(var(--color-loss-rgb) / 0.3);
   backdrop-filter: blur(10px);
 }
 
 .close-btn:hover {
-  background: rgba(255, 46, 80, 0.15);
-  border-color: rgba(255, 46, 80, 0.4);
-  box-shadow: 0 4px 12px rgba(255, 46, 80, 0.2);
+  background: rgb(var(--color-loss-rgb) / 0.15);
+  border-color: rgb(var(--color-loss-rgb) / 0.4);
+  box-shadow: 0 4px 12px rgb(var(--color-loss-rgb) / 0.2);
   transform: translateY(-2px);
 }
 
 .close-btn:active {
-  background: rgba(255, 46, 80, 0.2);
+  background: rgb(var(--color-loss-rgb) / 0.2);
   transform: translateY(0);
 }
 
@@ -5291,20 +5282,20 @@ onUnmounted(() => {
 
 /* 1. 弹窗基础容器 */
 :deep(.van-popup.premium-tpsl-popup) {
-  background: #0a0a0a !important; /* 纯深色底 */
-  border-top: 1px solid rgba(212, 175, 55, 0.2);
+  background: var(--color-bg) !important; /* 纯深色底 */
+  border-top: 1px solid rgb(var(--color-brand-rgb) / 0.2);
   padding-bottom: env(safe-area-inset-bottom);
 }
 
 .premium-modal-container {
   padding: 12px 24px 32px;
-  background: linear-gradient(180deg, rgba(212, 175, 55, 0.03) 0%, rgba(0, 0, 0, 0) 100%);
+  background: linear-gradient(180deg, rgb(var(--color-brand-rgb) / 0.03) 0%, rgb(var(--color-shadow-rgb) / 0) 100%);
 }
 
 .modal-drag-indicator {
   width: 36px;
   height: 4px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(var(--color-border-rgb) / 0.1);
   border-radius: 2px;
   margin: 0 auto 20px;
 }
@@ -5326,13 +5317,13 @@ onUnmounted(() => {
 .gold-dot {
   width: 6px;
   height: 6px;
-  background: #D4AF37;
+  background: var(--color-accent);
   border-radius: 50%;
-  box-shadow: 0 0 8px #D4AF37;
+  box-shadow: 0 0 8px var(--color-accent);
 }
 
 .premium-modal-header h3 {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-size: 18px;
   font-weight: 700;
   letter-spacing: -0.5px;
@@ -5341,11 +5332,11 @@ onUnmounted(() => {
 
 .premium-close-btn {
   font-size: 22px;
-  color: #4a4a4a;
+  color: var(--color-text-muted);
   transition: color 0.3s;
 }
 
-.premium-close-btn:active { color: #D4AF37; }
+.premium-close-btn:active { color: var(--color-accent); }
 
 /* 3. 输入组样式 */
 .premium-form-group {
@@ -5359,7 +5350,7 @@ onUnmounted(() => {
 }
 
 .group-label-row label {
-  color: #8E8E93;
+  color: var(--color-text-secondary);
   font-size: 13px;
   font-weight: 500;
   text-transform: uppercase;
@@ -5367,7 +5358,7 @@ onUnmounted(() => {
 }
 
 .mark-price-ref {
-  color: #4a4a4a;
+  color: var(--color-text-muted);
   font-size: 12px;
   font-family: 'DIN Alternate', sans-serif;
 }
@@ -5376,26 +5367,26 @@ onUnmounted(() => {
 .premium-input-box {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.03); /* 玻璃拟态底色 */
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgb(var(--color-border-rgb) / 0.03); /* 玻璃拟态底色 */
+  border: 1px solid rgb(var(--color-border-rgb) / 0.08);
   border-radius: 12px;
   padding: 4px;
   transition: all 0.3s ease;
 }
 
 .premium-input-box:focus-within {
-  border-color: #D4AF37;
-  background: rgba(212, 175, 55, 0.05);
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
+  border-color: var(--color-accent);
+  background: rgb(var(--color-brand-rgb) / 0.05);
+  box-shadow: 0 0 20px rgb(var(--color-brand-rgb) / 0.1);
 }
 
 .step-btn {
   width: 44px;
   height: 44px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--color-border-rgb) / 0.05);
   border: none;
   border-radius: 8px;
-  color: #D4AF37;
+  color: var(--color-accent);
   font-size: 24px;
   font-weight: 300;
   display: flex;
@@ -5406,7 +5397,7 @@ onUnmounted(() => {
 }
 
 .step-btn:active {
-  background: rgba(212, 175, 55, 0.2);
+  background: rgb(var(--color-brand-rgb) / 0.2);
   transform: scale(0.95);
 }
 
@@ -5421,7 +5412,7 @@ onUnmounted(() => {
   width: 100%;
   background: transparent;
   border: none;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-size: 20px;
   font-weight: 600;
   text-align: center;
@@ -5443,7 +5434,7 @@ onUnmounted(() => {
 .input-suffix {
   position: absolute;
   right: 12px;
-  color: #4a4a4a;
+  color: var(--color-text-muted);
   font-size: 11px;
   font-weight: 700;
 }
@@ -5457,8 +5448,8 @@ onUnmounted(() => {
 
 .percent-tag {
   padding: 6px 12px;
-  background: rgba(50, 215, 75, 0.1);
-  color: #32D74B;
+  background: rgb(var(--color-earn-rgb) / 0.1);
+  color: var(--color-earn);
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
@@ -5466,8 +5457,8 @@ onUnmounted(() => {
 }
 
 .percent-tag.sl {
-  background: rgba(255, 69, 58, 0.1);
-  color: #FF453A;
+  background: rgb(var(--color-loss-rgb) / 0.1);
+  color: var(--color-loss);
 }
 
 .percent-tag:active { opacity: 0.7; }
@@ -5477,27 +5468,27 @@ onUnmounted(() => {
   width: 100%;
   margin-top: 12px;
   padding: 18px;
-  background: linear-gradient(135deg, #FFD700 0%, #D4AF37 100%);
+  background: linear-gradient(135deg, var(--color-accent-strong) 0%, var(--color-accent) 100%);
   border: none;
   border-radius: 14px;
-  color: #000000;
+  color: var(--color-text-on-accent);
   font-size: 16px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
-  box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
+  box-shadow: 0 10px 20px rgb(var(--color-brand-rgb) / 0.2);
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .premium-gold-button:active {
   transform: scale(0.97);
-  box-shadow: 0 5px 10px rgba(212, 175, 55, 0.1);
+  box-shadow: 0 5px 10px rgb(var(--color-brand-rgb) / 0.1);
   filter: brightness(0.9);
 }
 
 .premium-gold-button.disabled {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.3);
+  background: rgb(var(--color-border-rgb) / 0.1);
+  color: rgb(var(--color-border-rgb) / 0.3);
   cursor: not-allowed;
   filter: none;
 }
@@ -5510,18 +5501,18 @@ onUnmounted(() => {
 .tpsl-error-message {
   margin-top: 8px;
   font-size: 12px;
-  color: #FF453A;
+  color: var(--color-loss);
   font-weight: 600;
   padding: 8px 12px;
-  background: rgba(255, 69, 58, 0.1);
+  background: rgb(var(--color-loss-rgb) / 0.1);
   border-radius: 6px;
-  border-left: 3px solid #FF453A;
+  border-left: 3px solid var(--color-loss);
 }
 
 /* 输入框错误状态 */
 .input-error {
-  border-color: #FF453A !important;
-  background: rgba(255, 69, 58, 0.05) !important;
+  border-color: var(--color-loss) !important;
+  background: rgb(var(--color-loss-rgb) / 0.05) !important;
 }
 
 /* 百分比按钮禁用状态 */
@@ -5529,7 +5520,1504 @@ onUnmounted(() => {
   opacity: 0.4;
   cursor: not-allowed;
   pointer-events: none;
-  background: rgba(255, 255, 255, 0.05) !important;
-  color: rgba(255, 255, 255, 0.3) !important;
+  background: rgb(var(--color-border-rgb) / 0.05) !important;
+  color: rgb(var(--color-border-rgb) / 0.3) !important;
+}
+
+/* Compact viewport tuning */
+.orderbook-header { padding: 5px 10px !important; min-height: 22px !important; }
+.order-row { height: 18px !important; line-height: 18px !important; padding: 0 10px !important; }
+.order-row .price,
+.order-row .quantity { font-size: 12px !important; line-height: 18px !important; }
+.last-price { height: 40px !important; min-height: 40px !important; }
+.price-main { font-size: 18px !important; line-height: 1.1 !important; }
+.price-fiat { font-size: 10px !important; }
+.right-form-panel,
+.right-trade-form,
+.form-side,
+.futures-form-side { gap: 6px !important; padding: 6px !important; }
+.toggle-btn { height: 36px !important; font-size: 14px !important; }
+.order-type-selector { min-height: 42px !important; padding: 8px 12px !important; }
+.input-row { min-height: 42px !important; height: 42px !important; padding: 0 12px !important; }
+.estimated-row { padding: 4px !important; }
+.slider-wrapper { padding: 10px 8px 6px !important; margin-bottom: 6px !important; }
+.slider-marks { padding-top: 6px !important; margin-top: 4px !important; }
+.mark-item { padding: 4px 6px !important; min-width: 28px !important; }
+.fee-estimate-row,
+.total-row,
+.estimated-received-row { padding: 8px 12px !important; margin-bottom: 6px !important; }
+.available-row { gap: 2px !important; padding: 6px 10px !important; }
+.avail-item { padding: 3px 0 !important; }
+.submit-btn { height: 44px !important; min-height: 44px !important; }
+
+/* Premium compact futures terminal polish */
+.futures-trade-container {
+  background: #f5f6f8 !important;
+}
+
+.futures-control-bar {
+  margin: 0 12px 8px !important;
+  padding: 8px 10px !important;
+  min-height: 42px !important;
+  border-radius: 14px !important;
+  background: #ffffff !important;
+  border: 1px solid #eaecef !important;
+  box-shadow: 0 2px 8px rgb(17 24 39 / 0.04) !important;
+}
+
+.control-left {
+  gap: 8px !important;
+  min-width: 0 !important;
+}
+
+.margin-mode-text {
+  color: #c99400 !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+}
+
+.funding-rate-info {
+  min-width: 94px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  text-align: right !important;
+}
+
+.funding-rate-label {
+  color: #6b7280 !important;
+  font-size: 10px !important;
+}
+
+.funding-rate-value {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+.futures-trade-main {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr) !important;
+  align-items: stretch !important;
+  gap: 8px !important;
+  padding: 0 12px 10px !important;
+}
+
+.futures-orderbook-side,
+.futures-form-side {
+  height: 328px !important;
+  min-height: 328px !important;
+  max-height: 328px !important;
+  border-radius: 14px !important;
+  border: 1px solid #e5e7eb !important;
+  background: #ffffff !important;
+  box-shadow: 0 3px 12px rgb(17 24 39 / 0.06) !important;
+  overflow: hidden !important;
+}
+
+.futures-orderbook-side {
+  padding: 8px 8px 10px !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.futures-orderbook-side .orderbook-header {
+  height: 24px !important;
+  min-height: 24px !important;
+  padding: 0 6px 4px !important;
+  color: #6b7280 !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  border-bottom: 0 !important;
+}
+
+.futures-orderbook-side .asks-list,
+.futures-orderbook-side .bids-list {
+  flex: 0 0 auto !important;
+  height: 102px !important;
+  overflow: hidden !important;
+}
+
+.futures-orderbook-side .order-row {
+  height: 20px !important;
+  line-height: 20px !important;
+  padding: 0 6px !important;
+  border-radius: 5px !important;
+}
+
+.futures-orderbook-side .order-row .price,
+.futures-orderbook-side .order-row .quantity {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 12px !important;
+  line-height: 20px !important;
+  letter-spacing: -0.35px !important;
+}
+
+.futures-orderbook-side .ask-price,
+.futures-orderbook-side .bid-price {
+  flex: 1.1 !important;
+  text-shadow: none !important;
+}
+
+.futures-orderbook-side .quantity {
+  flex: 0.9 !important;
+}
+
+.futures-orderbook-side .ask-depth {
+  background: linear-gradient(90deg, transparent 0%, rgb(239 68 68 / 0.14) 100%) !important;
+  box-shadow: none !important;
+}
+
+.futures-orderbook-side .bid-depth {
+  background: linear-gradient(90deg, transparent 0%, rgb(22 163 74 / 0.14) 100%) !important;
+  box-shadow: none !important;
+}
+
+.futures-orderbook-side .last-price {
+  height: 70px !important;
+  min-height: 70px !important;
+  margin: 0 !important;
+  border: 1px solid rgb(240 185 11 / 0.28) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(180deg, #fff9e8 0%, #ffffff 100%) !important;
+}
+
+.futures-orderbook-side .price-main {
+  color: #16a34a !important;
+  font-size: 22px !important;
+  line-height: 1.1 !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.8px !important;
+  text-shadow: none !important;
+}
+
+.futures-orderbook-side .price-fiat {
+  color: #6b7280 !important;
+  font-size: 10px !important;
+  margin-top: 4px !important;
+}
+
+.futures-form-side {
+  padding: 8px !important;
+  display: grid !important;
+  grid-template-rows: 34px 42px 42px 44px 30px 30px 36px 46px !important;
+  gap: 6px !important;
+  align-content: start !important;
+}
+
+.futures-form-side .futures-asset-panel {
+  display: none !important;
+}
+
+.futures-form-side .order-type-selector,
+.futures-form-side .input-row,
+.futures-form-side .fee-estimate-row,
+.futures-form-side .total-row,
+.futures-form-side .estimated-received-row,
+.futures-form-side .futures-action-buttons-grid {
+  min-width: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.futures-form-side .order-type-selector {
+  height: 34px !important;
+  min-height: 34px !important;
+  padding: 0 10px !important;
+  border-radius: 10px !important;
+  background: #f7f8fa !important;
+  border: 1px solid #eaecef !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+
+.futures-form-side .input-row {
+  height: 42px !important;
+  min-height: 42px !important;
+  padding: 0 10px !important;
+  gap: 6px !important;
+  border-radius: 10px !important;
+  background: #f7f8fa !important;
+  border: 1px solid #eaecef !important;
+}
+
+.futures-form-side .input-field {
+  min-width: 0 !important;
+  width: 100% !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.3px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.futures-form-side .input-field::placeholder {
+  color: #a3a9b5 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+
+.futures-form-side .input-suffix {
+  flex: 0 0 auto !important;
+  max-width: 36px !important;
+  color: #9ca3af !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.futures-form-side .slider-wrapper {
+  height: 44px !important;
+  min-height: 44px !important;
+  padding: 6px 10px 0 !important;
+  margin: 0 !important;
+}
+
+.futures-form-side .custom-slider-button {
+  width: 24px !important;
+  height: 24px !important;
+  line-height: 24px !important;
+  font-size: 9px !important;
+}
+
+.futures-form-side .slider-marks {
+  padding: 4px 0 0 !important;
+  margin: 0 !important;
+}
+
+.futures-form-side .mark-item {
+  min-width: auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #6b7280 !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+}
+
+.futures-form-side .fee-estimate-row,
+.futures-form-side .total-row {
+  height: 30px !important;
+  padding: 0 10px !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.futures-form-side .fee-estimate-label,
+.futures-form-side .total-label,
+.futures-form-side .received-label {
+  min-width: 0 !important;
+  color: #6b7280 !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.2px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.futures-form-side .fee-estimate-value,
+.futures-form-side .total-value,
+.futures-form-side .received-value {
+  max-width: 72px !important;
+  color: #111827 !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.futures-form-side .estimated-received-row {
+  height: 36px !important;
+  padding: 0 10px !important;
+  border-radius: 10px !important;
+  background: #fff8e1 !important;
+  border: 1px solid #f8e2a0 !important;
+}
+
+.futures-form-side .futures-action-buttons-grid {
+  height: 46px !important;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px !important;
+}
+
+.futures-form-side .long-btn-grid,
+.futures-form-side .short-btn-grid {
+  height: 46px !important;
+  min-height: 46px !important;
+  padding: 0 !important;
+  border-radius: 11px !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  white-space: nowrap !important;
+}
+
+.futures-bottom-section {
+  margin-top: 0 !important;
+}
+
+@media (max-width: 390px) {
+  .futures-trade-main {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.78fr) !important;
+    gap: 6px !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .futures-orderbook-side,
+  .futures-form-side {
+    height: 320px !important;
+    min-height: 320px !important;
+    max-height: 320px !important;
+  }
+
+  .futures-orderbook-side .order-row .price,
+  .futures-orderbook-side .order-row .quantity {
+    font-size: 11px !important;
+  }
+
+  .futures-form-side {
+    padding: 7px !important;
+    gap: 5px !important;
+  }
+}
+
+/* Final light trading workspace alignment: spot + futures */
+.trade-page {
+  font-variant-numeric: tabular-nums;
+}
+
+.trade-main,
+.futures-trade-main {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr) !important;
+  gap: 10px !important;
+  align-items: stretch !important;
+  padding: 10px 12px 12px !important;
+  min-width: 0 !important;
+  background: transparent !important;
+}
+
+.orderbook-side,
+.form-side,
+.futures-orderbook-side,
+.futures-form-side {
+  width: auto !important;
+  min-width: 0 !important;
+  height: 500px !important;
+  min-height: 500px !important;
+  max-height: 500px !important;
+  background: #ffffff !important;
+  border: 1px solid #eaecef !important;
+  border-radius: 14px !important;
+  box-shadow: 0 2px 10px rgb(17 24 39 / 0.05) !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.orderbook-side,
+.futures-orderbook-side {
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 12px 10px !important;
+}
+
+.orderbook-side .orderbook-header,
+.futures-orderbook-side .orderbook-header {
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 6px 6px !important;
+  color: #6b7280 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  border-bottom: 0 !important;
+}
+
+.orderbook-side .asks-list,
+.orderbook-side .bids-list,
+.futures-orderbook-side .asks-list,
+.futures-orderbook-side .bids-list {
+  flex: 0 0 auto !important;
+  height: 160px !important;
+  overflow: hidden !important;
+}
+
+.orderbook-side .order-row,
+.futures-orderbook-side .order-row {
+  height: 32px !important;
+  line-height: 32px !important;
+  padding: 0 6px !important;
+  border-radius: 6px !important;
+}
+
+.orderbook-side .order-row .price,
+.orderbook-side .order-row .quantity,
+.futures-orderbook-side .order-row .price,
+.futures-orderbook-side .order-row .quantity {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-family: 'Roboto Mono', 'DIN Alternate', monospace !important;
+  font-size: 13px !important;
+  line-height: 32px !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+.orderbook-side .order-row .price,
+.futures-orderbook-side .order-row .price {
+  flex: 1.05 !important;
+  text-align: left !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.35px !important;
+}
+
+.orderbook-side .order-row .quantity,
+.futures-orderbook-side .order-row .quantity {
+  flex: 0.95 !important;
+  text-align: right !important;
+  color: #4b5563 !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.3px !important;
+}
+
+.orderbook-side .ask-depth,
+.futures-orderbook-side .ask-depth {
+  background: linear-gradient(90deg, transparent 0%, rgb(var(--color-loss-rgb) / 0.13) 100%) !important;
+  box-shadow: none !important;
+}
+
+.orderbook-side .bid-depth,
+.futures-orderbook-side .bid-depth {
+  background: linear-gradient(90deg, transparent 0%, rgb(var(--color-earn-rgb) / 0.13) 100%) !important;
+  box-shadow: none !important;
+}
+
+.orderbook-side .ask-price,
+.futures-orderbook-side .ask-price {
+  color: var(--color-loss) !important;
+  text-shadow: none !important;
+}
+
+.orderbook-side .bid-price,
+.futures-orderbook-side .bid-price {
+  color: var(--color-earn) !important;
+  text-shadow: none !important;
+}
+
+.orderbook-side .last-price,
+.futures-orderbook-side .last-price {
+  height: 72px !important;
+  min-height: 72px !important;
+  margin: 0 !important;
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.20) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(180deg, rgb(var(--color-brand-rgb) / 0.045), #ffffff) !important;
+}
+
+.orderbook-side .price-main,
+.futures-orderbook-side .price-main {
+  color: var(--color-earn) !important;
+  font-size: 25px !important;
+  font-weight: 700 !important;
+  line-height: 1.08 !important;
+  letter-spacing: -0.8px !important;
+  text-shadow: none !important;
+}
+
+.orderbook-side .price-fiat,
+.futures-orderbook-side .price-fiat {
+  color: #6b7280 !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+  margin-top: 5px !important;
+}
+
+.form-side,
+.futures-form-side {
+  padding: 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  align-content: stretch !important;
+}
+
+.futures-form-side {
+  display: flex !important;
+}
+
+.form-side .buy-sell-toggle {
+  height: 50px !important;
+  min-height: 50px !important;
+  padding: 3px !important;
+  margin: 0 !important;
+  border-radius: 12px !important;
+}
+
+.form-side .toggle-btn {
+  height: 42px !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  border-radius: 10px !important;
+}
+
+.form-side .order-type-selector,
+.futures-form-side .order-type-selector {
+  height: 46px !important;
+  min-height: 46px !important;
+  padding: 0 12px !important;
+  margin: 0 !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.16) !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: #111827 !important;
+}
+
+.form-side .input-row,
+.futures-form-side .input-row {
+  height: 56px !important;
+  min-height: 56px !important;
+  padding: 0 12px !important;
+  margin: 0 !important;
+  gap: 6px !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.form-side .input-row:focus-within,
+.futures-form-side .input-row:focus-within {
+  border-color: rgb(var(--color-brand-rgb) / 0.55) !important;
+  box-shadow: 0 0 0 3px rgb(var(--color-brand-rgb) / 0.08) !important;
+}
+
+.form-side .input-label,
+.futures-form-side .input-label {
+  min-width: auto !important;
+  max-width: 72px !important;
+  color: #6b7280 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.2px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.form-side .input-field,
+.futures-form-side .input-field {
+  min-width: 0 !important;
+  width: 100% !important;
+  color: #111827 !important;
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.35px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.form-side .input-field::placeholder,
+.futures-form-side .input-field::placeholder {
+  color: #a3a9b5 !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
+.form-side .input-suffix,
+.futures-form-side .input-suffix {
+  flex: 0 0 auto !important;
+  max-width: 40px !important;
+  color: #9ca3af !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.form-side .estimated-row {
+  min-height: 22px !important;
+  padding: 0 4px !important;
+  margin: -2px 0 !important;
+}
+
+.form-side .est-label,
+.form-side .est-value {
+  font-size: 11px !important;
+  white-space: nowrap !important;
+}
+
+.form-side .slider-wrapper,
+.futures-form-side .slider-wrapper {
+  height: 52px !important;
+  min-height: 52px !important;
+  padding: 10px 10px 0 !important;
+  margin: 0 !important;
+}
+
+.form-side .custom-slider-button,
+.futures-form-side .custom-slider-button {
+  width: 26px !important;
+  height: 26px !important;
+  line-height: 26px !important;
+  font-size: 9px !important;
+}
+
+.form-side .slider-marks,
+.futures-form-side .slider-marks {
+  padding: 5px 0 0 !important;
+  margin: 0 !important;
+}
+
+.form-side .mark-item,
+.futures-form-side .mark-item {
+  min-width: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #6b7280 !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+
+.form-side .fee-estimate-row,
+.form-side .total-row,
+.form-side .estimated-received-row,
+.futures-form-side .fee-estimate-row,
+.futures-form-side .total-row,
+.futures-form-side .estimated-received-row {
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 4px !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+
+.form-side .estimated-received-row,
+.futures-form-side .estimated-received-row {
+  height: 42px !important;
+  min-height: 42px !important;
+  padding: 0 10px !important;
+  border-radius: 12px !important;
+  background: rgb(var(--color-brand-rgb) / 0.07) !important;
+  border: 1px solid rgb(var(--color-brand-rgb) / 0.16) !important;
+}
+
+.form-side .fee-estimate-label,
+.form-side .total-label,
+.form-side .received-label,
+.futures-form-side .fee-estimate-label,
+.futures-form-side .total-label,
+.futures-form-side .received-label {
+  min-width: 0 !important;
+  color: #6b7280 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.2px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.form-side .fee-estimate-value,
+.form-side .total-value,
+.form-side .received-value,
+.futures-form-side .fee-estimate-value,
+.futures-form-side .total-value,
+.futures-form-side .received-value {
+  max-width: 82px !important;
+  color: #111827 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.form-side .available-row {
+  min-height: 42px !important;
+  padding: 4px 8px !important;
+  margin: 0 !important;
+  gap: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.form-side .avail-item {
+  min-width: 0 !important;
+  height: 19px !important;
+  padding: 0 !important;
+  justify-content: flex-end !important;
+}
+
+.form-side .avail-label,
+.form-side .avail-value {
+  font-size: 12px !important;
+  white-space: nowrap !important;
+}
+
+.form-side .submit-btn,
+.futures-form-side .long-btn-grid,
+.futures-form-side .short-btn-grid {
+  height: 54px !important;
+  min-height: 54px !important;
+  border-radius: 12px !important;
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  white-space: nowrap !important;
+}
+
+.form-side .submit-btn,
+.futures-form-side .futures-action-buttons-grid {
+  margin-top: auto !important;
+}
+
+.futures-form-side .futures-action-buttons-grid {
+  height: 54px !important;
+  min-height: 54px !important;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px !important;
+}
+
+.futures-form-side .futures-asset-panel {
+  display: none !important;
+}
+
+.futures-control-bar {
+  height: 48px !important;
+  min-height: 48px !important;
+  margin: 8px 12px 0 !important;
+  padding: 6px 10px !important;
+  border-radius: 14px !important;
+  background: #ffffff !important;
+  border: 1px solid #eaecef !important;
+  box-shadow: 0 2px 8px rgb(17 24 39 / 0.04) !important;
+}
+
+.futures-control-bar .leverage-btn {
+  height: 36px !important;
+  min-height: 36px !important;
+  padding: 0 14px !important;
+  border-radius: 12px !important;
+}
+
+.futures-control-bar .funding-rate-info {
+  min-width: 96px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.futures-bottom-section,
+.bottom-section {
+  position: relative !important;
+  z-index: 1 !important;
+  margin-top: 8px !important;
+  background: #ffffff !important;
+}
+
+@media (max-width: 390px) {
+  .trade-main,
+  .futures-trade-main {
+    grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.94fr) !important;
+    gap: 8px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  .orderbook-side,
+  .form-side,
+  .futures-orderbook-side,
+  .futures-form-side {
+    height: 492px !important;
+    min-height: 492px !important;
+    max-height: 492px !important;
+  }
+
+  .orderbook-side,
+  .futures-orderbook-side,
+  .form-side,
+  .futures-form-side {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .form-side .input-field,
+  .futures-form-side .input-field {
+    font-size: 16px !important;
+  }
+}
+
+/* Final professional sizing pass: balanced, breathable, no clipping */
+.trade-main,
+.futures-trade-main {
+  grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.94fr) !important;
+  gap: 10px !important;
+  padding: 10px 14px 12px !important;
+}
+
+.orderbook-side,
+.form-side,
+.futures-orderbook-side,
+.futures-form-side {
+  height: 456px !important;
+  min-height: 456px !important;
+  max-height: 456px !important;
+}
+
+.orderbook-side,
+.futures-orderbook-side {
+  padding: 10px 10px !important;
+}
+
+.orderbook-side .orderbook-header,
+.futures-orderbook-side .orderbook-header {
+  height: 26px !important;
+  min-height: 26px !important;
+  padding: 0 6px 4px !important;
+  font-size: 12px !important;
+}
+
+.orderbook-side .asks-list,
+.orderbook-side .bids-list,
+.futures-orderbook-side .asks-list,
+.futures-orderbook-side .bids-list {
+  height: 150px !important;
+}
+
+.orderbook-side .order-row,
+.futures-orderbook-side .order-row {
+  height: 30px !important;
+  line-height: 30px !important;
+}
+
+.orderbook-side .order-row .price,
+.orderbook-side .order-row .quantity,
+.futures-orderbook-side .order-row .price,
+.futures-orderbook-side .order-row .quantity {
+  font-size: 12.5px !important;
+  line-height: 30px !important;
+}
+
+.orderbook-side .last-price,
+.futures-orderbook-side .last-price {
+  height: 66px !important;
+  min-height: 66px !important;
+}
+
+.orderbook-side .price-main,
+.futures-orderbook-side .price-main {
+  font-size: 24px !important;
+}
+
+.form-side,
+.futures-form-side {
+  padding: 10px !important;
+  gap: 5px !important;
+  overflow: hidden !important;
+}
+
+.form-side .estimated-row {
+  display: none !important;
+}
+
+.form-side .buy-sell-toggle {
+  height: 44px !important;
+  min-height: 44px !important;
+  padding: 3px !important;
+  border-radius: 12px !important;
+}
+
+.form-side .toggle-btn {
+  height: 36px !important;
+  font-size: 15px !important;
+  border-radius: 10px !important;
+}
+
+.form-side .order-type-selector,
+.futures-form-side .order-type-selector {
+  height: 40px !important;
+  min-height: 40px !important;
+  padding: 0 11px !important;
+  border-radius: 11px !important;
+  font-size: 14px !important;
+}
+
+.form-side .input-row,
+.futures-form-side .input-row {
+  height: 44px !important;
+  min-height: 44px !important;
+  padding: 0 10px !important;
+  border-radius: 11px !important;
+}
+
+.form-side .input-label,
+.futures-form-side .input-label {
+  max-width: 68px !important;
+  font-size: 11px !important;
+}
+
+.form-side .input-field,
+.futures-form-side .input-field {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+}
+
+.form-side .input-field::placeholder,
+.futures-form-side .input-field::placeholder {
+  font-size: 13px !important;
+}
+
+.form-side .slider-wrapper,
+.futures-form-side .slider-wrapper {
+  height: 42px !important;
+  min-height: 42px !important;
+  padding: 7px 8px 0 !important;
+}
+
+.form-side .custom-slider-button,
+.futures-form-side .custom-slider-button {
+  width: 24px !important;
+  height: 24px !important;
+  line-height: 24px !important;
+  font-size: 9px !important;
+}
+
+.form-side .slider-marks,
+.futures-form-side .slider-marks {
+  padding-top: 4px !important;
+}
+
+.form-side .mark-item,
+.futures-form-side .mark-item {
+  font-size: 10px !important;
+  letter-spacing: -0.35px !important;
+}
+
+.form-side .fee-estimate-row,
+.form-side .total-row,
+.futures-form-side .fee-estimate-row,
+.futures-form-side .total-row {
+  height: 24px !important;
+  min-height: 24px !important;
+  padding: 0 3px !important;
+}
+
+.form-side .estimated-received-row,
+.futures-form-side .estimated-received-row {
+  height: 34px !important;
+  min-height: 34px !important;
+  padding: 0 9px !important;
+  border-radius: 10px !important;
+}
+
+.form-side .fee-estimate-label,
+.form-side .total-label,
+.form-side .received-label,
+.futures-form-side .fee-estimate-label,
+.futures-form-side .total-label,
+.futures-form-side .received-label {
+  font-size: 11px !important;
+}
+
+.form-side .fee-estimate-value,
+.form-side .total-value,
+.form-side .received-value,
+.futures-form-side .fee-estimate-value,
+.futures-form-side .total-value,
+.futures-form-side .received-value {
+  max-width: 74px !important;
+  font-size: 12px !important;
+}
+
+.form-side .available-row {
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 0 6px !important;
+}
+
+.form-side .avail-item {
+  height: 16px !important;
+}
+
+.form-side .avail-label,
+.form-side .avail-value {
+  font-size: 11px !important;
+}
+
+.form-side .submit-btn,
+.futures-form-side .long-btn-grid,
+.futures-form-side .short-btn-grid {
+  height: 48px !important;
+  min-height: 48px !important;
+  border-radius: 11px !important;
+  font-size: 15px !important;
+}
+
+.futures-form-side .futures-action-buttons-grid {
+  height: 48px !important;
+  min-height: 48px !important;
+}
+
+.futures-control-bar {
+  height: 44px !important;
+  min-height: 44px !important;
+  margin: 8px 14px 0 !important;
+}
+
+.futures-control-bar .leverage-btn {
+  height: 32px !important;
+  min-height: 32px !important;
+}
+
+.futures-bottom-section,
+.bottom-section {
+  margin-top: 6px !important;
+}
+
+@media (max-width: 390px) {
+  .trade-main,
+  .futures-trade-main {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr) !important;
+    gap: 8px !important;
+    padding: 8px 10px 10px !important;
+  }
+
+  .orderbook-side,
+  .form-side,
+  .futures-orderbook-side,
+  .futures-form-side {
+    height: 448px !important;
+    min-height: 448px !important;
+    max-height: 448px !important;
+  }
+
+  .orderbook-side .order-row .price,
+  .orderbook-side .order-row .quantity,
+  .futures-orderbook-side .order-row .price,
+  .futures-orderbook-side .order-row .quantity {
+    font-size: 12px !important;
+  }
+
+  .form-side,
+  .futures-form-side {
+    padding: 8px !important;
+    gap: 5px !important;
+  }
+
+  .form-side .input-field,
+  .futures-form-side .input-field {
+    font-size: 14px !important;
+  }
+
+  .form-side .fee-estimate-value,
+  .form-side .total-value,
+  .form-side .received-value,
+  .futures-form-side .fee-estimate-value,
+  .futures-form-side .total-value,
+  .futures-form-side .received-value {
+    max-width: 64px !important;
+  }
+}
+
+/* Micro layout pass: prevent text crowding and rebalance CTAs */
+.trade-main,
+.futures-trade-main {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr) !important;
+}
+
+.form-side,
+.futures-form-side {
+  gap: 6px !important;
+}
+
+.form-side .buy-sell-toggle {
+  height: 42px !important;
+  min-height: 42px !important;
+}
+
+.form-side .toggle-btn {
+  height: 34px !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
+}
+
+.form-side .order-type-selector,
+.futures-form-side .order-type-selector {
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 0 10px !important;
+  font-size: 13px !important;
+}
+
+.form-side .input-row,
+.futures-form-side .input-row {
+  height: 42px !important;
+  min-height: 42px !important;
+  padding: 0 9px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto !important;
+  align-items: center !important;
+}
+
+.form-side .input-row > template,
+.futures-form-side .input-row > template {
+  min-width: 0 !important;
+}
+
+.form-side .input-label,
+.futures-form-side .input-label {
+  max-width: 56px !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+  letter-spacing: -0.35px !important;
+}
+
+.form-side .input-field,
+.futures-form-side .input-field {
+  min-width: 0 !important;
+  font-size: 13px !important;
+  line-height: 1 !important;
+  letter-spacing: -0.45px !important;
+}
+
+.form-side .input-field::placeholder,
+.futures-form-side .input-field::placeholder {
+  font-size: 12px !important;
+}
+
+.form-side .input-suffix,
+.futures-form-side .input-suffix {
+  max-width: 30px !important;
+  font-size: 9px !important;
+  margin-left: 2px !important;
+}
+
+.form-side .slider-wrapper,
+.futures-form-side .slider-wrapper {
+  height: 40px !important;
+  min-height: 40px !important;
+  padding: 6px 8px 0 !important;
+}
+
+.form-side .custom-slider-button,
+.futures-form-side .custom-slider-button {
+  width: 22px !important;
+  height: 22px !important;
+  line-height: 22px !important;
+  font-size: 8px !important;
+  box-shadow: 0 4px 10px rgb(var(--color-brand-rgb) / 0.28) !important;
+}
+
+.form-side .slider-marks,
+.futures-form-side .slider-marks {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+}
+
+.form-side .mark-item,
+.futures-form-side .mark-item {
+  font-size: 9px !important;
+  line-height: 1 !important;
+  letter-spacing: -0.55px !important;
+  text-align: center !important;
+}
+
+.form-side .fee-estimate-row,
+.form-side .total-row,
+.futures-form-side .fee-estimate-row,
+.futures-form-side .total-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, auto) !important;
+  gap: 5px !important;
+}
+
+.form-side .estimated-received-row,
+.futures-form-side .estimated-received-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, auto) !important;
+  gap: 6px !important;
+}
+
+.form-side .fee-estimate-label,
+.form-side .total-label,
+.form-side .received-label,
+.futures-form-side .fee-estimate-label,
+.futures-form-side .total-label,
+.futures-form-side .received-label {
+  font-size: 10px !important;
+  line-height: 1.1 !important;
+  letter-spacing: -0.45px !important;
+}
+
+.form-side .fee-estimate-value,
+.form-side .total-value,
+.form-side .received-value,
+.futures-form-side .fee-estimate-value,
+.futures-form-side .total-value,
+.futures-form-side .received-value {
+  max-width: 68px !important;
+  font-size: 11px !important;
+  line-height: 1.1 !important;
+  letter-spacing: -0.45px !important;
+}
+
+.fee-usdt-note {
+  display: none !important;
+}
+
+.form-side .available-row {
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 4px !important;
+}
+
+.form-side .avail-item {
+  height: 14px !important;
+  line-height: 14px !important;
+}
+
+.form-side .avail-label,
+.form-side .avail-value {
+  font-size: 10px !important;
+  line-height: 14px !important;
+  letter-spacing: -0.35px !important;
+}
+
+.form-side .submit-btn,
+.futures-form-side .long-btn-grid,
+.futures-form-side .short-btn-grid {
+  height: 44px !important;
+  min-height: 44px !important;
+  border-radius: 10px !important;
+  font-size: 14px !important;
+  letter-spacing: 0 !important;
+}
+
+.futures-form-side .futures-action-buttons-grid {
+  height: 44px !important;
+  min-height: 44px !important;
+  gap: 7px !important;
+}
+
+.futures-control-bar {
+  height: 42px !important;
+  min-height: 42px !important;
+}
+
+.futures-control-bar .margin-mode-text,
+.futures-control-bar .leverage-btn span {
+  font-size: 12px !important;
+}
+
+.futures-control-bar .funding-rate-label {
+  font-size: 9px !important;
+}
+
+.futures-control-bar .funding-rate-value {
+  font-size: 11px !important;
+}
+
+.orderbook-side .order-row .price,
+.orderbook-side .order-row .quantity,
+.futures-orderbook-side .order-row .price,
+.futures-orderbook-side .order-row .quantity {
+  font-size: 12px !important;
+  letter-spacing: -0.55px !important;
+}
+
+@media (max-width: 390px) {
+  .trade-main,
+  .futures-trade-main {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.88fr) !important;
+    gap: 7px !important;
+  }
+
+  .form-side,
+  .futures-form-side {
+    padding: 7px !important;
+    gap: 5px !important;
+  }
+
+  .form-side .input-row,
+  .futures-form-side .input-row {
+    padding: 0 7px !important;
+  }
+
+  .form-side .input-label,
+  .futures-form-side .input-label {
+    max-width: 48px !important;
+    font-size: 9px !important;
+  }
+
+  .form-side .input-field,
+  .futures-form-side .input-field {
+    font-size: 12px !important;
+  }
+
+  .form-side .fee-estimate-value,
+  .form-side .total-value,
+  .form-side .received-value,
+  .futures-form-side .fee-estimate-value,
+  .futures-form-side .total-value,
+  .futures-form-side .received-value {
+    max-width: 56px !important;
+    font-size: 10px !important;
+  }
+
+  .form-side .submit-btn,
+  .futures-form-side .long-btn-grid,
+  .futures-form-side .short-btn-grid {
+    height: 42px !important;
+    min-height: 42px !important;
+    font-size: 13px !important;
+  }
+}
+
+/* Final trade form typography pass: keep every input row visually calm and consistent. */
+.trade-page {
+  --trade-input-muted: #6b7280;
+  --trade-input-value: #111827;
+  --trade-input-placeholder: #9ca3af;
+  --trade-input-hairline: #e5e7eb;
+  --trade-input-soft-border: #edf0f4;
+}
+
+.futures-control-bar {
+  display: none !important;
+}
+
+.futures-form-side .form-tools-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 72px !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+}
+
+.futures-form-side .form-tools-row .order-type-selector {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  padding: 0 10px !important;
+  border-color: rgba(245, 158, 11, 0.22) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04) !important;
+}
+
+.futures-form-side .form-tools-row .order-type-selector span {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.leverage-inline-btn {
+  width: 72px !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  padding: 0 8px !important;
+  border: 1px solid var(--trade-input-hairline) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 3px !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  cursor: pointer !important;
+}
+
+.leverage-inline-btn:active {
+  transform: translateY(1px) !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05) !important;
+}
+
+.form-side .input-row,
+.futures-form-side .input-row {
+  color: var(--trade-input-muted) !important;
+  border-color: var(--trade-input-soft-border) !important;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.03) !important;
+}
+
+.form-side .input-label,
+.futures-form-side .input-label,
+.form-side .input-suffix,
+.futures-form-side .input-suffix {
+  color: var(--trade-input-muted) !important;
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+
+.form-side .input-field,
+.futures-form-side .input-field {
+  color: var(--trade-input-value) !important;
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  font-family: inherit !important;
+}
+
+.form-side .input-field::placeholder,
+.futures-form-side .input-field::placeholder,
+.form-side .market-price-input,
+.futures-form-side .market-price-input {
+  color: var(--trade-input-placeholder) !important;
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  font-style: normal !important;
+  opacity: 1 !important;
+}
+
+.form-side .market-price-input,
+.futures-form-side .market-price-input {
+  cursor: default !important;
+  -webkit-text-fill-color: var(--trade-input-placeholder) !important;
+}
+
+@media (max-width: 390px) {
+  .futures-form-side .form-tools-row {
+    grid-template-columns: minmax(0, 1fr) 66px !important;
+    gap: 6px !important;
+  }
+
+  .leverage-inline-btn {
+    width: 66px !important;
+    font-size: 11px !important;
+  }
+
+  .form-side .input-field,
+  .futures-form-side .input-field {
+    font-size: 11px !important;
+  }
+
+  .form-side .input-field::placeholder,
+  .futures-form-side .input-field::placeholder,
+  .form-side .market-price-input,
+  .futures-form-side .market-price-input {
+    font-size: 10.5px !important;
+  }
 }
 </style>

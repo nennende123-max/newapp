@@ -155,7 +155,7 @@ export const useMarketStore = defineStore('market', {
           this.isConnected = false
           
           // 打印绿色提示信息
-          console.log('%c[INFO] 网络受限，已切换至本地模拟行情', 'color: #00ff00; font-weight: bold;')
+          console.log('%c[INFO] 网络受限，已切换至本地模拟行情', 'color: var(--color-debug-accent); font-weight: bold;')
           
           // 如果还没有启动降级方案，立即启动
           if (!this.useFallback) {
@@ -176,7 +176,7 @@ export const useMarketStore = defineStore('market', {
             }
             
             // 打印绿色提示信息
-            console.log('%c[INFO] 网络受限，已切换至本地模拟行情', 'color: #00ff00; font-weight: bold;')
+            console.log('%c[INFO] 网络受限，已切换至本地模拟行情', 'color: var(--color-debug-accent); font-weight: bold;')
             
             // 立即启动模拟行情
             this.startMockTicker()
@@ -195,7 +195,7 @@ export const useMarketStore = defineStore('market', {
         }
         
         // 打印绿色提示信息
-        console.log('%c[INFO] 网络受限，已切换至本地模拟行情', 'color: #00ff00; font-weight: bold;')
+        console.log('%c[INFO] 网络受限，已切换至本地模拟行情', 'color: var(--color-debug-accent); font-weight: bold;')
         
         // 立即启动降级方案
         if (!this.useFallback) {

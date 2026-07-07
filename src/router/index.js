@@ -22,11 +22,15 @@ import GoogleAuth from '../components/GoogleAuth.vue'
 import FuturesTrade from '../components/FuturesTrade.vue'
 import ReferralIndex from '../views/referral/ReferralIndex.vue'
 import TradeSubPage from '../components/TradeSubPage.vue'
+import LaunchpadSubscribe from '../components/LaunchpadSubscribe.vue'
+import IEOAccount from '../components/IEOAccount.vue'
 
 const routes = [
   { path: '/', component: Home },
   { path: '/miner', component: Miner },
   { path: '/ido', component: IDO },
+  { path: '/ieo-account', name: 'IEOAccount', component: IEOAccount, meta: { hideTabbar: true } },
+  { path: '/ido/subscribe', name: 'LaunchpadSubscribe', component: LaunchpadSubscribe, meta: { hideTabbar: true } },
   { path: '/me', component: Me },
   { path: '/deposit', name: 'Deposit', component: Deposit },
   { path: '/withdraw', name: 'Withdraw', component: Withdraw },

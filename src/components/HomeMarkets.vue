@@ -1,6 +1,6 @@
-<template>
+﻿<template>
   <div class="markets-section">
-    <!-- 顶部选项卡 -->
+    <!-- 椤堕儴閫夐」鍗?-->
     <div class="markets-tabs">
       <div 
         v-for="tab in tabs" 
@@ -9,11 +9,11 @@
         :class="{ active: activeTab === tab.key }"
         @click="activeTab = tab.key"
       >
-        {{ tab.label }}
+        {{ t(tab.labelKey) }}
       </div>
     </div>
 
-    <!-- 行情列表 -->
+    <!-- 琛屾儏鍒楄〃 -->
     <div class="markets-list">
       <div 
         v-for="(coin, index) in filteredMarkets" 
@@ -21,7 +21,7 @@
         class="market-item"
         @click="goToMarket(coin.symbol)"
       >
-        <!-- 第一列：币种信息 (40%) -->
+        <!-- 绗竴鍒楋細甯佺淇℃伅 (40%) -->
         <div class="coin-info-col">
           <span v-if="showRank" class="rank-number">{{ coin.rank }}</span>
           <img 
@@ -41,7 +41,7 @@
           </div>
         </div>
 
-        <!-- 第二列：最新价格 (30%) -->
+        <!-- 绗簩鍒楋細鏈€鏂颁环鏍?(30%) -->
         <div class="price-col">
           <span 
             class="price-value"
@@ -51,7 +51,7 @@
           </span>
         </div>
 
-        <!-- 第三列：涨跌幅按钮 (30%) -->
+        <!-- 绗笁鍒楋細娑ㄨ穼骞呮寜閽?(30%) -->
         <div class="change-col">
           <div 
             class="change-btn"
@@ -73,34 +73,36 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMarketStore } from '@/stores/market';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
   limit: {
     type: Number,
-    default: null // null 表示不限制
+    default: null // null 琛ㄧず涓嶉檺鍒?
   }
 });
 
 const router = useRouter();
 const marketStore = useMarketStore();
+const { t } = useI18n();
 
-// 选项卡配置
+// 閫夐」鍗￠厤缃?
 const tabs = [
-  { key: 'favorites', label: '自选' },
-  { key: 'hot', label: '热门' },
-  { key: 'gainers', label: '涨幅榜' },
-  { key: 'losers', label: '跌幅榜' },
-  { key: 'volume', label: '24h Vol' }
-];
+  { key: 'favorites', labelKey: 'market.favorites' },
+  { key: 'hot', labelKey: 'market.hot' },
+  { key: 'gainers', labelKey: 'market.gainers' },
+  { key: 'losers', labelKey: 'market.losers' },
+  { key: 'volume', labelKey: 'market.volume' }
+]
 
 const activeTab = ref('hot');
 
-// 是否显示排名
+// 鏄惁鏄剧ず鎺掑悕
 const showRank = computed(() => {
   return activeTab.value === 'gainers' || activeTab.value === 'losers';
 });
 
-// Mock 市场数据
+// Mock 甯傚満鏁版嵁
 const markets = ref([
   { rank: 1, symbol: 'BTC', pair: '/USDT', price: 92000, change_percent: 2.35, volume_24h: 28500000000, flashState: null },
   { rank: 2, symbol: 'ETH', pair: '/USDT', price: 3100, change_percent: 1.85, volume_24h: 15200000000, flashState: null },
@@ -114,43 +116,43 @@ const markets = ref([
   { rank: 10, symbol: 'AVAX', pair: '/USDT', price: 36.5, change_percent: 4.20, volume_24h: 520000000, flashState: null }
 ]);
 
-// 价格变化监听（模拟实时更新）
+// 浠锋牸鍙樺寲鐩戝惉锛堟ā鎷熷疄鏃舵洿鏂帮級
 let priceUpdateInterval = null;
 
-// 根据 Tab 筛选数据
+// 鏍规嵁 Tab 绛涢€夋暟鎹?
 const filteredMarkets = computed(() => {
   let result = [...markets.value];
   
   switch (activeTab.value) {
     case 'favorites':
-      // 自选：显示前5个
+      // 鑷€夛細鏄剧ず鍓?涓?
       result = result.slice(0, 5);
       break;
     case 'hot':
-      // 热门：按成交量排序
+      // 鐑棬锛氭寜鎴愪氦閲忔帓搴?
       result = result.sort((a, b) => b.volume_24h - a.volume_24h);
       break;
     case 'gainers':
-      // 涨幅榜：按涨幅降序
+      // 娑ㄥ箙姒滐細鎸夋定骞呴檷搴?
       result = result.sort((a, b) => b.change_percent - a.change_percent);
       result.forEach((coin, index) => {
         coin.rank = index + 1;
       });
       break;
     case 'losers':
-      // 跌幅榜：按跌幅升序
+      // 璺屽箙姒滐細鎸夎穼骞呭崌搴?
       result = result.sort((a, b) => a.change_percent - b.change_percent);
       result.forEach((coin, index) => {
         coin.rank = index + 1;
       });
       break;
     case 'volume':
-      // 24h Vol：按成交量排序
+      // 24h Vol锛氭寜鎴愪氦閲忔帓搴?
       result = result.sort((a, b) => b.volume_24h - a.volume_24h);
       break;
   }
   
-  // 如果设置了 limit，只返回前 N 条
+  // 濡傛灉璁剧疆浜?limit锛屽彧杩斿洖鍓?N 鏉?
   if (props.limit && props.limit > 0) {
     result = result.slice(0, props.limit);
   }
@@ -158,7 +160,7 @@ const filteredMarkets = computed(() => {
   return result;
 });
 
-// 格式化价格
+// 鏍煎紡鍖栦环鏍?
 const formatPrice = (price) => {
   if (!price || price === 0) return '---';
   
@@ -185,7 +187,7 @@ const formatPrice = (price) => {
   }
 };
 
-// 格式化成交量
+// 鏍煎紡鍖栨垚浜ら噺
 const formatVolume = (volume) => {
   if (!volume || volume === 0) return '$---';
   
@@ -199,7 +201,7 @@ const formatVolume = (volume) => {
   return '$' + volume.toFixed(2);
 };
 
-// 获取币种图标
+// 鑾峰彇甯佺鍥炬爣
 const getCoinIcon = (symbol) => {
   const iconMap = {
     'BTC': 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
@@ -216,12 +218,12 @@ const getCoinIcon = (symbol) => {
   return iconMap[symbol.toUpperCase()] || 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png';
 };
 
-// 图片加载失败处理
+// 鍥剧墖鍔犺浇澶辫触澶勭悊
 const handleImageError = (event) => {
   event.target.style.display = 'none';
 };
 
-// 跳转到市场详情
+// 璺宠浆鍒板競鍦鸿鎯?
 const goToMarket = (symbol) => {
   router.push({
     path: '/market',
@@ -229,23 +231,23 @@ const goToMarket = (symbol) => {
   });
 };
 
-// 模拟价格更新（触发闪烁效果）
+// 妯℃嫙浠锋牸鏇存柊锛堣Е鍙戦棯鐑佹晥鏋滐級
 const simulatePriceUpdate = () => {
   markets.value.forEach(coin => {
-    // 随机决定是否更新价格
+    // 闅忔満鍐冲畾鏄惁鏇存柊浠锋牸
     if (Math.random() > 0.7) {
       const oldPrice = coin.price;
-      const variation = (Math.random() - 0.5) * 0.02; // ±1% 波动
+      const variation = (Math.random() - 0.5) * 0.02; // 卤1% 娉㈠姩
       coin.price = oldPrice * (1 + variation);
       
-      // 判断涨跌并触发闪烁
+      // 鍒ゆ柇娑ㄨ穼骞惰Е鍙戦棯鐑?
       if (coin.price > oldPrice) {
         coin.flashState = 'up';
       } else if (coin.price < oldPrice) {
         coin.flashState = 'down';
       }
       
-      // 300ms 后恢复
+      // 300ms 鍚庢仮澶?
       setTimeout(() => {
         coin.flashState = null;
       }, 300);
@@ -253,20 +255,20 @@ const simulatePriceUpdate = () => {
   });
 };
 
-// 初始化
+// 鍒濆鍖?
 onMounted(() => {
-  // 初始化 WebSocket（如果还没有）
+  // 鍒濆鍖?WebSocket锛堝鏋滆繕娌℃湁锛?
   if (!marketStore.isConnected) {
     marketStore.initWebSocket();
   }
   
-  // 模拟价格更新（每 3-5 秒）
+  // 妯℃嫙浠锋牸鏇存柊锛堟瘡 3-5 绉掞級
   priceUpdateInterval = setInterval(() => {
     simulatePriceUpdate();
   }, 3500 + Math.random() * 2000);
 });
 
-// 清理
+// 娓呯悊
 onUnmounted(() => {
   if (priceUpdateInterval) {
     clearInterval(priceUpdateInterval);
@@ -275,10 +277,10 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 全局强制无衬线字体 */
+/* 鍏ㄥ眬寮哄埗鏃犺‖绾垮瓧浣?*/
 .markets-section {
   width: 100%;
-  background-color: #0B0E11;
+  background-color: var(--color-bg);
   font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif !important;
 }
 
@@ -286,13 +288,13 @@ onUnmounted(() => {
   font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif !important;
 }
 
-/* 顶部选项卡 */
+/* 椤堕儴閫夐」鍗?*/
 .markets-tabs {
   display: flex;
   gap: 0;
   padding: 12px 16px;
-  background-color: #111111;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: var(--color-bg);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.08);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -307,7 +309,7 @@ onUnmounted(() => {
   padding: 8px 16px;
   font-size: 14px;
   font-weight: 500;
-  color: #848E9C;
+  color: var(--color-text-muted);
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s ease;
@@ -320,7 +322,7 @@ onUnmounted(() => {
 }
 
 .tab-item.active {
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-weight: 700;
 }
 
@@ -331,7 +333,7 @@ onUnmounted(() => {
   left: 16px;
   right: 16px;
   height: 2px;
-  background-color: #F0B90B;
+  background-color: var(--color-brand);
   border-radius: 1px;
 }
 
@@ -339,7 +341,7 @@ onUnmounted(() => {
   opacity: 0.7;
 }
 
-/* 行情列表 */
+/* 琛屾儏鍒楄〃 */
 .markets-list {
   display: flex;
   flex-direction: column;
@@ -349,17 +351,17 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   padding: 12px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
   cursor: pointer;
   transition: background-color 0.2s ease;
   min-height: 60px;
 }
 
 .market-item:active {
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: rgb(var(--color-border-rgb) / 0.03);
 }
 
-/* 第一列：币种信息 (40%) */
+/* 绗竴鍒楋細甯佺淇℃伅 (40%) */
 .coin-info-col {
   flex: 0 0 40%;
   display: flex;
@@ -370,7 +372,7 @@ onUnmounted(() => {
 
 .rank-number {
   font-size: 12px;
-  color: #848E9C;
+  color: var(--color-text-muted);
   font-weight: 500;
   min-width: 20px;
   text-align: left;
@@ -385,7 +387,7 @@ onUnmounted(() => {
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgb(var(--color-border-rgb) / 0.1);
 }
 
 .coin-details {
@@ -405,7 +407,7 @@ onUnmounted(() => {
 .coin-symbol-text {
   font-size: 15px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   line-height: 1.2;
 }
 
@@ -414,19 +416,19 @@ onUnmounted(() => {
   align-items: center;
   gap: 6px;
   font-size: 10px;
-  color: #848E9C;
+  color: var(--color-text-muted);
   line-height: 1.2;
 }
 
 .coin-pair {
-  color: #848E9C;
+  color: var(--color-text-muted);
 }
 
 .coin-vol {
-  color: #848E9C;
+  color: var(--color-text-muted);
 }
 
-/* 第二列：最新价格 (30%) */
+/* 绗簩鍒楋細鏈€鏂颁环鏍?(30%) */
 .price-col {
   flex: 0 0 30%;
   display: flex;
@@ -438,47 +440,47 @@ onUnmounted(() => {
 .price-value {
   font-size: 16px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--color-text-primary);
   font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', monospace !important;
   font-variant-numeric: tabular-nums;
   transition: color 0.3s ease;
 }
 
 .price-value.flash-green {
-  color: #0ECB81 !important;
+  color: var(--color-earn) !important;
   animation: flashGreen 0.3s ease;
 }
 
 .price-value.flash-red {
-  color: #F6465D !important;
+  color: var(--color-loss) !important;
   animation: flashRed 0.3s ease;
 }
 
 @keyframes flashGreen {
   0% {
-    color: #0ECB81;
+    color: var(--color-earn);
   }
   50% {
-    color: #32D74B;
+    color: var(--color-earn);
   }
   100% {
-    color: #FFFFFF;
+    color: var(--color-text-primary);
   }
 }
 
 @keyframes flashRed {
   0% {
-    color: #F6465D;
+    color: var(--color-loss);
   }
   50% {
-    color: #FF6B7A;
+    color: var(--color-loss);
   }
   100% {
-    color: #FFFFFF;
+    color: var(--color-text-primary);
   }
 }
 
-/* 第三列：涨跌幅按钮 (30%) */
+/* 绗笁鍒楋細娑ㄨ穼骞呮寜閽?(30%) */
 .change-col {
   flex: 0 0 30%;
   display: flex;
@@ -500,17 +502,18 @@ onUnmounted(() => {
 }
 
 .change-btn.positive {
-  background-color: #0ECB81;
-  color: #FFFFFF;
+  background-color: var(--color-earn);
+  color: var(--color-text-primary);
 }
 
 .change-btn.negative {
-  background-color: #F6465D;
-  color: #FFFFFF;
+  background-color: var(--color-loss);
+  color: var(--color-text-primary);
 }
 
 .change-btn.neutral {
-  background-color: #2B3139;
-  color: #848E9C;
+  background-color: var(--color-surface-muted);
+  color: var(--color-text-muted);
 }
 </style>
+
