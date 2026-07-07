@@ -14,6 +14,7 @@
         <div 
           class="connect-wallet-btn" 
           :class="{ 'connected': assetStore.isWalletConnected, 'loading': isConnecting }"
+          @touchend.prevent="handleWalletClick"
           @click="handleWalletClick"
         >
           <van-icon v-if="isConnecting" name="loading" class="loading-icon" />
@@ -27,12 +28,27 @@
           class="theme-toggle-btn"
           type="button"
           :aria-label="themeStore.isDark ? 'Switch to light theme' : 'Switch to dark theme'"
+          @touchend.prevent="themeStore.toggleTheme"
           @click="themeStore.toggleTheme"
         >
           <span class="theme-toggle-symbol" aria-hidden="true"></span>
         </button>
 
-        <div class="lang-icon-box" @click="langRef?.open()">
+        <button
+          class="stock-market-btn"
+          type="button"
+          aria-label="股票市场"
+          @touchend.prevent="goToStockMarket"
+          @click="goToStockMarket"
+        >
+          <span class="stock-market-glyph" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+        </button>
+
+        <div class="lang-icon-box" @touchend.prevent="openLanguageSheet" @click="openLanguageSheet">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="2" y1="12" x2="22" y2="12"></line>
@@ -75,11 +91,11 @@
         background-color: var(--color-bg-elevated);
       "
     >
-      <van-tabbar-item icon="wap-home-o" name="/">{{ $t('tab.home') }}</van-tabbar-item>
-      <van-tabbar-item icon="cluster-o" name="/miner">{{ $t('tab.miner') }}</van-tabbar-item>
-      <van-tabbar-item icon="balance-list-o" name="/trade">{{ $t('tab.trade') }}</van-tabbar-item>
-      <van-tabbar-item icon="gem-o" name="/ido">{{ $t('tab.ido') }}</van-tabbar-item>
-      <van-tabbar-item icon="manager-o" name="/me">{{ $t('tab.me') }}</van-tabbar-item>
+      <van-tabbar-item icon="wap-home-o" name="/" @touchend.capture.prevent="handleTabIntent('/', $event)" @click.capture="handleTabIntent('/', $event)">{{ $t('tab.home') }}</van-tabbar-item>
+      <van-tabbar-item icon="cluster-o" name="/miner" @touchend.capture.prevent="handleTabIntent('/miner', $event)" @click.capture="handleTabIntent('/miner', $event)">{{ $t('tab.miner') }}</van-tabbar-item>
+      <van-tabbar-item icon="balance-list-o" name="/trade" @touchend.capture.prevent="handleTabIntent('/trade', $event)" @click.capture="handleTabIntent('/trade', $event)">{{ $t('tab.trade') }}</van-tabbar-item>
+      <van-tabbar-item icon="gem-o" name="/ido" @touchend.capture.prevent="handleTabIntent('/ido', $event)" @click.capture="handleTabIntent('/ido', $event)">{{ $t('tab.ido') }}</van-tabbar-item>
+      <van-tabbar-item icon="manager-o" name="/me" @touchend.capture.prevent="handleTabIntent('/me', $event)" @click.capture="handleTabIntent('/me', $event)">{{ $t('tab.me') }}</van-tabbar-item>
     </van-tabbar>
 
     <LanguageSelect ref="langRef" />
@@ -286,6 +302,19 @@ const onTabChange = (path) => {
   }
 };
 
+const handleTabIntent = (path, event) => {
+  event?.stopPropagation?.();
+  onTabChange(path);
+};
+
+const openLanguageSheet = () => {
+  langRef.value?.open?.();
+};
+
+const goToStockMarket = () => {
+  router.push('/stocks');
+};
+
 const clearRouteError = () => {
   routeError.value = '';
   router.replace(route.fullPath);
@@ -480,6 +509,63 @@ body, html, #app {
   box-shadow: var(--shadow-sm);
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   flex: 0 0 44px;
+}
+
+.stock-market-btn {
+  width: 36px;
+  height: 32px;
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.28);
+  border-radius: 12px;
+  background: rgb(var(--color-primary-rgb) / 0.1);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+  flex: 0 0 36px;
+}
+
+.stock-market-btn:active {
+  transform: scale(0.95);
+}
+
+.stock-market-glyph {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: end;
+  gap: 2px;
+}
+
+.stock-market-glyph span {
+  display: block;
+  width: 4px;
+  border-radius: 999px;
+  background: var(--color-primary);
+}
+
+.stock-market-glyph span:nth-child(1) {
+  height: 8px;
+  background: var(--color-success);
+}
+
+.stock-market-glyph span:nth-child(2) {
+  height: 14px;
+  background: var(--color-primary);
+}
+
+.stock-market-glyph span:nth-child(3) {
+  height: 11px;
+  background: var(--color-danger);
+}
+
+:global(html[data-theme='dark']) .stock-market-btn {
+  background: rgb(var(--color-primary-rgb) / 0.1);
+  border-color: var(--color-primary-border);
 }
 
 .theme-toggle-btn:active {
@@ -765,6 +851,7 @@ body, html, #app {
   justify-content: center;
   padding: 8px 0;
   backdrop-filter: blur(4px);
+  pointer-events: none;
 }
 
 .global-loading-bar :deep(.van-loading__text) {

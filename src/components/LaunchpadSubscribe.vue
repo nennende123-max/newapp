@@ -1199,17 +1199,26 @@ onUnmounted(() => {
 
 <style scoped>
 .launchpad-subscribe-page {
-  --lp-yellow: #f0b90b;
-  --lp-bg: #f7f8fa;
-  --lp-card: #ffffff;
-  --lp-border: #eaecef;
-  --lp-text: #111827;
-  --lp-muted: #6b7280;
-  --lp-soft: #f5f6f8;
+  --lp-yellow: var(--color-primary);
+  --lp-yellow-soft: var(--color-primary-soft);
+  --lp-yellow-text: var(--color-text-on-accent);
+  --lp-bg: var(--color-bg);
+  --lp-card: var(--color-bg-card);
+  --lp-border: var(--color-border);
+  --lp-text: var(--color-text-primary);
+  --lp-muted: var(--color-text-secondary);
+  --lp-subtle: var(--color-text-muted);
+  --lp-soft: var(--color-surface-1);
+  --lp-soft-strong: var(--color-surface-muted);
   min-height: 100vh;
   background: var(--lp-bg);
   color: var(--lp-text);
   font-variant-numeric: tabular-nums;
+}
+
+.launchpad-subscribe-page,
+.launchpad-subscribe-page * {
+  box-sizing: border-box;
 }
 
 .subscribe-content {
@@ -1228,7 +1237,7 @@ onUnmounted(() => {
   background: var(--lp-card);
   border: 1px solid var(--lp-border);
   border-radius: 14px;
-  box-shadow: 0 2px 8px rgb(17 24 39 / 0.03);
+  box-shadow: var(--shadow-sm);
 }
 
 .project-hero {
@@ -1247,7 +1256,7 @@ onUnmounted(() => {
   display: grid;
   place-items: center;
   background: var(--lp-yellow);
-  color: #111827;
+  color: var(--lp-yellow-text);
   font-weight: 800;
   font-size: 18px;
   flex: 0 0 auto;
@@ -1294,7 +1303,7 @@ onUnmounted(() => {
   background: var(--lp-card);
   border: 1px solid var(--lp-border);
   border-radius: 14px;
-  box-shadow: 0 2px 8px rgb(17 24 39 / 0.03);
+  box-shadow: var(--shadow-sm);
 }
 
 .detail-toggle {
@@ -1338,7 +1347,7 @@ onUnmounted(() => {
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: conic-gradient(var(--lp-yellow) 0 40%, #dbeafe 40% 75%, #e5e7eb 75% 100%);
+  background: conic-gradient(var(--lp-yellow) 0 40%, var(--lp-soft-strong) 40% 75%, var(--lp-border) 75% 100%);
   color: var(--lp-text);
   font-size: 14px;
   font-weight: 800;
@@ -1396,7 +1405,7 @@ onUnmounted(() => {
 
 .stats-row > div + div {
   padding-left: 10px;
-  border-left: 1px solid #f0f2f5;
+  border-left: 1px solid var(--lp-border);
 }
 
 .stage-row span,
@@ -1424,7 +1433,7 @@ onUnmounted(() => {
 }
 
 .countdown-cell strong {
-  color: #c99400;
+  color: var(--lp-yellow);
   font-size: 17px;
   font-weight: 700;
 }
@@ -1467,7 +1476,7 @@ onUnmounted(() => {
   margin-top: 9px;
   overflow: hidden;
   border-radius: 999px;
-  background: #eef0f3;
+  background: var(--lp-soft-strong);
 }
 
 .funding-bar > div {
@@ -1483,7 +1492,7 @@ onUnmounted(() => {
   grid-template-columns: 1fr 1fr;
   padding: 4px;
   border-radius: 14px;
-  background: #ffffff;
+  background: var(--lp-card);
   border: 1px solid var(--lp-border);
 }
 
@@ -1498,7 +1507,7 @@ onUnmounted(() => {
 
 .mode-tabs button.active {
   background: var(--lp-yellow);
-  color: #111827;
+  color: var(--lp-yellow-text);
 }
 
 .action-card,
@@ -1532,7 +1541,7 @@ onUnmounted(() => {
 
 .amount-field:focus-within {
   border-color: var(--lp-yellow);
-  box-shadow: 0 0 0 2px rgb(240 185 11 / 0.10);
+  box-shadow: 0 0 0 2px rgb(var(--color-primary-rgb) / 0.10);
 }
 
 .amount-field input {
@@ -1547,7 +1556,7 @@ onUnmounted(() => {
 }
 
 .amount-field input::placeholder {
-  color: #a3a9b5;
+  color: var(--lp-subtle);
   font-size: 18px;
   font-weight: 600;
 }
@@ -1579,17 +1588,17 @@ onUnmounted(() => {
   margin-top: 10px;
   padding: 0 12px;
   border-radius: 12px;
-  background: linear-gradient(180deg, #fffaf0 0%, #fff6db 100%);
-  border: 1px solid #f6df9a;
+  background: var(--lp-yellow-soft);
+  border: 1px solid var(--color-primary-border);
 }
 
 .lottery-ratio-row span {
-  color: #8a6a00;
+  color: var(--lp-text);
   font-weight: 700;
 }
 
 .lottery-ratio-row strong {
-  color: #8a6a00;
+  color: var(--lp-text);
   font-weight: 900;
 }
 
@@ -1605,14 +1614,14 @@ onUnmounted(() => {
   width: 100%;
   margin-top: 14px;
   background: var(--lp-yellow);
-  color: #111827;
+  color: var(--lp-yellow-text);
   font-size: 15px;
 }
 
 .primary-action:disabled {
   opacity: 1;
-  background: #f8d77a;
-  color: #8a6a00;
+  background: var(--lp-soft-strong);
+  color: var(--lp-muted);
 }
 
 .ghost-action {
@@ -1717,8 +1726,8 @@ onUnmounted(() => {
   height: 64px;
   border: 1px solid var(--lp-border);
   border-radius: 14px;
-  background: #ffffff;
-  box-shadow: 0 2px 8px rgb(17 24 39 / 0.035);
+  background: var(--lp-card);
+  box-shadow: var(--shadow-sm);
 }
 
 .stack-card.ghost-one {
@@ -1735,10 +1744,10 @@ onUnmounted(() => {
 
 .order-card {
   padding: 14px;
-  background: #ffffff;
+  background: var(--lp-card);
   border: 1px solid var(--lp-border);
   border-radius: 14px;
-  box-shadow: 0 2px 8px rgb(17 24 39 / 0.04);
+  box-shadow: var(--shadow-sm);
 }
 
 .stack-main {
@@ -1766,45 +1775,45 @@ onUnmounted(() => {
   padding: 0 8px;
   border-radius: 999px;
   color: var(--lp-muted);
-  background: #eef0f3;
+  background: var(--lp-soft-strong);
   font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
 }
 
 .status-badge.success {
-  color: #0f8f54;
-  background: #e7f7ef;
+  color: var(--color-earn);
+  background: rgb(var(--color-earn-rgb) / 0.12);
 }
 
 .status-badge.won {
-  color: #6f5100;
-  background: linear-gradient(180deg, #fff6d6 0%, #ffe6a3 100%);
-  border: 1px solid #f2ca62;
-  box-shadow: 0 5px 14px rgb(240 185 11 / 0.18);
+  color: var(--lp-text);
+  background: var(--lp-yellow-soft);
+  border: 1px solid var(--color-primary-border);
+  box-shadow: 0 5px 14px rgb(var(--color-primary-rgb) / 0.18);
   font-weight: 800;
 }
 
 .status-badge.pending {
-  color: #8a6a00;
-  background: #fff7db;
-  border: 1px solid #f5dd91;
+  color: var(--lp-text);
+  background: var(--lp-yellow-soft);
+  border: 1px solid var(--color-primary-border);
 }
 
 .status-badge.active-stake {
-  color: #0f8f54;
-  background: #e7f7ef;
-  border: 1px solid #bdebd3;
+  color: var(--color-earn);
+  background: rgb(var(--color-earn-rgb) / 0.12);
+  border: 1px solid rgb(var(--color-earn-rgb) / 0.28);
 }
 
 .status-badge.warning {
-  color: #8a6a00;
-  background: #fff4cc;
+  color: var(--lp-text);
+  background: var(--lp-yellow-soft);
 }
 
 .status-badge.danger {
-  color: #b42318;
-  background: #fee4e2;
+  color: var(--color-loss);
+  background: rgb(var(--color-loss-rgb) / 0.12);
 }
 
 .status-badge.muted {
@@ -1833,7 +1842,7 @@ onUnmounted(() => {
 }
 
 .ratio-value {
-  color: #8a6a00 !important;
+  color: var(--lp-text) !important;
   font-weight: 800 !important;
 }
 
@@ -1849,16 +1858,16 @@ onUnmounted(() => {
   padding: 14px;
   border-radius: 14px;
   background:
-    radial-gradient(circle at 88% 10%, rgb(240 185 11 / 0.22), transparent 34%),
-    linear-gradient(180deg, #fffaf0 0%, #fff3ce 100%);
-  border: 1px solid #f4d77e;
-  color: #8a6a00;
-  box-shadow: 0 10px 24px rgb(240 185 11 / 0.13);
+    radial-gradient(circle at 88% 10%, rgb(var(--color-primary-rgb) / 0.22), transparent 34%),
+    linear-gradient(180deg, var(--lp-yellow-soft) 0%, var(--lp-card) 100%);
+  border: 1px solid var(--color-primary-border);
+  color: var(--lp-text);
+  box-shadow: 0 10px 24px rgb(var(--color-primary-rgb) / 0.13);
 }
 
 .win-result span {
   display: block;
-  color: #9b7610;
+  color: var(--lp-muted);
   font-size: 12px;
   font-weight: 700;
 }
@@ -1866,7 +1875,7 @@ onUnmounted(() => {
 .win-result strong {
   display: block;
   margin-top: 5px;
-  color: #111827;
+  color: var(--lp-text);
   font-size: 22px;
   line-height: 1.12;
   font-weight: 900;
@@ -1879,15 +1888,15 @@ onUnmounted(() => {
   border: 0;
   border-radius: 10px;
   background: var(--lp-yellow);
-  color: #111827;
+  color: var(--lp-yellow-text);
   font-size: 13px;
   font-weight: 700;
 }
 
 .compact-primary-action:disabled {
   opacity: 1;
-  background: #f8d77a;
-  color: #8a6a00;
+  background: var(--lp-soft-strong);
+  color: var(--lp-muted);
 }
 
 .view-all-action {
@@ -1896,8 +1905,8 @@ onUnmounted(() => {
   margin-top: 10px;
   border: 0;
   border-radius: 10px;
-  background: #fff7db;
-  color: #8a6a00;
+  background: var(--lp-yellow-soft);
+  color: var(--lp-text);
   font-size: 13px;
   font-weight: 700;
 }
@@ -1910,7 +1919,7 @@ onUnmounted(() => {
 }
 
 .action-feedback {
-  color: #b42318;
+  color: var(--color-loss);
   font-size: 13px;
   font-weight: 700;
 }
@@ -1919,7 +1928,7 @@ onUnmounted(() => {
   max-height: 70vh;
   overflow: hidden;
   border-radius: 20px 20px 0 0;
-  background: #ffffff;
+  background: var(--lp-card);
   padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -1927,7 +1936,7 @@ onUnmounted(() => {
   max-height: 75vh;
   overflow: hidden;
   border-radius: 20px 20px 0 0;
-  background: #ffffff;
+  background: var(--lp-card);
   padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -1942,7 +1951,7 @@ onUnmounted(() => {
   height: 4px;
   margin: 10px auto 8px;
   border-radius: 999px;
-  background: #d1d5db;
+  background: var(--lp-border);
 }
 
 .sheet-title {
@@ -1965,7 +1974,7 @@ onUnmounted(() => {
   border: 1px solid transparent;
   border-bottom-color: var(--lp-border);
   border-radius: 12px;
-  background: #ffffff;
+  background: var(--lp-card);
   color: var(--lp-text);
   display: grid;
   grid-template-columns: 1fr auto 20px;
@@ -1976,7 +1985,7 @@ onUnmounted(() => {
 
 .asset-sheet-list button.active {
   border-color: var(--lp-yellow);
-  background: #fffaf0;
+  background: var(--lp-yellow-soft);
 }
 
 .asset-sheet-list span {
@@ -2002,10 +2011,10 @@ onUnmounted(() => {
 .auth-panel {
   padding: 20px;
   border-radius: 14px;
-  background: #ffffff;
+  background: var(--lp-card);
   color: var(--lp-text);
   border: 1px solid var(--lp-border);
-  box-shadow: 0 16px 40px rgb(17 24 39 / 0.12);
+  box-shadow: var(--shadow-lg);
   text-align: center;
 }
 
@@ -2016,7 +2025,7 @@ onUnmounted(() => {
   display: grid;
   place-items: center;
   border-radius: 12px;
-  background: rgb(240 185 11 / 0.12);
+  background: rgb(var(--color-primary-rgb) / 0.12);
   color: var(--lp-yellow);
   font-size: 22px;
 }
@@ -2031,6 +2040,279 @@ onUnmounted(() => {
   color: var(--lp-muted);
   font-size: 13px;
   line-height: 1.5;
+}
+
+:global(html[data-theme='dark']) .launchpad-subscribe-page {
+  --lp-bg: #070d19;
+  --lp-card: rgb(19 28 43 / 0.92);
+  --lp-panel: rgb(14 22 36 / 0.94);
+  --lp-panel-soft: rgb(28 40 59 / 0.74);
+  --lp-border: rgb(92 111 139 / 0.24);
+  --lp-border-strong: rgb(243 186 47 / 0.28);
+  --lp-text: #f4f7fb;
+  --lp-muted: #9ca9bd;
+  --lp-subtle: #6f7d93;
+  --lp-yellow-soft: rgb(var(--color-primary-rgb) / 0.16);
+  --lp-yellow-text: #121722;
+  background:
+    radial-gradient(circle at 78% 2%, rgb(var(--color-primary-rgb) / 0.12), transparent 28%),
+    linear-gradient(180deg, #0a1220 0%, #070d19 48%, #050914 100%);
+}
+
+:global(html[data-theme='dark']) .launchpad-subscribe-page :deep(.van-nav-bar) {
+  --van-nav-bar-background: rgb(13 21 34 / 0.94);
+  --van-nav-bar-title-text-color: var(--lp-text);
+  --van-nav-bar-icon-color: var(--lp-yellow);
+  border-bottom: 1px solid rgb(92 111 139 / 0.18);
+  box-shadow: 0 10px 28px rgb(0 0 0 / 0.22);
+  backdrop-filter: blur(16px);
+}
+
+:global(html[data-theme='dark']) .subscribe-content {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 14px 18px 26px;
+  gap: 14px;
+}
+
+:global(html[data-theme='dark']) .project-hero,
+:global(html[data-theme='dark']) .top-info-card,
+:global(html[data-theme='dark']) .funding-card,
+:global(html[data-theme='dark']) .action-card,
+:global(html[data-theme='dark']) .wallet-gate-card,
+:global(html[data-theme='dark']) .action-feedback,
+:global(html[data-theme='dark']) .project-detail-card {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.035), rgb(255 255 255 / 0)),
+    var(--lp-card);
+  border: 1px solid var(--lp-border);
+  border-radius: 16px;
+  box-shadow:
+    0 18px 42px rgb(0 0 0 / 0.26),
+    inset 0 1px 0 rgb(255 255 255 / 0.035);
+}
+
+:global(html[data-theme='dark']) .project-hero::after,
+:global(html[data-theme='dark']) .action-card::after,
+:global(html[data-theme='dark']) .funding-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 92% 0%, rgb(var(--color-primary-rgb) / 0.10), transparent 34%);
+}
+
+:global(html[data-theme='dark']) .project-mark {
+  background:
+    radial-gradient(circle at 30% 22%, rgb(255 255 255 / 0.28), transparent 32%),
+    linear-gradient(145deg, var(--lp-yellow) 0%, var(--color-primary-hover) 100%);
+  box-shadow: 0 12px 28px rgb(var(--color-primary-rgb) / 0.22);
+}
+
+:global(html[data-theme='dark']) .project-kicker,
+:global(html[data-theme='dark']) .countdown-cell strong {
+  color: var(--lp-yellow);
+}
+
+:global(html[data-theme='dark']) .project-meta span,
+:global(html[data-theme='dark']) .empty-record {
+  background: var(--lp-panel-soft);
+  color: var(--lp-muted);
+  border: 1px solid rgb(255 255 255 / 0.035);
+}
+
+:global(html[data-theme='dark']) .stage-row,
+:global(html[data-theme='dark']) .stats-row > div + div {
+  border-color: rgb(92 111 139 / 0.18);
+}
+
+:global(html[data-theme='dark']) .funding-card {
+  padding: 14px 18px 16px;
+}
+
+:global(html[data-theme='dark']) .funding-bar {
+  height: 9px;
+  background: rgb(255 255 255 / 0.06);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.34);
+}
+
+:global(html[data-theme='dark']) .funding-bar > div {
+  background: linear-gradient(90deg, #f6c64a 0%, #f3ba2f 58%, #ffe08a 100%);
+  box-shadow:
+    0 0 18px rgb(var(--color-primary-rgb) / 0.34),
+    inset 0 1px 0 rgb(255 255 255 / 0.42);
+}
+
+:global(html[data-theme='dark']) .mode-tabs {
+  height: 66px;
+  padding: 7px;
+  border-radius: 18px;
+  background: rgb(14 22 36 / 0.9);
+  border-color: rgb(92 111 139 / 0.22);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.035), 0 12px 28px rgb(0 0 0 / 0.18);
+}
+
+:global(html[data-theme='dark']) .mode-tabs button {
+  border-radius: 13px;
+  color: #aeb9cb;
+  transition: background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+
+:global(html[data-theme='dark']) .mode-tabs button.active {
+  background: linear-gradient(180deg, #f6c64a 0%, #edb526 100%);
+  color: #101723;
+  box-shadow: 0 10px 24px rgb(var(--color-primary-rgb) / 0.26);
+}
+
+:global(html[data-theme='dark']) .action-card {
+  padding: 18px;
+}
+
+:global(html[data-theme='dark']) .field-label {
+  color: #c9d3e3;
+  font-weight: 650;
+}
+
+:global(html[data-theme='dark']) .amount-field,
+:global(html[data-theme='dark']) .asset-select {
+  min-height: 68px;
+  padding: 0 18px;
+  border-radius: 16px;
+  background: rgb(9 16 29 / 0.72);
+  border-color: rgb(92 111 139 / 0.32);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.035),
+    0 8px 20px rgb(0 0 0 / 0.12);
+}
+
+:global(html[data-theme='dark']) .amount-field:focus-within,
+:global(html[data-theme='dark']) .asset-select:focus-visible {
+  border-color: rgb(var(--color-primary-rgb) / 0.62);
+  box-shadow:
+    0 0 0 3px rgb(var(--color-primary-rgb) / 0.10),
+    0 12px 28px rgb(0 0 0 / 0.18);
+}
+
+:global(html[data-theme='dark']) .amount-field input {
+  color: var(--lp-text);
+  font-size: 21px;
+}
+
+:global(html[data-theme='dark']) .amount-field input::placeholder {
+  color: #6f7f99;
+}
+
+:global(html[data-theme='dark']) .amount-field span,
+:global(html[data-theme='dark']) .available-row strong {
+  color: #f7fafc;
+}
+
+:global(html[data-theme='dark']) .available-row {
+  min-height: 38px;
+  padding: 2px 0;
+}
+
+:global(html[data-theme='dark']) .lottery-ratio-row {
+  min-height: 58px;
+  margin-top: 14px;
+  padding: 0 14px;
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 86% 18%, rgb(var(--color-primary-rgb) / 0.16), transparent 32%),
+    rgb(var(--color-primary-rgb) / 0.10);
+  border-color: var(--lp-border-strong);
+}
+
+:global(html[data-theme='dark']) .lottery-ratio-row span,
+:global(html[data-theme='dark']) .lottery-ratio-row strong {
+  color: #fff6d6;
+}
+
+:global(html[data-theme='dark']) .primary-action {
+  height: 56px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f6c64a 0%, #e8ad20 100%);
+  color: #101723;
+  box-shadow: 0 14px 28px rgb(var(--color-primary-rgb) / 0.24);
+}
+
+:global(html[data-theme='dark']) .primary-action:disabled {
+  background: rgb(35 48 68 / 0.82);
+  color: #8796ad;
+  box-shadow: none;
+}
+
+:global(html[data-theme='dark']) .records-section {
+  margin-top: 20px;
+}
+
+:global(html[data-theme='dark']) .records-heading {
+  margin-bottom: 12px;
+}
+
+:global(html[data-theme='dark']) .records-heading h2 {
+  color: var(--lp-text);
+  font-size: 20px;
+  font-weight: 850;
+}
+
+:global(html[data-theme='dark']) .order-card,
+:global(html[data-theme='dark']) .stack-card {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.035), rgb(255 255 255 / 0)),
+    rgb(12 20 34 / 0.82);
+  border-color: rgb(92 111 139 / 0.22);
+  box-shadow:
+    0 16px 36px rgb(0 0 0 / 0.22),
+    inset 0 1px 0 rgb(255 255 255 / 0.035);
+}
+
+:global(html[data-theme='dark']) .order-card {
+  padding: 18px;
+  border-radius: 16px;
+}
+
+:global(html[data-theme='dark']) .order-card-head strong {
+  color: #ffffff;
+  font-size: 18px;
+}
+
+:global(html[data-theme='dark']) .status-badge {
+  background: rgb(var(--color-primary-rgb) / 0.12);
+  color: #fff1bd;
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.28);
+}
+
+:global(html[data-theme='dark']) .win-result {
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 84% 12%, rgb(var(--color-primary-rgb) / 0.18), transparent 35%),
+    linear-gradient(135deg, rgb(255 255 255 / 0.055) 0%, rgb(var(--color-primary-rgb) / 0.09) 100%);
+  border-color: rgb(var(--color-primary-rgb) / 0.34);
+}
+
+:global(html[data-theme='dark']) .compact-record-grid {
+  gap: 13px 16px;
+}
+
+:global(html[data-theme='dark']) .record-grid strong,
+:global(html[data-theme='dark']) .ratio-value {
+  color: #f7fafc !important;
+}
+
+:global(html[data-theme='dark']) .view-all-action,
+:global(html[data-theme='dark']) .compact-primary-action {
+  border-radius: 13px;
+  background: rgb(var(--color-primary-rgb) / 0.14);
+  color: #fff1bd;
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.18);
+}
+
+:global(html[data-theme='dark']) .view-all-action {
+  height: 46px;
+  margin-top: 14px;
 }
 
 @media (max-width: 390px) {

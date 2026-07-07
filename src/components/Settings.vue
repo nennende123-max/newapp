@@ -38,8 +38,8 @@
           <van-switch
             v-model="pushEnabled"
             size="24"
-            active-color="#F0B90B"
-            inactive-color="#E5EAF0"
+            active-color="var(--color-primary)"
+            inactive-color="var(--color-surface-muted)"
           />
         </div>
 
@@ -167,15 +167,15 @@ const handleAboutClick = () => {
 <style scoped>
 .settings-page {
   min-height: 100vh;
-  background: #F5F7FA;
-  color: #111827;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
 }
 
 :deep(.page-nav-bar) {
-  --van-nav-bar-background: #FFFFFF;
-  --van-nav-bar-title-text-color: #111827;
-  --van-nav-bar-icon-color: #F0B90B;
-  border-bottom: 1px solid #E6EBF2;
+  --van-nav-bar-background: var(--color-bg);
+  --van-nav-bar-title-text-color: var(--color-text-primary);
+  --van-nav-bar-icon-color: var(--color-primary);
+  border-bottom: 1px solid var(--color-border);
 }
 
 :deep(.page-nav-bar .van-nav-bar__title) {
@@ -420,5 +420,54 @@ const handleAboutClick = () => {
 .settings-dialog .van-dialog__confirm .van-button__text {
   color: #F0B90B !important;
   font-weight: 700 !important;
+}
+
+html[data-theme='dark'] .settings-page {
+  background: var(--color-bg) !important;
+  color: var(--color-text-primary) !important;
+}
+
+html[data-theme='dark'] .settings-page .page-nav-bar {
+  --van-nav-bar-background: var(--color-bg) !important;
+  --van-nav-bar-title-text-color: var(--color-text-primary) !important;
+  --van-nav-bar-icon-color: var(--color-primary) !important;
+  border-bottom-color: var(--color-border) !important;
+}
+
+html[data-theme='dark'] .settings-page .settings-card {
+  background: var(--color-bg-card) !important;
+  border-color: var(--color-border) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+html[data-theme='dark'] .settings-page .setting-row {
+  border-bottom-color: var(--color-border) !important;
+}
+
+html[data-theme='dark'] .settings-page .setting-row:active {
+  background: var(--color-surface-muted) !important;
+}
+
+html[data-theme='dark'] .settings-page .setting-title {
+  color: var(--color-text-primary) !important;
+}
+
+html[data-theme='dark'] .settings-page .setting-value,
+html[data-theme='dark'] .settings-page .row-arrow {
+  color: var(--color-text-secondary) !important;
+}
+
+html[data-theme='dark'] .settings-dialog.van-dialog,
+html[data-theme='dark'] .settings-dialog.van-dialog .van-dialog__content {
+  background: var(--color-bg-card) !important;
+}
+
+html[data-theme='dark'] .settings-dialog .van-dialog__header {
+  color: var(--color-text-primary) !important;
+}
+
+html[data-theme='dark'] .settings-dialog .van-dialog__confirm,
+html[data-theme='dark'] .settings-dialog .van-dialog__confirm .van-button__text {
+  color: var(--color-primary) !important;
 }
 </style>

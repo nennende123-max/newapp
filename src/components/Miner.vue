@@ -396,13 +396,18 @@ onUnmounted(() => {
 
 <style scoped>
 .earn-page {
-  --earn-bg: #f5f6f8;
-  --earn-card: #ffffff;
-  --earn-yellow: #f0b90b;
-  --earn-text: #111827;
-  --earn-muted: #6b7280;
-  --earn-border: #eaecef;
-  --earn-success: #16a34a;
+  --earn-bg: var(--color-bg);
+  --earn-card: var(--color-bg-card);
+  --earn-panel: var(--color-surface-1);
+  --earn-soft: var(--color-surface-muted);
+  --earn-yellow: var(--color-primary);
+  --earn-yellow-soft: var(--color-primary-soft);
+  --earn-yellow-text: var(--color-text-on-accent);
+  --earn-text: var(--color-text-primary);
+  --earn-muted: var(--color-text-secondary);
+  --earn-subtle: var(--color-text-muted);
+  --earn-border: var(--color-border);
+  --earn-success: var(--color-earn);
   min-height: 100vh;
   padding-bottom: calc(76px + env(safe-area-inset-bottom));
   background: var(--earn-bg);
@@ -442,17 +447,18 @@ onUnmounted(() => {
   min-height: 148px;
   padding: 20px;
   border-radius: 20px;
-  color: #ffffff;
+  color: var(--color-text-primary);
   background:
-    radial-gradient(circle at 85% 15%, rgb(240 185 11 / 0.34), transparent 34%),
-    linear-gradient(145deg, #111827 0%, #182232 52%, #0b1220 100%);
-  box-shadow: 0 18px 36px rgb(17 24 39 / 0.16);
+    radial-gradient(circle at 85% 15%, rgb(var(--color-primary-rgb) / 0.28), transparent 34%),
+    linear-gradient(145deg, var(--color-bg-card) 0%, var(--color-surface-1) 52%, var(--color-bg) 100%);
+  border: 1px solid var(--earn-border);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
 }
 
 .overview-kicker {
   display: block;
-  color: #c7ccd4;
+  color: var(--earn-muted);
   font-size: 12px;
   font-weight: 500;
 }
@@ -468,7 +474,7 @@ onUnmounted(() => {
 
 .asset-overview-card small {
   font-size: 13px;
-  color: #d1d5db;
+  color: var(--earn-muted);
 }
 
 .overview-stats {
@@ -485,7 +491,7 @@ onUnmounted(() => {
 }
 
 .overview-stats span {
-  color: #c7ccd4;
+  color: var(--earn-muted);
   font-size: 12px;
   font-weight: 400;
 }
@@ -501,7 +507,7 @@ onUnmounted(() => {
   padding: 4px;
   border: 1px solid var(--earn-border);
   border-radius: 14px;
-  background: #ffffff;
+  background: var(--earn-card);
   display: grid;
   grid-template-columns: 1fr 1fr;
 }
@@ -517,7 +523,7 @@ onUnmounted(() => {
 
 .earn-tabs button.active {
   background: var(--earn-yellow);
-  color: #111827;
+  color: var(--earn-yellow-text);
 }
 
 .product-card,
@@ -526,7 +532,7 @@ onUnmounted(() => {
   border: 1px solid var(--earn-border);
   border-radius: 18px;
   background: var(--earn-card);
-  box-shadow: 0 10px 26px rgb(17 24 39 / 0.055);
+  box-shadow: var(--shadow-card);
 }
 
 .product-head {
@@ -558,7 +564,7 @@ onUnmounted(() => {
   width: fit-content;
   padding: 0 8px;
   border-radius: 999px;
-  background: #eaf8f0;
+  background: rgb(var(--color-earn-rgb) / 0.12);
   color: var(--earn-success);
   font-size: 11px;
   font-weight: 700;
@@ -566,7 +572,7 @@ onUnmounted(() => {
 
 .status-badge.subtle {
   color: var(--earn-muted);
-  background: #f1f3f5;
+  background: var(--earn-soft);
 }
 
 .apy-block {
@@ -602,7 +608,7 @@ onUnmounted(() => {
   margin-top: 16px;
   padding: 14px;
   border-radius: 16px;
-  background: linear-gradient(180deg, #fafafa 0%, #f6f7f9 100%);
+  background: linear-gradient(180deg, var(--earn-card) 0%, var(--earn-panel) 100%);
   border: 1px solid var(--earn-border);
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -661,7 +667,7 @@ onUnmounted(() => {
   padding: 0 12px;
   border-radius: 999px;
   border: 1px solid var(--earn-border);
-  background: #f9fafb;
+  background: var(--earn-panel);
   color: var(--earn-text);
   display: inline-flex;
   align-items: center;
@@ -671,8 +677,8 @@ onUnmounted(() => {
 
 .term-chips button.active {
   border-color: var(--earn-yellow);
-  background: #fff7db;
-  color: #8a6a00;
+  background: var(--earn-yellow-soft);
+  color: var(--earn-text);
 }
 
 .interest-metrics {
@@ -686,7 +692,7 @@ onUnmounted(() => {
   min-height: 58px;
   padding: 10px;
   border-radius: 12px;
-  background: #f9fafb;
+  background: var(--earn-panel);
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -696,7 +702,7 @@ onUnmounted(() => {
   margin-top: 16px;
   padding: 14px;
   border-radius: 16px;
-  background: #f9fafb;
+  background: var(--earn-panel);
   border: 1px solid var(--earn-border);
 }
 
@@ -744,10 +750,10 @@ onUnmounted(() => {
   border: 0;
   border-radius: 12px;
   background: var(--earn-yellow);
-  color: #111827;
+  color: var(--earn-yellow-text);
   font-size: 15px;
   font-weight: 800;
-  box-shadow: 0 10px 22px rgb(240 185 11 / 0.24);
+  box-shadow: 0 10px 22px rgb(var(--color-primary-rgb) / 0.24);
 }
 
 .primary-action:active,
@@ -779,7 +785,7 @@ onUnmounted(() => {
   margin-top: 12px;
   min-height: 112px;
   border-radius: 14px;
-  background: linear-gradient(180deg, #fafafa 0%, #f5f6f8 100%);
+  background: linear-gradient(180deg, var(--earn-card) 0%, var(--earn-panel) 100%);
   color: var(--earn-muted);
   display: grid;
   place-items: center;
@@ -789,7 +795,7 @@ onUnmounted(() => {
 
 .empty-state :deep(.van-icon) {
   font-size: 24px;
-  color: #c3c7cf;
+  color: var(--earn-subtle);
 }
 
 .empty-state strong {
@@ -801,7 +807,7 @@ onUnmounted(() => {
   margin-top: 10px;
   padding: 14px;
   border-radius: 14px;
-  background: #f9fafb;
+  background: var(--earn-panel);
   border: 1px solid var(--earn-border);
 }
 
@@ -834,8 +840,8 @@ onUnmounted(() => {
   margin-top: 10px;
   border: 0;
   border-radius: 10px;
-  background: #fff7db;
-  color: #8a6a00;
+  background: var(--earn-yellow-soft);
+  color: var(--earn-text);
   font-size: 13px;
   font-weight: 700;
 }
@@ -844,7 +850,7 @@ onUnmounted(() => {
   max-height: 70vh;
   overflow: hidden;
   border-radius: 20px 20px 0 0;
-  background: #ffffff;
+  background: var(--earn-card);
   padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -853,7 +859,7 @@ onUnmounted(() => {
   height: 4px;
   margin: 10px auto 8px;
   border-radius: 999px;
-  background: #d1d5db;
+  background: var(--earn-border);
 }
 
 .asset-sheet h2 {
@@ -876,7 +882,7 @@ onUnmounted(() => {
   border: 1px solid transparent;
   border-bottom-color: var(--earn-border);
   border-radius: 12px;
-  background: #ffffff;
+  background: var(--earn-card);
   color: var(--earn-text);
   display: flex;
   align-items: center;
@@ -886,7 +892,7 @@ onUnmounted(() => {
 
 .asset-list button.active {
   border-color: var(--earn-yellow);
-  background: #fff7db;
+  background: var(--earn-yellow-soft);
 }
 
 .asset-list span {

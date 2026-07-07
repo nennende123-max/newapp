@@ -104,15 +104,15 @@ const handleFundPassword = () => {
 <style scoped>
 .security-page {
   min-height: 100vh;
-  background: #F5F7FA;
-  color: #111827;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
 }
 
 :deep(.page-nav-bar) {
-  --van-nav-bar-background: #FFFFFF;
-  --van-nav-bar-title-text-color: #111827;
-  --van-nav-bar-icon-color: #F0B90B;
-  border-bottom: 1px solid #E6EBF2;
+  --van-nav-bar-background: var(--color-bg);
+  --van-nav-bar-title-text-color: var(--color-text-primary);
+  --van-nav-bar-icon-color: var(--color-primary);
+  border-bottom: 1px solid var(--color-border);
 }
 
 :deep(.page-nav-bar .van-nav-bar__title) {
@@ -321,5 +321,49 @@ const handleFundPassword = () => {
 .security-page .security-title,
 .security-page .status-pill {
   line-height: 1.2 !important;
+}
+
+html[data-theme='dark'] .security-page {
+  background: var(--color-bg) !important;
+  color: var(--color-text-primary) !important;
+}
+
+html[data-theme='dark'] .security-page .page-nav-bar {
+  --van-nav-bar-background: var(--color-bg) !important;
+  --van-nav-bar-title-text-color: var(--color-text-primary) !important;
+  --van-nav-bar-icon-color: var(--color-primary) !important;
+  border-bottom-color: var(--color-border) !important;
+}
+
+html[data-theme='dark'] .security-page .security-hero,
+html[data-theme='dark'] .security-page .security-list {
+  background: var(--color-bg-card) !important;
+  border-color: var(--color-border) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+html[data-theme='dark'] .security-page .security-score-ring {
+  color: var(--color-earn) !important;
+  background:
+    linear-gradient(var(--color-bg-card), var(--color-bg-card)) padding-box,
+    conic-gradient(var(--color-earn) 0 86%, var(--color-border) 86% 100%) border-box !important;
+}
+
+html[data-theme='dark'] .security-page .security-level-text,
+html[data-theme='dark'] .security-page .security-title {
+  color: var(--color-text-primary) !important;
+}
+
+html[data-theme='dark'] .security-page .security-copy p,
+html[data-theme='dark'] .security-page .row-arrow {
+  color: var(--color-text-secondary) !important;
+}
+
+html[data-theme='dark'] .security-page .security-row {
+  border-bottom-color: var(--color-border) !important;
+}
+
+html[data-theme='dark'] .security-page .security-row:active {
+  background: var(--color-surface-muted) !important;
 }
 </style>

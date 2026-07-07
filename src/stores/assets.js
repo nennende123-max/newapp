@@ -3,6 +3,11 @@ import * as walletApi from '@/api/wallet'
 import * as tradeApi from '@/api/trade'
 import request from '@/utils/request'
 import walletService from '@/services/walletService'
+import { isProdMode } from '@/config/appMode'
+
+const shouldUseLocalData = () => {
+  return import.meta.env.DEV || !isProdMode() || localStorage.getItem('TRUTHFI_FRONTEND_ONLY') === 'true'
+}
 
 // Helper function to load from localStorage (鐢ㄤ簬閽卞寘杩炴帴鐘舵€佸拰 BNB 寮€鍏崇姸鎬?
 const loadFromStorage = (key, defaultValue) => {
@@ -276,6 +281,34 @@ export const useAssetStore = defineStore('assets', {
     async initData() {
       this.isLoading = true
       try {
+        if (shouldUseLocalData()) {
+          const localBalance = Number(loadFromStorage('userBalance', 10000))
+          const localHoldings = loadFromStorage('userHoldings', {
+            BTC: 0.05,
+            ETH: 1.2,
+            BNB: 5,
+            SOL: 30,
+            BEAT: 120
+          })
+          const localOrdersRes = await tradeApi.getOrders()
+          const localOrdersEnvelope = localOrdersRes?.data || localOrdersRes
+
+          this.usdtBalance = Number.isFinite(localBalance) ? localBalance : 10000
+          this.holdings = localHoldings && typeof localHoldings === 'object' ? { ...localHoldings } : {}
+          this.beatBalance = this.holdings.BEAT || this.beatBalance || 0
+          this.userAssets = {
+            USDT: this.usdtBalance,
+            ...this.holdings
+          }
+          this.equity = this.usdtBalance
+          this.futuresUnrealizedPnl = 0
+          this.orders = Array.isArray(localOrdersEnvelope?.data) ? localOrdersEnvelope.data : []
+
+          const txHistory = loadFromStorage('txHistory', [])
+          this.transactionHistory = Array.isArray(txHistory) ? txHistory : []
+          return
+        }
+
         // 骞惰鑾峰彇璧勪骇鍜岃鍗曟暟鎹?
         // 鑾峰彇瀹屾暣璧勪骇鏁版嵁锛堝寘鎷喕缁撲綑棰濆拰璐︽埛鏉冪泭锛?
         const [assetsResponse, ordersRes] = await Promise.all([
@@ -606,12 +639,13 @@ export const useAssetStore = defineStore('assets', {
           amount
         })
         
-        if (res.code === 200) {
+        const responseData = res?.data || res
+        if (responseData?.code === 200) {
           // 閲嶆柊鎷夊彇鏈€鏂版暟鎹?
           await this.initData()
           return true
         } else {
-          throw new Error(res.msg || '涓嬪崟澶辫触')
+          throw new Error(responseData?.msg || responseData?.message || '涓嬪崟澶辫触')
         }
       } catch (error) {
         console.error('Create order error:', error)
@@ -631,12 +665,13 @@ export const useAssetStore = defineStore('assets', {
       try {
         const res = await tradeApi.cancelOrder(orderId)
         
-        if (res.code === 200) {
+        const responseData = res?.data || res
+        if (responseData?.code === 200) {
           // 閲嶆柊鎷夊彇鏈€鏂版暟鎹?
           await this.initData()
           return true
         } else {
-          throw new Error(res.msg || '鎾ゅ崟澶辫触')
+          throw new Error(responseData?.msg || responseData?.message || '鎾ゅ崟澶辫触')
         }
       } catch (error) {
         console.error('Cancel order error:', error)

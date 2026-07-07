@@ -6,6 +6,72 @@
  */
 
 import request from '@/utils/request';
+import { isProdMode } from '@/config/appMode';
+
+const LOCAL_ORDERS_KEY = 'userOrders';
+
+const shouldUseLocalTradeApi = () => {
+  return import.meta.env.DEV || !isProdMode() || localStorage.getItem('TRUTHFI_FRONTEND_ONLY') === 'true';
+};
+
+const createApiResponse = (data, message = 'success') => ({
+  data: {
+    code: 200,
+    message,
+    data
+  }
+});
+
+const normalizeOrderStatus = (status) => String(status || 'NEW').toUpperCase();
+
+const normalizeSymbol = (symbol = 'BTC/USDT') => {
+  const value = String(symbol || 'BTC/USDT').toUpperCase();
+  return value.includes('/') ? value : `${value}/USDT`;
+};
+
+const getLocalOrders = () => {
+  const orders = loadFromStorage(LOCAL_ORDERS_KEY, []);
+  return Array.isArray(orders) ? orders : [];
+};
+
+const saveLocalOrders = (orders) => {
+  saveToStorage(LOCAL_ORDERS_KEY, Array.isArray(orders) ? orders : []);
+};
+
+const filterLocalOrders = (orders, params = {}) => {
+  const status = params.status ? normalizeOrderStatus(params.status) : '';
+
+  if (!status) return orders;
+
+  if (status === 'OPEN' || status === 'NEW') {
+    return orders.filter(order => ['NEW', 'OPEN', 'PENDING'].includes(normalizeOrderStatus(order.status)));
+  }
+
+  return orders.filter(order => normalizeOrderStatus(order.status) === status);
+};
+
+const buildLocalOrder = (params) => {
+  const now = Date.now();
+  const amount = Number(params.amount || params.quantity || 0);
+  const price = Number(params.price || 0);
+  const symbol = normalizeSymbol(params.symbol);
+  const type = String(params.type || 'LIMIT').toUpperCase();
+  const side = String(params.side || 'BUY').toUpperCase();
+
+  return {
+    order_id: `local-${now}-${Math.random().toString(36).slice(2, 8)}`,
+    symbol,
+    side,
+    type,
+    price,
+    amount,
+    quantity: amount,
+    status: 'NEW',
+    timestamp: now,
+    create_time: now,
+    use_beat_discount: Boolean(params.use_beat_discount)
+  };
+};
 
 /**
  * 从 localStorage 读取数据
@@ -61,6 +127,13 @@ export function createOrder(params) {
   // POST 请求到 /api/v1/trade/order
   // request 中已配置 baseURL: 'http://127.0.0.1:8000'
   // 实际请求的 URL 是：http://127.0.0.1:8000/api/v1/trade/order
+  if (shouldUseLocalTradeApi()) {
+    const order = buildLocalOrder(params);
+    const orders = getLocalOrders();
+    saveLocalOrders([order, ...orders]);
+    return Promise.resolve(createApiResponse(order, 'Order created locally'));
+  }
+
   return request.post('/api/v1/trade/order', {
     symbol: params.symbol,
     side: params.side.toUpperCase(),
@@ -97,6 +170,11 @@ export function submitOrder(orderData) {
  * @returns {Promise} 返回订单列表
  */
 export function getOrders(params = {}) {
+  if (shouldUseLocalTradeApi()) {
+    const orders = filterLocalOrders(getLocalOrders(), params);
+    return Promise.resolve(createApiResponse(orders, 'Orders loaded locally'));
+  }
+
   return request.get('/api/v1/trade/orders', { params });
 }
 
@@ -106,6 +184,23 @@ export function getOrders(params = {}) {
  * @returns {Promise} 返回操作结果
  */
 export function cancelOrder(orderId) {
+  if (shouldUseLocalTradeApi()) {
+    const orders = getLocalOrders();
+    let cancelledOrder = null;
+    const nextOrders = orders.map(order => {
+      if (String(order.order_id) !== String(orderId)) return order;
+      cancelledOrder = {
+        ...order,
+        status: 'CANCELLED',
+        cancelled_at: Date.now()
+      };
+      return cancelledOrder;
+    });
+
+    saveLocalOrders(nextOrders);
+    return Promise.resolve(createApiResponse(cancelledOrder || { order_id: orderId }, 'Order cancelled locally'));
+  }
+
   return request.post('/api/v1/trade/order/cancel', {
     order_id: orderId
   });

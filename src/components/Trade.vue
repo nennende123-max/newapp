@@ -492,6 +492,11 @@
             <span class="received-value">{{ futuresMargin > 0 ? futuresMargin.toFixed(2) : '0.00' }} USDT</span>
           </div>
 
+          <div v-if="!isSpotMode" class="available-margin-row">
+            <span class="available-margin-label">{{ t('trade.available_margin') }}</span>
+            <span class="available-margin-value">{{ formatPrice(availableMargin) }} USDT</span>
+          </div>
+
           <!-- 操作按钮：根据模式显示不同按钮 -->
           <div v-if="isSpotMode" class="futures-action-buttons-grid">
             <!-- 现货模式：买入/卖出按钮 -->
@@ -594,16 +599,12 @@
                       </span>
                     </div>
                     <div class="position-info-row">
-                      <span class="info-label">{{ t('trade.liquidation_price') }}:</span>
-                      <span class="info-value liquidation-price">{{ formatPrice(position.liquidationPrice) }}</span>
+                      <span class="info-label">标记价格</span>
+                      <span class="info-value liquidation-price">{{ formatPrice(position.markPrice || markPrice) }}</span>
                     </div>
                     <div class="position-info-row">
                       <span class="info-label">{{ t('trade.margin_amount') }}:</span>
                       <span class="info-value">{{ formatPrice(position.margin) }} USDT</span>
-                    </div>
-                    <div class="position-info-row">
-                      <span class="info-label">{{ t('trade.position_size') }}:</span>
-                      <span class="info-value">{{ formatQuantity(position.quantity) }} {{ position.symbol }}</span>
                     </div>
                   </div>
                 </div>

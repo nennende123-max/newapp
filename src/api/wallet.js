@@ -6,6 +6,19 @@
  */
 
 import request from '@/utils/request';
+import { isProdMode } from '@/config/appMode';
+
+const shouldUseLocalWalletApi = () => {
+  return import.meta.env.DEV || !isProdMode() || localStorage.getItem('TRUTHFI_FRONTEND_ONLY') === 'true';
+};
+
+const createApiResponse = (data, message = 'success') => ({
+  data: {
+    code: 200,
+    message,
+    data
+  }
+});
 
 /**
  * 从 localStorage 读取数据
@@ -33,6 +46,43 @@ const saveToStorage = (key, value) => {
   }
 };
 
+const getLocalAssets = () => {
+  const balance = Number(loadFromStorage('userBalance', 10000));
+  const holdings = loadFromStorage('userHoldings', {
+    BTC: 0.05,
+    ETH: 1.2,
+    BNB: 5,
+    SOL: 30,
+    BEAT: 120
+  });
+
+  return {
+    USDT: Number.isFinite(balance) ? balance : 10000,
+    ...(holdings && typeof holdings === 'object' ? holdings : {})
+  };
+};
+
+const saveLocalAssets = (assets) => {
+  const { USDT = 0, ...holdings } = assets || {};
+  saveToStorage('userBalance', Number(USDT) || 0);
+  saveToStorage('userHoldings', holdings);
+};
+
+const appendLocalTransaction = (type, amount, currency) => {
+  const history = loadFromStorage('txHistory', []);
+  const list = Array.isArray(history) ? history : [];
+  list.unshift({
+    id: Date.now() + Math.random(),
+    type,
+    amount,
+    currency,
+    status: '成功',
+    time: new Date().toLocaleString(),
+    timestamp: Date.now()
+  });
+  saveToStorage('txHistory', list);
+};
+
 /**
  * 获取资产余额
  * 从后端 API 获取当前用户的资产余额
@@ -51,6 +101,10 @@ const saveToStorage = (key, value) => {
  * }
  */
 export function getBalance() {
+  if (shouldUseLocalWalletApi()) {
+    return Promise.resolve(createApiResponse(getLocalAssets(), 'Balance loaded locally'));
+  }
+
   return request.get('/api/v1/assets/balance');
 }
 
@@ -98,13 +152,17 @@ export function getAssets() {
  *   }
  * }
  */
-export function deposit(data) {
+export function deposit(data, fallbackCurrency = 'USDT') {
+  const payload = data && typeof data === 'object'
+    ? data
+    : { amount: data, currency: fallbackCurrency };
   // 参数验证
-  if (!data || typeof data !== 'object') {
+  if (!payload || typeof payload !== 'object') {
     return Promise.reject(new Error('参数必须是一个对象'));
   }
   
-  const { amount, currency = 'USDT' } = data;
+  const amount = Number(payload.amount);
+  const currency = String(payload.currency || 'USDT').toUpperCase();
   
   if (!amount || amount <= 0) {
     return Promise.reject(new Error('充值金额必须大于 0'));
@@ -113,6 +171,14 @@ export function deposit(data) {
   // POST 请求到 /api/v1/assets/deposit
   // request 中已配置 baseURL: 'http://127.0.0.1:8000'
   // 实际请求的 URL 是：http://127.0.0.1:8000/api/v1/assets/deposit
+  if (shouldUseLocalWalletApi()) {
+    const assets = getLocalAssets();
+    assets[currency] = (Number(assets[currency]) || 0) + amount;
+    saveLocalAssets(assets);
+    appendLocalTransaction('充值', amount, currency);
+    return Promise.resolve(createApiResponse(assets, 'Deposit completed locally'));
+  }
+
   return request.post('/api/v1/assets/deposit', {
     amount: amount,
     currency: currency
@@ -142,13 +208,17 @@ export function deposit(data) {
  *   }
  * }
  */
-export function withdraw(data) {
+export function withdraw(data, fallbackCurrency = 'USDT') {
+  const payload = data && typeof data === 'object'
+    ? data
+    : { amount: data, currency: fallbackCurrency };
   // 参数验证
-  if (!data || typeof data !== 'object') {
+  if (!payload || typeof payload !== 'object') {
     return Promise.reject(new Error('参数必须是一个对象'));
   }
   
-  const { amount, currency = 'USDT' } = data;
+  const amount = Number(payload.amount);
+  const currency = String(payload.currency || 'USDT').toUpperCase();
   
   if (!amount || amount <= 0) {
     return Promise.reject(new Error('提现金额必须大于 0'));
@@ -157,6 +227,18 @@ export function withdraw(data) {
   // POST 请求到 /api/v1/assets/withdraw
   // request 中已配置 baseURL: 'http://127.0.0.1:8000'
   // 实际请求的 URL 是：http://127.0.0.1:8000/api/v1/assets/withdraw
+  if (shouldUseLocalWalletApi()) {
+    const assets = getLocalAssets();
+    const currentBalance = Number(assets[currency]) || 0;
+    if (currentBalance < amount) {
+      return Promise.reject(new Error('余额不足'));
+    }
+    assets[currency] = currentBalance - amount;
+    saveLocalAssets(assets);
+    appendLocalTransaction('提现', -amount, currency);
+    return Promise.resolve(createApiResponse(assets, 'Withdraw completed locally'));
+  }
+
   return request.post('/api/v1/assets/withdraw', {
     amount: amount,
     currency: currency

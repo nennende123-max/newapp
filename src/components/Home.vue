@@ -20,14 +20,14 @@
       <div class="trust-dashboard">
         <div class="dashboard-header">
           <span class="dash-title">{{ $t('home.platform_transparency') }}</span>
-          <div class="audit-badge" @click="showAuditToast">
+          <div class="audit-badge" @touchend.prevent="showAuditToast" @click="showAuditToast">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
             <span>{{ $t('home.audited_by_certik') }}</span>
           </div>
         </div>
         
         <div class="data-grid">
-          <div class="data-item treasury-item" @click="goToTreasury">
+          <div class="data-item treasury-item" @touchend.prevent="goToTreasury" @click="goToTreasury">
             <div class="data-label">
               {{ $t('home.treasury_tvl') }}
               <van-icon name="arrow" size="12" class="treasury-arrow" />
@@ -40,7 +40,7 @@
             <div class="data-value">$ {{ formatTVL(displayPayout) }}</div>
             <div class="data-sub">{{ $t('home.since_2025') }}</div>
           </div>
-          <div class="data-item clickable-item" @click="goToChainExplorer">
+          <div class="data-item clickable-item" @touchend.prevent="goToChainExplorer" @click="goToChainExplorer">
             <div class="data-label">
               {{ $t('home.24h_txns') }}
               <van-icon name="arrow" size="12" class="gold-arrow" />
@@ -60,7 +60,7 @@
           :class="{ active: activeButton === 'deposit' }"
           @click="handleButtonClick('deposit', '/deposit')"
           @touchstart="activeButton = 'deposit'"
-          @touchend="handleTouchEnd"
+          @touchend.prevent="handleButtonClick('deposit', '/deposit')"
         >
           <div class="icon-circle">
             <van-icon name="down" class="rotate-icon" />
@@ -73,7 +73,7 @@
           :class="{ active: activeButton === 'withdraw' }"
           @click="handleButtonClick('withdraw', '/withdraw')"
           @touchstart="activeButton = 'withdraw'"
-          @touchend="handleTouchEnd"
+          @touchend.prevent="handleButtonClick('withdraw', '/withdraw')"
         >
           <div class="icon-circle">
             <van-icon name="envelop-o" />
@@ -86,7 +86,7 @@
           :class="{ active: activeButton === 'earn' }"
           @click="handleButtonClick('earn', '/earn')"
           @touchstart="activeButton = 'earn'"
-          @touchend="handleTouchEnd"
+          @touchend.prevent="handleButtonClick('earn', '/earn')"
         >
           <div class="icon-circle">
             <van-icon name="gold-coin-o" />
@@ -99,7 +99,7 @@
           :class="{ active: activeButton === 'security' }"
           @click="handleButtonClick('security', '/security-center')"
           @touchstart="activeButton = 'security'"
-          @touchend="handleTouchEnd"
+          @touchend.prevent="handleButtonClick('security', '/security-center')"
         >
           <div class="icon-circle">
             <van-icon name="shield-o" />
@@ -111,7 +111,7 @@
       <div class="market-section">
         <div class="section-header">
           <h3>{{ $t('home.market_overview') }}</h3>
-          <span class="more-btn" @click="goToAllMarkets">{{ $t('home.all_markets') }} ></span>
+          <span class="more-btn" @touchend.prevent="goToAllMarkets" @click="goToAllMarkets">{{ $t('home.all_markets') }} ></span>
         </div>
         
         <div class="market-list" v-if="marketList && marketList.length > 0">
@@ -119,6 +119,7 @@
             v-for="coin in marketList" 
             :key="coin.name" 
             class="market-row"
+            @touchend.prevent="goTrade(coin)"
             @click="goTrade(coin)"
           >
             <div class="row-left">
@@ -422,12 +423,6 @@ const goToChainExplorer = () => {
 const activeButton = ref(null);
 
 // 处理触摸结束事件（替代 setTimeout 字符串形式）
-const handleTouchEnd = () => {
-  setTimeout(() => {
-    activeButton.value = null;
-  }, 150);
-};
-
 // 处理按钮点击
 const handleButtonClick = (btnType, path) => {
   activeButton.value = btnType;

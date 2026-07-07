@@ -45,6 +45,6 @@ onMounted(updatePageTitle)
 :deep(.van-nav-bar) {
   --van-nav-bar-background: var(--color-surface-1);
   --van-nav-bar-title-text-color: var(--color-text-primary);
-  --van-nav-bar-icon-color: #f0b90b;
+  --van-nav-bar-icon-color: var(--color-primary);
 }
 </style>

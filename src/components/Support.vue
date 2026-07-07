@@ -30,7 +30,7 @@
           @click="handleContactService"
         >
           <span class="action-icon">
-            <van-loading v-if="serviceLoading" size="18" color="#111827" />
+            <van-loading v-if="serviceLoading" size="18" color="var(--color-text-on-accent)" />
             <van-icon v-else name="service-o" />
           </span>
           <span class="action-copy">
@@ -47,7 +47,7 @@
           @click="handleCommunityClick"
         >
           <span class="action-icon">
-            <van-loading v-if="communityLoading" size="18" color="#F0B90B" />
+            <van-loading v-if="communityLoading" size="18" color="var(--color-primary)" />
             <van-icon v-else name="guide-o" />
           </span>
           <span class="action-copy">
@@ -160,15 +160,15 @@ const handleFaqClick = (title) => {
 <style scoped>
 .support-shell {
   min-height: 100vh;
-  background: #F5F7FA;
-  color: #111827;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
 }
 
 :deep(.page-nav-bar) {
-  --van-nav-bar-background: #FFFFFF;
-  --van-nav-bar-title-text-color: #111827;
-  --van-nav-bar-icon-color: #F0B90B;
-  border-bottom: 1px solid #E6EBF2;
+  --van-nav-bar-background: var(--color-bg);
+  --van-nav-bar-title-text-color: var(--color-text-primary);
+  --van-nav-bar-icon-color: var(--color-primary);
+  border-bottom: 1px solid var(--color-border);
 }
 
 :deep(.page-nav-bar .van-nav-bar__title) {
@@ -544,5 +544,77 @@ const handleFaqClick = (title) => {
 
 .support-page button {
   font-family: inherit !important;
+}
+
+html[data-theme='dark'] .support-shell {
+  background: var(--color-bg) !important;
+  color: var(--color-text-primary) !important;
+}
+
+html[data-theme='dark'] .support-shell .page-nav-bar {
+  --van-nav-bar-background: var(--color-bg) !important;
+  --van-nav-bar-title-text-color: var(--color-text-primary) !important;
+  --van-nav-bar-icon-color: var(--color-primary) !important;
+  border-bottom-color: var(--color-border) !important;
+}
+
+html[data-theme='dark'] .support-page {
+  background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-surface-1) 100%) !important;
+}
+
+html[data-theme='dark'] .support-hero,
+html[data-theme='dark'] .support-action,
+html[data-theme='dark'] .promise-card,
+html[data-theme='dark'] .faq-section {
+  background: var(--color-bg-card) !important;
+  border-color: var(--color-border) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+html[data-theme='dark'] .support-hero {
+  background:
+    radial-gradient(circle at 88% 10%, rgb(var(--color-primary-rgb) / 0.16), transparent 34%),
+    var(--color-bg-card) !important;
+}
+
+html[data-theme='dark'] .support-hero h1,
+html[data-theme='dark'] .support-action,
+html[data-theme='dark'] .support-action strong,
+html[data-theme='dark'] .promise-item strong,
+html[data-theme='dark'] .faq-section h2,
+html[data-theme='dark'] .faq-row {
+  color: var(--color-text-primary) !important;
+}
+
+html[data-theme='dark'] .support-hero p,
+html[data-theme='dark'] .support-action small,
+html[data-theme='dark'] .promise-item small,
+html[data-theme='dark'] .security-note,
+html[data-theme='dark'] .faq-arrow {
+  color: var(--color-text-secondary) !important;
+}
+
+html[data-theme='dark'] .support-action.is-primary,
+html[data-theme='dark'] .hero-badge {
+  background: var(--color-primary) !important;
+  color: var(--color-text-on-accent) !important;
+}
+
+html[data-theme='dark'] .action-icon,
+html[data-theme='dark'] .promise-icon,
+html[data-theme='dark'] .faq-icon {
+  background: var(--color-primary-soft) !important;
+  border-color: var(--color-primary-border) !important;
+  color: var(--color-primary) !important;
+}
+
+html[data-theme='dark'] .faq-row {
+  background: var(--color-bg-card) !important;
+  border-bottom-color: var(--color-border) !important;
+}
+
+html[data-theme='dark'] .faq-row:active,
+html[data-theme='dark'] .security-note {
+  background: var(--color-surface-muted) !important;
 }
 </style>

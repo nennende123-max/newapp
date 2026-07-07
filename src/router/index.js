@@ -24,6 +24,7 @@ import ReferralIndex from '../views/referral/ReferralIndex.vue'
 import TradeSubPage from '../components/TradeSubPage.vue'
 import LaunchpadSubscribe from '../components/LaunchpadSubscribe.vue'
 import IEOAccount from '../components/IEOAccount.vue'
+import StockMarket from '../components/StockMarket.vue'
 
 const routes = [
   { path: '/', component: Home },
@@ -38,6 +39,7 @@ const routes = [
   { path: '/trade/detail', name: 'TradeSubPage', component: TradeSubPage, meta: { hideTabbar: true } },
   { path: '/futures', name: 'FuturesTrade', component: FuturesTrade },
   { path: '/market', name: 'MarketDetail', component: MarketDetail },
+  { path: '/stocks', name: 'StockMarket', component: StockMarket, meta: { hideTabbar: true } },
   { path: '/history', name: 'History', component: History },
   { path: '/earn', name: 'EarnList', component: EarnList,meta: { hideTabbar: true } },
   { path: '/earn/subscribe', name: 'EarnSubscribe', component: EarnSubscribe },

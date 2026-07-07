@@ -173,6 +173,39 @@ html,
   background-color: var(--color-surface-1);
   color: var(--color-text-primary);
   font-family: var(--font-ui);
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+
+.app-header,
+.main-content,
+.van-tabbar,
+.van-tabbar-item,
+.van-button,
+button,
+[role='button'],
+[class*='btn'],
+[class*='button'],
+[class*='clickable'] {
+  pointer-events: auto;
+}
+
+.app-header,
+.van-tabbar {
+  isolation: isolate;
+}
+
+.app-header {
+  z-index: 3000 !important;
+}
+
+.van-tabbar {
+  z-index: 3000 !important;
+}
+
+.main-content {
+  position: relative;
+  z-index: 1;
 }
 
 button,
