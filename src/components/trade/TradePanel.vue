@@ -893,8 +893,11 @@
             :class="{ 'coin-item-active': coin.symbol === symbol }"
             @click="switchCoin(coin.symbol)"
           >
-            <div class="coin-name">{{ coin.symbol }}</div>
-            <div class="coin-pair">{{ coin.symbol }}/USDT</div>
+            <CryptoIcon :symbol="coin.symbol" :size="32" variant="compact" />
+            <div class="coin-select-meta">
+              <div class="coin-name">{{ coin.symbol }}</div>
+              <div class="coin-pair">{{ coin.symbol }}/USDT</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1058,6 +1061,7 @@ import { useAssetActions } from '@/composables/useAssetActions';
 import { createOrder, getOrders, cancelOrder as cancelSpotOrderApi } from '@/api/trade';
 import { createFuturesOrder, getPositions as getFuturesPositionsApi, closePosition as closeFuturesPositionApi, getFuturesOrders, cancelFuturesOrder as cancelFuturesOrderApi } from '@/api/futures';
 import { formatAssetAmount } from '@/utils/format';
+import CryptoIcon from '../CryptoIcon.vue';
 
 defineOptions({
   name: 'Trade'
@@ -4605,11 +4609,19 @@ onUnmounted(() => {
 .coin-item { 
   padding: 16px; 
   display: flex; 
-  flex-direction: column; 
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
   border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05); 
   cursor: pointer; 
   transition: all 0.3s ease;
   position: relative;
+}
+
+.coin-select-meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .coin-item::before {

@@ -3280,4 +3280,44 @@ onUnmounted(() => {
 .futures-trade-page .input-field {
   color: var(--color-text-primary) !important;
 }
+
+/* Dark mode refit audit: scoped late overrides for standalone futures page. */
+:global(html[data-theme='dark']) .futures-trade-page {
+  --terminal-bg: var(--color-bg);
+  --terminal-surface: var(--color-surface-1);
+  --terminal-card: var(--color-bg-card);
+  --terminal-card-soft: var(--color-bg-input);
+  --terminal-border: var(--color-border);
+  --terminal-text: var(--color-text-primary);
+  --terminal-muted: var(--color-text-secondary);
+  background: var(--color-bg) !important;
+  color: var(--color-text-primary) !important;
+}
+
+:global(html[data-theme='dark']) .futures-trade-page .trade-header,
+:global(html[data-theme='dark']) .futures-trade-page .pair-info,
+:global(html[data-theme='dark']) .futures-trade-page .positions-section,
+:global(html[data-theme='dark']) .futures-trade-page :deep(.position-tabs .van-tabs__wrap) {
+  background: var(--color-surface-1) !important;
+  border-color: var(--color-border) !important;
+}
+
+:global(html[data-theme='dark']) .futures-trade-page .orderbook-side,
+:global(html[data-theme='dark']) .futures-trade-page .form-side,
+:global(html[data-theme='dark']) .futures-trade-page .trade-panel-block,
+:global(html[data-theme='dark']) .futures-trade-page .terminal-input,
+:global(html[data-theme='dark']) .futures-trade-page .mode-btn,
+:global(html[data-theme='dark']) .futures-trade-page .leverage-btn,
+:global(html[data-theme='dark']) .futures-trade-page .last-price {
+  background: var(--color-bg-card) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: none !important;
+}
+
+:global(html[data-theme='dark']) .futures-trade-page .input-field,
+:global(html[data-theme='dark']) .futures-trade-page .terminal-price strong {
+  color: var(--color-text-primary) !important;
+  -webkit-text-fill-color: var(--color-text-primary) !important;
+}
 </style>

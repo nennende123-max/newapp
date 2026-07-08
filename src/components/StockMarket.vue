@@ -759,6 +759,56 @@ const scrollToIndices = () => {
   background: var(--stock-yellow-soft);
 }
 
+:global(html[data-theme='dark']) .stock-home {
+  --stock-yellow-soft: rgb(243 186 47 / 0.16);
+  --stock-bg: var(--color-bg);
+  --stock-text: var(--color-text-primary);
+  --stock-muted: var(--color-text-muted);
+  --stock-border: var(--color-border);
+  background: var(--color-bg) !important;
+  color: var(--color-text-primary) !important;
+}
+
+:global(html[data-theme='dark']) .stock-home .top-header,
+:global(html[data-theme='dark']) .stock-home .bottom-nav {
+  background: var(--color-surface-1) !important;
+  border-color: var(--color-border) !important;
+  box-shadow: none !important;
+}
+
+:global(html[data-theme='dark']) .stock-home .asset-card,
+:global(html[data-theme='dark']) .stock-home .shortcut-card,
+:global(html[data-theme='dark']) .stock-home .shortcut-card button,
+:global(html[data-theme='dark']) .stock-home .index-card,
+:global(html[data-theme='dark']) .stock-home .mover-card,
+:global(html[data-theme='dark']) .stock-home .globe-btn,
+:global(html[data-theme='dark']) .stock-home .movers-title button {
+  background: var(--color-bg-card) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: none !important;
+}
+
+:global(html[data-theme='dark']) .stock-home .news-bar,
+:global(html[data-theme='dark']) .stock-home .bottom-nav .van-icon,
+:global(html[data-theme='dark']) .stock-home .bottom-nav .active .van-icon {
+  background: var(--color-bg-input) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+:global(html[data-theme='dark']) .stock-home .brand-left strong,
+:global(html[data-theme='dark']) .stock-home .asset-actions button,
+:global(html[data-theme='dark']) .stock-home .bottom-nav button {
+  color: var(--color-text-primary) !important;
+}
+
+:global(html[data-theme='dark']) .stock-home .market-time,
+:global(html[data-theme='dark']) .stock-home .index-symbol,
+:global(html[data-theme='dark']) .stock-home .mover-card em {
+  color: var(--color-text-muted) !important;
+}
+
 @media (max-width: 390px) {
   .top-header {
     padding-left: 12px;

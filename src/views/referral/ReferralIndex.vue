@@ -3096,4 +3096,51 @@ onUnmounted(() => {
     font-size: 15px !important;
   }
 }
+
+:global(html[data-theme='dark']) .referral-page,
+:global(html[data-theme='dark']) .referral-content {
+  background: var(--color-bg) !important;
+  color: var(--color-text-primary) !important;
+}
+
+:global(html[data-theme='dark']) .referral-page :deep(.van-nav-bar),
+:global(html[data-theme='dark']) .referral-page .invite-panel,
+:global(html[data-theme='dark']) .referral-page .dashboard-card,
+:global(html[data-theme='dark']) .referral-page .records-section,
+:global(html[data-theme='dark']) .referral-page .commission-card,
+:global(html[data-theme='dark']) .referral-page .rules-card,
+:global(html[data-theme='dark']) .referral-page .leaderboard-card {
+  background: var(--color-bg-card) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: none !important;
+}
+
+:global(html[data-theme='dark']) .referral-page .dashboard-icon,
+:global(html[data-theme='dark']) .referral-page .record-avatar,
+:global(html[data-theme='dark']) .referral-page .record-status.inactive,
+:global(html[data-theme='dark']) .referral-page .progress-bar {
+  background: var(--color-bg-input) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+:global(html[data-theme='dark']) .referral-page .dashboard-value,
+:global(html[data-theme='dark']) .referral-page .record-user,
+:global(html[data-theme='dark']) .referral-page .section-title {
+  color: var(--color-text-primary) !important;
+}
+
+:global(html[data-theme='dark']) .referral-page .dashboard-label,
+:global(html[data-theme='dark']) .referral-page .progress-text,
+:global(html[data-theme='dark']) .referral-page .record-time,
+:global(html[data-theme='dark']) .referral-page .record-desc {
+  color: var(--color-text-secondary) !important;
+}
+
+:global(html[data-theme='dark']) .referral-page .record-item,
+:global(html[data-theme='dark']) .referral-page .dashboard-card:nth-child(odd),
+:global(html[data-theme='dark']) .referral-page .dashboard-card:nth-child(-n + 2) {
+  border-color: var(--color-border) !important;
+}
 </style>

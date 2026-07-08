@@ -188,7 +188,7 @@
             @click="goTrade(coin)"
           >
             <div class="row-left">
-              <div class="coin-icon-box" :class="coin.name.toLowerCase()">{{ coin.name[0] }}</div>
+              <CryptoIcon :symbol="coin.name" :size="44" />
               <div class="coin-meta">
                 <span class="coin-name">{{ coin.name }} <span class="perp-tag">PERP</span></span>
                 <span class="coin-vol">Vol {{ coin.vol }}</span>
@@ -218,6 +218,7 @@ import { showToast, Icon } from 'vant';
 import { useMarketStore } from '@/stores/market';
 import { useAssetStore } from '@/stores/assets';
 import { useAssetActions } from '@/composables/useAssetActions';
+import CryptoIcon from './CryptoIcon.vue';
 
 defineOptions({
   name: 'Home'

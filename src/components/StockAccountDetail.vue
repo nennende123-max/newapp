@@ -223,4 +223,42 @@ const goTrade = () => {
 }
 .act-btn.ghost { background: #f1f5f9; color: #334155; }
 .act-btn.primary { background: #fcd535; color: #111827; }
+
+:global(html[data-theme='dark']) .detail-page {
+  background: var(--color-bg) !important;
+  color: var(--color-text-primary) !important;
+}
+
+:global(html[data-theme='dark']) .detail-header,
+:global(html[data-theme='dark']) .hero-card,
+:global(html[data-theme='dark']) .list-section,
+:global(html[data-theme='dark']) .bottom-actions {
+  background: var(--color-bg-card) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: none !important;
+}
+
+:global(html[data-theme='dark']) .range-chip,
+:global(html[data-theme='dark']) .act-btn.ghost {
+  background: var(--color-bg-input) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-secondary) !important;
+}
+
+:global(html[data-theme='dark']) .range-chip.active {
+  background: rgb(139 92 246 / 0.18) !important;
+  border-color: rgb(139 92 246 / 0.38) !important;
+  color: #C4B5FD !important;
+}
+
+:global(html[data-theme='dark']) .stock-row {
+  border-color: var(--color-border) !important;
+}
+
+:global(html[data-theme='dark']) .hero-label,
+:global(html[data-theme='dark']) .stock-name,
+:global(html[data-theme='dark']) .stock-sub {
+  color: var(--color-text-secondary) !important;
+}
 </style>

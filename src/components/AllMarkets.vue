@@ -70,12 +70,7 @@
       >
         <!-- 第一列：币种信息 (40%) -->
         <div class="coin-info-col">
-          <img 
-            :src="getCoinIcon(coin.symbol)" 
-            :alt="coin.symbol"
-            class="coin-logo"
-            @error="handleImageError"
-          />
+          <CryptoIcon :symbol="coin.symbol" :size="40" variant="compact" />
           <div class="coin-details">
             <div class="coin-name-row">
               <span class="coin-symbol-text">{{ coin.symbol }}</span>
@@ -129,6 +124,7 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useMarketStore } from '@/stores/market';
 import { showToast } from 'vant';
+import CryptoIcon from './CryptoIcon.vue';
 
 const router = useRouter();
 const { t } = useI18n();

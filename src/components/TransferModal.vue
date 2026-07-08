@@ -264,4 +264,33 @@ const confirm = () => {
 .tm-confirm:active {
   opacity: 0.85;
 }
+
+:global(html[data-theme='dark']) .transfer-modal,
+:global(html[data-theme='dark']) .tm-panel {
+  background: var(--color-bg-card) !important;
+  color: var(--color-text-primary) !important;
+  border-color: var(--color-border) !important;
+}
+
+:global(html[data-theme='dark']) .tm-chip,
+:global(html[data-theme='dark']) .tm-amount {
+  background: var(--color-bg-input) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-secondary) !important;
+}
+
+:global(html[data-theme='dark']) .tm-chip.active {
+  background: rgb(var(--color-primary-rgb) / 0.14) !important;
+  border-color: var(--color-primary-border) !important;
+  color: var(--color-primary) !important;
+}
+
+:global(html[data-theme='dark']) .tm-amount-input {
+  color: var(--color-text-primary) !important;
+  -webkit-text-fill-color: var(--color-text-primary) !important;
+}
+
+:global(html[data-theme='dark']) .tm-amount-unit {
+  color: var(--color-text-secondary) !important;
+}
 </style>

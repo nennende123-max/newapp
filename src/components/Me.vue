@@ -4,7 +4,7 @@
     <div class="top-nav">
       <div class="user-profile" @click="router.push('/profile')">
         <div class="avatar-circle">
-          <van-icon name="manager" color="#000" />
+          <van-icon name="manager" color="var(--color-text-inverse)" />
         </div>
         <span class="username">User_8829</span>
       </div>
@@ -181,11 +181,8 @@
           v-for="asset in filteredAndSortedAssets"
           :key="asset.symbol"
         >
-          <div class="coin-left">
-            <div class="coin-icon" :class="asset.symbol.toLowerCase()">
-              <img v-if="asset.iconUrl" :src="asset.iconUrl" :alt="asset.symbol" />
-              <span v-else>{{ asset.symbol[0] }}</span>
-            </div>
+            <div class="coin-left">
+              <CryptoIcon :symbol="asset.symbol" :size="44" />
             <div class="coin-info">
               <span class="coin-name">{{ asset.symbol }}</span>
               <span class="coin-fullname">{{ getFullName(asset.symbol) }}</span>
@@ -329,6 +326,7 @@ import {
 } from '@/data/assetMock';
 import EarnList from './EarnList.vue';
 import TransferModal from './TransferModal.vue';
+import CryptoIcon from './CryptoIcon.vue';
 
 defineOptions({ name: 'Me' });
 
@@ -1191,29 +1189,6 @@ onActivated(async () => {
 
 .coin-left { display: flex; align-items: center; gap: 12px; }
 
-.coin-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #e2e8f0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-weight: bold;
-  font-size: 16px;
-  color: #ffffff;
-  overflow: hidden;
-}
-
-.coin-icon img { width: 100%; height: 100%; object-fit: cover; }
-.coin-icon.usdt { background: #26a17b; }
-.coin-icon.btc { background: #f7931a; }
-.coin-icon.eth { background: #627eea; }
-.coin-icon.beat { background: #ff6b6b; }
-.coin-icon.zec { background: #ecb244; }
-.coin-icon.aic { background: #4ecdc4; }
-.coin-icon.meme { background: #95e1d3; }
-
 .coin-info { display: flex; flex-direction: column; gap: 4px; }
 .coin-name { font-size: 16px; font-weight: 600; color: #0f172a; }
 .coin-fullname { font-size: 12px; color: #94a3b8; }
@@ -1366,6 +1341,39 @@ onActivated(async () => {
 
 /* 搜索框内文字 */
 :global(html[data-theme='dark']) .me-page :deep(.search-field .van-field__control) {
+  color: var(--color-text-primary) !important;
+}
+
+:global(html[data-theme='dark']) .me-page :deep(.asset-tabs .van-tabs__wrap),
+:global(html[data-theme='dark']) .me-page :deep(.asset-tabs .van-tabs__nav) {
+  background: var(--color-surface-1) !important;
+}
+
+:global(html[data-theme='dark']) .me-page :deep(.asset-tabs .van-tab) {
+  color: var(--color-text-secondary) !important;
+}
+
+:global(html[data-theme='dark']) .me-page :deep(.asset-tabs .van-tab--active) {
+  color: var(--color-text-primary) !important;
+}
+
+:global(html[data-theme='dark']) .me-page .tools-bar,
+:global(html[data-theme='dark']) .me-page .search-bar {
+  background: transparent !important;
+  color: var(--color-text-secondary) !important;
+}
+
+:global(html[data-theme='dark']) .me-page .action-btn.dark {
+  background: var(--color-surface-muted) !important;
+  color: var(--color-text-primary) !important;
+}
+
+:global(html[data-theme='dark']) .me-page .avatar-circle {
+  background: var(--color-primary) !important;
+  color: var(--color-text-on-accent) !important;
+}
+
+:global(html[data-theme='dark']) .me-page .top-icons .van-icon {
   color: var(--color-text-primary) !important;
 }
 </style>

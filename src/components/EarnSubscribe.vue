@@ -55,12 +55,7 @@
           <span class="max-btn" @click="setMaxAmount">{{ t('earn.max') }}</span>
           <span class="divider-line"></span>
           <div class="coin-badge">
-            <img 
-              :src="getCoinIcon(symbol)" 
-              :alt="symbol"
-              class="coin-icon-small"
-              @error="handleImageError"
-            />
+            <CryptoIcon :symbol="symbol" :size="24" variant="compact" />
             <span class="coin-symbol">{{ symbol }}</span>
           </div>
         </div>
@@ -141,6 +136,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAssetStore } from '@/stores/assets';
 import { showToast } from 'vant';
+import CryptoIcon from './CryptoIcon.vue';
 
 const route = useRoute();
 const router = useRouter();

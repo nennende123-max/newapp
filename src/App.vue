@@ -427,6 +427,13 @@ body, html, #app {
   color: var(--color-text-primary);
 }
 
+/* 始终预留纵向滚动条槽位：内容高度在两套主题下略有差异时，滚动条会出现/消失，
+   导致布局可用宽度变化，从而把固定顶栏图标与内容整体左右移动。用 scrollbar-gutter
+   恒定预留槽位（透明、无灰色轨道），彻底消除「浅/深色切换时图标位移」问题。 */
+html {
+  scrollbar-gutter: stable;
+}
+
 /* 仅在非视口容器上裁剪横向溢出，杜绝页面左右露出底色（深色下的"棕/金"边缘感）。
    使用 clip 而非 hidden，且不加在 html/body 上，避免为 fixed 顶栏/底栏创建包含块或
    触发视口滚动传播，从而不会重现此前的整页右移问题。 */
@@ -570,7 +577,7 @@ body, html, #app {
   background: var(--color-text-secondary);
 }
 
-:global(html[data-theme='dark']) .stock-market-btn {
+html[data-theme='dark'] .stock-market-btn {
   background: var(--color-surface-2);
   border-color: var(--color-border);
 }
@@ -604,12 +611,12 @@ body, html, #app {
   opacity: 0.9;
 }
 
-:global(html[data-theme='dark']) .theme-toggle-btn {
+html[data-theme='dark'] .theme-toggle-btn {
   background: var(--color-surface-2);
   border-color: var(--color-border);
 }
 
-:global(html[data-theme='dark']) .theme-toggle-symbol {
+html[data-theme='dark'] .theme-toggle-symbol {
   background: var(--color-primary);
   box-shadow:
     0 -8px 0 -6px var(--color-primary),
@@ -622,7 +629,79 @@ body, html, #app {
     -6px 6px 0 -6px var(--color-primary);
 }
 
-:global(html[data-theme='dark']) .theme-toggle-symbol::after {
+html[data-theme='dark'] .theme-toggle-symbol::after {
+  display: none;
+}
+
+/* Keep the theme switcher optically stable across light/dark modes. */
+.app-header .theme-toggle-btn {
+  width: 34px;
+  min-width: 34px;
+  max-width: 34px;
+  height: 34px;
+  min-height: 34px;
+  max-height: 34px;
+  box-sizing: border-box;
+  flex: 0 0 34px;
+  overflow: hidden;
+}
+
+.app-header .theme-toggle-symbol {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  margin: 0;
+  transform: translateZ(0);
+  transform-origin: 50% 50%;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.app-header .theme-toggle-symbol::before,
+.app-header .theme-toggle-symbol::after {
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.app-header .theme-toggle-symbol {
+  background: #F5B51B;
+  box-shadow:
+    inset 7px -2px 0 0 var(--color-surface-2),
+    0 0 0 1px rgba(245,181,27,0.20);
+}
+
+.app-header .theme-toggle-symbol::after {
+  right: 2px;
+  top: 4px;
+  width: 3px;
+  height: 3px;
+  background: #F5B51B;
+  box-shadow:
+    -4px 10px 0 -0.5px #F5B51B,
+    4px 7px 0 -1px #F5B51B;
+}
+
+html[data-theme='dark'] .app-header .theme-toggle-symbol {
+  background: #F5B51B;
+  box-shadow:
+    0 0 0 1px rgba(245,181,27,0.18),
+    0 0 10px rgba(245,181,27,0.18);
+}
+
+html[data-theme='dark'] .app-header .theme-toggle-symbol::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background:
+    linear-gradient(#F5B51B, #F5B51B) 50% 0 / 2px 4px no-repeat,
+    linear-gradient(#F5B51B, #F5B51B) 50% 100% / 2px 4px no-repeat,
+    linear-gradient(#F5B51B, #F5B51B) 0 50% / 4px 2px no-repeat,
+    linear-gradient(#F5B51B, #F5B51B) 100% 50% / 4px 2px no-repeat;
+}
+
+html[data-theme='dark'] .app-header .theme-toggle-symbol::after {
   display: none;
 }
 

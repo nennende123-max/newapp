@@ -127,3 +127,38 @@
   --van-button-radius: var(--radius-button);
   --van-field-border-radius: var(--radius-input);
 }
+
+html[data-theme='dark'] {
+  --color-bg: #0B1220;
+  --color-surface-1: #151E2E;
+  --color-surface-2: #172133;
+  --color-bg-elevated: #151E2E;
+  --color-bg-card: #151E2E;
+  --color-bg-input: #172133;
+  --color-surface: #151E2E;
+  --color-surface-elevated: #172133;
+  --color-surface-muted: #202B3D;
+  --color-text-primary: #F8FAFC;
+  --color-text-secondary: #CBD5E1;
+  --color-text-muted: #94A3B8;
+  --color-text-inverse: #0B1220;
+  --color-border: rgba(255,255,255,0.08);
+  --color-border-subtle: rgba(255,255,255,0.08);
+  --color-border-strong: rgba(255,255,255,0.16);
+  --color-overlay: rgb(0 0 0 / 0.58);
+  --color-overlay-strong: rgb(0 0 0 / 0.78);
+  --color-bg-rgb: 11 18 32;
+  --color-surface-rgb: 21 30 46;
+  --color-surface-2-rgb: 23 33 51;
+  --color-text-primary-rgb: 248 250 252;
+  --color-text-secondary-rgb: 203 213 225;
+  --color-text-muted-rgb: 148 163 184;
+  --color-border-rgb: 255 255 255;
+  --color-shadow-rgb: 0 0 0;
+  --color-qr-dark: #111827;
+  --color-qr-light: #f8fafc;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.28);
+  --shadow-md: 0 12px 28px rgb(0 0 0 / 0.32), 0 1px 0 rgb(255 255 255 / 0.03) inset;
+  --shadow-lg: 0 24px 56px rgb(0 0 0 / 0.42);
+  color-scheme: dark;
+}

@@ -24,12 +24,7 @@
         <!-- 绗竴鍒楋細甯佺淇℃伅 (40%) -->
         <div class="coin-info-col">
           <span v-if="showRank" class="rank-number">{{ coin.rank }}</span>
-          <img 
-            :src="getCoinIcon(coin.symbol)" 
-            :alt="coin.symbol"
-            class="coin-logo"
-            @error="handleImageError"
-          />
+          <CryptoIcon :symbol="coin.symbol" :size="40" variant="compact" />
           <div class="coin-details">
             <div class="coin-name-row">
               <span class="coin-symbol-text">{{ coin.symbol }}</span>
@@ -74,6 +69,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMarketStore } from '@/stores/market';
 import { useI18n } from 'vue-i18n';
+import CryptoIcon from './CryptoIcon.vue';
 
 const props = defineProps({
   limit: {
@@ -199,28 +195,6 @@ const formatVolume = (volume) => {
     return '$' + (volume / 1000).toFixed(2) + 'K';
   }
   return '$' + volume.toFixed(2);
-};
-
-// 鑾峰彇甯佺鍥炬爣
-const getCoinIcon = (symbol) => {
-  const iconMap = {
-    'BTC': 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
-    'ETH': 'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
-    'SOL': 'https://assets.coingecko.com/coins/images/4128/large/solana.png',
-    'BNB': 'https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png',
-    'DOGE': 'https://assets.coingecko.com/coins/images/5/large/dogecoin.png',
-    'PEPE': 'https://assets.coingecko.com/coins/images/29850/large/pepe-token.jpeg',
-    'TRX': 'https://assets.coingecko.com/coins/images/1094/large/tron-logo.png',
-    'XRP': 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png',
-    'ADA': 'https://assets.coingecko.com/coins/images/975/large/cardano.png',
-    'AVAX': 'https://assets.coingecko.com/coins/images/12559/large/avalanche-avax-logo.png'
-  };
-  return iconMap[symbol.toUpperCase()] || 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png';
-};
-
-// 鍥剧墖鍔犺浇澶辫触澶勭悊
-const handleImageError = (event) => {
-  event.target.style.display = 'none';
 };
 
 // 璺宠浆鍒板競鍦鸿鎯?

@@ -830,8 +830,11 @@
             :class="{ 'coin-item-active': coin.symbol === symbol }"
             @click="switchCoin(coin.symbol)"
           >
-            <div class="coin-name">{{ coin.symbol }}</div>
-            <div class="coin-pair">{{ coin.symbol }}/USDT</div>
+            <CryptoIcon :symbol="coin.symbol" :size="32" variant="compact" />
+            <div class="coin-select-meta">
+              <div class="coin-name">{{ coin.symbol }}</div>
+              <div class="coin-pair">{{ coin.symbol }}/USDT</div>
+            </div>
           </div>
         </div>
       </div>
@@ -995,6 +998,7 @@ import { useAssetActions } from '@/composables/useAssetActions';
 import { createOrder, getOrders, cancelOrder as cancelSpotOrderApi } from '@/api/trade';
 import { createFuturesOrder, getPositions as getFuturesPositionsApi, closePosition as closeFuturesPositionApi, getFuturesOrders, cancelFuturesOrder as cancelFuturesOrderApi } from '@/api/futures';
 import { formatAssetAmount } from '@/utils/format';
+import CryptoIcon from './CryptoIcon.vue';
 
 defineOptions({
   name: 'Trade'
@@ -4461,7 +4465,9 @@ onUnmounted(() => {
 .coin-item { 
   padding: 16px; 
   display: flex; 
-  flex-direction: column; 
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
   border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05); 
   cursor: pointer; 
   transition: all 0.3s ease;
@@ -8425,4 +8431,107 @@ onUnmounted(() => {
 :global(html[data-theme='dark']) .trade-page .form-side .sell-btn.active {
   background: var(--color-surface-elevated, #1f2a3d) !important;
 }
+
+.coin-select-meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Dark mode refit audit: final in-component override for late white redesign rules. */
+:global(html[data-theme='dark']) .trade-page,
+:global(html[data-theme='dark']) .trade-page .futures-trade-container,
+:global(html[data-theme='dark']) .trade-page .trade-main,
+:global(html[data-theme='dark']) .trade-page .futures-trade-main {
+  background: var(--color-bg) !important;
+  background-color: var(--color-bg) !important;
+  color: var(--color-text-primary) !important;
+}
+
+:global(html[data-theme='dark']) .trade-page .trade-tabs,
+:global(html[data-theme='dark']) .trade-page .trade-header,
+:global(html[data-theme='dark']) .trade-page .pair-info,
+:global(html[data-theme='dark']) .trade-page .futures-control-bar,
+:global(html[data-theme='dark']) .trade-page .bottom-tabs,
+:global(html[data-theme='dark']) .trade-page :deep(.position-tabs .van-tabs__wrap) {
+  background: var(--color-surface-1) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: none !important;
+}
+
+:global(html[data-theme='dark']) .trade-page .orderbook-side,
+:global(html[data-theme='dark']) .trade-page .form-side,
+:global(html[data-theme='dark']) .trade-page .futures-orderbook-side,
+:global(html[data-theme='dark']) .trade-page .futures-form-side,
+:global(html[data-theme='dark']) .trade-page .position-card,
+:global(html[data-theme='dark']) .trade-page .orders-empty-compact,
+:global(html[data-theme='dark']) .trade-page .assets-glass-card,
+:global(html[data-theme='dark']) .trade-page .positions-list,
+:global(html[data-theme='dark']) .trade-page .orders-list,
+:global(html[data-theme='dark']) .trade-page .history-list {
+  background: var(--color-bg-card) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: none !important;
+}
+
+:global(html[data-theme='dark']) .trade-page .buy-sell-toggle,
+:global(html[data-theme='dark']) .trade-page .order-type-selector,
+:global(html[data-theme='dark']) .trade-page .leverage-inline-btn,
+:global(html[data-theme='dark']) .trade-page .input-row,
+:global(html[data-theme='dark']) .trade-page .last-price,
+:global(html[data-theme='dark']) .trade-page .position-right,
+:global(html[data-theme='dark']) .trade-page .position-perpetual,
+:global(html[data-theme='dark']) .trade-page .tp-sl-btn,
+:global(html[data-theme='dark']) .trade-page .close-btn {
+  background: var(--color-bg-input) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: none !important;
+}
+
+:global(html[data-theme='dark']) .trade-page .input-row:focus-within {
+  background: var(--color-bg-input) !important;
+  border-color: var(--color-primary-border) !important;
+  box-shadow: 0 0 0 3px var(--color-focus-ring) !important;
+}
+
+:global(html[data-theme='dark']) .trade-page .pair-name,
+:global(html[data-theme='dark']) .trade-page .tab-item.active,
+:global(html[data-theme='dark']) .trade-page .input-field,
+:global(html[data-theme='dark']) .trade-page .fee-estimate-value,
+:global(html[data-theme='dark']) .trade-page .total-value,
+:global(html[data-theme='dark']) .trade-page .received-value,
+:global(html[data-theme='dark']) .trade-page .available-margin-value,
+:global(html[data-theme='dark']) .trade-page .avail-value,
+:global(html[data-theme='dark']) .trade-page .position-symbol,
+:global(html[data-theme='dark']) .trade-page .position-right .info-value {
+  color: var(--color-text-primary) !important;
+  -webkit-text-fill-color: var(--color-text-primary) !important;
+}
+
+:global(html[data-theme='dark']) .trade-page .tab-item,
+:global(html[data-theme='dark']) .trade-page .orderbook-header,
+:global(html[data-theme='dark']) .trade-page .quantity,
+:global(html[data-theme='dark']) .trade-page .input-label,
+:global(html[data-theme='dark']) .trade-page .input-suffix,
+:global(html[data-theme='dark']) .trade-page .fee-estimate-label,
+:global(html[data-theme='dark']) .trade-page .total-label,
+:global(html[data-theme='dark']) .trade-page .received-label,
+:global(html[data-theme='dark']) .trade-page .available-margin-label,
+:global(html[data-theme='dark']) .trade-page .avail-label,
+:global(html[data-theme='dark']) .trade-page .position-right .info-label,
+:global(html[data-theme='dark']) .trade-page .unrealized-pnl-label {
+  color: var(--color-text-secondary) !important;
+}
+
+:global(html[data-theme='dark']) .trade-page .input-field::placeholder,
+:global(html[data-theme='dark']) .trade-page .market-price-input,
+:global(html[data-theme='dark']) .trade-page .empty-text,
+:global(html[data-theme='dark']) .trade-page .price-fiat {
+  color: var(--color-text-muted) !important;
+  -webkit-text-fill-color: var(--color-text-muted) !important;
+}
+
 </style>

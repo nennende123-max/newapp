@@ -36,7 +36,7 @@
       </div>
       <div class="asset-row" v-for="asset in detail.assets" :key="asset.symbol">
         <div class="asset-left">
-          <div class="coin-badge" :style="{ background: asset.color }">{{ asset.symbol[0] }}</div>
+          <CryptoIcon :symbol="asset.symbol" :size="38" variant="compact" />
           <div class="coin-meta">
             <span class="coin-symbol">{{ asset.symbol }}</span>
             <span class="coin-name">{{ asset.name }}</span>
@@ -120,6 +120,7 @@ import { useAssetActions } from '@/composables/useAssetActions'
 import { spotDetailMock, spotHistoryMock, historyTypes } from '@/data/assetMock'
 import Sparkline from './Sparkline.vue'
 import TransferModal from './TransferModal.vue'
+import CryptoIcon from './CryptoIcon.vue'
 
 defineOptions({ name: 'SpotAccountDetail' })
 
@@ -366,4 +367,47 @@ const goTrade = () => {
 .bill-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
 .bill-row span { color: #64748b; }
 .bill-row .tx { font-size: 12px; word-break: break-all; text-align: right; max-width: 60%; }
+
+:global(html[data-theme='dark']) .detail-page,
+:global(html[data-theme='dark']) .bill-detail {
+  background: var(--color-bg) !important;
+  color: var(--color-text-primary) !important;
+}
+
+:global(html[data-theme='dark']) .detail-header,
+:global(html[data-theme='dark']) .hero-card,
+:global(html[data-theme='dark']) .balance-item,
+:global(html[data-theme='dark']) .list-section,
+:global(html[data-theme='dark']) .bottom-actions {
+  background: var(--color-bg-card) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: none !important;
+}
+
+:global(html[data-theme='dark']) .filter-chip,
+:global(html[data-theme='dark']) .act-btn.ghost {
+  background: var(--color-bg-input) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-secondary) !important;
+}
+
+:global(html[data-theme='dark']) .filter-chip.active {
+  background: rgb(var(--color-primary-rgb) / 0.14) !important;
+  border-color: var(--color-primary-border) !important;
+  color: var(--color-primary) !important;
+}
+
+:global(html[data-theme='dark']) .asset-row,
+:global(html[data-theme='dark']) .history-row,
+:global(html[data-theme='dark']) .bill-row {
+  border-color: var(--color-border) !important;
+}
+
+:global(html[data-theme='dark']) .coin-value,
+:global(html[data-theme='dark']) .coin-name,
+:global(html[data-theme='dark']) .history-time,
+:global(html[data-theme='dark']) .bill-row span {
+  color: var(--color-text-secondary) !important;
+}
 </style>

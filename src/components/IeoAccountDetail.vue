@@ -182,4 +182,45 @@ const statusLabel = (status) => {
 }
 .act-btn.ghost { background: #f1f5f9; color: #334155; }
 .act-btn.primary { background: #fcd535; color: #111827; }
+
+:global(html[data-theme='dark']) .detail-page {
+  background: var(--color-bg) !important;
+  color: var(--color-text-primary) !important;
+}
+
+:global(html[data-theme='dark']) .detail-header,
+:global(html[data-theme='dark']) .hero-card,
+:global(html[data-theme='dark']) .list-section,
+:global(html[data-theme='dark']) .bottom-actions {
+  background: var(--color-bg-card) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: none !important;
+}
+
+:global(html[data-theme='dark']) .act-btn.ghost,
+:global(html[data-theme='dark']) .status-badge.failed {
+  background: var(--color-bg-input) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-secondary) !important;
+}
+
+:global(html[data-theme='dark']) .status-badge.won {
+  background: rgb(16 185 129 / 0.14) !important;
+  color: #34D399 !important;
+}
+
+:global(html[data-theme='dark']) .status-badge.pending {
+  background: rgb(var(--color-primary-rgb) / 0.14) !important;
+  color: var(--color-primary) !important;
+}
+
+:global(html[data-theme='dark']) .ieo-row {
+  border-color: var(--color-border) !important;
+}
+
+:global(html[data-theme='dark']) .stat-label,
+:global(html[data-theme='dark']) .ieo-sub {
+  color: var(--color-text-secondary) !important;
+}
 </style>

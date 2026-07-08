@@ -1310,3 +1310,3023 @@ html[data-theme='dark'] .futures-orderbook-side .last-price {
   background: var(--color-surface-2) !important;
   border-color: var(--color-border) !important;
 }
+
+/* =====================================================================
+   深色模式 —— 邀请/推广页（ReferralIndex）
+   该页此前整页硬编码浅色（#fff 卡片 + #10182f 深色文字），无任何深色适配，
+   深色下会出现「白卡 + 看不清文字」。此处统一重映射到主题变量。
+   ===================================================================== */
+html[data-theme='dark'] .referral-page {
+  background: var(--color-surface-1) !important;
+  color: var(--color-text-primary) !important;
+}
+html[data-theme='dark'] .referral-page .custom-nav-bar {
+  --van-nav-bar-background: var(--color-surface-1) !important;
+  --van-nav-bar-title-text-color: var(--color-text-primary) !important;
+  --van-nav-bar-icon-color: var(--color-text-primary) !important;
+  border-bottom-color: var(--color-border) !important;
+}
+/* 卡片 */
+html[data-theme='dark'] .referral-page .glass-card,
+html[data-theme='dark'] .referral-page .hero-section,
+html[data-theme='dark'] .referral-page .action-section,
+html[data-theme='dark'] .referral-page .invite-link-card,
+html[data-theme='dark'] .referral-page .records-section,
+html[data-theme='dark'] .referral-page .announcement-marquee,
+html[data-theme='dark'] .referral-page .announcement-marquee::after {
+  background: var(--color-surface-2) !important;
+  border-color: var(--color-border) !important;
+  box-shadow: none !important;
+}
+/* 文字整体提亮（保证可读；语义高亮色见下方保留） */
+html[data-theme='dark'] .referral-page :is(h1,h2,h3,h4,h5,p,span,div,li,label,strong,b,a),
+html[data-theme='dark'] .referral-page .marquee-text,
+html[data-theme='dark'] .referral-page .marquee-icon {
+  color: var(--color-text-primary) !important;
+}
+/* 金色浅底徽标/头像 → 深色金调 */
+html[data-theme='dark'] .referral-page .hero-meta span:nth-child(2),
+html[data-theme='dark'] .referral-page .record-avatar {
+  background: rgb(240 185 11 / 0.16) !important;
+  color: #f0b24a !important;
+}
+/* 分隔线 */
+html[data-theme='dark'] .referral-page .record-item {
+  border-top-color: var(--color-border) !important;
+}
+
+/* =====================================================================
+   Dark mode refit audit: global surfaces, Vant widgets, and page shells.
+   This layer is intentionally limited to html[data-theme='dark'] so the
+   light theme keeps its current visual language.
+   ===================================================================== */
+html[data-theme='dark'],
+html[data-theme='dark'] body,
+html[data-theme='dark'] #app,
+html[data-theme='dark'] .main-content,
+html[data-theme='dark'] .van-config-provider,
+html[data-theme='dark'] .van-safe-area-bottom {
+  background: var(--color-bg) !important;
+  color: var(--color-text-primary) !important;
+}
+
+html[data-theme='dark'] .app-header,
+html[data-theme='dark'] .van-nav-bar,
+html[data-theme='dark'] .van-tabbar {
+  background: var(--color-bg-elevated) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+html[data-theme='dark'] .theme-toggle-btn,
+html[data-theme='dark'] .stock-market-btn,
+html[data-theme='dark'] .lang-icon-box,
+html[data-theme='dark'] .connect-wallet-btn,
+html[data-theme='dark'] .section-group,
+html[data-theme='dark'] .route-error-card {
+  background: var(--color-bg-card) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] .van-popup,
+html[data-theme='dark'] .van-dialog,
+html[data-theme='dark'] .van-action-sheet,
+html[data-theme='dark'] .van-action-sheet__content,
+html[data-theme='dark'] .van-action-sheet__item,
+html[data-theme='dark'] .van-picker,
+html[data-theme='dark'] .van-picker__toolbar,
+html[data-theme='dark'] .van-dropdown-menu,
+html[data-theme='dark'] .van-dropdown-item__content,
+html[data-theme='dark'] .van-popover__content {
+  background: var(--color-bg-card) !important;
+  color: var(--color-text-primary) !important;
+}
+
+html[data-theme='dark'] .van-cell,
+html[data-theme='dark'] .van-cell-group,
+html[data-theme='dark'] .van-field,
+html[data-theme='dark'] .van-search,
+html[data-theme='dark'] .van-search__content,
+html[data-theme='dark'] .van-tabs__nav,
+html[data-theme='dark'] .van-tabs__wrap,
+html[data-theme='dark'] .van-tabbar-item {
+  background: transparent !important;
+  color: var(--color-text-primary) !important;
+}
+
+html[data-theme='dark'] .van-field__control,
+html[data-theme='dark'] input,
+html[data-theme='dark'] textarea,
+html[data-theme='dark'] select {
+  color: var(--color-text-primary) !important;
+  caret-color: var(--color-primary) !important;
+}
+
+html[data-theme='dark'] .van-field__control::placeholder,
+html[data-theme='dark'] input::placeholder,
+html[data-theme='dark'] textarea::placeholder {
+  color: var(--color-text-muted) !important;
+}
+
+html[data-theme='dark'] .van-tab,
+html[data-theme='dark'] .van-cell__value,
+html[data-theme='dark'] .van-field__label {
+  color: var(--color-text-secondary) !important;
+}
+
+html[data-theme='dark'] .van-tab--active,
+html[data-theme='dark'] .van-cell__title {
+  color: var(--color-text-primary) !important;
+}
+
+html[data-theme='dark'] :where(
+  .home-page,
+  .miner-page,
+  .earn-page,
+  .ido-page,
+  .me-page,
+  .trade-page,
+  .trade-sub-page,
+  .market-page,
+  .detail-page,
+  .deposit-page,
+  .withdraw-page,
+  .stock-home,
+  .futures-trade-page
+) {
+  background: var(--color-bg) !important;
+  color: var(--color-text-primary) !important;
+}
+
+html[data-theme='dark'] :where(
+  .card,
+  .asset-card,
+  .market-card,
+  .project-card,
+  .wallet-banner,
+  .summary-card,
+  .account-card,
+  .list-card,
+  .trade-panel,
+  .trading-panel,
+  .modal-card,
+  .popup-card
+) {
+  background: var(--color-bg-card) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: none !important;
+}
+
+/* =====================================================================
+   Dark mode hard audit pass: beat scoped light redesign rules.
+   These selectors intentionally carry high specificity because Trade.vue
+   and Me.vue contain many late, scoped white surfaces.
+   ===================================================================== */
+html,
+body,
+#app {
+  overflow-y: auto;
+  overscroll-behavior-y: auto;
+}
+
+html[data-theme='dark'],
+html[data-theme='dark'] body,
+html[data-theme='dark'] #app {
+  overflow-y: auto !important;
+  overscroll-behavior-y: auto !important;
+}
+
+html[data-theme='dark'] #app .app-header .connect-wallet-btn,
+html[data-theme='dark'] #app .app-header .theme-toggle-btn,
+html[data-theme='dark'] #app .app-header .stock-market-btn,
+html[data-theme='dark'] #app .app-header .lang-icon-box {
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+  border-color: var(--color-border) !important;
+}
+
+html[data-theme='dark'] #app .app-header .header-right {
+  gap: 10px !important;
+  min-width: 0 !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page {
+  background: var(--color-bg) !important;
+  color: var(--color-text-primary) !important;
+  touch-action: pan-y !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .trade-scrollable-content {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-y !important;
+  overscroll-behavior-y: contain !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .trade-tabs,
+html[data-theme='dark'] #app .trade-page.trade-page .trade-header,
+html[data-theme='dark'] #app .trade-page.trade-page .pair-info,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-control-bar,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-bottom-section,
+html[data-theme='dark'] #app .trade-page.trade-page .bottom-section,
+html[data-theme='dark'] #app .trade-page.trade-page .position-tabs .van-tabs__wrap,
+html[data-theme='dark'] #app .trade-page.trade-page .position-tabs .van-tabs__nav {
+  background: var(--color-surface-1) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .trade-main,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-trade-container,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-trade-main {
+  background: var(--color-bg) !important;
+  color: var(--color-text-primary) !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .orderbook-side,
+html[data-theme='dark'] #app .trade-page.trade-page .form-side,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-orderbook-side,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-form-side,
+html[data-theme='dark'] #app .trade-page.trade-page .position-card,
+html[data-theme='dark'] #app .trade-page.trade-page .orders-empty-compact,
+html[data-theme='dark'] #app .trade-page.trade-page .assets-glass-card,
+html[data-theme='dark'] #app .trade-page.trade-page .positions-list,
+html[data-theme='dark'] #app .trade-page.trade-page .orders-list,
+html[data-theme='dark'] #app .trade-page.trade-page .history-list {
+  background: var(--color-bg-card) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .buy-sell-toggle,
+html[data-theme='dark'] #app .trade-page.trade-page .toggle-btn.active,
+html[data-theme='dark'] #app .trade-page.trade-page .order-type-selector,
+html[data-theme='dark'] #app .trade-page.trade-page .leverage-inline-btn,
+html[data-theme='dark'] #app .trade-page.trade-page .input-row,
+html[data-theme='dark'] #app .trade-page.trade-page .last-price,
+html[data-theme='dark'] #app .trade-page.trade-page .estimated-received-row,
+html[data-theme='dark'] #app .trade-page.trade-page .position-right,
+html[data-theme='dark'] #app .trade-page.trade-page .position-perpetual,
+html[data-theme='dark'] #app .trade-page.trade-page .tp-sl-btn,
+html[data-theme='dark'] #app .trade-page.trade-page .close-btn {
+  background: var(--color-bg-input) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .pair-name,
+html[data-theme='dark'] #app .trade-page.trade-page .tab-item.active,
+html[data-theme='dark'] #app .trade-page.trade-page .input-field,
+html[data-theme='dark'] #app .trade-page.trade-page .fee-estimate-value,
+html[data-theme='dark'] #app .trade-page.trade-page .total-value,
+html[data-theme='dark'] #app .trade-page.trade-page .received-value,
+html[data-theme='dark'] #app .trade-page.trade-page .available-margin-value,
+html[data-theme='dark'] #app .trade-page.trade-page .avail-value,
+html[data-theme='dark'] #app .trade-page.trade-page .position-symbol,
+html[data-theme='dark'] #app .trade-page.trade-page .info-value {
+  color: var(--color-text-primary) !important;
+  -webkit-text-fill-color: var(--color-text-primary) !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .tab-item,
+html[data-theme='dark'] #app .trade-page.trade-page .orderbook-header,
+html[data-theme='dark'] #app .trade-page.trade-page .quantity,
+html[data-theme='dark'] #app .trade-page.trade-page .input-label,
+html[data-theme='dark'] #app .trade-page.trade-page .input-suffix,
+html[data-theme='dark'] #app .trade-page.trade-page .fee-estimate-label,
+html[data-theme='dark'] #app .trade-page.trade-page .total-label,
+html[data-theme='dark'] #app .trade-page.trade-page .received-label,
+html[data-theme='dark'] #app .trade-page.trade-page .available-margin-label,
+html[data-theme='dark'] #app .trade-page.trade-page .avail-label,
+html[data-theme='dark'] #app .trade-page.trade-page .info-label,
+html[data-theme='dark'] #app .trade-page.trade-page .empty-text,
+html[data-theme='dark'] #app .trade-page.trade-page .price-fiat {
+  color: var(--color-text-secondary) !important;
+  -webkit-text-fill-color: var(--color-text-secondary) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page {
+  min-height: 100vh !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-y !important;
+  background: var(--color-bg) !important;
+  color: var(--color-text-primary) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .top-nav,
+html[data-theme='dark'] #app .me-page.me-page .asset-tabs,
+html[data-theme='dark'] #app .me-page.me-page .asset-tabs .van-tabs__wrap,
+html[data-theme='dark'] #app .me-page.me-page .asset-tabs .van-tabs__nav {
+  background: var(--color-surface-1) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .summary-card,
+html[data-theme='dark'] #app .me-page.me-page .account-card,
+html[data-theme='dark'] #app .me-page.me-page .list-card,
+html[data-theme='dark'] #app .me-page.me-page .coin-list,
+html[data-theme='dark'] #app .me-page.me-page .referral-card {
+  background: var(--color-bg-card) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .convert-bnb,
+html[data-theme='dark'] #app .me-page.me-page .search-field,
+html[data-theme='dark'] #app .me-page.me-page .unit-switch,
+html[data-theme='dark'] #app .me-page.me-page .unit-chip.active,
+html[data-theme='dark'] #app .me-page.me-page .action-btn.light,
+html[data-theme='dark'] #app .me-page.me-page .action-btn.dark {
+  background: var(--color-bg-input) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .wallet-banner {
+  background: var(--color-bg-card) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .asset-tabs .van-tab,
+html[data-theme='dark'] #app .me-page.me-page .hide-small,
+html[data-theme='dark'] #app .me-page.me-page .summary-label,
+html[data-theme='dark'] #app .me-page.me-page .summary-sub,
+html[data-theme='dark'] #app .me-page.me-page .metric-label,
+html[data-theme='dark'] #app .me-page.me-page .account-desc,
+html[data-theme='dark'] #app .me-page.me-page .coin-fullname,
+html[data-theme='dark'] #app .me-page.me-page .coin-price {
+  color: var(--color-text-secondary) !important;
+  -webkit-text-fill-color: var(--color-text-secondary) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .asset-tabs .van-tab--active,
+html[data-theme='dark'] #app .me-page.me-page .username,
+html[data-theme='dark'] #app .me-page.me-page .summary-total,
+html[data-theme='dark'] #app .me-page.me-page .account-name,
+html[data-theme='dark'] #app .me-page.me-page .account-value,
+html[data-theme='dark'] #app .me-page.me-page .coin-name,
+html[data-theme='dark'] #app .me-page.me-page .coin-balance,
+html[data-theme='dark'] #app .me-page.me-page .search-field .van-field__control {
+  color: var(--color-text-primary) !important;
+  -webkit-text-fill-color: var(--color-text-primary) !important;
+}
+
+/* =====================================================================
+   Mine / Assets dark foundation polish.
+   Scope: Me, Profile, asset detail pages and the shared bottom nav spacing.
+   No layout data, routing, or business logic changes.
+   ===================================================================== */
+html[data-theme='dark'] {
+  --mine-bg: #08111F;
+  --mine-surface: #0F1726;
+  --mine-card: #151F31;
+  --mine-card-inner: #1A2538;
+  --mine-border: rgba(255,255,255,0.07);
+  --mine-divider: rgba(255,255,255,0.06);
+  --mine-text-primary: #F8FAFC;
+  --mine-text-secondary: #CBD5E1;
+  --mine-text-muted: #94A3B8;
+  --mine-text-weak: #64748B;
+  --mine-brand: #F5B51B;
+  --mine-green: #16C784;
+  --mine-red: #F6465D;
+}
+
+html[data-theme='dark'] #app .me-page.me-page,
+html[data-theme='dark'] #app .profile-page,
+html[data-theme='dark'] #app .detail-page {
+  background: var(--mine-bg) !important;
+  color: var(--mine-text-primary) !important;
+  padding-bottom: calc(112px + env(safe-area-inset-bottom)) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .top-nav {
+  min-height: 64px !important;
+  padding: 16px !important;
+  background: var(--mine-surface) !important;
+  border-bottom: 1px solid var(--mine-divider) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .user-profile {
+  gap: 12px !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .avatar-circle {
+  width: 38px !important;
+  height: 38px !important;
+  background: var(--mine-brand) !important;
+  color: #111827 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .avatar-circle .van-icon {
+  color: #111827 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .username {
+  color: var(--mine-text-primary) !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .top-icons,
+html[data-theme='dark'] #app .me-page.me-page .top-icons .van-icon,
+html[data-theme='dark'] #app .me-page.me-page .icon-right {
+  color: var(--mine-text-secondary) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .wallet-banner {
+  margin: 12px 16px 14px !important;
+  padding: 13px 16px !important;
+  background: rgba(22,199,132,0.10) !important;
+  border: 1px solid rgba(22,199,132,0.22) !important;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .wallet-check,
+html[data-theme='dark'] #app .me-page.me-page .wallet-text,
+html[data-theme='dark'] #app .me-page.me-page .wallet-switch,
+html[data-theme='dark'] #app .me-page.me-page .copy-icon {
+  color: var(--mine-green) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .wallet-text,
+html[data-theme='dark'] #app .me-page.me-page .wallet-addr {
+  font-weight: 600 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .wallet-addr-label {
+  color: var(--mine-text-muted) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .asset-tabs,
+html[data-theme='dark'] #app .me-page.me-page .asset-tabs .van-tabs__wrap,
+html[data-theme='dark'] #app .me-page.me-page .asset-tabs .van-tabs__nav {
+  height: 48px !important;
+  background: var(--mine-surface) !important;
+  border-bottom: 1px solid var(--mine-divider) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .asset-tabs .van-tab {
+  color: var(--mine-text-muted) !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .asset-tabs .van-tab--active {
+  color: var(--mine-text-primary) !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .asset-tabs .van-tabs__line {
+  width: 24px !important;
+  height: 3px !important;
+  border-radius: 999px !important;
+  background: var(--mine-brand) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content,
+html[data-theme='dark'] #app .me-page.me-page .module-content,
+html[data-theme='dark'] #app .me-page.me-page .spot-content {
+  background: var(--mine-bg) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .summary-card,
+html[data-theme='dark'] #app .me-page.me-page .account-card,
+html[data-theme='dark'] #app .me-page.me-page .list-card,
+html[data-theme='dark'] #app .me-page.me-page .coin-list,
+html[data-theme='dark'] #app .me-page.me-page .referral-card,
+html[data-theme='dark'] #app .profile-page .settings-card,
+html[data-theme='dark'] #app .profile-page .fee-card,
+html[data-theme='dark'] #app .detail-page .hero-card,
+html[data-theme='dark'] #app .detail-page .balance-item,
+html[data-theme='dark'] #app .detail-page .list-section {
+  background: var(--mine-card) !important;
+  border: 1px solid var(--mine-border) !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .convert-bnb,
+html[data-theme='dark'] #app .me-page.me-page .search-field,
+html[data-theme='dark'] #app .me-page.me-page .unit-switch,
+html[data-theme='dark'] #app .me-page.me-page .unit-chip.active,
+html[data-theme='dark'] #app .me-page.me-page .action-btn.dark,
+html[data-theme='dark'] #app .me-page.me-page .action-btn.light,
+html[data-theme='dark'] #app .me-page.me-page .earned-text,
+html[data-theme='dark'] #app .detail-page .filter-chip:not(.active),
+html[data-theme='dark'] #app .detail-page .range-chip:not(.active),
+html[data-theme='dark'] #app .detail-page .act-btn.ghost {
+  background: var(--mine-card-inner) !important;
+  border-color: var(--mine-border) !important;
+  color: var(--mine-text-secondary) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .action-btn.primary,
+html[data-theme='dark'] #app .me-page.me-page .wide-btn,
+html[data-theme='dark'] #app .detail-page .act-btn.primary {
+  background: var(--mine-brand) !important;
+  color: #111827 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .history-btn {
+  background: var(--mine-card-inner) !important;
+  color: var(--mine-text-secondary) !important;
+  border: 1px solid var(--mine-border) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .account-metrics,
+html[data-theme='dark'] #app .me-page.me-page .pos-row,
+html[data-theme='dark'] #app .me-page.me-page .ieo-row,
+html[data-theme='dark'] #app .me-page.me-page .coin-item,
+html[data-theme='dark'] #app .profile-page .setting-item,
+html[data-theme='dark'] #app .detail-page .asset-row,
+html[data-theme='dark'] #app .detail-page .stock-row,
+html[data-theme='dark'] #app .detail-page .ieo-row,
+html[data-theme='dark'] #app .detail-page .history-row,
+html[data-theme='dark'] #app .detail-page .bill-row {
+  border-color: var(--mine-divider) !important;
+  border-bottom-color: var(--mine-divider) !important;
+  border-top-color: var(--mine-divider) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .summary-total,
+html[data-theme='dark'] #app .me-page.me-page .account-name,
+html[data-theme='dark'] #app .me-page.me-page .account-value,
+html[data-theme='dark'] #app .me-page.me-page .allocation-title,
+html[data-theme='dark'] #app .me-page.me-page .list-title,
+html[data-theme='dark'] #app .me-page.me-page .pos-symbol,
+html[data-theme='dark'] #app .me-page.me-page .ieo-name,
+html[data-theme='dark'] #app .me-page.me-page .coin-name,
+html[data-theme='dark'] #app .me-page.me-page .coin-balance,
+html[data-theme='dark'] #app .profile-page .wallet-name,
+html[data-theme='dark'] #app .profile-page .setting-title,
+html[data-theme='dark'] #app .detail-page .detail-title,
+html[data-theme='dark'] #app .detail-page .section-title,
+html[data-theme='dark'] #app .detail-page .coin-symbol,
+html[data-theme='dark'] #app .detail-page .stock-symbol,
+html[data-theme='dark'] #app .detail-page .stat-value {
+  color: var(--mine-text-primary) !important;
+  -webkit-text-fill-color: var(--mine-text-primary) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .summary-label,
+html[data-theme='dark'] #app .me-page.me-page .summary-sub,
+html[data-theme='dark'] #app .me-page.me-page .account-desc,
+html[data-theme='dark'] #app .me-page.me-page .metric-label,
+html[data-theme='dark'] #app .me-page.me-page .coin-fullname,
+html[data-theme='dark'] #app .me-page.me-page .coin-price,
+html[data-theme='dark'] #app .profile-page .setting-desc,
+html[data-theme='dark'] #app .profile-page .fee-label,
+html[data-theme='dark'] #app .detail-page .hero-label,
+html[data-theme='dark'] #app .detail-page .bal-label,
+html[data-theme='dark'] #app .detail-page .stat-label,
+html[data-theme='dark'] #app .detail-page .coin-name,
+html[data-theme='dark'] #app .detail-page .stock-name,
+html[data-theme='dark'] #app .detail-page .history-time {
+  color: var(--mine-text-muted) !important;
+  -webkit-text-fill-color: var(--mine-text-muted) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .metric-value:not(.up):not(.down),
+html[data-theme='dark'] #app .me-page.me-page .mini-label,
+html[data-theme='dark'] #app .me-page.me-page .pnl-cap,
+html[data-theme='dark'] #app .me-page.me-page .earned-label,
+html[data-theme='dark'] #app .detail-page .coin-value,
+html[data-theme='dark'] #app .detail-page .stock-sub,
+html[data-theme='dark'] #app .detail-page .bill-row span {
+  color: var(--mine-text-weak) !important;
+  -webkit-text-fill-color: var(--mine-text-weak) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .up,
+html[data-theme='dark'] #app .me-page.me-page .metric-value.up,
+html[data-theme='dark'] #app .detail-page .up {
+  color: var(--mine-green) !important;
+  -webkit-text-fill-color: var(--mine-green) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .down,
+html[data-theme='dark'] #app .me-page.me-page .metric-value.down,
+html[data-theme='dark'] #app .detail-page .down {
+  color: var(--mine-red) !important;
+  -webkit-text-fill-color: var(--mine-red) !important;
+}
+
+html[data-theme='dark'] .van-tabbar {
+  background: var(--mine-surface) !important;
+  border-top: 1px solid var(--mine-divider) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] .van-tabbar .van-tabbar-item {
+  color: var(--mine-text-muted) !important;
+}
+
+html[data-theme='dark'] .van-tabbar .van-tabbar-item--active,
+html[data-theme='dark'] .van-tabbar .van-tabbar-item--active .van-tabbar-item__text,
+html[data-theme='dark'] .van-tabbar .van-tabbar-item--active .van-tabbar-item__icon {
+  color: var(--mine-text-primary) !important;
+}
+
+html[data-theme='dark'] .van-tabbar .van-tabbar-item--active::before {
+  width: 24px !important;
+  height: 3px !important;
+  border-radius: 999px !important;
+  background: var(--mine-brand) !important;
+}
+
+/* =====================================================================
+   Mine / Assets overview polish only.
+   Scope: Me overview tab cards, actions, referral and allocation list.
+   ===================================================================== */
+html[data-theme='dark'] #app .me-page.me-page .overview-content {
+  padding: 0 16px calc(120px + env(safe-area-inset-bottom)) !important;
+  background: var(--mine-bg) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content > .summary-card {
+  padding: 20px !important;
+  background: #151F31 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .summary-label {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .summary-total {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 36px !important;
+  font-weight: 700 !important;
+  line-height: 1.08 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .summary-total.sm {
+  font-size: 26px !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .summary-sub {
+  color: #CBD5E1 !important;
+  -webkit-text-fill-color: #CBD5E1 !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .summary-pnl {
+  color: #94A3B8 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .summary-pnl .up,
+html[data-theme='dark'] #app .me-page.me-page .overview-content .summary-pnl .down {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .summary-pnl .up {
+  color: #16C784 !important;
+  -webkit-text-fill-color: #16C784 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .summary-pnl .down {
+  color: #F6465D !important;
+  -webkit-text-fill-color: #F6465D !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .unit-switch {
+  padding: 3px !important;
+  gap: 2px !important;
+  background: #1A2538 !important;
+  border: 1px solid rgba(255,255,255,0.05) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .unit-chip {
+  min-width: 44px !important;
+  padding: 5px 10px !important;
+  background: transparent !important;
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .unit-chip.active {
+  background: rgba(255,255,255,0.06) !important;
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .action-grid {
+  gap: 12px !important;
+  margin-bottom: 16px !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .action-btn {
+  height: 56px !important;
+  border-radius: 14px !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .action-btn.primary {
+  background: linear-gradient(135deg, #F7C82F, #F5B51B) !important;
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .action-btn.dark {
+  background: #1A2538 !important;
+  border: 1px solid transparent !important;
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .action-btn.light {
+  background: #151F31 !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .referral-card {
+  grid-template-columns: 48px minmax(0, 1fr) auto !important;
+  gap: 12px !important;
+  padding: 16px 18px !important;
+  background: #151F31 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .referral-visual {
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 14px !important;
+  background: rgba(245,181,27,0.90) !important;
+  color: #1F2937 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .ref-kicker {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .ref-title {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .ref-desc {
+  color: #CBD5E1 !important;
+  -webkit-text-fill-color: #CBD5E1 !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .ref-desc .highlight {
+  color: #F5B51B !important;
+  -webkit-text-fill-color: #F5B51B !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .earned-label {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .earned-text {
+  background: rgba(245,181,27,0.14) !important;
+  border: 1px solid rgba(245,181,27,0.24) !important;
+  color: #F5B51B !important;
+  -webkit-text-fill-color: #F5B51B !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .referral-action .van-icon {
+  color: #94A3B8 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .allocation-section {
+  margin-top: 6px !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .allocation-title {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  margin-bottom: 12px !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .allocation-list {
+  gap: 12px !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .account-card {
+  padding: 16px !important;
+  background: #151F31 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .account-card:active {
+  background: #1A2538 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .account-icon {
+  opacity: 0.92 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .ic-spot {
+  background: rgba(245,181,27,0.92) !important;
+  color: #1F2937 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .ic-earn {
+  background: rgba(139,92,246,0.86) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .ic-futures {
+  background: linear-gradient(135deg, rgba(59,130,246,0.86), rgba(249,115,22,0.82)) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .ic-ieo {
+  background: rgba(246,70,93,0.86) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .ic-stock {
+  background: linear-gradient(135deg, rgba(22,199,132,0.86), rgba(139,92,246,0.82)) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .account-name {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .account-desc {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .account-value {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  text-align: right !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .account-total .van-icon {
+  color: #94A3B8 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .account-metrics {
+  border-top: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .metric-label {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .overview-content .metric-value {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+/* =====================================================================
+   Mine / Assets spot polish only.
+   Scope: Me spot tab tools, search and coin list.
+   ===================================================================== */
+html[data-theme='dark'] #app .me-page.me-page .spot-content {
+  padding: 0 16px calc(120px + env(safe-area-inset-bottom)) !important;
+  background: var(--mine-bg) !important;
+  overflow-x: hidden !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .tools-bar,
+html[data-theme='dark'] #app .me-page.me-page .spot-content .search-bar {
+  padding: 0 !important;
+  margin-bottom: 14px !important;
+  gap: 12px !important;
+  background: transparent !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .convert-bnb,
+html[data-theme='dark'] #app .me-page.me-page .spot-content .history-btn {
+  min-height: 46px !important;
+  height: 46px !important;
+  border-radius: 14px !important;
+  box-sizing: border-box !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .convert-bnb {
+  padding: 0 14px !important;
+  background: #151F31 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .convert-bnb .van-icon {
+  color: #94A3B8 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .history-btn {
+  padding: 0 14px !important;
+  background: rgba(245,181,27,0.12) !important;
+  border: 1px solid rgba(245,181,27,0.20) !important;
+  color: #F5B51B !important;
+  -webkit-text-fill-color: #F5B51B !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .history-btn .van-icon {
+  color: #F5B51B !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .hide-small {
+  color: #CBD5E1 !important;
+  -webkit-text-fill-color: #CBD5E1 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .radio-circle {
+  width: 17px !important;
+  height: 17px !important;
+  border: 2px solid rgba(203,213,225,0.72) !important;
+  background: transparent !important;
+  box-sizing: border-box !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .radio-circle.checked {
+  border-color: #F5B51B !important;
+  background: rgba(245,181,27,0.18) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .radio-circle.checked::after {
+  width: 7px !important;
+  height: 7px !important;
+  background: #F5B51B !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .search-field {
+  height: 46px !important;
+  border-radius: 14px !important;
+  background: #151F31 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .search-field .van-field__left-icon,
+html[data-theme='dark'] #app .me-page.me-page .spot-content .search-field .van-icon {
+  color: #94A3B8 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .search-field .van-field__control {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .search-field .van-field__control::placeholder {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .coin-list {
+  margin: 0 !important;
+  background: #151F31 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .coin-item {
+  min-height: 76px !important;
+  padding: 14px 16px !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+  box-sizing: border-box !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .coin-item:last-child {
+  border-bottom: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .coin-left {
+  gap: 13px !important;
+  min-width: 0 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .coin-icon {
+  width: 44px !important;
+  height: 44px !important;
+  flex: 0 0 44px !important;
+  font-size: 17px !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .coin-info {
+  gap: 5px !important;
+  min-width: 0 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .coin-name {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  line-height: 1.15 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .coin-fullname {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  line-height: 1.2 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .coin-right {
+  gap: 6px !important;
+  min-width: 116px !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .coin-balance {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  line-height: 1.15 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .coin-price {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .spot-content .empty-state {
+  background: #151F31 !important;
+  color: #94A3B8 !important;
+}
+
+/* =====================================================================
+   Mine / Assets earn polish only.
+   Scope: Me earn tab embedded Miner module.
+   ===================================================================== */
+html[data-theme='dark'] #app .me-page.me-page > .earn-content {
+  padding: 0 16px calc(120px + env(safe-area-inset-bottom)) !important;
+  background: var(--mine-bg) !important;
+  overflow-x: hidden !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .earn-list-page,
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .earn-page {
+  min-height: auto !important;
+  background: var(--mine-bg) !important;
+  color: #F8FAFC !important;
+  padding-bottom: 0 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .earn-page > .earn-content {
+  max-width: none !important;
+  padding: 12px 0 0 !important;
+  gap: 14px !important;
+  background: var(--mine-bg) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .asset-overview-card {
+  min-height: 156px !important;
+  padding: 20px !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  background: linear-gradient(135deg, #151F31 0%, #111A2B 70%, rgba(245,181,27,0.10) 100%) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .asset-overview-card::before,
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .asset-overview-card::after {
+  opacity: 0 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .overview-kicker {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .asset-overview-card > strong {
+  margin-top: 12px !important;
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 32px !important;
+  font-weight: 700 !important;
+  line-height: 1.12 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .asset-overview-card small {
+  color: #CBD5E1 !important;
+  -webkit-text-fill-color: #CBD5E1 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .overview-stats {
+  margin-top: 22px !important;
+  gap: 14px !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .overview-stats span {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .overview-stats b {
+  color: rgba(245,181,27,0.92) !important;
+  -webkit-text-fill-color: rgba(245,181,27,0.92) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .earn-tabs {
+  height: 52px !important;
+  padding: 4px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  background: #111A2B !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .earn-tabs button {
+  border-radius: 11px !important;
+  background: transparent !important;
+  color: #CBD5E1 !important;
+  -webkit-text-fill-color: #CBD5E1 !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .earn-tabs button.active {
+  background: #F5B51B !important;
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .product-card,
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .records-card {
+  padding: 20px !important;
+  border-radius: 18px !important;
+  background: #151F31 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .product-head {
+  gap: 16px !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .status-badge {
+  height: 24px !important;
+  padding: 0 10px !important;
+  background: rgba(22,199,132,0.12) !important;
+  color: #16C784 !important;
+  -webkit-text-fill-color: #16C784 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .product-head h1 {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  line-height: 1.15 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .product-head p {
+  color: #CBD5E1 !important;
+  -webkit-text-fill-color: #CBD5E1 !important;
+  font-size: 14px !important;
+  line-height: 1.45 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .apy-block strong {
+  color: #16C784 !important;
+  -webkit-text-fill-color: #16C784 !important;
+  font-size: 32px !important;
+  font-weight: 700 !important;
+  line-height: 1.08 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .apy-block span {
+  color: #CBD5E1 !important;
+  -webkit-text-fill-color: #CBD5E1 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .product-highlight,
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .interest-metrics div {
+  background: #111A2B !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .product-highlight span,
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .interest-metrics span,
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .selector-field span,
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .amount-field span,
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .estimate-row span,
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .record-grid span {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .product-highlight strong,
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .interest-metrics strong,
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .selector-field strong,
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .estimate-row strong,
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .record-grid b {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .meta-block > span {
+  color: #CBD5E1 !important;
+  -webkit-text-fill-color: #CBD5E1 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .term-chips {
+  gap: 10px !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .term-chips button {
+  min-height: 36px !important;
+  padding: 0 15px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  background: #111A2B !important;
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .term-chips button.active {
+  border-color: #F5B51B !important;
+  background: rgba(245,181,27,0.12) !important;
+  color: #F5B51B !important;
+  -webkit-text-fill-color: #F5B51B !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .form-panel {
+  margin-top: 16px !important;
+  padding: 0 16px !important;
+  border-radius: 16px !important;
+  background: #111A2B !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .selector-field,
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .estimate-row {
+  min-height: 54px !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .amount-field {
+  min-height: 58px !important;
+  margin-top: 0 !important;
+  padding: 8px 0 !important;
+  border-top: 1px solid rgba(255,255,255,0.06) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .amount-field input {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 24px !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .primary-action {
+  height: 54px !important;
+  border-radius: 14px !important;
+  background: linear-gradient(135deg, #F7C82F, #F5B51B) !important;
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .records-head h2 {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .records-head span {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .records-card .empty-state {
+  min-height: 128px !important;
+  border-radius: 16px !important;
+  background: #111A2B !important;
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .records-card .empty-state .van-icon {
+  color: #64748B !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .records-card .empty-state strong {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+
+/* Keep the embedded Earn tab aligned with the Me overview container. */
+html[data-theme='dark'] #app .me-page.me-page > .earn-content {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 16px calc(120px + env(safe-area-inset-bottom)) !important;
+  box-sizing: border-box !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .earn-list-page,
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .earn-page {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .earn-page {
+  min-height: auto !important;
+  padding-bottom: 0 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .earn-page > .earn-content {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 12px 0 0 !important;
+  box-sizing: border-box !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .asset-overview-card,
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .earn-tabs,
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .product-card,
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .records-card {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* =====================================================================
+   Mine / Assets futures polish only.
+   Scope: Me contract tab summary, positions and CTA.
+   ===================================================================== */
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) {
+  padding: 0 16px calc(128px + env(safe-area-inset-bottom)) !important;
+  background: var(--mine-bg) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+  overflow-x: hidden !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) > .summary-card {
+  margin: 0 !important;
+  padding: 20px !important;
+  background: #151F31 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) > .summary-card .summary-label {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) > .summary-card .summary-total {
+  margin-top: 6px !important;
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 36px !important;
+  line-height: 1.08 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) .mini-stats {
+  margin-top: 18px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  gap: 14px !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) .mini {
+  gap: 6px !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) .mini-label {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) .mini-value {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 17px !important;
+  line-height: 1.2 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) .mini-value.up {
+  color: #16C784 !important;
+  -webkit-text-fill-color: #16C784 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) .mini-value.down {
+  color: #F6465D !important;
+  -webkit-text-fill-color: #F6465D !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) > .list-card {
+  margin: 0 !important;
+  padding: 16px 18px !important;
+  background: #151F31 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) > .list-card .list-title {
+  margin-bottom: 12px !important;
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 18px !important;
+  line-height: 1.25 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) .pos-row {
+  min-height: 72px !important;
+  padding: 14px 0 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) .pos-row:last-child {
+  padding-bottom: 4px !important;
+  border-bottom: 0 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) .pos-left {
+  min-width: 0 !important;
+  gap: 9px !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) .pos-symbol {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 17px !important;
+  line-height: 1.2 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) .pos-tags {
+  gap: 8px !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) .tag {
+  padding: 4px 9px !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+  font-weight: 700 !important;
+  font-style: normal !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) .tag.long {
+  color: #16C784 !important;
+  -webkit-text-fill-color: #16C784 !important;
+  background: rgba(22,199,132,0.12) !important;
+  border-color: rgba(22,199,132,0.18) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) .tag.short {
+  color: #F6465D !important;
+  -webkit-text-fill-color: #F6465D !important;
+  background: rgba(246,70,93,0.12) !important;
+  border-color: rgba(246,70,93,0.18) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) .tag.lev {
+  color: #F5B51B !important;
+  -webkit-text-fill-color: #F5B51B !important;
+  background: rgba(245,181,27,0.12) !important;
+  border-color: rgba(245,181,27,0.20) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) .pos-right {
+  gap: 5px !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) .pos-pnl {
+  font-size: 20px !important;
+  line-height: 1.12 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) .pos-sub {
+  font-size: 14px !important;
+  line-height: 1.2 !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) .pos-pnl.up,
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) .pos-sub.up {
+  color: #16C784 !important;
+  -webkit-text-fill-color: #16C784 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) .pos-pnl.down,
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) .pos-sub.down {
+  color: #F6465D !important;
+  -webkit-text-fill-color: #F6465D !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) > .wide-btn {
+  width: 100% !important;
+  height: 56px !important;
+  margin: 2px 0 16px !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+  background: linear-gradient(135deg, #F7C82F, #F5B51B) !important;
+  box-shadow: none !important;
+  font-size: 17px !important;
+  line-height: 1 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.pos-tags) > .wide-btn:active {
+  transform: translateY(1px) !important;
+}
+
+/* =====================================================================
+   Mine / Assets IEO polish only.
+   Scope: Me IEO tab statistics, project positions and CTA.
+   ===================================================================== */
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.ieo-hero) {
+  padding: 0 16px calc(128px + env(safe-area-inset-bottom)) !important;
+  background: var(--mine-bg) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+  overflow-x: hidden !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.ieo-hero) > .summary-card {
+  margin: 0 !important;
+  padding: 20px !important;
+  background: #151F31 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.ieo-hero) .ieo-hero {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  gap: 18px !important;
+  align-items: start !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.ieo-hero) .ieo-stat {
+  min-width: 0 !important;
+  gap: 8px !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.ieo-hero) .mini-label {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  line-height: 1.2 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.ieo-hero) .summary-total.sm {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 30px !important;
+  line-height: 1.08 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.ieo-hero) > .list-card {
+  margin: 0 !important;
+  padding: 16px 18px !important;
+  background: #151F31 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.ieo-hero) > .list-card .list-title {
+  margin-bottom: 12px !important;
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 18px !important;
+  line-height: 1.25 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.ieo-hero) .ieo-row {
+  min-height: 72px !important;
+  padding: 15px 0 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+  gap: 16px !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.ieo-hero) .ieo-row:last-child {
+  padding-bottom: 4px !important;
+  border-bottom: 0 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.ieo-hero) .ieo-left {
+  min-width: 0 !important;
+  gap: 7px !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.ieo-hero) .ieo-name {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 16px !important;
+  line-height: 1.2 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.ieo-hero) .ieo-sub {
+  color: #CBD5E1 !important;
+  -webkit-text-fill-color: #CBD5E1 !important;
+  font-size: 13px !important;
+  line-height: 1.25 !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.ieo-hero) .status-badge {
+  min-width: 62px !important;
+  height: 26px !important;
+  padding: 0 11px !important;
+  border: 1px solid transparent !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+  font-size: 12px !important;
+  line-height: 24px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.ieo-hero) .status-badge.won {
+  color: #16C784 !important;
+  -webkit-text-fill-color: #16C784 !important;
+  background: rgba(22,199,132,0.12) !important;
+  border-color: rgba(22,199,132,0.18) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.ieo-hero) .status-badge.pending {
+  color: #F5B51B !important;
+  -webkit-text-fill-color: #F5B51B !important;
+  background: rgba(245,181,27,0.12) !important;
+  border-color: rgba(245,181,27,0.18) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.ieo-hero) .status-badge.failed {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  background: rgba(148,163,184,0.12) !important;
+  border-color: rgba(148,163,184,0.18) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.ieo-hero) > .wide-btn {
+  width: 100% !important;
+  height: 54px !important;
+  margin: 2px 0 18px !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+  background: linear-gradient(135deg, #F7C82F, #F5B51B) !important;
+  box-shadow: none !important;
+  font-size: 17px !important;
+  line-height: 1 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.ieo-hero) > .wide-btn:active {
+  transform: translateY(1px) !important;
+}
+
+/* =====================================================================
+   Mine / Assets stock polish only.
+   Scope: Me stock tab summary, holdings and CTA.
+   ===================================================================== */
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.summary-pnl) {
+  padding: 0 16px calc(128px + env(safe-area-inset-bottom)) !important;
+  background: var(--mine-bg) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+  overflow-x: hidden !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.summary-pnl) > .summary-card {
+  margin: 0 !important;
+  padding: 20px !important;
+  background: #151F31 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.summary-pnl) > .summary-card .summary-label {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.summary-pnl) > .summary-card .summary-total {
+  margin-top: 7px !important;
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 36px !important;
+  line-height: 1.08 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.summary-pnl) .summary-pnl {
+  margin-top: 12px !important;
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 8px !important;
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 14px !important;
+  line-height: 1.25 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.summary-pnl) .summary-pnl .pnl-cap {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.summary-pnl) .summary-pnl span:last-child {
+  display: inline-flex !important;
+  align-items: baseline !important;
+  gap: 8px !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.summary-pnl) .summary-pnl .up {
+  color: #16C784 !important;
+  -webkit-text-fill-color: #16C784 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.summary-pnl) .summary-pnl .down {
+  color: #F6465D !important;
+  -webkit-text-fill-color: #F6465D !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.summary-pnl) .summary-pnl em {
+  color: inherit !important;
+  -webkit-text-fill-color: inherit !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  font-style: normal !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.summary-pnl) > .list-card {
+  margin: 0 !important;
+  padding: 16px 18px !important;
+  background: #151F31 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.summary-pnl) > .list-card .list-title {
+  margin-bottom: 12px !important;
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 18px !important;
+  line-height: 1.25 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.summary-pnl) .pos-row {
+  min-height: 72px !important;
+  padding: 14px 0 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.summary-pnl) .pos-row:last-child {
+  padding-bottom: 4px !important;
+  border-bottom: 0 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.summary-pnl) .pos-left {
+  min-width: 0 !important;
+  gap: 7px !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.summary-pnl) .pos-symbol {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 17px !important;
+  line-height: 1.2 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.summary-pnl) .ieo-sub {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 13px !important;
+  line-height: 1.2 !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.summary-pnl) .pos-right {
+  gap: 5px !important;
+  min-width: 112px !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.summary-pnl) .pos-pnl {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 20px !important;
+  line-height: 1.12 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.summary-pnl) .pos-sub {
+  font-size: 13px !important;
+  line-height: 1.2 !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.summary-pnl) .pos-sub.up {
+  color: #16C784 !important;
+  -webkit-text-fill-color: #16C784 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.summary-pnl) .pos-sub.down {
+  color: #F6465D !important;
+  -webkit-text-fill-color: #F6465D !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.summary-pnl) > .wide-btn {
+  width: 100% !important;
+  height: 54px !important;
+  margin: 2px 0 18px !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+  background: linear-gradient(135deg, #F7C82F, #F5B51B) !important;
+  box-shadow: none !important;
+  font-size: 17px !important;
+  line-height: 1 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page .module-content:has(.summary-pnl) > .wide-btn:active {
+  transform: translateY(1px) !important;
+}
+
+/* =====================================================================
+   Trade futures top polish only.
+   Scope: dark header, trade tabs, pair title and top badges.
+   ===================================================================== */
+html[data-theme='dark'] #app .app-header {
+  height: 56px !important;
+  background: #0F1726 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .app-header .header-left svg,
+html[data-theme='dark'] #app .app-header .header-left img {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+html[data-theme='dark'] #app .app-header .header-right {
+  gap: 10px !important;
+}
+
+html[data-theme='dark'] #app .app-header .connect-wallet-btn,
+html[data-theme='dark'] #app .app-header .theme-toggle-btn,
+html[data-theme='dark'] #app .app-header .stock-market-btn,
+html[data-theme='dark'] #app .app-header .lang-icon-box {
+  height: 34px !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  background: #151F31 !important;
+  color: #CBD5E1 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .app-header .theme-toggle-btn,
+html[data-theme='dark'] #app .app-header .stock-market-btn,
+html[data-theme='dark'] #app .app-header .lang-icon-box {
+  width: 34px !important;
+  flex: 0 0 34px !important;
+}
+
+html[data-theme='dark'] #app .app-header .connect-wallet-btn {
+  color: #F8FAFC !important;
+  border-color: rgba(22,199,132,0.28) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme='dark'] #app .app-header .stock-market-glyph span {
+  background: #CBD5E1 !important;
+}
+
+html[data-theme='dark'] #app .app-header .lang-icon-box svg {
+  stroke: #CBD5E1 !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .trade-tabs {
+  height: 48px !important;
+  padding: 0 16px !important;
+  background: #111A2B !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .trade-tabs .tab-item {
+  height: 48px !important;
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .trade-tabs .tab-item.active {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .trade-tabs .tab-item.active::after {
+  width: 28px !important;
+  height: 3px !important;
+  border-radius: 999px !important;
+  background: #F5B51B !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .pair-info {
+  min-height: 102px !important;
+  padding: 18px 16px !important;
+  gap: 10px !important;
+  background: #111A2B !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .pair-selector {
+  min-width: 0 !important;
+  gap: 4px !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .pair-name {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 22px !important;
+  line-height: 1.1 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .pair-selector .van-icon {
+  color: #CBD5E1 !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .pair-info .zero-fee-badge {
+  height: 24px !important;
+  margin-left: 8px !important;
+  padding: 0 10px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: rgba(245,181,27,0.14) !important;
+  color: #F5B51B !important;
+  -webkit-text-fill-color: #F5B51B !important;
+  box-shadow: none !important;
+  font-size: 12px !important;
+  line-height: 24px !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .pair-info .zero-fee-badge svg {
+  width: 12px !important;
+  height: 12px !important;
+  color: #F5B51B !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .pair-info .price-change {
+  min-width: 86px !important;
+  height: 36px !important;
+  padding: 0 12px !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  background: rgba(22,199,132,0.14) !important;
+  color: #16C784 !important;
+  -webkit-text-fill-color: #16C784 !important;
+  box-shadow: none !important;
+  font-size: 14px !important;
+  line-height: 36px !important;
+  font-weight: 700 !important;
+}
+
+/* =====================================================================
+   Trade futures orderbook polish only.
+   Scope: dark orderbook card, rows, depth bars and last price.
+   ===================================================================== */
+html[data-theme='dark'] #app .trade-page.trade-page .futures-trade-main {
+  gap: 12px !important;
+  overflow-x: hidden !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .orderbook-side,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-orderbook-side {
+  min-width: 0 !important;
+  padding: 12px !important;
+  background: #151F31 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .orderbook-side .orderbook-header,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-orderbook-side .orderbook-header {
+  height: 24px !important;
+  min-height: 24px !important;
+  padding: 0 2px 8px !important;
+  margin: 0 !important;
+  border-bottom: 0 !important;
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 12px !important;
+  line-height: 16px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .orderbook-side .orderbook-header span,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-orderbook-side .orderbook-header span {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .orderbook-side .asks-list,
+html[data-theme='dark'] #app .trade-page.trade-page .orderbook-side .bids-list,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-orderbook-side .asks-list,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-orderbook-side .bids-list {
+  gap: 1px !important;
+  overflow: hidden !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .orderbook-side .order-row,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-orderbook-side .order-row {
+  height: 31px !important;
+  min-height: 31px !important;
+  padding: 0 4px !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  overflow: hidden !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .orderbook-side .order-row .price,
+html[data-theme='dark'] #app .trade-page.trade-page .orderbook-side .order-row .quantity,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-orderbook-side .order-row .price,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-orderbook-side .order-row .quantity {
+  position: relative !important;
+  z-index: 1 !important;
+  min-width: 0 !important;
+  font-size: 13px !important;
+  line-height: 31px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  font-family: var(--font-number, 'Roboto Mono', 'DIN Alternate', monospace) !important;
+  font-variant-numeric: tabular-nums !important;
+  text-shadow: none !important;
+  white-space: nowrap !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .orderbook-side .order-row .price,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-orderbook-side .order-row .price {
+  flex: 1 1 50% !important;
+  text-align: left !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .orderbook-side .order-row .quantity,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-orderbook-side .order-row .quantity {
+  flex: 1 1 50% !important;
+  color: #CBD5E1 !important;
+  -webkit-text-fill-color: #CBD5E1 !important;
+  text-align: right !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .orderbook-side .ask-price,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-orderbook-side .ask-price {
+  color: #F6465D !important;
+  -webkit-text-fill-color: #F6465D !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .orderbook-side .bid-price,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-orderbook-side .bid-price {
+  color: #16C784 !important;
+  -webkit-text-fill-color: #16C784 !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .orderbook-side .depth-bar,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-orderbook-side .depth-bar {
+  right: 0 !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .orderbook-side .ask-depth,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-orderbook-side .ask-depth {
+  background: rgba(246,70,93,0.08) !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .orderbook-side .bid-depth,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-orderbook-side .bid-depth {
+  background: rgba(22,199,132,0.08) !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .orderbook-side .last-price,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-orderbook-side .last-price {
+  min-height: 88px !important;
+  height: auto !important;
+  margin: 9px 0 !important;
+  padding: 14px 10px !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 12px !important;
+  background: #1A2538 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .orderbook-side .last-price::before,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-orderbook-side .last-price::before {
+  display: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .orderbook-side .price-main,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-orderbook-side .price-main {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 32px !important;
+  line-height: 1.05 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .orderbook-side .price-fiat,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-orderbook-side .price-fiat {
+  margin-top: 5px !important;
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 13px !important;
+  line-height: 1.2 !important;
+  font-weight: 600 !important;
+  text-shadow: none !important;
+}
+
+@media (max-width: 390px) {
+  html[data-theme='dark'] #app .trade-page.trade-page .orderbook-side,
+  html[data-theme='dark'] #app .trade-page.trade-page .futures-orderbook-side {
+    padding: 10px !important;
+  }
+
+  html[data-theme='dark'] #app .trade-page.trade-page .orderbook-side .order-row .price,
+  html[data-theme='dark'] #app .trade-page.trade-page .orderbook-side .order-row .quantity,
+  html[data-theme='dark'] #app .trade-page.trade-page .futures-orderbook-side .order-row .price,
+  html[data-theme='dark'] #app .trade-page.trade-page .futures-orderbook-side .order-row .quantity {
+    font-size: 12px !important;
+  }
+
+  html[data-theme='dark'] #app .trade-page.trade-page .orderbook-side .price-main,
+  html[data-theme='dark'] #app .trade-page.trade-page .futures-orderbook-side .price-main {
+    font-size: 30px !important;
+  }
+}
+
+/* =====================================================================
+   Earn page dark refit.
+   Scope: Earn / Miner page surfaces, product form, records and nav spacing.
+   ===================================================================== */
+html[data-theme='dark'] #app .earn-list-page,
+html[data-theme='dark'] #app .earn-page {
+  background: #08111F !important;
+  color: #F8FAFC !important;
+  overflow-x: hidden !important;
+}
+
+html[data-theme='dark'] #app .earn-page .earn-content {
+  width: 100% !important;
+  max-width: 520px !important;
+  margin: 0 auto !important;
+  padding: 16px 16px calc(104px + env(safe-area-inset-bottom)) !important;
+  gap: 14px !important;
+  box-sizing: border-box !important;
+}
+
+html[data-theme='dark'] #app .me-page.me-page > .earn-content .earn-page .earn-content {
+  max-width: none !important;
+  padding: 12px 0 calc(104px + env(safe-area-inset-bottom)) !important;
+}
+
+html[data-theme='dark'] #app .earn-page .asset-overview-card {
+  min-height: 156px !important;
+  padding: 20px !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  background: linear-gradient(135deg, #151F31 0%, #111A2B 72%, rgba(245,181,27,0.08) 100%) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .earn-page .asset-overview-card::before,
+html[data-theme='dark'] #app .earn-page .asset-overview-card::after {
+  opacity: 0 !important;
+}
+
+html[data-theme='dark'] #app .earn-page .overview-kicker,
+html[data-theme='dark'] #app .earn-page .overview-stats span {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+html[data-theme='dark'] #app .earn-page .asset-overview-card > strong {
+  margin-top: 12px !important;
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 34px !important;
+  line-height: 1.1 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-theme='dark'] #app .earn-page .asset-overview-card small {
+  color: #CBD5E1 !important;
+  -webkit-text-fill-color: #CBD5E1 !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme='dark'] #app .earn-page .overview-stats {
+  margin-top: 22px !important;
+  gap: 16px !important;
+}
+
+html[data-theme='dark'] #app .earn-page .overview-stats b {
+  color: #F5B51B !important;
+  -webkit-text-fill-color: #F5B51B !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme='dark'] #app .earn-page .earn-tabs {
+  height: 52px !important;
+  padding: 4px !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  background: #111A2B !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .earn-page .earn-tabs button {
+  border-radius: 12px !important;
+  background: transparent !important;
+  color: #CBD5E1 !important;
+  -webkit-text-fill-color: #CBD5E1 !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .earn-page .earn-tabs button.active {
+  background: linear-gradient(135deg, #F7C82F, #F5B51B) !important;
+  color: #08111F !important;
+  -webkit-text-fill-color: #08111F !important;
+}
+
+html[data-theme='dark'] #app .earn-page .product-card,
+html[data-theme='dark'] #app .earn-page .records-card {
+  padding: 20px !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  background: #151F31 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .earn-page .product-head {
+  gap: 16px !important;
+  align-items: start !important;
+}
+
+html[data-theme='dark'] #app .earn-page .status-badge {
+  height: 24px !important;
+  padding: 0 10px !important;
+  border: 1px solid rgba(22,199,132,0.18) !important;
+  border-radius: 999px !important;
+  background: rgba(22,199,132,0.12) !important;
+  color: #16C784 !important;
+  -webkit-text-fill-color: #16C784 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme='dark'] #app .earn-page .product-head h1 {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 28px !important;
+  line-height: 1.15 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-theme='dark'] #app .earn-page .product-head p {
+  color: #CBD5E1 !important;
+  -webkit-text-fill-color: #CBD5E1 !important;
+  font-size: 14px !important;
+  line-height: 1.45 !important;
+}
+
+html[data-theme='dark'] #app .earn-page .apy-block strong {
+  color: #16C784 !important;
+  -webkit-text-fill-color: #16C784 !important;
+  font-size: 32px !important;
+  line-height: 1.08 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-theme='dark'] #app .earn-page .apy-block span {
+  color: #CBD5E1 !important;
+  -webkit-text-fill-color: #CBD5E1 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme='dark'] #app .earn-page .product-highlight,
+html[data-theme='dark'] #app .earn-page .interest-metrics div {
+  padding: 14px 16px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  background: #111A2B !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .earn-page .product-highlight span,
+html[data-theme='dark'] #app .earn-page .interest-metrics span,
+html[data-theme='dark'] #app .earn-page .selector-field span,
+html[data-theme='dark'] #app .earn-page .amount-field span,
+html[data-theme='dark'] #app .earn-page .estimate-row span,
+html[data-theme='dark'] #app .earn-page .record-grid span {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+html[data-theme='dark'] #app .earn-page .product-highlight strong,
+html[data-theme='dark'] #app .earn-page .interest-metrics strong,
+html[data-theme='dark'] #app .earn-page .selector-field strong,
+html[data-theme='dark'] #app .earn-page .estimate-row strong,
+html[data-theme='dark'] #app .earn-page .record-grid b {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme='dark'] #app .earn-page .meta-block > span {
+  color: #CBD5E1 !important;
+  -webkit-text-fill-color: #CBD5E1 !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
+html[data-theme='dark'] #app .earn-page .term-chips {
+  gap: 10px !important;
+}
+
+html[data-theme='dark'] #app .earn-page .term-chips button {
+  min-height: 36px !important;
+  padding: 0 16px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  background: #111A2B !important;
+  color: #CBD5E1 !important;
+  -webkit-text-fill-color: #CBD5E1 !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme='dark'] #app .earn-page .term-chips button.active {
+  border-color: rgba(245,181,27,0.55) !important;
+  background: rgba(245,181,27,0.12) !important;
+  color: #F5B51B !important;
+  -webkit-text-fill-color: #F5B51B !important;
+}
+
+html[data-theme='dark'] #app .earn-page .form-panel {
+  margin-top: 18px !important;
+  padding: 0 16px !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  background: #111A2B !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .earn-page .selector-field,
+html[data-theme='dark'] #app .earn-page .estimate-row {
+  min-height: 58px !important;
+  padding: 0 !important;
+}
+
+html[data-theme='dark'] #app .earn-page .amount-field {
+  min-height: 58px !important;
+  margin-top: 0 !important;
+  padding: 8px 0 !important;
+  border-top: 1px solid rgba(255,255,255,0.06) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+html[data-theme='dark'] #app .earn-page .amount-field input {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 24px !important;
+  font-weight: 700 !important;
+  text-align: right !important;
+}
+
+html[data-theme='dark'] #app .earn-page .selector-field strong,
+html[data-theme='dark'] #app .earn-page .estimate-row strong {
+  text-align: right !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+html[data-theme='dark'] #app .earn-page .estimate-row strong {
+  font-size: 18px !important;
+}
+
+html[data-theme='dark'] #app .earn-page .primary-action {
+  height: 56px !important;
+  margin-top: 18px !important;
+  border-radius: 14px !important;
+  background: linear-gradient(135deg, #F7C82F, #F5B51B) !important;
+  color: #08111F !important;
+  -webkit-text-fill-color: #08111F !important;
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  box-shadow: 0 8px 20px rgba(245,181,27,0.12) !important;
+}
+
+html[data-theme='dark'] #app .earn-page .primary-action:disabled {
+  opacity: 0.55 !important;
+}
+
+html[data-theme='dark'] #app .earn-page .records-card {
+  min-height: 180px !important;
+}
+
+html[data-theme='dark'] #app .earn-page .records-head h2 {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme='dark'] #app .earn-page .records-head span {
+  color: #CBD5E1 !important;
+  -webkit-text-fill-color: #CBD5E1 !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme='dark'] #app .earn-page .empty-state {
+  min-height: 108px !important;
+  margin-top: 14px !important;
+  border-radius: 16px !important;
+  background: #111A2B !important;
+  color: #CBD5E1 !important;
+  -webkit-text-fill-color: #CBD5E1 !important;
+}
+
+html[data-theme='dark'] #app .earn-page .empty-state .van-icon {
+  color: #94A3B8 !important;
+  font-size: 30px !important;
+}
+
+html[data-theme='dark'] #app .earn-page .empty-state strong {
+  color: #CBD5E1 !important;
+  -webkit-text-fill-color: #CBD5E1 !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme='dark'] #app .earn-page .record-card {
+  border-color: rgba(255,255,255,0.06) !important;
+  background: #111A2B !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] .van-tabbar {
+  background: #101827 !important;
+  border-top: 1px solid rgba(255,255,255,0.07) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] .van-tabbar-item {
+  color: #94A3B8 !important;
+}
+
+/* =====================================================================
+   Trade futures positions dark polish only.
+   Scope: bottom position tabs, position card, tags, detail panel and safe gap.
+   ===================================================================== */
+html[data-theme='dark'] #app .trade-page.trade-page .futures-bottom-section,
+html[data-theme='dark'] #app .trade-page.trade-page .bottom-section {
+  background: #111A2B !important;
+  border-top: 1px solid rgba(255,255,255,0.06) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .trade-scrollable-content,
+html[data-theme='dark'] #app .trade-page.trade-page .futures-trade-container {
+  padding-bottom: calc(112px + env(safe-area-inset-bottom)) !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-tabs {
+  background: #111A2B !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-tabs .van-tabs__wrap,
+html[data-theme='dark'] #app .trade-page.trade-page .position-tabs .van-tabs__nav {
+  height: 56px !important;
+  padding: 0 16px !important;
+  background: #111A2B !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-tabs .van-tabs__nav {
+  display: flex !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-tabs .van-tab {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  height: 56px !important;
+  padding: 0 !important;
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  line-height: 56px !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-tabs .van-tab--active {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-tabs .van-tabs__line {
+  width: 28px !important;
+  height: 3px !important;
+  border-radius: 999px !important;
+  background: #F5B51B !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .positions-list,
+html[data-theme='dark'] #app .trade-page.trade-page .orders-list,
+html[data-theme='dark'] #app .trade-page.trade-page .history-list {
+  padding: 16px 16px calc(104px + env(safe-area-inset-bottom)) !important;
+  gap: 14px !important;
+  background: #111A2B !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-card {
+  margin: 0 !important;
+  padding: 16px !important;
+  gap: 16px !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  background: #151F31 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  transform: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-card::before {
+  display: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-card:hover {
+  border-color: rgba(255,255,255,0.07) !important;
+  background: #151F31 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-card-main {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 14px !important;
+  align-items: stretch !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-left {
+  min-width: 0 !important;
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-symbol-row {
+  min-width: 0 !important;
+  margin: 0 !important;
+  gap: 6px !important;
+  flex-wrap: wrap !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-symbol {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 20px !important;
+  line-height: 1.2 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-side-badge,
+html[data-theme='dark'] #app .trade-page.trade-page .position-perpetual,
+html[data-theme='dark'] #app .trade-page.trade-page .position-leverage {
+  min-height: 22px !important;
+  padding: 0 8px !important;
+  border-radius: 999px !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  font-size: 12px !important;
+  line-height: 20px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  white-space: nowrap !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-side-badge.side-long {
+  border-color: rgba(22,199,132,0.16) !important;
+  background: rgba(22,199,132,0.12) !important;
+  color: #16C784 !important;
+  -webkit-text-fill-color: #16C784 !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-side-badge.side-short {
+  border-color: rgba(246,70,93,0.16) !important;
+  background: rgba(246,70,93,0.12) !important;
+  color: #F6465D !important;
+  -webkit-text-fill-color: #F6465D !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-perpetual {
+  border-color: rgba(148,163,184,0.16) !important;
+  background: rgba(148,163,184,0.12) !important;
+  color: #CBD5E1 !important;
+  -webkit-text-fill-color: #CBD5E1 !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-leverage {
+  justify-self: end !important;
+  margin: 0 !important;
+  border-color: rgba(245,181,27,0.16) !important;
+  background: rgba(245,181,27,0.12) !important;
+  color: #F5B51B !important;
+  -webkit-text-fill-color: #F5B51B !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-center {
+  align-items: flex-start !important;
+  padding: 0 !important;
+  text-align: left !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .unrealized-pnl-label {
+  margin: 0 0 6px !important;
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 12px !important;
+  line-height: 1.3 !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .unrealized-pnl-value {
+  margin: 0 0 4px !important;
+  font-size: 30px !important;
+  line-height: 1.08 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  font-variant-numeric: tabular-nums !important;
+  text-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .unrealized-pnl-value.positive,
+html[data-theme='dark'] #app .trade-page.trade-page .unrealized-pnl-percent.positive {
+  color: #16C784 !important;
+  -webkit-text-fill-color: #16C784 !important;
+  text-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .unrealized-pnl-value.negative,
+html[data-theme='dark'] #app .trade-page.trade-page .unrealized-pnl-percent.negative {
+  color: #F6465D !important;
+  -webkit-text-fill-color: #F6465D !important;
+  text-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .unrealized-pnl-percent {
+  color: #16C784 !important;
+  -webkit-text-fill-color: #16C784 !important;
+  font-size: 14px !important;
+  line-height: 1.35 !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  font-variant-numeric: tabular-nums !important;
+  text-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-right {
+  min-width: 0 !important;
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  padding: 12px !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  background: #1A2538 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-info-row {
+  min-width: 0 !important;
+  gap: 5px !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-info-row:nth-child(n+4) {
+  display: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-right .info-label {
+  overflow: hidden !important;
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 12px !important;
+  line-height: 1.25 !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-overflow: ellipsis !important;
+  text-transform: none !important;
+  white-space: nowrap !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-right .info-value {
+  overflow: hidden !important;
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  font-size: 13px !important;
+  line-height: 1.3 !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-variant-numeric: tabular-nums !important;
+  text-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-right .entry-price-value,
+html[data-theme='dark'] #app .trade-page.trade-page .position-right .liquidation-price {
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-actions {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  margin-top: 0 !important;
+  padding-top: 16px !important;
+  border-top: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-actions .action-btn,
+html[data-theme='dark'] #app .trade-page.trade-page .tp-sl-btn,
+html[data-theme='dark'] #app .trade-page.trade-page .close-btn {
+  height: 48px !important;
+  padding: 0 12px !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  background: #1A2538 !important;
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  font-size: 15px !important;
+  line-height: 48px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-actions .action-btn:active,
+html[data-theme='dark'] #app .trade-page.trade-page .tp-sl-btn:active,
+html[data-theme='dark'] #app .trade-page.trade-page .close-btn:active {
+  background: #202D42 !important;
+}
+
+html[data-theme='dark'] #app .trade-page.trade-page .position-tabs .empty-state,
+html[data-theme='dark'] #app .trade-page.trade-page .positions-list .empty-state {
+  min-height: 88px !important;
+  padding: 28px 16px !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  background: #151F31 !important;
+  color: #CBD5E1 !important;
+  -webkit-text-fill-color: #CBD5E1 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] .van-tabbar {
+  background: #101827 !important;
+  border-top: 1px solid rgba(255,255,255,0.07) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] .van-tabbar .van-tabbar-item {
+  color: #94A3B8 !important;
+}
