@@ -12,6 +12,7 @@
 
     <main class="security-content">
       <section class="security-hero">
+        <span class="hero-badge">{{ $t('security.status_secure') }}</span>
         <div class="security-score-ring">
           <van-icon name="shield-o" />
         </div>
@@ -40,11 +41,16 @@
             <van-icon name="balance-o" />
           </span>
           <span class="security-title">{{ $t('security.fund_password_setting') }}</span>
-          <span :class="['status-pill', fundPasswordEnabled ? 'is-enabled' : 'is-soft']">
+          <span :class="['status-pill', fundPasswordEnabled ? 'is-enabled' : 'is-warn']">
             {{ fundPasswordStatus }}
           </span>
           <van-icon name="arrow" class="row-arrow" />
         </button>
+      </section>
+
+      <section class="security-advice">
+        <van-icon name="info-o" class="advice-icon" />
+        <p>{{ $t('security.advice') }}</p>
       </section>
     </main>
   </div>
@@ -102,54 +108,73 @@ const handleFundPassword = () => {
 </script>
 
 <style scoped>
+/* ==== 几何 / 结构（浅深两色共用，切换主题不产生位移） ==== */
 .security-page {
   min-height: 100vh;
-  background: var(--color-bg);
-  color: var(--color-text-primary);
+  background: #F5F7FA;
+  color: #111827;
 }
 
 :deep(.page-nav-bar) {
-  --van-nav-bar-background: var(--color-bg);
-  --van-nav-bar-title-text-color: var(--color-text-primary);
-  --van-nav-bar-icon-color: var(--color-primary);
-  border-bottom: 1px solid var(--color-border);
+  --van-nav-bar-height: 56px;
+  --van-nav-bar-background: #FFFFFF;
+  --van-nav-bar-title-text-color: #111827;
+  --van-nav-bar-icon-color: #334155;
+  border-bottom: 1px solid #E8EEF5;
 }
 
 :deep(.page-nav-bar .van-nav-bar__title) {
-  font-size: 17px;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 700;
 }
 
 .security-content {
-  padding: 30px 14px 32px;
+  padding: 24px 16px 32px;
+  box-sizing: border-box;
 }
 
+/* 安全等级卡片 */
 .security-hero {
-  min-height: 106px;
-  padding: 22px 24px;
-  border-radius: 16px;
+  position: relative;
+  min-height: 116px;
+  padding: 20px;
+  border-radius: 18px;
   background: #FFFFFF;
   border: 1px solid #E8EEF5;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: 16px;
 }
 
+.hero-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #16A34A;
+  background: rgba(22, 163, 74, 0.10);
+  border: 1px solid rgba(22, 163, 74, 0.22);
+}
+
 .security-score-ring {
-  width: 62px;
-  height: 62px;
-  flex: 0 0 62px;
+  width: 64px;
+  height: 64px;
+  flex: 0 0 64px;
   border-radius: 18px;
   display: grid;
   place-items: center;
+  font-size: 26px;
   color: #16A34A;
-  font-size: 27px;
-  background:
-    linear-gradient(#FFFFFF, #FFFFFF) padding-box,
-    conic-gradient(#16A34A 0 86%, #E5E7EB 86% 100%) border-box;
-  border: 3px solid transparent;
-  box-shadow: 0 10px 22px rgba(22, 163, 74, 0.12);
+  background: rgba(22, 163, 74, 0.10);
+  border: 1px solid rgba(22, 163, 74, 0.28);
+  box-sizing: border-box;
 }
 
 .security-copy {
@@ -165,37 +190,47 @@ const handleFundPassword = () => {
 
 .security-level-text span {
   color: #16A34A;
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .security-copy p {
   margin: 8px 0 0;
   color: #64748B;
   font-size: 13px;
+  font-weight: 500;
   line-height: 1.45;
 }
 
+/* 设置项列表 */
 .security-list {
-  margin-top: 16px;
+  margin-top: 14px;
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: 18px;
   background: #FFFFFF;
   border: 1px solid #E8EEF5;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+  box-sizing: border-box;
 }
 
 .security-row {
+  appearance: none;
+  -webkit-appearance: none;
+  box-sizing: border-box;
   width: 100%;
-  min-height: 76px;
-  padding: 0 18px 0 20px;
+  min-height: 88px;
+  margin: 0;
+  padding: 0 18px;
   border: 0;
-  border-bottom: 1px solid #F1F4F8;
+  border-bottom: 1px solid #EEF2F7;
+  border-radius: 0;
   background: transparent;
+  box-shadow: none;
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr) auto 18px;
+  grid-template-columns: 36px minmax(0, 1fr) auto 18px;
   align-items: center;
   gap: 12px;
   text-align: left;
+  font: inherit;
+  cursor: pointer;
 }
 
 .security-row:last-child {
@@ -203,47 +238,91 @@ const handleFundPassword = () => {
 }
 
 .security-row:active {
-  background: #F8FAFC;
+  background: #F5F7FA;
 }
 
 .security-icon {
-  color: #F0B90B;
-  font-size: 18px;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
   display: grid;
   place-items: center;
+  font-size: 20px;
+  color: #64748B;
+  background: #F3F5F9;
+  border: 1px solid #E8EEF5;
+  box-sizing: border-box;
 }
 
 .security-title {
   color: #111827;
-  font-size: 15.5px;
-  font-weight: 650;
-  line-height: 1.35;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
 }
 
 .status-pill {
-  padding: 4px 10px;
+  height: 26px;
+  padding: 0 10px;
   border-radius: 999px;
-  font-size: 13px;
-  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
   white-space: nowrap;
+  box-sizing: border-box;
 }
 
-.is-enabled,
-.is-soft {
-  color: #059669;
-  background: #EAFBF2;
-  border: 1px solid #BEEBD0;
+.is-enabled {
+  color: #16A34A;
+  background: rgba(22, 163, 74, 0.12);
+  border: 1px solid rgba(22, 163, 74, 0.20);
 }
 
 .is-disabled {
   color: #EF4444;
-  background: #FFF0F0;
-  border: 1px solid #FFD1D1;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.20);
+}
+
+.is-warn {
+  color: #B45309;
+  background: rgba(245, 158, 11, 0.14);
+  border: 1px solid rgba(245, 158, 11, 0.24);
 }
 
 .row-arrow {
   color: #94A3B8;
   font-size: 18px;
+}
+
+/* 底部建议提示 */
+.security-advice {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(245, 181, 27, 0.08);
+  border: 1px solid rgba(245, 181, 27, 0.18);
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.advice-icon {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  font-size: 16px;
+  color: #B7860B;
+}
+
+.security-advice p {
+  margin: 0;
+  color: #64748B;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 @media (max-width: 360px) {
@@ -252,16 +331,12 @@ const handleFundPassword = () => {
     padding-right: 12px;
   }
 
-  .security-hero {
-    padding: 18px;
-  }
-
   .security-level-text {
     font-size: 16px;
   }
 
   .security-row {
-    grid-template-columns: 20px minmax(0, 1fr) auto 16px;
+    grid-template-columns: 36px minmax(0, 1fr) auto 16px;
     gap: 10px;
     padding: 0 14px;
   }
@@ -269,101 +344,111 @@ const handleFundPassword = () => {
 </style>
 
 <style>
-.security-page {
-  background: #F5F7FA !important;
-}
-
-.security-page .security-content {
-  box-sizing: border-box !important;
-}
-
-.security-page .security-hero,
-.security-page .security-list {
-  box-sizing: border-box !important;
-  display: flex !important;
-}
-
-.security-page .security-list {
-  display: block !important;
-}
-
-.security-page .security-row {
-  appearance: none !important;
-  -webkit-appearance: none !important;
-  box-sizing: border-box !important;
-  width: 100% !important;
-  min-height: 76px !important;
-  margin: 0 !important;
-  padding: 0 18px 0 20px !important;
-  border-top: 0 !important;
-  border-right: 0 !important;
-  border-left: 0 !important;
-  border-bottom: 1px solid #F1F4F8 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  display: grid !important;
-  grid-template-columns: 22px minmax(0, 1fr) auto 18px !important;
-  align-items: center !important;
-  gap: 12px !important;
-  text-align: left !important;
-  font: inherit !important;
-}
-
-.security-page .security-row:last-child {
-  border-bottom: 0 !important;
-}
-
-.security-page .security-row:active {
-  background: #F8FAFC !important;
-}
-
-.security-page .security-title,
-.security-page .status-pill {
-  line-height: 1.2 !important;
-}
-
+/* =====================================================================
+   深色主题 —— 仅覆盖颜色 / 背景 / 边框色 / 阴影，绝不改动几何，
+   浅色与深色布局像素级一致（配色对齐 Binance / OKX 深色设置页）
+   ===================================================================== */
 html[data-theme='dark'] .security-page {
-  background: var(--color-bg) !important;
-  color: var(--color-text-primary) !important;
+  background: #08111F !important;
+  color: #F8FAFC !important;
 }
 
 html[data-theme='dark'] .security-page .page-nav-bar {
-  --van-nav-bar-background: var(--color-bg) !important;
-  --van-nav-bar-title-text-color: var(--color-text-primary) !important;
-  --van-nav-bar-icon-color: var(--color-primary) !important;
-  border-bottom-color: var(--color-border) !important;
+  --van-nav-bar-background: #0F1726 !important;
+  --van-nav-bar-title-text-color: #F8FAFC !important;
+  --van-nav-bar-icon-color: #CBD5E1 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.06) !important;
 }
 
-html[data-theme='dark'] .security-page .security-hero,
-html[data-theme='dark'] .security-page .security-list {
-  background: var(--color-bg-card) !important;
-  border-color: var(--color-border) !important;
-  box-shadow: var(--shadow-card) !important;
+/* 安全等级卡片：略浅于页面的渐变深蓝 */
+html[data-theme='dark'] .security-page .security-hero {
+  background: linear-gradient(135deg, #151F31 0%, #111A2B 100%) !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+html[data-theme='dark'] .security-page .hero-badge {
+  color: #16C784 !important;
+  background: rgba(22, 199, 132, 0.12) !important;
+  border-color: rgba(22, 199, 132, 0.18) !important;
 }
 
 html[data-theme='dark'] .security-page .security-score-ring {
-  color: var(--color-earn) !important;
-  background:
-    linear-gradient(var(--color-bg-card), var(--color-bg-card)) padding-box,
-    conic-gradient(var(--color-earn) 0 86%, var(--color-border) 86% 100%) border-box !important;
+  color: #16C784 !important;
+  background: rgba(22, 199, 132, 0.10) !important;
+  border-color: rgba(22, 199, 132, 0.28) !important;
 }
 
-html[data-theme='dark'] .security-page .security-level-text,
-html[data-theme='dark'] .security-page .security-title {
-  color: var(--color-text-primary) !important;
+html[data-theme='dark'] .security-page .security-level-text {
+  color: #F8FAFC !important;
 }
 
-html[data-theme='dark'] .security-page .security-copy p,
-html[data-theme='dark'] .security-page .row-arrow {
-  color: var(--color-text-secondary) !important;
+html[data-theme='dark'] .security-page .security-level-text span {
+  color: #16C784 !important;
+}
+
+html[data-theme='dark'] .security-page .security-copy p {
+  color: #CBD5E1 !important;
+}
+
+/* 设置项列表卡片 */
+html[data-theme='dark'] .security-page .security-list {
+  background: #151F31 !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
 }
 
 html[data-theme='dark'] .security-page .security-row {
-  border-bottom-color: var(--color-border) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.06) !important;
 }
 
 html[data-theme='dark'] .security-page .security-row:active {
-  background: var(--color-surface-muted) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* 内层图标底 */
+html[data-theme='dark'] .security-page .security-icon {
+  color: #CBD5E1 !important;
+  background: #111A2B !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+html[data-theme='dark'] .security-page .security-title {
+  color: #F8FAFC !important;
+}
+
+html[data-theme='dark'] .security-page .row-arrow {
+  color: #94A3B8 !important;
+}
+
+/* 状态胶囊：深色克制配色（不再是浅白底） */
+html[data-theme='dark'] .security-page .is-enabled {
+  color: #16C784 !important;
+  background: rgba(22, 199, 132, 0.12) !important;
+  border-color: rgba(22, 199, 132, 0.18) !important;
+}
+
+html[data-theme='dark'] .security-page .is-disabled {
+  color: #F6465D !important;
+  background: rgba(246, 70, 93, 0.12) !important;
+  border-color: rgba(246, 70, 93, 0.18) !important;
+}
+
+html[data-theme='dark'] .security-page .is-warn {
+  color: #F59E0B !important;
+  background: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(245, 158, 11, 0.18) !important;
+}
+
+/* 底部建议提示 */
+html[data-theme='dark'] .security-page .security-advice {
+  background: rgba(245, 181, 27, 0.08) !important;
+  border-color: rgba(245, 181, 27, 0.16) !important;
+}
+
+html[data-theme='dark'] .security-page .advice-icon {
+  color: #F5B51B !important;
+}
+
+html[data-theme='dark'] .security-page .security-advice p {
+  color: #CBD5E1 !important;
 }
 </style>

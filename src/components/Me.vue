@@ -580,7 +580,7 @@ onActivated(async () => {
 .top-icons {
   display: flex;
   gap: 18px;
-  color: #334155;
+  color: #8a95a6;
 }
 
 .icon-right {
@@ -591,8 +591,8 @@ onActivated(async () => {
 .wallet-banner {
   margin: 0 16px 12px;
   padding: 12px 14px;
-  background: #eafaf2;
-  border: 1px solid #bdecd4;
+  background: #f4f8f6;
+  border: 1px solid #e6eee9;
   border-radius: 12px;
 }
 
@@ -603,23 +603,23 @@ onActivated(async () => {
 }
 
 .wallet-check {
-  color: #10b981;
+  color: #1aa06a;
   font-size: 16px;
 }
 
 .wallet-text {
   font-size: 13px;
   font-weight: 700;
-  color: #0f7a52;
+  color: #16855a;
   flex: 1;
 }
 
 .wallet-switch {
   font-size: 12px;
-  color: #0f7a52;
+  color: #16855a;
   font-weight: 600;
   cursor: pointer;
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 .wallet-addr-row {
@@ -632,19 +632,19 @@ onActivated(async () => {
 
 .wallet-addr-label {
   font-size: 12px;
-  color: #6b8e7d;
+  color: #90a0ab;
 }
 
 .wallet-addr {
   font-size: 12px;
-  color: #0f172a;
+  color: #334155;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
 .copy-icon {
   font-size: 14px;
-  color: #0f7a52;
+  color: #1aa06a;
 }
 
 /* Tabs */

@@ -1,6 +1,6 @@
 <template>
   <div class="all-markets-page">
-    <!-- 顶部导航栏 -->
+    <!-- 顶部搜索 -->
     <div class="markets-header">
       <van-icon name="arrow-left" class="header-back" @click="router.back()" />
       <div class="search-wrapper">
@@ -12,99 +12,98 @@
           :placeholder="t('market.search_placeholder')"
           autocomplete="off"
         />
-        <van-icon 
-          v-if="searchQuery" 
-          name="clear" 
-          class="clear-icon" 
+        <van-icon
+          v-if="searchQuery"
+          name="clear"
+          class="clear-icon"
           @click="searchQuery = ''"
         />
       </div>
     </div>
 
-    <!-- 二级分类 Tabs -->
+    <!-- 一级分类 Tabs -->
     <div class="category-tabs">
-      <div 
-        v-for="tab in categoryTabs" 
+      <div
+        v-for="tab in categoryTabs"
         :key="tab.key"
         class="category-tab"
         :class="{ active: activeCategory === tab.key }"
         @click="activeCategory = tab.key"
       >
-        {{ tab.label }}
+        <span class="tab-label">{{ tab.label }}</span>
       </div>
+    </div>
+
+    <!-- 筛选标签 -->
+    <div class="filter-bar">
+      <button
+        v-for="f in marketFilters"
+        :key="f.key"
+        type="button"
+        class="filter-chip"
+        :class="{ active: activeFilter === f.key }"
+        @click="activeFilter = f.key"
+      >{{ f.label }}</button>
     </div>
 
     <!-- 可排序表头 -->
     <div class="table-header">
-      <div class="header-col name-col" @click="handleSort('name')">
+      <div class="th-name" @click="handleSort('name')">
         <span>{{ t('market.name_vol') }}</span>
-        <span class="sort-icon" v-if="sortField === 'name'">
-          {{ sortOrder === 'asc' ? '▲' : '▼' }}
-        </span>
+        <span class="sort-icon" v-if="sortField === 'name'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
       </div>
-      <div class="header-col price-col" @click="handleSort('price')">
+      <div class="th-price" @click="handleSort('price')">
         <span>{{ t('market.last_price') }}</span>
-        <span class="sort-icon" v-if="sortField === 'price'">
-          {{ sortOrder === 'asc' ? '▲' : '▼' }}
-        </span>
+        <span class="sort-icon" v-if="sortField === 'price'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
       </div>
-      <div class="header-col change-col" @click="handleSort('change')">
+      <div class="th-change" @click="handleSort('change')">
         <span>{{ t('market.24h_chg') }}</span>
-        <span class="sort-icon" v-if="sortField === 'change'">
-          {{ sortOrder === 'asc' ? '▲' : '▼' }}
-        </span>
+        <span class="sort-icon" v-if="sortField === 'change'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
       </div>
     </div>
 
     <!-- 行情列表 -->
-    <div 
+    <div
       class="markets-list"
       @scroll="handleScroll"
       ref="listContainer"
     >
-      <div 
-        v-for="coin in displayedMarkets" 
+      <div
+        v-for="coin in displayedMarkets"
         :key="coin.symbol"
         class="market-item"
         @click="goToMarket(coin.symbol)"
       >
-        <!-- 第一列：币种信息 (40%) -->
-        <div class="coin-info-col">
-          <CryptoIcon :symbol="coin.symbol" :size="40" variant="compact" />
-          <div class="coin-details">
-            <div class="coin-name-row">
-              <span class="coin-symbol-text">{{ coin.symbol }}</span>
-            </div>
-            <div class="coin-meta-row">
-              <span class="coin-pair">{{ coin.pair }}</span>
-              <span class="coin-vol">Vol {{ formatVolume(coin.volume_24h) }}</span>
-            </div>
+        <van-icon
+          :name="favorites.has(coin.symbol) ? 'star' : 'star-o'"
+          class="fav-star"
+          :class="{ active: favorites.has(coin.symbol) }"
+          @click.stop="toggleFavorite(coin.symbol)"
+        />
+
+        <CryptoIcon :symbol="coin.symbol" :size="36" variant="compact" class="coin-logo-el" />
+
+        <div class="coin-details">
+          <div class="coin-name-line">
+            <span class="coin-symbol-text">{{ coin.symbol }}</span>
+            <span class="coin-pair">{{ coin.pair }}</span>
           </div>
+          <div class="coin-vol-line">Vol {{ formatVolume(coin.volume_24h) }}</div>
         </div>
 
-        <!-- 第二列：最新价格 (30%) -->
-        <div class="price-col">
-          <span 
-            class="price-value"
-            :class="{ 'flash-green': coin.flashState === 'up', 'flash-red': coin.flashState === 'down' }"
-          >
-            {{ formatPrice(coin.price) }}
-          </span>
-        </div>
+        <span
+          class="price-value"
+          :class="{ 'flash-green': coin.flashState === 'up', 'flash-red': coin.flashState === 'down' }"
+        >{{ formatPrice(coin.price) }}</span>
 
-        <!-- 第三列：涨跌幅按钮 (30%) -->
-        <div class="change-col">
-          <div 
-            class="change-btn"
-            :class="{ 
-              'positive': coin.change_percent > 0, 
-              'negative': coin.change_percent < 0,
-              'neutral': coin.change_percent === 0
-            }"
-          >
-            {{ coin.change_percent >= 0 ? '+' : '' }}{{ coin.change_percent.toFixed(2) }}%
-          </div>
-        </div>
+        <div
+          class="change-btn"
+          :class="{
+            positive: coin.change_percent > 0,
+            negative: coin.change_percent < 0,
+            neutral: coin.change_percent === 0
+          }"
+        >{{ coin.change_percent >= 0 ? '+' : '' }}{{ coin.change_percent.toFixed(2) }}%</div>
       </div>
 
       <!-- 加载更多提示 -->
@@ -142,6 +141,22 @@ const categoryTabs = [
 ];
 
 const activeCategory = ref('spot');
+
+// 筛选标签（仅 UI 选中态，不改变搜索/排序/接口逻辑）
+const marketFilters = [
+  { key: 'usdt', label: 'USDT' },
+  { key: 'gainers', label: '涨幅榜' },
+  { key: 'volume', label: '成交额' }
+];
+const activeFilter = ref('usdt');
+
+// 自选星标（纯本地 UI 状态，不涉及业务数据与接口）
+const favorites = ref(new Set());
+const toggleFavorite = (symbol) => {
+  const next = new Set(favorites.value);
+  if (next.has(symbol)) next.delete(symbol); else next.add(symbol);
+  favorites.value = next;
+};
 
 // 排序状态
 const sortField = ref('change'); // 'name', 'price', 'change'
@@ -434,11 +449,11 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 全局强制无衬线字体 */
 .all-markets-page {
   width: 100%;
   height: 100vh;
-  background-color: var(--color-bg);
+  background: #f8fafc;
+  color: #101828;
   font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif !important;
   display: flex;
   flex-direction: column;
@@ -449,23 +464,22 @@ onUnmounted(() => {
   font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif !important;
 }
 
-/* 顶部导航栏 */
+/* ===== 顶部搜索 ===== */
 .markets-header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   padding: 12px 16px;
-  background-color: var(--color-bg);
-  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.08);
+  background: #ffffff;
   flex-shrink: 0;
 }
 
 .header-back {
-  font-size: 20px;
-  color: var(--color-brand);
+  font-size: 24px;
+  color: #f5b51b;
   cursor: pointer;
-  transition: opacity 0.2s ease;
   flex-shrink: 0;
+  transition: opacity 0.2s ease;
 }
 
 .header-back:active {
@@ -474,243 +488,265 @@ onUnmounted(() => {
 
 .search-wrapper {
   flex: 1;
-  position: relative;
+  min-width: 0;
   display: flex;
   align-items: center;
-  background-color: var(--color-surface-muted);
-  border-radius: 20px;
-  padding: 8px 16px;
-  gap: 8px;
+  gap: 10px;
+  height: 48px;
+  padding: 0 18px;
+  background: #f1f4f8;
+  border-radius: 999px;
 }
 
 .search-icon {
-  font-size: 16px;
-  color: var(--color-text-muted);
+  font-size: 18px;
+  color: #98a2b3;
   flex-shrink: 0;
 }
 
 .search-input {
   flex: 1;
-  background-color: transparent;
+  min-width: 0;
   border: none;
   outline: none;
-  font-size: 14px;
-  color: var(--color-text-primary);
-  font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif !important;
+  background: transparent;
+  font-size: 16px;
+  font-weight: 500;
+  color: #101828;
 }
 
 .search-input::placeholder {
-  color: var(--color-text-muted);
+  color: #98a2b3;
+  font-weight: 500;
 }
 
 .clear-icon {
-  font-size: 16px;
-  color: var(--color-text-muted);
+  font-size: 18px;
+  color: #98a2b3;
   cursor: pointer;
   flex-shrink: 0;
-  transition: color 0.2s ease;
 }
 
-.clear-icon:active {
-  color: var(--color-text-primary);
-}
-
-/* 二级分类 Tabs */
+/* ===== 一级分类 Tabs ===== */
 .category-tabs {
   display: flex;
-  gap: 0;
-  padding: 12px 16px;
-  background-color: var(--color-bg);
-  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.08);
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  height: 64px;
+  padding: 0 16px;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
   flex-shrink: 0;
-}
-
-.category-tabs::-webkit-scrollbar {
-  display: none;
 }
 
 .category-tab {
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.2s ease;
+  flex: 1;
   position: relative;
-  margin-right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
 
-.category-tab:last-child {
-  margin-right: 0;
+.tab-label {
+  font-size: 16px;
+  font-weight: 500;
+  color: #98a2b3;
+  line-height: 1;
+  transition: color 0.2s ease;
 }
 
-.category-tab.active {
-  color: var(--color-text-primary);
+.category-tab.active .tab-label {
+  font-size: 18px;
   font-weight: 700;
+  color: #101828;
 }
 
 .category-tab.active::after {
   content: '';
   position: absolute;
-  bottom: -12px;
-  left: 16px;
-  right: 16px;
-  height: 2px;
-  background-color: var(--color-brand);
-  border-radius: 1px;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 4px;
+  border-radius: 999px;
+  background: #f5b51b;
 }
 
-.category-tab:active {
-  opacity: 0.7;
-}
-
-/* 可排序表头 */
-.table-header {
+/* ===== 筛选标签 ===== */
+.filter-bar {
   display: flex;
   align-items: center;
-  padding: 12px 16px;
-  background-color: var(--color-bg);
-  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.08);
-  font-size: 12px;
-  color: var(--color-text-muted);
+  gap: 12px;
+  height: 48px;
+  padding: 0 16px;
+  background: #f8fafc;
+  flex-shrink: 0;
+}
+
+.filter-chip {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  background: #ffffff;
+  color: #98a2b3;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.filter-chip.active {
+  background: rgba(245, 181, 27, 0.12);
+  color: #b7791f;
+  border-color: rgba(245, 181, 27, 0.22);
+}
+
+/* ===== 表头 ===== */
+.table-header {
+  display: grid;
+  grid-template-columns: 24px 36px minmax(0, 1fr) 80px 74px;
+  column-gap: 12px;
+  align-items: center;
+  height: 42px;
+  padding: 0 16px;
+  margin-bottom: 6px;
+  background: #f8fafc;
+  color: #98a2b3;
+  font-size: 13px;
   font-weight: 500;
   flex-shrink: 0;
 }
 
-.header-col {
+.th-name {
+  grid-column: 1 / 4;
   display: flex;
   align-items: center;
   gap: 4px;
   cursor: pointer;
-  transition: color 0.2s ease;
   user-select: none;
 }
 
-.header-col:active {
-  color: var(--color-text-primary);
+.th-price {
+  grid-column: 4;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  user-select: none;
 }
 
-.header-col.name-col {
-  flex: 0 0 40%;
-}
-
-.header-col.price-col {
-  flex: 0 0 30%;
-  justify-content: flex-start;
-  padding-left: 8px;
-}
-
-.header-col.change-col {
-  flex: 0 0 30%;
-  justify-content: flex-end;
-  padding-left: 8px;
+.th-change {
+  grid-column: 5;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  user-select: none;
 }
 
 .sort-icon {
   font-size: 10px;
-  color: var(--color-brand);
+  color: #f5b51b;
   line-height: 1;
 }
 
-/* 行情列表 */
+/* ===== 行情列表 ===== */
 .markets-list {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  background: #f8fafc;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
 }
 
 .market-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: 24px 36px minmax(0, 1fr) 80px 74px;
+  column-gap: 12px;
   align-items: center;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
+  min-height: 72px;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.055);
   cursor: pointer;
   transition: background-color 0.2s ease;
-  min-height: 60px;
+}
+
+.market-item:last-of-type {
+  border-bottom: none;
 }
 
 .market-item:active {
-  background-color: rgb(var(--color-border-rgb) / 0.03);
+  background: rgba(15, 23, 42, 0.03);
 }
 
-/* 第一列：币种信息 (40%) */
-.coin-info-col {
-  flex: 0 0 40%;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
+.fav-star {
+  font-size: 20px;
+  color: #b6c0cc;
+  cursor: pointer;
+  justify-self: center;
 }
 
-.coin-logo {
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  min-height: 24px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0;
-  background-color: rgb(var(--color-border-rgb) / 0.1);
+.fav-star.active {
+  color: #f5b51b;
+}
+
+.coin-logo-el {
+  justify-self: center;
 }
 
 .coin-details {
+  min-width: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  flex: 1;
-}
-
-.coin-name-row {
-  display: flex;
-  align-items: center;
   gap: 4px;
 }
 
-.coin-symbol-text {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  line-height: 1.2;
+.coin-name-line {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
 }
 
-.coin-meta-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 10px;
-  color: var(--color-text-muted);
+.coin-symbol-text {
+  font-size: 16px;
+  font-weight: 700;
+  color: #101828;
   line-height: 1.2;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .coin-pair {
-  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  color: #98a2b3;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
-.coin-vol {
-  color: var(--color-text-muted);
-}
-
-/* 第二列：最新价格 (30%) */
-.price-col {
-  flex: 0 0 30%;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding-left: 8px;
+.coin-vol-line {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12px;
+  font-weight: 500;
+  color: #8a94a6;
+  line-height: 1.2;
 }
 
 .price-value {
-  font-size: 16px;
+  justify-self: end;
+  text-align: right;
+  font-size: 15px;
   font-weight: 700;
-  color: var(--color-text-primary);
-  font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', monospace !important;
+  color: #101828;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
   transition: color 0.3s ease;
 }
 
@@ -725,63 +761,45 @@ onUnmounted(() => {
 }
 
 @keyframes flashGreen {
-  0% {
-    color: var(--color-earn);
-  }
-  50% {
-    color: var(--color-earn);
-  }
-  100% {
-    color: var(--color-text-primary);
-  }
+  0%, 50% { color: var(--color-earn); }
+  100% { color: inherit; }
 }
 
 @keyframes flashRed {
-  0% {
-    color: var(--color-loss);
-  }
-  50% {
-    color: var(--color-loss);
-  }
-  100% {
-    color: var(--color-text-primary);
-  }
-}
-
-/* 第三列：涨跌幅按钮 (30%) */
-.change-col {
-  flex: 0 0 30%;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding-left: 8px;
+  0%, 50% { color: var(--color-loss); }
+  100% { color: inherit; }
 }
 
 .change-btn {
-  width: 70px;
-  padding: 6px 8px;
-  border-radius: 4px;
-  font-size: 13px;
+  grid-column: 5;
+  justify-self: end;
+  width: 74px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
   font-weight: 700;
-  text-align: center;
+  letter-spacing: 0.1px;
   white-space: nowrap;
-  font-family: 'DIN', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif !important;
-  transition: all 0.2s ease;
+  font-variant-numeric: tabular-nums;
+  box-shadow: none;
 }
 
 .change-btn.positive {
-  background-color: var(--color-earn);
-  color: var(--color-text-primary);
+  background: #1fb877;
+  color: #ffffff;
 }
 
 .change-btn.negative {
-  background-color: var(--color-loss);
-  color: var(--color-text-primary);
+  background: #f0566a;
+  color: #ffffff;
 }
 
 .change-btn.neutral {
-  background-color: var(--color-surface-muted);
-  color: var(--color-text-muted);
+  background: #eef1f6;
+  color: #98a2b3;
 }
 
 /* 加载更多 */
@@ -789,7 +807,7 @@ onUnmounted(() => {
 .no-more {
   padding: 20px;
   text-align: center;
-  color: var(--color-text-muted);
+  color: #98a2b3;
   font-size: 12px;
 }
 
@@ -812,14 +830,81 @@ onUnmounted(() => {
   -moz-osx-font-smoothing: grayscale !important;
 }
 
-/* 返回按钮图标 */
-.header-back {
-  font-family: 'vant-icon', 'vant-iconfont', 'vant-icons', 'iconfont', 'vant', sans-serif !important;
+/* =====================================================================
+   深色主题 —— 仅覆盖颜色 / 背景 / 边框，几何与浅色像素级一致，
+   不改变任何 padding / margin / 尺寸 / 字号，保证切换主题不发生位移
+   ===================================================================== */
+:global(html[data-theme='dark']) .all-markets-page {
+  background: #08111f;
+  color: #f8fafc;
 }
-
-/* 搜索图标 */
-.search-icon,
-.clear-icon {
-  font-family: 'vant-icon', 'vant-iconfont', 'vant-icons', 'iconfont', 'vant', sans-serif !important;
+:global(html[data-theme='dark']) .markets-header,
+:global(html[data-theme='dark']) .category-tabs,
+:global(html[data-theme='dark']) .filter-bar,
+:global(html[data-theme='dark']) .table-header,
+:global(html[data-theme='dark']) .markets-list {
+  background: #08111f;
+}
+:global(html[data-theme='dark']) .search-wrapper {
+  background: #151f31;
+}
+:global(html[data-theme='dark']) .search-input {
+  color: #f8fafc;
+}
+:global(html[data-theme='dark']) .search-input::placeholder,
+:global(html[data-theme='dark']) .search-icon,
+:global(html[data-theme='dark']) .clear-icon {
+  color: #94a3b8;
+}
+:global(html[data-theme='dark']) .category-tabs {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+:global(html[data-theme='dark']) .tab-label {
+  color: #94a3b8;
+}
+:global(html[data-theme='dark']) .category-tab.active .tab-label {
+  color: #f8fafc;
+}
+:global(html[data-theme='dark']) .filter-chip {
+  background: #151f31;
+  color: #94a3b8;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+:global(html[data-theme='dark']) .filter-chip.active {
+  background: rgba(245, 181, 27, 0.14);
+  color: #f5b51b;
+  border-color: rgba(245, 181, 27, 0.22);
+}
+:global(html[data-theme='dark']) .table-header {
+  color: #94a3b8;
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+:global(html[data-theme='dark']) .market-item {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+:global(html[data-theme='dark']) .market-item:active {
+  background: rgba(255, 255, 255, 0.04);
+}
+:global(html[data-theme='dark']) .coin-symbol-text,
+:global(html[data-theme='dark']) .price-value {
+  color: #f8fafc;
+}
+:global(html[data-theme='dark']) .coin-vol-line,
+:global(html[data-theme='dark']) .coin-pair {
+  color: #94a3b8;
+}
+:global(html[data-theme='dark']) .fav-star {
+  color: #64748b;
+}
+:global(html[data-theme='dark']) .fav-star.active {
+  color: #f5b51b;
+}
+:global(html[data-theme='dark']) .change-btn.neutral {
+  background: rgba(255, 255, 255, 0.06);
+  color: #94a3b8;
+}
+:global(html[data-theme='dark']) .loading-more,
+:global(html[data-theme='dark']) .no-more {
+  color: #94a3b8;
 }
 </style>

@@ -1,9 +1,5 @@
 <template>
   <div class="referral-page" ref="pageRef">
-    <!-- 闁煎啿鏈▍娆撳礂婢跺顎為柡浣哥墛閻?-->
-    <div class="background-glow"></div>
-    
-    <!-- 婵炲苯顦伴煫鍫濐嚕韫囨搩鍤ら柤鍓蹭簼閻?-->
     <van-nav-bar
       :title="t('referral.title')"
       left-arrow
@@ -12,267 +8,173 @@
       placeholder
       safe-area-inset-top
       :border="false"
-      :class="['custom-nav-bar', { 'scrolled': isScrolled }]"
+      class="custom-nav-bar"
     />
 
-    <!-- 濞戞挻妲掗々锕傚礃閸涱収鍟囬柛鏍ф惈閻?-->
     <div class="referral-content">
-      <!-- 濡炪倕鐖奸崕鎾焻濮橆剚鍟為柡宥呴獜缁辨瑧鎹勯幋锔规敩闁诲浚鍨界槐?-->
-      <div class="announcement-marquee">
-        <div class="marquee-wrapper" :style="{ animationDuration: marqueeSpeed + 's' }">
-          <div 
-            v-for="(announcement, index) in announcements" 
-            :key="`first-${index}`"
-            class="marquee-item"
-          >
-            <span class="marquee-icon">
-              <van-icon :name="announcement.icon" />
-            </span>
-            <span class="marquee-text">{{ announcement.text }}</span>
-          </div>
-          <div 
-            v-for="(announcement, index) in announcements" 
-            :key="`second-${index}`"
-            class="marquee-item"
-          >
-            <span class="marquee-icon">
-              <van-icon :name="announcement.icon" />
-            </span>
-            <span class="marquee-text">{{ announcement.text }}</span>
-          </div>
-        </div>
+      <!-- 消息通知横条 -->
+      <div class="notice-bar">
+        <van-icon name="volume-o" class="notice-icon" />
+        <span class="notice-text">Alex 成功邀请 5 人，获得 250 USDT 返佣</span>
+        <span class="notice-time">2 分钟前</span>
+        <van-icon name="arrow" class="notice-arrow" />
       </div>
 
-      <!-- 闁哄秶顭堢缓楣冨绩閸撲焦鎶勯柣顏勵儐濠?-->
-      <div class="hero-section glass-card">
-        <div class="hero-orb hero-orb-a"></div>
-        <div class="hero-orb hero-orb-b"></div>
-        <div class="hero-content">
-          <div class="coin-icon-wrapper">
-            <div class="coin-icon-3d">
-              <van-icon name="gold-coin-o" size="48" color="var(--color-brand-legacy)" />
-            </div>
+      <!-- 返佣收益主卡片 -->
+      <section class="card hero-card">
+        <div class="hero-top">
+          <span class="hero-tag">{{ t('referral.title') }}</span>
+          <span class="hero-commission">{{ t('referral.total_commission') }} 40%</span>
+        </div>
+
+        <div class="hero-label">{{ t('referral.total_earned') }} (USDT)</div>
+
+        <div class="hero-amount">
+          <span class="hero-number">{{ formatNumber(animatedTotalEarned) }}</span>
+          <span class="hero-unit">USDT</span>
+        </div>
+
+        <div class="hero-chips">
+          <div class="hero-chip">
+            <van-icon name="friends-o" />
+            <span>{{ t('referral.invite_count') }} {{ inviteCount }}</span>
           </div>
-          <div class="hero-stats">
-            <div class="hero-kicker">{{ t('referral.title') }}</div>
-            <div class="hero-label">{{ t('referral.total_earned') }} (USDT)</div>
-            <div class="hero-value gold-text">
-              {{ formatNumber(animatedTotalEarned) }}
-            </div>
-            <div class="hero-meta">
-              <span>{{ t('referral.invite_count') }} {{ inviteCount }}</span>
-              <span>{{ t('referral.total_commission') }} 40%</span>
-            </div>
+          <div class="hero-chip">
+            <van-icon name="balance-o" />
+            <span>可提现 500 USDT</span>
           </div>
         </div>
-        <div class="rebate-action-row">
-          <button class="hero-invite-button" type="button" @click="handleInvite">
+
+        <div class="hero-actions">
+          <button class="btn-primary" type="button" @click="handleInvite">
             <van-icon name="friends-o" size="18" />
             <span>立即邀请</span>
           </button>
-        <van-button 
-          class="withdraw-btn"
-          type="primary"
-          block
-          @click="goToWithdraw"
-        >
-          {{ t('referral.go_withdraw') }}
-        </van-button>
+          <button class="btn-outline" type="button" @click="goToWithdraw">
+            {{ t('referral.go_withdraw') }}
+          </button>
         </div>
-      </div>
+      </section>
 
-      <div class="invite-link-card glass-card">
-        <div class="section-title-row">
+      <!-- 邀请链接卡片 -->
+      <section class="card link-card">
+        <div class="card-title">
           <van-icon name="link-o" />
           <span>邀请链接</span>
         </div>
-        <div class="invite-link-row">
-          <van-icon name="coupon-o" />
-          <span>{{ inviteCode }}</span>
-          <button type="button" @click="handleCopyCode">
+        <div class="link-row">
+          <van-icon name="coupon-o" class="link-icon" />
+          <span class="link-text">{{ inviteCode }}</span>
+          <button class="copy-btn" type="button" @click="handleCopyCode">
             <van-icon name="copy-o" />
-            复制
+            <span>复制</span>
           </button>
         </div>
-        <div class="invite-link-row">
-          <van-icon name="globe-o" />
-          <span>{{ inviteLink.replace(/^https?:\/\//, '') }}</span>
-          <button type="button" @click="handleCopyLink">
+        <div class="link-row">
+          <van-icon name="globe-o" class="link-icon" />
+          <span class="link-text">{{ inviteLink.replace(/^https?:\/\//, '') }}</span>
+          <button class="copy-btn" type="button" @click="handleCopyLink">
             <van-icon name="copy-o" />
-            复制
+            <span>复制</span>
           </button>
         </div>
-      </div>
+      </section>
 
-      <!-- 閺夆晜鏌ч崜鎴犳媼閸撗呮瀭濞戞挸楠搁崹搴㈢?-->
-      <div class="action-section glass-card">
-        <div class="action-header">
-          <div>
-            <div class="section-eyebrow">{{ splitLabel }}</div>
-            <div class="header-title">{{ t('referral.commission_setting') }}</div>
-          </div>
-          <div class="header-total gold-text">{{ t('referral.total_commission') }} 40%</div>
+      <!-- 返佣设置卡片 -->
+      <section class="card setting-card">
+        <div class="card-title">
+          <van-icon name="clock-o" />
+          <span>{{ t('referral.commission_setting') }}</span>
         </div>
-
-        <!-- 婵絾鏌х欢銉ヮ煥閹存繃鍋?-->
-        <div class="slider-container">
-          <div class="slider-labels">
-            <div class="slider-label-left">
-              <span class="label-text">{{ t('referral.my_share') }}</span>
-              <span class="label-value gold-text">{{ myShare }}%</span>
-            </div>
-            <div class="slider-label-right">
-              <span class="label-text">{{ t('referral.friend_share') }}</span>
-              <span class="label-value gold-text">{{ friendShare }}%</span>
-            </div>
+        <div class="setting-shares">
+          <div class="share-item">
+            <span class="share-label">{{ t('referral.my_share') }}</span>
+            <span class="share-value">{{ myShare }}%</span>
           </div>
-          <van-slider
-            v-model="myShare"
-            :min="0"
-            :max="40"
-            :step="1"
-            active-color="var(--color-brand-legacy)"
-            inactive-color="rgb(var(--color-border-rgb) / 0.1)"
-            bar-height="4px"
-            button-size="20px"
-            class="commission-slider"
-          />
+          <div class="share-item right">
+            <span class="share-label">{{ t('referral.friend_share') }}</span>
+            <span class="share-value">{{ friendShare }}%</span>
+          </div>
         </div>
+        <van-slider
+          v-model="myShare"
+          :min="0"
+          :max="40"
+          :step="1"
+          bar-height="4px"
+          button-size="18px"
+          active-color="#F5B51B"
+          inactive-color="#E5E7EB"
+          class="rebate-slider"
+        />
+      </section>
 
-        <!-- 濠㈣泛绉撮崺妤呭礌?-->
-        <div class="copy-section">
-          <div class="copy-item">
-            <div class="copy-label">{{ t('referral.invite_code') }}</div>
-            <div class="copy-value-wrapper">
-              <div class="copy-value">{{ inviteCode }}</div>
-              <button class="copy-pill" type="button" @click="handleCopyCode">
-                <van-icon name="copy" size="16" />
-                {{ copyActionLabel }}
-              </button>
-            </div>
-          </div>
-          <div class="copy-item">
-            <div class="copy-label">{{ t('referral.invite_link') }}</div>
-            <div class="copy-value-wrapper">
-              <div class="copy-value link-value">{{ inviteLink }}</div>
-              <button class="copy-pill" type="button" @click="handleCopyLink">
-                <van-icon name="copy" size="16" />
-                {{ copyActionLabel }}
-              </button>
-            </div>
+      <!-- 数据统计四宫格 -->
+      <section class="card stats-grid">
+        <div class="stat-cell">
+          <div class="stat-icon gold"><van-icon name="friends-o" /></div>
+          <div class="stat-body">
+            <span class="stat-label">{{ t('referral.invite_count') }}</span>
+            <span class="stat-value">
+              {{ formatNumber(animatedInviteCount) }}<em class="stat-unit">{{ t('referral.people') }}</em>
+            </span>
           </div>
         </div>
 
-        <!-- 缂佹柨顑呭畵鍡涙焽閳ь剛鎷犻柨瀣樆闂?-->
-        <van-button 
-          class="invite-btn"
-          type="primary"
-          block
-          @click="handleInvite"
-        >
-          <van-icon name="friends-o" size="18" />
-          {{ t('referral.invite_now') }}
-        </van-button>
-      </div>
-
-      <!-- 闁轰胶澧楀畵浣圭椤忓洢鈧啴鎯?-->
-      <div class="dashboard-section">
-        <div class="dashboard-grid">
-          <div class="dashboard-card glass-card">
-            <div class="dashboard-icon">
-              <van-icon name="friends-o" size="24" color="var(--color-brand-legacy)" />
-            </div>
-            <div class="dashboard-content">
-              <div class="dashboard-label">{{ t('referral.invite_count') }}</div>
-              <div class="dashboard-value gold-text">
-                {{ formatNumber(animatedInviteCount) }}
-                <span class="dashboard-unit">{{ t('referral.people') }}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="dashboard-card glass-card">
-            <div class="dashboard-icon">
-              <van-icon name="balance-o" size="24" color="var(--color-brand-legacy)" />
-            </div>
-            <div class="dashboard-content">
-              <div class="dashboard-label">{{ t('referral.trading_volume') }}</div>
-              <div class="dashboard-value gold-text">
-                {{ formatTradingVolume(tradingVolume) }}
-              </div>
-            </div>
-          </div>
-
-          <div class="dashboard-card glass-card">
-            <div class="dashboard-icon">
-              <van-icon name="gold-coin-o" size="24" color="var(--color-earn)" />
-            </div>
-            <div class="dashboard-content">
-              <div class="dashboard-label">{{ t('referral.yesterday_earnings') }}</div>
-              <div class="dashboard-value text-green">
-                +{{ formatNumber(yesterdayEarnings) }} USDT
-              </div>
-            </div>
-          </div>
-
-          <div class="dashboard-card glass-card">
-            <div class="dashboard-icon">
-              <van-icon name="medal-o" size="24" color="var(--color-brand-legacy)" />
-            </div>
-            <div class="dashboard-content">
-              <div class="dashboard-label">{{ t('referral.current_level') }}</div>
-              <div class="dashboard-value">
-                <span class="level-text gold-text">{{ currentLevel }}</span>
-                <div class="level-progress">
-                  <div class="progress-bar">
-                    <div 
-                      class="progress-fill" 
-                      :style="{ width: levelProgress + '%' }"
-                    ></div>
-                  </div>
-                  <div class="progress-text">
-                    {{ t('referral.need_more', { count: needMoreForNextLevel }) }}
-                  </div>
-                </div>
-              </div>
-            </div>
+        <div class="stat-cell">
+          <div class="stat-icon gray"><van-icon name="balance-o" /></div>
+          <div class="stat-body">
+            <span class="stat-label">{{ t('referral.trading_volume') }}</span>
+            <span class="stat-value">{{ formatTradingVolume(tradingVolume) }}</span>
           </div>
         </div>
-      </div>
 
-      <!-- 闂侇厸鍋撻悹鍥╂焿椤斿洩銇愰弴鐐茬仚閻?-->
-      <div class="records-section glass-card">
-        <van-tabs 
-          v-model:active="activeRecordTab" 
-          background="transparent" 
-          title-active-color="var(--color-brand-legacy)" 
-          title-inactive-color="var(--color-text-secondary)" 
-          line-width="30px" 
-          line-height="3px" 
-          color="var(--color-brand-legacy)" 
+        <div class="stat-cell">
+          <div class="stat-icon green"><van-icon name="gold-coin-o" /></div>
+          <div class="stat-body">
+            <span class="stat-label">{{ t('referral.yesterday_earnings') }}</span>
+            <span class="stat-value green-text">
+              +{{ formatNumber(yesterdayEarnings) }}<em class="stat-unit">USDT</em>
+            </span>
+          </div>
+        </div>
+
+        <div class="stat-cell">
+          <div class="stat-icon lvl"><van-icon name="medal-o" /></div>
+          <div class="stat-body">
+            <span class="stat-label">{{ t('referral.current_level') }}</span>
+            <span class="stat-value level">
+              <em class="lv">{{ currentLevel.split(' ')[0] }}</em>{{ currentLevel.slice(currentLevel.indexOf(' ') + 1) }}
+            </span>
+            <div class="stat-progress">
+              <div class="stat-progress-fill" :style="{ width: levelProgress + '%' }"></div>
+            </div>
+            <span class="stat-progress-text">{{ t('referral.need_more', { count: needMoreForNextLevel }) }}</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 邀请记录 / 佣金明细 -->
+      <section class="card records-card">
+        <van-tabs
+          v-model:active="activeRecordTab"
+          background="transparent"
+          title-active-color="#101828"
+          title-inactive-color="#667085"
+          color="#F5B51B"
+          line-width="28px"
+          line-height="3px"
           :border="false"
           class="record-tabs"
         >
           <van-tab :title="t('referral.invite_records')">
             <div class="records-list">
               <div v-if="inviteRecords.length === 0" class="empty-state">
-                <div class="empty-icon">
-                  <van-icon name="friends-o" size="64" color="var(--color-text-secondary)" />
-                </div>
+                <van-icon name="friends-o" />
                 <div class="empty-text">{{ t('referral.no_invite_records') }}</div>
-                <van-button 
-                  class="empty-action-btn"
-                  @click="handleInvite"
-                >
-                  {{ t('referral.invite_now') }}
-                </van-button>
               </div>
               <div v-else class="records-content">
-                <div 
-                  v-for="(record, index) in inviteRecords" 
-                  :key="index"
-                  class="record-item"
-                >
+                <div v-for="(record, index) in inviteRecords" :key="index" class="record-item">
                   <div class="record-left">
                     <div class="record-avatar">{{ record.user[0] }}</div>
                     <div class="record-info">
@@ -281,12 +183,8 @@
                     </div>
                   </div>
                   <div class="record-right">
-                    <div 
-                      class="record-status"
-                      :class="record.status"
-                    >
-                      {{ getStatusLabel(record.status) }}
-                    </div>
+                    <span class="record-status" :class="record.status">{{ getStatusLabel(record.status) }}</span>
+                    <van-icon name="arrow" class="record-arrow" />
                   </div>
                 </div>
               </div>
@@ -296,17 +194,11 @@
           <van-tab :title="t('referral.commission_details')">
             <div class="records-list">
               <div v-if="commissionRecords.length === 0" class="empty-state">
-                <div class="empty-icon">
-                  <van-icon name="gold-coin-o" size="64" color="var(--color-text-secondary)" />
-                </div>
+                <van-icon name="gold-coin-o" />
                 <div class="empty-text">{{ t('referral.no_commission_records') }}</div>
               </div>
               <div v-else class="records-content">
-                <div 
-                  v-for="(record, index) in commissionRecords" 
-                  :key="index"
-                  class="record-item"
-                >
+                <div v-for="(record, index) in commissionRecords" :key="index" class="record-item">
                   <div class="record-left">
                     <div class="record-avatar">{{ record.user[0] }}</div>
                     <div class="record-info">
@@ -315,20 +207,18 @@
                     </div>
                   </div>
                   <div class="record-right">
-                    <div class="record-amount gold-text">
-                      +{{ formatNumber(record.amount) }} USDT
-                    </div>
-                    <div class="record-time">{{ formatTime(record.time) }}</div>
+                    <span class="record-amount">+{{ formatNumber(record.amount) }} USDT</span>
+                    <span class="record-time">{{ formatTime(record.time) }}</span>
                   </div>
                 </div>
               </div>
             </div>
           </van-tab>
         </van-tabs>
-      </div>
+      </section>
     </div>
 
-    <!-- 闂侇厸鍋撻悹鍥у槻閸ㄥ孩绂嶉銏ｅ墾缂?-->
+    <!-- 邀请分享弹窗 -->
     <van-popup
       v-model:show="showInvitePopup"
       position="bottom"
@@ -338,42 +228,27 @@
       :close-on-click-overlay="true"
     >
       <div class="invite-popup-content">
-        <!-- 鐎殿喖婀遍悰銉﹀緞閹绢喖鍔?-->
         <div class="invite-popup-header">
           <div class="popup-title">{{ t('referral.invite_now') }}</div>
-          <van-icon 
-            name="cross" 
-            @click="showInvitePopup = false" 
-            class="popup-close-icon"
-          />
+          <van-icon name="cross" @click="showInvitePopup = false" class="popup-close-icon" />
         </div>
 
-        <!-- 闁告帒妫旈棅鈺呮焻婢舵劑鈧?-->
         <div class="share-options">
-          <div 
-            class="share-option-item"
-            @click="handleShareLink"
-          >
+          <div class="share-option-item" @click="handleShareLink">
             <div class="share-icon-wrapper">
               <van-icon name="link-o" size="32" color="var(--color-brand-legacy)" />
             </div>
             <div class="share-label">{{ t('referral.share_link') }}</div>
           </div>
 
-          <div 
-            class="share-option-item"
-            @click="handleShareQR"
-          >
+          <div class="share-option-item" @click="handleShareQR">
             <div class="share-icon-wrapper">
               <van-icon name="qr-invalid" size="32" color="var(--color-brand-legacy)" />
             </div>
             <div class="share-label">{{ t('referral.share_qr') }}</div>
           </div>
 
-          <div 
-            class="share-option-item"
-            @click="handleShareImage"
-          >
+          <div class="share-option-item" @click="handleShareImage">
             <div class="share-icon-wrapper">
               <van-icon name="photo-o" size="32" color="var(--color-brand-legacy)" />
             </div>
@@ -381,15 +256,14 @@
           </div>
         </div>
 
-        <!-- 闂侇厸鍋撻悹鍥棑閻栨粓宕畝鍕嚑闁规亽鍎遍惈宥囩矆?-->
         <div class="invite-info-section">
           <div class="info-item">
             <div class="info-label">{{ t('referral.invite_code') }}</div>
             <div class="info-value-wrapper">
               <span class="info-value gold-text">{{ inviteCode }}</span>
-              <van-icon 
-                name="copy-o" 
-                size="18" 
+              <van-icon
+                name="copy-o"
+                size="18"
                 color="var(--color-brand-legacy)"
                 class="copy-action-icon"
                 @click.stop="handleCopyCode"
@@ -400,9 +274,9 @@
             <div class="info-label">{{ t('referral.invite_link') }}</div>
             <div class="info-value-wrapper">
               <span class="info-value link-text">{{ inviteLink }}</span>
-              <van-icon 
-                name="copy-o" 
-                size="18" 
+              <van-icon
+                name="copy-o"
+                size="18"
                 color="var(--color-brand-legacy)"
                 class="copy-action-icon"
                 @click.stop="handleCopyLink"
@@ -413,7 +287,7 @@
       </div>
     </van-popup>
 
-    <!-- 濞存粌鐬煎ǎ顕€鎯嶆担姝屽墾缂?-->
+    <!-- 二维码弹窗 -->
     <van-popup
       v-model:show="showQRPopup"
       position="center"
@@ -424,11 +298,7 @@
       <div class="qr-popup-content">
         <div class="qr-popup-header">
           <div class="popup-title">{{ t('referral.share_qr') }}</div>
-          <van-icon 
-            name="cross" 
-            @click="showQRPopup = false" 
-            class="popup-close-icon"
-          />
+          <van-icon name="cross" @click="showQRPopup = false" class="popup-close-icon" />
         </div>
         <div class="qr-container">
           <div class="qr-code-wrapper">
@@ -439,7 +309,7 @@
       </div>
     </van-popup>
 
-    <!-- 婵炴挳鏀辨慨銈咁嚕閸︻厾宕?-->
+    <!-- 海报弹窗 -->
     <van-popup
       v-model:show="showPosterPopup"
       position="center"
@@ -450,20 +320,13 @@
       <div class="poster-popup-content">
         <div class="poster-popup-header">
           <div class="popup-title">{{ t('referral.share_image') }}</div>
-          <van-icon 
-            name="cross" 
-            @click="showPosterPopup = false" 
-            class="popup-close-icon"
-          />
+          <van-icon name="cross" @click="showPosterPopup = false" class="popup-close-icon" />
         </div>
         <div class="poster-container">
           <div ref="posterRef" class="poster-canvas-wrapper">
-            <!-- 婵炴挳鏀辨慨銈夊礃閸涱収鍟?-->
             <div class="poster-content">
-              <!-- 闁煎啿鏈▍娆忋€掗幇顒€缍?-->
               <div class="poster-bg"></div>
-              
-              <!-- Logo 闁告牕鎼悡?-->
+
               <div class="poster-logo-section">
                 <div class="poster-logo">
                   <BinanceLogo :size="40" class="logo-img" />
@@ -471,35 +334,25 @@
                 <div class="poster-app-name">TruthFi</div>
               </div>
 
-              <!-- 濞戞挾绮悥锝嗭紣?-->
               <div class="poster-title">{{ t('referral.invite_now') }}</div>
-              
-              <!-- 闂侇厸鍋撻悹鍥棑閻?-->
+
               <div class="poster-invite-code-section">
                 <div class="poster-code-label">{{ t('referral.invite_code') }}</div>
                 <div class="poster-code-value">{{ inviteCode }}</div>
               </div>
 
-              <!-- 濞存粌鐬煎ǎ顕€鎯?-->
               <div class="poster-qr-section">
                 <canvas ref="posterQRCanvas" class="poster-qr-canvas"></canvas>
               </div>
 
-              <!-- 閹煎瓨娲熼崕鎾箵閹邦喓浠?-->
               <div class="poster-footer">
                 <div class="poster-footer-text">{{ t('referral.scan_to_join') }}</div>
               </div>
             </div>
           </div>
-          
-          <!-- 闁瑰灝绉崇紞鏃堝箰婢舵劖灏?-->
+
           <div class="poster-actions">
-            <van-button 
-              class="save-poster-btn"
-              type="primary"
-              block
-              @click="savePoster"
-            >
+            <van-button class="save-poster-btn" type="primary" block @click="savePoster">
               {{ t('referral.save_poster') }}
             </van-button>
           </div>
@@ -528,13 +381,9 @@ const router = useRouter();
 const { t, locale } = useI18n();
 const { openWithdraw } = useAssetActions();
 
-// 濡炪倗鏁诲鏉款嚕閺囩姵鏆忛柨娑樼墢閺併倖绂嶆惔銏㈡硦闁告柣鍔庡ú鍐触椤掑﹦绀?
 const pageRef = ref(null);
-
-// 婵犲﹥鑹炬慨鈺呮偐閼哥鍋?
 const isScrolled = ref(false);
 
-// 闁轰焦婢橀悺褍顭ㄥ顒€袟闁告柣鍔庨弫?Hook
 const useCountUp = (targetValue, duration = 1500) => {
   const currentValue = ref(0);
   let animationFrame = null;
@@ -545,11 +394,10 @@ const useCountUp = (targetValue, duration = 1500) => {
     if (!startTime) startTime = timestamp;
     const elapsed = timestamp - startTime;
     const progress = Math.min(elapsed / duration, 1);
-    
-    // 濞达綀娉曢弫?easeOutQuart 缂傚倹鎸告慨鈺呭礄閼恒儲娈?
+
     const easeOutQuart = 1 - Math.pow(1 - progress, 4);
     currentValue.value = startValue + (targetValue - startValue) * easeOutQuart;
-    
+
     if (progress < 1) {
       animationFrame = requestAnimationFrame(animate);
     } else {
@@ -574,7 +422,6 @@ const useCountUp = (targetValue, duration = 1500) => {
   return { currentValue, start, stop };
 };
 
-// 缂備胶鍠曢鎼佸极閻楀牆绁?
 const totalEarned = 12450.88;
 const inviteCount = 12;
 const tradingVolume = 1200000; // $1.2M
@@ -582,22 +429,18 @@ const yesterdayEarnings = 124.50;
 const currentLevel = 'Lv.2 \u9ed1\u91d1';
 const needMoreForNextLevel = 3;
 
-// 濞达綀娉曢弫?useCountUp Hook
 const { currentValue: animatedTotalEarned, start: startTotalEarned } = useCountUp(totalEarned, 1500);
 const { currentValue: animatedInviteCount, start: startInviteCount } = useCountUp(inviteCount, 1500);
 
-// 閺夆晜鏌ч崜鎴犳媼閸撗呮瀭
 const myShare = ref(20);
 const friendShare = computed(() => 40 - myShare.value);
 
-// 闂侇厸鍋撻悹鍥棑閻栨粓宕畝鍕嚑闁?
 const inviteCode = ref('829301');
 const inviteLink = computed(() => `https://truthfi.app/invite/${inviteCode.value}`);
 const isChineseLocale = computed(() => String(locale.value).toLowerCase().startsWith('zh'));
 const copyActionLabel = computed(() => isChineseLocale.value ? '\u590d\u5236' : 'Copy');
 const splitLabel = computed(() => isChineseLocale.value ? '\u8fd4\u4f63\u5206\u914d' : 'Reward Split');
 
-// 闂侇偅鑹鹃幉锟犲冀韫囨梹娈堕柟?
 const announcements = computed(() => [
   { icon: 'volume-o', text: 'Alex 成功邀请 5 人，获得 250 USDT 返佣' },
   { icon: 'friends-o', text: t('referral.announcement_invite', { user: 'Alex', count: '5' }) },
@@ -606,38 +449,32 @@ const announcements = computed(() => [
 
 const marqueeSpeed = computed(() => announcements.value.length * 4);
 
-// 闂侇厸鍋撻悹鍥╂焿椤斿洩銇?
 const inviteRecords = ref([
   { user: 'User_8829', registerTime: Date.now() - 86400000 * 2, status: 'active' },
   { user: 'User_1234', registerTime: Date.now() - 86400000 * 5, status: 'active' },
   { user: 'User_5678', registerTime: Date.now() - 86400000 * 10, status: 'inactive' }
 ]);
 
-// 閺夆晜鏌ч崜鎴﹀及鎼达絿鐭?
 const commissionRecords = ref([
   { user: 'User_8829', type: t('referral.commission_spot'), amount: 12.50, time: Date.now() - 3600000 },
   { user: 'User_1234', type: t('referral.commission_earn'), amount: 8.30, time: Date.now() - 7200000 },
   { user: 'User_5678', type: t('referral.commission_futures'), amount: 15.20, time: Date.now() - 10800000 }
 ]);
 
-// 缂佹稑顦辨鍥ㄦ交濞戞ê顔?
 const levelProgress = computed(() => {
-  // 闁稿娲╅鏇°亹閹惧啿顤呯紒娑橆槺妤犲洭妫侀埀顒傛啺?0濞存粎灏ㄧ槐婵嗩啅閺屻儱鈧鎷?2濞存粎灏ㄧ槐婵囨交濞戞ê顔婂☉?20%闁挎稑濂旂徊楣冨及閸撗佷粵濞?00%
   const currentLevelRequirement = 10;
   const nextLevelRequirement = 15;
   const progress = ((inviteCount - currentLevelRequirement) / (nextLevelRequirement - currentLevelRequirement)) * 100;
   return Math.min(Math.max(progress, 0), 100);
 });
 
-// 闁哄秶鍘х槐锟犲礌閺嶃劍娈堕悗?
 const formatNumber = (value) => {
-  return value.toLocaleString('en-US', { 
-    minimumFractionDigits: 2, 
-    maximumFractionDigits: 2 
+  return value.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
   });
 };
 
-// 闁哄秶鍘х槐锟犲礌閺嶏附鍞夐柡鍕崌椤?
 const formatTradingVolume = (value) => {
   if (value >= 1000000) {
     return '$' + (value / 1000000).toFixed(1) + 'M';
@@ -647,18 +484,16 @@ const formatTradingVolume = (value) => {
   return '$' + value.toLocaleString('en-US');
 };
 
-// 闁硅　鏅濋悥婊堟偨閵婏箑鐓曢悹鎰剁畱瑜?
 const maskUser = (user) => {
   if (user.length <= 6) return user;
   return user.slice(0, 3) + '***' + user.slice(-3);
 };
 
-// 闁哄秶鍘х槐锟犲礌閺嶃劍顦ч梻?
 const formatTime = (timestamp) => {
   const date = new Date(timestamp);
   const now = new Date();
   const diff = now - date;
-  
+
   if (diff < 3600000) {
     return Math.floor(diff / 60000) + t('referral.minutes_ago');
   } else if (diff < 86400000) {
@@ -671,7 +506,6 @@ const formatTime = (timestamp) => {
   }
 };
 
-// 闁兼儳鍢茶ぐ鍥偐閼哥鍋撴担鍦灱缂?
 const getStatusLabel = (status) => {
   if (status === 'active') {
     return t('referral.status_active');
@@ -681,7 +515,6 @@ const getStatusLabel = (status) => {
   return status;
 };
 
-// 濠㈣泛绉撮崺妤呮焽閳ь剛鎷犳搴ｅ灣
 const handleCopyCode = async () => {
   try {
     await navigator.clipboard.writeText(inviteCode.value);
@@ -699,7 +532,6 @@ const handleCopyCode = async () => {
   }
 };
 
-// 濠㈣泛绉撮崺妤呮焽閳ь剛鎷犻悜鑺ユ嚑闁?
 const handleCopyLink = async () => {
   try {
     await navigator.clipboard.writeText(inviteLink.value);
@@ -717,33 +549,27 @@ const handleCopyLink = async () => {
   }
 };
 
-// 闁告绮ぐ渚€鎮?
 const goToWithdraw = () => {
   openWithdraw('USDT');
 };
 
-// 鐎殿喖婀遍悰銉╁及閸撗佷粵闁绘鍩栭埀?
 const showInvitePopup = ref(false);
 const showQRPopup = ref(false);
 const showPosterPopup = ref(false);
 
-// 濞存粌鐬煎ǎ顕€鎯嶆担鍛婂婵炴挳鏀辨慨銈夋儎缁嬪灝褰犵€殿喗娲滈弫?
 const qrCanvas = ref(null);
 const posterQRCanvas = ref(null);
 const posterRef = ref(null);
 
-// 缂佹柨顑呭畵鍡涙焽閳ь剛鎷?
 const handleInvite = () => {
   showInvitePopup.value = true;
 };
 
-// 闁告帒妫旈棅鈺呮煣閻愵剙澶?
 const handleShareLink = () => {
   handleCopyLink();
   showInvitePopup.value = false;
 };
 
-// 闁汇垻鍠愰崹姘瀹€鈧ǎ顕€鎯?
 const generateQRCode = async (canvas, text, size = 200) => {
   try {
     await QRCode.toCanvas(canvas, text, {
@@ -756,7 +582,7 @@ const generateQRCode = async (canvas, text, size = 200) => {
       errorCorrectionLevel: 'H'
     });
   } catch (error) {
-    console.error('闁汇垻鍠愰崹姘瀹€鈧ǎ顕€鎯嶆担鎼炰杭閻?', error);
+    console.error('QR generate failed', error);
     showToast({
       message: t('referral.qr_generate_failed'),
       icon: 'fail',
@@ -765,39 +591,33 @@ const generateQRCode = async (canvas, text, size = 200) => {
   }
 };
 
-// 闁告帒妫旈棅鈺傜瀹€鈧ǎ顕€鎯?
 const handleShareQR = async () => {
   showInvitePopup.value = false;
   showQRPopup.value = true;
-  
+
   await nextTick();
   if (qrCanvas.value) {
     await generateQRCode(qrCanvas.value, inviteLink.value, 250);
   }
 };
 
-// 闁汇垻鍠愰崹姘归柨瀣?
 const generatePoster = async () => {
   showInvitePopup.value = false;
   showPosterPopup.value = true;
-  
+
   await nextTick();
-  
-  // 闁稿繐鐗忛弫鎾诲箣閹邦厽宕抽柟韬插劙閼垫垿鎯冮崟顏嗙檶缂備礁顕悥?
+
   if (posterQRCanvas.value) {
     await generateQRCode(posterQRCanvas.value, inviteLink.value, 180);
   }
-  
-  // 缂佹稑顦欢鐔哥瀹€鈧ǎ顕€鎯嶆担纭咁洬闁哄本鎸搁悾顒勫箣?
+
   await new Promise(resolve => setTimeout(resolve, 300));
 };
 
-// 闁告帒妫旈棅鈺呭炊閸撗冾暬闁挎稑鐗忛弫鎾诲箣閹邦厽宕抽柟韬插劵缁?
 const handleShareImage = async () => {
   await generatePoster();
 };
 
-// 濞ｅ洦绻傞悺銊ッ归柨瀣?
 const savePoster = async () => {
   if (!posterRef.value) {
     showToast({
@@ -809,17 +629,15 @@ const savePoster = async () => {
   }
 
   try {
-    // 濞达綀娉曢弫?html2canvas 闁汇垻鍠愰崹姘跺炊閸撗冾暬
     const canvas = await html2canvas(posterRef.value, {
       backgroundColor: getThemeColor('--color-bg'),
-      scale: 2, // 闁圭粯鍔欓悵顔笺€掗崨顔界彴閹?
+      scale: 2,
       useCORS: true,
       logging: false,
       width: posterRef.value.offsetWidth,
       height: posterRef.value.offsetHeight
     });
 
-    // 閺夌儐鍓氬畷鍙夌▔?blob
     canvas.toBlob((blob) => {
       if (!blob) {
         showToast({
@@ -830,7 +648,6 @@ const savePoster = async () => {
         return;
       }
 
-      // 闁告帗绋戠紓鎾寸▔鐎ｎ厽绁伴梺鍓у亾鐢?
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -847,7 +664,7 @@ const savePoster = async () => {
       });
     }, 'image/png', 0.95);
   } catch (error) {
-    console.error('闁汇垻鍠愰崹姘归柨瀣撳鎯扮簿鐟?', error);
+    console.error('poster generate failed', error);
     showToast({
       message: t('referral.poster_generate_failed'),
       icon: 'fail',
@@ -856,23 +673,19 @@ const savePoster = async () => {
   }
 };
 
-// 婵犲﹥鑹炬慨鈺呮儎閹存繃鍎?
 const handleScroll = () => {
   const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
   isScrolled.value = scrollTop > 10;
 };
 
-// 闁哄秴娲ㄩ閿嬨亜闂堟稑鐎奸柟?
 const activeRecordTab = ref(0);
 
 onMounted(() => {
-  // 闁告凹鍨版慨鈺呭极閺夎法鎽熸繝濠冭壘婵晠宕濋妸褎鏆?
   startTotalEarned(totalEarned);
   startInviteCount(inviteCount);
-  
-  // 闁烩晜鍨甸幆澶婎煥濮橆剙袟
+
   window.addEventListener('scroll', handleScroll, { passive: true });
-  handleScroll(); // 闁告帗绻傞～鎰涢埀顒勫蓟?
+  handleScroll();
 });
 
 onUnmounted(() => {
@@ -881,915 +694,626 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* =====================================================================
+   邀请返佣页 —— 高级金融 App 风格（浅色）
+   页面结构：导航 / 通知横条 / 收益主卡 / 邀请链接 / 返佣设置 / 数据四宫格 / 记录
+   ===================================================================== */
 .referral-page {
   min-height: 100vh;
-  background-color: var(--color-bg);
-  color: var(--color-text-primary);
-  position: relative;
-  overflow-x: hidden;
-  padding-bottom: 80px;
+  background: #f5f7fb;
+  color: #101828;
 }
 
-/* 闁煎啿鏈▍娆撳礂婢跺顎為柡浣哥墛閻?*/
-.background-glow {
-  position: fixed;
-  top: -50%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 800px;
-  height: 800px;
-  background: radial-gradient(
-    circle,
-    rgb(var(--color-brand-legacy-rgb) / 0.15) 0%,
-    rgb(var(--color-brand-rgb) / 0.08) 30%,
-    transparent 70%
-  );
-  pointer-events: none;
-  z-index: 0;
-  animation: glowPulse 4s ease-in-out infinite;
-}
-
-@keyframes glowPulse {
-  0%, 100% {
-    opacity: 0.6;
-    transform: translateX(-50%) scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: translateX(-50%) scale(1.1);
-  }
-}
-
-/* 婵炲苯顦伴煫鍫濐嚕韫囨搩鍤ら柤鍓蹭簼閻?*/
 .custom-nav-bar {
-  --van-nav-bar-background: transparent;
-  --van-nav-bar-title-text-color: var(--color-text-primary);
-  --van-nav-bar-icon-color: var(--color-brand-legacy);
-  --van-nav-bar-height: 46px;
-  backdrop-filter: blur(10px);
-  transition: background-color 0.3s ease;
-  position: relative;
-  z-index: 100;
-}
-
-.custom-nav-bar.scrolled {
-  --van-nav-bar-background: rgb(var(--color-bg-rgb) / 0.95);
+  --van-nav-bar-height: 56px;
+  --van-nav-bar-background: #ffffff;
+  --van-nav-bar-title-text-color: #101828;
+  --van-nav-bar-icon-color: #101828;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
 }
 
 :deep(.custom-nav-bar .van-nav-bar__title) {
-  font-weight: 700 !important;
-  font-size: 18px !important;
-  font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif !important;
+  font-size: 18px;
+  font-weight: 700;
 }
 
-/* 濞戞挻妲掗々锕傚礃閸涱収鍟?*/
+:deep(.custom-nav-bar .van-icon) {
+  font-size: 22px;
+}
+
 .referral-content {
-  position: relative;
-  z-index: 1;
-  padding: 0;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 16px;
   display: flex;
   flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
 }
 
-/* 濡炪倕鐖奸崕鎾焻濮橆剚鍟為柡宥呴獜缁辨瑧鎹勯幋锔规敩闁诲浚鍨界槐?*/
-.announcement-marquee {
-  height: 32px;
-  background: rgb(var(--color-surface-rgb) / 0.6);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgb(var(--color-brand-rgb) / 0.1);
-  overflow: hidden;
-  position: relative;
-  margin-top: 46px;
+/* 卡片通用 */
+.card {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  box-sizing: border-box;
 }
 
-.marquee-wrapper {
+.card-title {
   display: flex;
-  gap: 32px;
-  animation: marquee linear infinite;
-  white-space: nowrap;
-  will-change: transform;
-  height: 100%;
   align-items: center;
+  gap: 10px;
+  color: #101828;
+  font-size: 18px;
+  font-weight: 700;
 }
 
-@keyframes marquee {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
+.card-title .van-icon {
+  font-size: 20px;
+  color: #101828;
 }
 
-.marquee-item {
+/* ---------- 通知横条 ---------- */
+.notice-bar {
   display: flex;
   align-items: center;
   gap: 8px;
+  height: 44px;
+  margin: -16px -16px 0;
   padding: 0 16px;
-  font-size: 12px;
-  color: var(--color-text-secondary);
+  background: #ffffff;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.notice-icon {
+  flex: 0 0 auto;
+  font-size: 16px;
+  color: #667085;
+}
+
+.notice-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #667085;
+  font-size: 14px;
+}
+
+.notice-time {
+  flex: 0 0 auto;
+  color: #667085;
+  font-size: 14px;
+}
+
+.notice-arrow {
+  flex: 0 0 auto;
+  font-size: 16px;
+  color: #98a2b3;
+}
+
+/* ---------- 返佣收益主卡片 ---------- */
+.hero-card {
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 90% 18%, rgba(245, 181, 27, 0.12), transparent 38%),
+    #ffffff;
+}
+
+.hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hero-tag {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #f2f4f7;
+  color: #101828;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.hero-commission {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(245, 181, 27, 0.16);
+  color: #a16207;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.hero-label {
+  margin-top: 18px;
+  color: #667085;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.hero-amount {
+  margin-top: 10px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.hero-number {
+  color: #101828;
+  font-size: clamp(44px, 12.5vw, 54px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
-.marquee-icon {
-  width: 22px;
-  height: 22px;
+.hero-unit {
+  color: #e6a400;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.hero-chips {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.hero-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #f2f4f7;
+  color: #101828;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.hero-chip .van-icon {
+  font-size: 16px;
+  color: #667085;
+}
+
+.hero-actions {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 12px;
+}
+
+.btn-primary,
+.btn-outline {
+  height: 56px;
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
-  background: rgb(var(--color-brand-legacy-rgb) / 0.12);
-  color: var(--color-brand-legacy);
-  font-size: 14px;
-  flex: 0 0 22px;
+  gap: 8px;
 }
 
-.marquee-text {
-  color: var(--color-text-primary);
+.btn-primary {
+  border: 0;
+  background: linear-gradient(135deg, #f7c82f 0%, #f5b51b 100%);
+  color: #101828;
+  font-weight: 800;
 }
 
-/* 缁句勘鍔庨悥鐐烘偝閼姐倖瀚呴柛妤嬬磿婢?*/
-.glass-card {
-  background: rgb(var(--color-surface-rgb) / 0.6);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  border: 1px solid rgb(var(--color-brand-rgb) / 0.2);
-  padding: 20px;
-  margin: 16px;
-  transition: all 0.3s ease;
-  position: relative;
+.btn-outline {
+  border: 1px solid rgba(16, 24, 40, 0.7);
+  background: #ffffff;
+  color: #101828;
+  font-weight: 700;
+}
+
+.btn-primary:active,
+.btn-outline:active {
+  opacity: 0.9;
+}
+
+/* ---------- 邀请链接卡片 ---------- */
+.link-card {
+  padding: 18px 20px;
+}
+
+.link-card .card-title {
+  margin-bottom: 6px;
+}
+
+.link-row {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+}
+
+.link-row + .link-row {
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.link-icon {
+  font-size: 18px;
+  color: #98a2b3;
+}
+
+.link-text {
+  min-width: 0;
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #344054;
+  font-size: 15px;
+  font-weight: 600;
 }
 
-.glass-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgb(var(--color-brand-legacy-rgb) / 0.5) 50%,
-    transparent 100%
-  );
+.copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  color: #344054;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.glass-card:active {
-  transform: scale(0.98);
-  border-color: rgb(var(--color-brand-legacy-rgb) / 0.4);
+.copy-btn .van-icon {
+  font-size: 16px;
 }
 
-/* 闁哄秶顭堢缓楣冨绩閸撲焦鎶勯柣顏勵儐濠?*/
-.hero-section {
+.copy-btn:active {
+  opacity: 0.6;
+}
+
+/* ---------- 返佣设置卡片 ---------- */
+.setting-card {
+  padding: 22px 20px;
+}
+
+.setting-card .card-title {
+  margin-bottom: 18px;
+}
+
+.setting-shares {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.share-item {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  margin-top: 0;
+  gap: 6px;
 }
 
-.hero-content {
-  display: flex;
+.share-item.right {
+  align-items: flex-end;
+}
+
+.share-label {
+  color: #667085;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.share-value {
+  color: #101828;
+  font-size: 24px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.rebate-slider {
+  margin: 6px 2px 2px;
+}
+
+:deep(.rebate-slider .van-slider__button) {
+  width: 18px;
+  height: 18px;
+  background: #f5b51b;
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(245, 181, 27, 0.4);
+}
+
+/* ---------- 数据统计四宫格 ---------- */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  overflow: hidden;
+  padding: 0;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+.stat-cell {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
   align-items: center;
-  gap: 20px;
+  gap: 12px;
+  min-height: 92px;
+  padding: 14px 16px;
+  box-sizing: border-box;
 }
 
-.coin-icon-wrapper {
-  flex-shrink: 0;
+.stat-cell:nth-child(odd) {
+  border-right: 1px solid rgba(15, 23, 42, 0.06);
 }
 
-.coin-icon-3d {
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, rgb(var(--color-brand-legacy-rgb) / 0.2) 0%, rgb(var(--color-brand-rgb) / 0.1) 100%);
+.stat-cell:nth-child(-n + 2) {
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.stat-icon {
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 
-    0 8px 16px rgb(var(--color-brand-legacy-rgb) / 0.2),
-    inset 0 2px 4px rgb(var(--color-border-rgb) / 0.1);
-  animation: coinFloat 3s ease-in-out infinite;
-}
-
-@keyframes coinFloat {
-  0%, 100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-8px) rotate(5deg);
-  }
-}
-
-.hero-stats {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.hero-label {
-  font-size: 12px;
-  color: var(--color-text-secondary);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.hero-value {
-  font-size: 36px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', monospace !important;
-  line-height: 1.2;
-}
-
-.gold-text {
-  color: var(--color-brand-legacy);
-  text-shadow: 0 0 10px rgb(var(--color-brand-legacy-rgb) / 0.3);
-}
-
-.text-green {
-  color: var(--color-earn);
-}
-
-.withdraw-btn {
-  height: 44px;
-  background: linear-gradient(135deg, var(--color-brand-legacy) 0%, var(--color-brand) 100%);
-  color: var(--color-text-on-accent);
-  border: none;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 16px;
-  box-shadow: 0 4px 12px rgb(var(--color-brand-legacy-rgb) / 0.3);
-}
-
-.withdraw-btn:active {
-  opacity: 0.9;
-  transform: scale(0.98);
-}
-
-/* 閺夆晜鏌ч崜鎴犳媼閸撗呮瀭濞戞挸楠搁崹搴㈢?*/
-.action-section {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.action-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.header-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--color-text-primary);
-}
-
-.header-total {
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.slider-container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.slider-labels {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.slider-label-left,
-.slider-label-right {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.label-text {
-  font-size: 12px;
-  color: var(--color-text-secondary);
-}
-
-.label-value {
   font-size: 18px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', monospace !important;
 }
 
-.commission-slider {
-  margin: 8px 0;
+.stat-icon.gold {
+  background: rgba(245, 181, 27, 0.10);
+  color: #b7791f;
 }
 
-:deep(.commission-slider .van-slider__button) {
-  background: var(--color-brand-legacy);
-  box-shadow: 0 2px 8px rgb(var(--color-brand-legacy-rgb) / 0.4);
-  border: 2px solid var(--color-bg);
+.stat-icon.gray {
+  background: #f4f6fa;
+  color: #667085;
 }
 
-:deep(.commission-slider .van-slider__bar) {
-  background: var(--color-brand-legacy);
+.stat-icon.green {
+  background: rgba(22, 163, 74, 0.10);
+  color: #16a34a;
 }
 
-.copy-section {
+.stat-icon.lvl {
+  background: #f4f6fa;
+  color: #f5b51b;
+}
+
+.stat-body {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 3px;
+  min-width: 0;
 }
 
-.copy-item {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.copy-label {
+.stat-label {
+  color: #667085;
   font-size: 12px;
-  color: var(--color-text-secondary);
-  font-weight: 500;
-}
-
-.copy-value-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background: rgb(var(--color-shadow-rgb) / 0.3);
-  border-radius: 8px;
-  border: 1px solid rgb(var(--color-brand-rgb) / 0.2);
-}
-
-.copy-value {
-  flex: 1;
-  font-size: 14px;
   font-weight: 600;
-  font-family: 'Roboto Mono', 'Courier New', monospace;
-  color: var(--color-brand-legacy);
-  word-break: break-all;
+  line-height: 1.3;
 }
 
-.link-value {
-  font-size: 12px;
-  color: var(--color-text-secondary);
-}
-
-.copy-icon {
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: transform 0.2s ease;
-}
-
-.copy-icon:active {
-  transform: scale(1.2);
-}
-
-.invite-btn {
-  height: 48px;
-  background: linear-gradient(135deg, var(--color-brand-legacy) 0%, var(--color-brand) 100%);
-  color: var(--color-text-on-accent);
-  border: none;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 16px;
+.stat-value {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  box-shadow: 0 4px 12px rgb(var(--color-brand-legacy-rgb) / 0.3);
-  margin-top: 8px;
-}
-
-.invite-btn:active {
-  opacity: 0.9;
-  transform: scale(0.98);
-}
-
-/* 闁轰胶澧楀畵浣圭椤忓洢鈧啴鎯?*/
-.dashboard-section {
-  padding: 0 16px;
-}
-
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-}
-
-.dashboard-card {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  margin: 0;
-}
-
-.dashboard-icon {
-  width: 40px;
-  height: 40px;
-  background: rgb(var(--color-brand-legacy-rgb) / 0.15);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.dashboard-content {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.dashboard-label {
-  font-size: 11px;
-  color: var(--color-text-secondary);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.dashboard-value {
-  font-size: 20px;
-  font-weight: 700;
+  align-items: baseline;
+  color: #101828;
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.25;
   font-variant-numeric: tabular-nums;
-  font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', monospace !important;
-  line-height: 1.2;
+  white-space: nowrap;
 }
 
-.dashboard-unit {
-  font-size: 14px;
-  font-weight: 600;
-  margin-left: 2px;
+.stat-value.green-text {
+  color: #16a34a;
 }
 
-.level-text {
+.stat-value.level {
+  color: #101828;
   font-size: 18px;
+}
+
+.stat-value.level .lv {
+  font-style: normal;
+  margin-right: 4px;
+  color: #f5b51b;
+}
+
+.stat-unit {
+  font-style: normal;
+  margin-left: 3px;
+  font-size: 13px;
   font-weight: 700;
-  margin-bottom: 8px;
-  display: block;
+  color: #667085;
 }
 
-.level-progress {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.stat-value.green-text .stat-unit {
+  color: #16a34a;
 }
 
-.progress-bar {
-  width: 100%;
+.stat-progress {
+  width: 88px;
+  max-width: 100%;
+  margin-top: 6px;
   height: 4px;
-  background: rgb(var(--color-border-rgb) / 0.1);
-  border-radius: 2px;
+  border-radius: 999px;
+  background: #e5e7eb;
   overflow: hidden;
 }
 
-.progress-fill {
+.stat-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--color-brand-legacy) 0%, var(--color-brand) 100%);
-  border-radius: 2px;
-  transition: width 0.3s ease;
-  box-shadow: 0 0 8px rgb(var(--color-brand-legacy-rgb) / 0.4);
+  background: #f5b51b;
+  border-radius: 999px;
 }
 
-.progress-text {
-  font-size: 10px;
-  color: var(--color-text-secondary);
+.stat-progress-text {
+  margin-top: 4px;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 500;
 }
 
-/* 闂侇厸鍋撻悹鍥╂焿椤斿洩銇愰弴鐐茬仚閻?*/
-.records-section {
-  display: flex;
-  flex-direction: column;
-  min-height: 400px;
-  margin-bottom: 0;
-}
-
-.record-tabs {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+/* ---------- 邀请记录 / 佣金明细 ---------- */
+.records-card {
+  padding: 6px 0 6px;
 }
 
 :deep(.record-tabs .van-tabs__wrap) {
-  background: transparent;
-  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.05);
-  padding: 0 20px;
+  padding: 0 8px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
 }
 
 :deep(.record-tabs .van-tab) {
-  font-size: 14px;
-  font-weight: 600;
-  padding: 12px 0;
+  font-size: 16px;
+  font-weight: 700;
 }
 
-:deep(.record-tabs .van-tabs__content) {
-  flex: 1;
-  overflow-y: auto;
-}
-
-:deep(.record-tabs .van-tab__panel) {
-  height: 100%;
-  overflow-y: auto;
+:deep(.record-tabs .van-tabs__line) {
+  border-radius: 999px;
 }
 
 .records-list {
-  padding: 16px 20px;
-  min-height: 300px;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-}
-
-.empty-icon {
-  margin-bottom: 16px;
-  opacity: 0.6;
-}
-
-.empty-text {
-  font-size: 14px;
-  color: var(--color-text-secondary);
-  margin-bottom: 24px;
-}
-
-.empty-action-btn {
-  padding: 10px 24px;
-  background: rgb(var(--color-brand-legacy-rgb) / 0.15);
-  color: var(--color-brand-legacy);
-  border: 1px solid rgb(var(--color-brand-legacy-rgb) / 0.3);
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.empty-action-btn:active {
-  background: rgb(var(--color-brand-legacy-rgb) / 0.25);
+  padding: 4px 16px 8px;
 }
 
 .records-content {
   display: flex;
   flex-direction: column;
-  gap: 12px;
 }
 
 .record-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px;
-  background: rgb(var(--color-shadow-rgb) / 0.2);
-  border-radius: 12px;
-  border: 1px solid rgb(var(--color-border-rgb) / 0.05);
-  transition: all 0.2s ease;
+  gap: 12px;
+  min-height: 72px;
 }
 
-.record-item:active {
-  background: rgb(var(--color-shadow-rgb) / 0.3);
-  border-color: rgb(var(--color-brand-legacy-rgb) / 0.2);
+.record-item + .record-item {
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
 }
 
 .record-left {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
   flex: 1;
 }
 
 .record-avatar {
-  width: 40px;
-  height: 40px;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgb(var(--color-brand-legacy-rgb) / 0.3) 0%, rgb(var(--color-brand-rgb) / 0.2) 100%);
+  background: rgba(245, 181, 27, 0.16);
+  color: #b7791f;
+  font-size: 16px;
+  font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--color-brand-legacy);
-  flex-shrink: 0;
 }
 
 .record-info {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  flex: 1;
   min-width: 0;
 }
 
 .record-user {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text-primary);
+  color: #101828;
+  font-size: 16px;
+  font-weight: 700;
 }
 
 .record-time,
 .record-desc {
-  font-size: 12px;
-  color: var(--color-text-secondary);
+  color: #667085;
+  font-size: 14px;
 }
 
 .record-right {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-  flex-shrink: 0;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
 }
 
 .record-status {
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
   font-weight: 600;
-  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .record-status.active {
-  background: rgb(var(--color-earn-rgb) / 0.15);
-  color: var(--color-earn);
+  background: rgba(22, 163, 74, 0.12);
+  color: #16a34a;
 }
 
 .record-status.inactive {
-  background: rgb(var(--color-text-muted-rgb) / 0.15);
-  color: var(--color-text-secondary);
+  background: #f2f4f7;
+  color: #667085;
+}
+
+.record-arrow {
+  font-size: 16px;
+  color: #98a2b3;
 }
 
 .record-amount {
+  color: #16a34a;
   font-size: 16px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  font-family: 'DIN Alternate', 'Roboto', 'Helvetica Neue', 'Arial', monospace !important;
-}
-
-
-/* Premium referral UI refresh */
-.referral-page {
-  background:
-    radial-gradient(circle at 16% 2%, rgb(var(--color-brand-legacy-rgb) / 0.18), transparent 28%),
-    linear-gradient(180deg, var(--color-surface-1) 0%, var(--color-bg) 48%, var(--color-surface-1) 100%);
-}
-
-.announcement-marquee {
-  height: 34px;
-  background: rgb(var(--color-surface-2-rgb) / 0.82);
-  backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--color-border-subtle);
-}
-
-.marquee-text {
-  font-weight: 700;
-}
-
-.glass-card {
-  background: linear-gradient(180deg, rgb(var(--color-surface-rgb) / 0.96), rgb(var(--color-surface-2-rgb) / 0.92));
-  border: 1px solid rgb(var(--color-border-rgb) / 0.9);
-  border-radius: 22px;
-  box-shadow: 0 16px 36px rgb(var(--color-shadow-rgb) / 0.08);
-}
-
-.glass-card:active {
-  transform: translateY(1px);
-}
-
-.hero-section {
-  padding: 26px;
-  background:
-    linear-gradient(135deg, rgb(var(--color-surface-rgb) / 0.98), rgb(var(--color-brand-legacy-rgb) / 0.08)),
-    var(--color-surface-2);
-}
-
-.hero-orb {
-  position: absolute;
-  border-radius: 999px;
-  pointer-events: none;
-  filter: blur(2px);
-}
-
-.hero-orb-a {
-  width: 190px;
-  height: 190px;
-  right: -82px;
-  top: -72px;
-  background: radial-gradient(circle, rgb(var(--color-brand-legacy-rgb) / 0.22), transparent 68%);
-}
-
-.hero-orb-b {
-  width: 120px;
-  height: 120px;
-  left: -48px;
-  bottom: -44px;
-  background: radial-gradient(circle, rgb(var(--color-primary-rgb) / 0.13), transparent 70%);
-}
-
-.hero-content,
-.withdraw-btn {
-  position: relative;
-  z-index: 1;
-}
-
-.coin-icon-3d {
-  width: 86px;
-  height: 86px;
-  background:
-    radial-gradient(circle at 35% 30%, rgb(var(--color-surface-rgb) / 0.9), transparent 36%),
-    linear-gradient(135deg, rgb(var(--color-brand-legacy-rgb) / 0.24) 0%, rgb(var(--color-brand-rgb) / 0.12) 100%);
-  box-shadow: 0 18px 34px rgb(var(--color-brand-legacy-rgb) / 0.22), inset 0 2px 4px rgb(var(--color-border-rgb) / 0.1);
-}
-
-.hero-kicker,
-.section-eyebrow {
-  width: fit-content;
-  padding: 5px 9px;
-  border-radius: 999px;
-  background: rgb(var(--color-brand-legacy-rgb) / 0.11);
-  color: var(--color-primary-hover);
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.hero-value {
-  font-size: 42px;
-  font-weight: 900;
-  letter-spacing: -0.03em;
-}
-
-.hero-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.hero-meta span {
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: var(--color-surface-muted);
-  border: 1px solid var(--color-border-subtle);
-  color: var(--color-text-secondary);
-  font-size: 11px;
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
-.withdraw-btn {
-  height: 48px;
-  background: var(--color-surface-2);
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-border-strong);
-  border-radius: 14px;
-  font-weight: 900;
-  box-shadow: var(--shadow-sm);
-}
-
-.action-section {
-  gap: 18px;
-}
-
-.header-title {
-  margin-top: 8px;
-  font-size: 20px;
-  font-weight: 900;
-}
-
-.header-total {
-  padding: 8px 11px;
-  border-radius: 999px;
-  background: rgb(var(--color-brand-legacy-rgb) / 0.1);
-  font-size: 13px;
-  font-weight: 900;
-}
-
-.slider-container {
-  padding: 16px;
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgb(var(--color-surface-rgb) / 0.75), rgb(var(--color-surface-2-rgb) / 0.5));
-  border: 1px solid var(--color-border-subtle);
-}
-
-.copy-value-wrapper {
-  padding: 10px 10px 10px 14px;
-  background: var(--color-surface-1);
-  border-radius: 14px;
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm);
-}
-
-.copy-pill {
-  flex: 0 0 auto;
-  border: 0;
-  border-radius: 999px;
-  padding: 8px 11px;
-  display: inline-flex;
+.empty-state {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 5px;
-  background: rgb(var(--color-brand-legacy-rgb) / 0.13);
-  color: var(--color-primary-hover);
-  font-weight: 900;
-  font-size: 12px;
-  cursor: pointer;
+  gap: 12px;
+  padding: 48px 20px;
 }
 
-.copy-pill:active {
-  transform: scale(0.96);
+.empty-state .van-icon {
+  font-size: 56px;
+  color: #cbd5e1;
 }
 
-.invite-btn {
-  height: 52px;
-  border-radius: 16px;
-  font-weight: 900;
-  box-shadow: 0 14px 28px rgb(var(--color-brand-legacy-rgb) / 0.24);
+.empty-text {
+  color: #667085;
+  font-size: 14px;
 }
 
-.dashboard-grid {
-  gap: 14px;
+@media (max-width: 360px) {
+  .hero-number {
+    font-size: 42px;
+  }
+
+  .btn-primary,
+  .btn-outline {
+    height: 52px;
+    font-size: 15px;
+  }
 }
 
-.dashboard-card {
-  min-height: 118px;
-  padding: 18px;
-  border-radius: 18px;
-}
-
-.dashboard-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-}
-
-.dashboard-label {
-  text-transform: none;
-  letter-spacing: 0;
-  font-size: 12px;
-}
-
-.dashboard-value {
-  font-size: 24px;
-  font-weight: 900;
-}
-
-.records-section {
-  padding: 8px 0 20px;
-}
-
-:deep(.record-tabs .van-tabs__wrap) {
-  border-bottom: 0;
-}
-
-:deep(.record-tabs .van-tab) {
-  font-size: 15px;
-  font-weight: 900;
-}
-
-.records-list {
-  padding: 18px 20px;
-}
-
-.records-content {
-  gap: 10px;
-}
-
-.record-item {
-  padding: 14px;
-  background: var(--color-surface-1);
-  border-radius: 16px;
-  border: 1px solid var(--color-border-subtle);
-  box-shadow: var(--shadow-sm);
-}
-
-.record-avatar {
-  width: 44px;
-  height: 44px;
-  background: linear-gradient(135deg, rgb(var(--color-brand-legacy-rgb) / 0.24) 0%, rgb(var(--color-brand-rgb) / 0.12) 100%);
-}
-
-.record-user {
-  font-size: 15px;
-  font-weight: 900;
-}
-
-.record-status {
-  border-radius: 999px;
-  padding: 5px 10px;
-}
-/* 缁绢収鍠曠换?Vant 闁搞儳鍋撻悥锝団偓娑欍仦缂嶅绋夊鍫蕉闁稿繈鍔岄惇顒傗偓娑欍仦缂嶅鎲伴崱娆愮０ */
+/* =====================================================================
+   分享 / 二维码 / 海报弹窗（保留原交互，仅沿用主题变量适配深浅）
+   ===================================================================== */
 :deep(.van-icon),
-:deep([class*="van-icon"]),
-.van-icon,
-[class*="van-icon"] {
+:deep([class*="van-icon"]) {
   font-family: 'vant-icon', 'vant-iconfont', 'vant-icons', 'iconfont', 'vant', sans-serif !important;
   font-style: normal !important;
   font-weight: normal !important;
@@ -1797,7 +1321,6 @@ onUnmounted(() => {
   -moz-osx-font-smoothing: grayscale !important;
 }
 
-/* 闂侇厸鍋撻悹鍥у槻閸ㄥ孩绂嶉銏ｅ墾缂佹劖顨嗛悧鍗烆嚕?*/
 :deep(.invite-share-popup .van-popup) {
   background: var(--color-bg-input) !important;
   border-top: 1px solid rgb(var(--color-brand-legacy-rgb) / 0.2) !important;
@@ -1829,7 +1352,6 @@ onUnmounted(() => {
   font-size: 20px;
   color: var(--color-text-secondary);
   cursor: pointer;
-  transition: all 0.2s ease;
   padding: 4px;
 }
 
@@ -1838,7 +1360,6 @@ onUnmounted(() => {
   transform: scale(0.9);
 }
 
-/* 闁告帒妫旈棅鈺呮焻婢舵劑鈧?*/
 .share-options {
   display: flex;
   justify-content: space-around;
@@ -1852,7 +1373,6 @@ onUnmounted(() => {
   align-items: center;
   gap: 12px;
   cursor: pointer;
-  transition: all 0.3s ease;
   padding: 12px;
   border-radius: 12px;
   min-width: 80px;
@@ -1872,13 +1392,6 @@ onUnmounted(() => {
   background: rgb(var(--color-brand-legacy-rgb) / 0.1);
   border: 1px solid rgb(var(--color-brand-legacy-rgb) / 0.2);
   border-radius: 16px;
-  transition: all 0.3s ease;
-}
-
-.share-option-item:active .share-icon-wrapper {
-  background: rgb(var(--color-brand-legacy-rgb) / 0.2);
-  border-color: rgb(var(--color-brand-legacy-rgb) / 0.4);
-  box-shadow: 0 0 12px rgb(var(--color-brand-legacy-rgb) / 0.3);
 }
 
 .share-label {
@@ -1888,14 +1401,12 @@ onUnmounted(() => {
   text-align: center;
 }
 
-/* 闂侇厸鍋撻悹鍥腹娣囧﹪骞侀姘殬闁?*/
 .invite-info-section {
   display: flex;
   flex-direction: column;
   gap: 16px;
   padding: 20px;
   background: rgb(var(--color-surface-rgb) / 0.6);
-  backdrop-filter: blur(10px);
   border-radius: 12px;
   border: 1px solid rgb(var(--color-brand-legacy-rgb) / 0.15);
 }
@@ -1938,10 +1449,13 @@ onUnmounted(() => {
   font-size: 13px;
 }
 
+.gold-text {
+  color: var(--color-brand-legacy);
+}
+
 .copy-action-icon {
   flex-shrink: 0;
   cursor: pointer;
-  transition: all 0.2s ease;
   padding: 4px;
 }
 
@@ -1950,13 +1464,13 @@ onUnmounted(() => {
   opacity: 0.7;
 }
 
-/* 鐎殿喖婀遍悰銉╂焼椤旀儳鍏婇悘?*/
-:deep(.invite-share-popup .van-overlay) {
+:deep(.invite-share-popup .van-overlay),
+:deep(.qr-popup .van-overlay),
+:deep(.poster-popup .van-overlay) {
   background: rgb(var(--color-shadow-rgb) / 0.7) !important;
   backdrop-filter: blur(4px);
 }
 
-/* 濞存粌鐬煎ǎ顕€鎯嶆担姝屽墾缂佹劖顨嗛悧鍗烆嚕?*/
 :deep(.qr-popup .van-popup) {
   background: var(--color-bg-input) !important;
   border: 1px solid rgb(var(--color-brand-legacy-rgb) / 0.2) !important;
@@ -1968,6 +1482,16 @@ onUnmounted(() => {
   border-radius: 20px;
   min-width: 300px;
   max-width: 90vw;
+}
+
+.qr-popup-header,
+.poster-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.08);
 }
 
 .qr-container {
@@ -1995,35 +1519,14 @@ onUnmounted(() => {
   text-align: center;
 }
 
-/* 婵炴挳鏀辨慨銈咁嚕閸︻厾宕堕柡宥呭槻缁?*/
 :deep(.poster-popup .van-popup) {
   background: var(--color-bg-input) !important;
   border: 1px solid rgb(var(--color-brand-legacy-rgb) / 0.2) !important;
   max-width: 95vw;
   max-height: 95vh;
-  overflow: hidden !important; /* 闁衡偓闁稖绀?hidden闁挎稑鐭傚Σ璇差潰閵忕姴姣夐柣婊呭缁挳宕濋妸锔借拫 */
+  overflow: hidden !important;
   display: flex;
   flex-direction: column;
-}
-
-/* 闂傚懏鍔樺Λ灞筋煥濮橆剙袟闁?- 闁稿繒鍘ч鎰板箥閳ь剟寮垫径瀣偦閻熸瑥鐗嗗▍?*/
-:deep(.poster-popup .van-popup),
-:deep(.poster-popup-content),
-:deep(.poster-container),
-:deep(.poster-canvas-wrapper) {
-  /* Firefox */
-  scrollbar-width: none !important;
-  /* Webkit (Chrome, Safari, Edge) */
-  -ms-overflow-style: none !important;
-}
-
-:deep(.poster-popup .van-popup)::-webkit-scrollbar,
-:deep(.poster-popup-content)::-webkit-scrollbar,
-:deep(.poster-container)::-webkit-scrollbar,
-:deep(.poster-canvas-wrapper)::-webkit-scrollbar {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
 }
 
 .poster-popup-content {
@@ -2032,43 +1535,15 @@ onUnmounted(() => {
   border-radius: 20px;
   overflow-y: auto;
   overflow-x: hidden;
-  max-height: calc(95vh - 40px); /* 闁告垵绻愰獮鎾寸▔婵犱胶鐟?padding */
+  max-height: calc(95vh - 40px);
   display: flex;
   flex-direction: column;
-  /* 缁绢収鍠曠换姘跺礃閸涱収鍟囧ù鐘查叄閵嗗﹪鏌堥妸銉х；濠殿喖顑嗗Ο澶岀矆閻氬绀夊☉鎾崇Х椤箓骞嬮鍛劷 */
-  align-items: stretch;
-  /* 闂傚懏鍔樺Λ灞筋煥濮橆剙袟闁?- 闁稿繒鍘ч鎰板箥閳ь剟寮垫径瀣偦閻熸瑥鐗嗗▍?*/
-  scrollbar-width: none !important; /* Firefox */
-  -ms-overflow-style: none !important; /* IE/Edge */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-/* Webkit 婵炴潙绻楅～宥夊闯閵婏妇娉婇柛鏂诲妽濞碱垶姊鹃幇顖涱棏 */
 .poster-popup-content::-webkit-scrollbar {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-  background: transparent !important;
-}
-
-.poster-popup-content::-webkit-scrollbar-track {
-  display: none !important;
-  background: transparent !important;
-}
-
-.poster-popup-content::-webkit-scrollbar-thumb {
-  display: none !important;
-  background: transparent !important;
-}
-
-/* 婵炴挳鏀辨慨銈咁嚕閸︻厾宕跺鑸垫尦閸庢挳寮藉畡鎵 */
-.poster-popup-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgb(var(--color-border-rgb) / 0.08);
-  flex-shrink: 0; /* 闂傚啫寮堕娑欏緞閹绢喖鍔ラ悶姘煎亜鐢洨绱?*/
+  display: none;
 }
 
 .poster-container {
@@ -2076,27 +1551,22 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 20px;
   flex: 1;
-  min-height: 0; /* 闁稿繋娴囬?flex 閻庢稒鍔曢崢鎾舵閻樿櫕鏆紓?*/
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  /* 闂傚懏鍔樺Λ灞筋煥濮橆剙袟闁?*/
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .poster-container::-webkit-scrollbar {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
+  display: none;
 }
 
 .poster-canvas-wrapper {
   width: 100%;
   max-width: 400px;
   margin: 0 auto;
-  background: transparent;
-  flex-shrink: 0; /* 闂傚啫寮堕娑樏归柨瀣撻悶姘煎亜鐢洨绱?*/
-  /* 缁绢収鍠曠换姘归柨瀣撻悗鐟版湰閺嗭綁寮伴崜褋浠?*/
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
 }
@@ -2110,17 +1580,12 @@ onUnmounted(() => {
   border: 2px solid rgb(var(--color-brand-legacy-rgb) / 0.3);
   box-shadow: 0 8px 32px rgb(var(--color-shadow-rgb) / 0.5);
   overflow: hidden;
-  /* 缁绢収鍠曠换姘跺礃閸涱収鍟囬悗鐟版湰閺嗭綁寮伴崜褋浠涢柨娑樺缁楀鎮锝呯劵闁?*/
   box-sizing: border-box;
-  min-height: fit-content;
 }
 
 .poster-bg {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: radial-gradient(circle at 50% 0%, rgb(var(--color-brand-legacy-rgb) / 0.15) 0%, transparent 70%);
   pointer-events: none;
 }
@@ -2147,7 +1612,6 @@ onUnmounted(() => {
   padding: 12px;
 }
 
-
 .poster-app-name {
   font-size: 24px;
   font-weight: 700;
@@ -2167,7 +1631,6 @@ onUnmounted(() => {
 
 .poster-invite-code-section {
   background: rgb(var(--color-surface-rgb) / 0.8);
-  backdrop-filter: blur(10px);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 30px;
@@ -2238,909 +1701,216 @@ onUnmounted(() => {
   opacity: 0.9;
 }
 
-/* 濞存粌鐬煎ǎ顕€鎯嶆担姝屽墾缂佹劖顨婃导鍕磾?*/
-:deep(.qr-popup .van-overlay),
-:deep(.poster-popup .van-overlay) {
-  background: rgb(var(--color-shadow-rgb) / 0.8) !important;
-  backdrop-filter: blur(4px);
+/* =====================================================================
+   深色主题 —— 仅覆盖颜色 / 背景 / 边框 / 阴影，几何与浅色完全一致，
+   切换主题不产生位移（对齐 App 深色设计 token）。
+   ===================================================================== */
+:global(html[data-theme='dark']) .referral-page {
+  background: #08111f !important;
+  color: #f8fafc !important;
 }
 
-@media (max-width: 380px) {
-  .hero-section {
-    padding: 22px;
-  }
-
-  .hero-content {
-    gap: 14px;
-  }
-
-  .coin-icon-3d {
-    width: 72px;
-    height: 72px;
-  }
-
-  .hero-value {
-    font-size: 34px;
-  }
-
-  .dashboard-grid {
-    gap: 10px;
-  }
-
-  .dashboard-card {
-    padding: 15px;
-  }
+:global(html[data-theme='dark']) .referral-page .custom-nav-bar {
+  --van-nav-bar-background: #0f1726 !important;
+  --van-nav-bar-title-text-color: #f8fafc !important;
+  --van-nav-bar-icon-color: #cbd5e1 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.06) !important;
 }
-/* Targeted airy premium referral refresh */
-.referral-page {
+
+:global(html[data-theme='dark']) .referral-page :deep(.custom-nav-bar .van-nav-bar__title) {
+  color: #f8fafc !important;
+}
+
+:global(html[data-theme='dark']) .referral-page .card {
+  background: #151f31 !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
+  box-shadow: none !important;
+}
+
+:global(html[data-theme='dark']) .referral-page .hero-card {
   background:
-    linear-gradient(180deg, #F3F6FA 0%, #F8FAFC 46%, #F3F6FA 100%) !important;
-  padding-bottom: 34px !important;
+    radial-gradient(circle at 90% 18%, rgba(245, 181, 27, 0.14), transparent 40%),
+    #151f31 !important;
 }
 
-.background-glow {
-  display: none !important;
+:global(html[data-theme='dark']) .referral-page .card-title,
+:global(html[data-theme='dark']) .referral-page .card-title .van-icon {
+  color: #f8fafc !important;
 }
 
-.custom-nav-bar {
-  --van-nav-bar-background: #FFFFFF !important;
-  --van-nav-bar-title-text-color: #111827 !important;
-  --van-nav-bar-icon-color: #F0B90B !important;
-  --van-nav-bar-height: 56px !important;
-  border-bottom: 1px solid #E6EBF2 !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
+/* 通知横条 */
+:global(html[data-theme='dark']) .referral-page .notice-bar {
+  background: #0f1726 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.06) !important;
 }
 
-:deep(.custom-nav-bar .van-nav-bar__title) {
-  color: #111827 !important;
-  font-size: 18px !important;
-  font-weight: 900 !important;
+:global(html[data-theme='dark']) .referral-page .notice-icon,
+:global(html[data-theme='dark']) .referral-page .notice-text,
+:global(html[data-theme='dark']) .referral-page .notice-time {
+  color: #94a3b8 !important;
 }
 
-.referral-content {
-  padding: 0 18px 28px !important;
-  gap: 18px !important;
-  max-width: 520px !important;
-  margin: 0 auto !important;
+/* 主卡片 */
+:global(html[data-theme='dark']) .referral-page .hero-tag {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #f8fafc !important;
 }
 
-.announcement-marquee {
-  height: 34px !important;
-  margin: 0 -18px 4px !important;
-  background: linear-gradient(90deg, #FFFFFF 0%, #FFF8E6 50%, #FFFFFF 100%) !important;
-  border-top: 0 !important;
-  border-bottom: 1px solid #F1E2B8 !important;
-  box-shadow: none !important;
+:global(html[data-theme='dark']) .referral-page .hero-commission {
+  background: rgba(245, 181, 27, 0.16) !important;
+  color: #f5b51b !important;
 }
 
-.marquee-icon {
-  width: 24px !important;
-  height: 24px !important;
-  color: #F0B90B !important;
-  background: #FFF4D6 !important;
+:global(html[data-theme='dark']) .referral-page .hero-label {
+  color: #cbd5e1 !important;
 }
 
-.marquee-text {
-  color: #111827 !important;
-  font-size: 12px !important;
-  font-weight: 800 !important;
+:global(html[data-theme='dark']) .referral-page .hero-number {
+  color: #f8fafc !important;
 }
 
-.glass-card {
-  border-radius: 16px !important;
-  background: #FFFFFF !important;
-  border: 1px solid #E8EEF5 !important;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06) !important;
+:global(html[data-theme='dark']) .referral-page .hero-unit {
+  color: #f5b51b !important;
 }
 
-.hero-section {
-  margin: 0 !important;
-  padding: 22px 20px 18px !important;
-  border-radius: 16px !important;
-  background:
-    linear-gradient(135deg, #FFFFFF 0%, #FFF7DB 100%) !important;
-  overflow: hidden !important;
+:global(html[data-theme='dark']) .referral-page .hero-chip {
+  background: #111a2b !important;
+  color: #f8fafc !important;
 }
 
-.hero-orb {
-  display: none !important;
+:global(html[data-theme='dark']) .referral-page .hero-chip .van-icon {
+  color: #94a3b8 !important;
 }
 
-.hero-content {
-  align-items: center !important;
-  gap: 18px !important;
+:global(html[data-theme='dark']) .referral-page .btn-outline {
+  background: #111a2b !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
 }
 
-.coin-icon-3d {
-  width: 78px !important;
-  height: 78px !important;
-  border-radius: 50% !important;
-  background: #FFF4D6 !important;
-  box-shadow: inset 0 0 0 1px #F7D98B, 0 12px 22px rgba(240, 185, 11, 0.13) !important;
+/* 邀请链接 */
+:global(html[data-theme='dark']) .referral-page .link-row + .link-row {
+  border-top-color: rgba(255, 255, 255, 0.06) !important;
 }
 
-.hero-kicker,
-.section-eyebrow {
-  padding: 5px 10px !important;
-  background: #FFF4D6 !important;
-  color: #C88700 !important;
-  letter-spacing: 0 !important;
+:global(html[data-theme='dark']) .referral-page .link-icon {
+  color: #94a3b8 !important;
 }
 
-.hero-label {
-  margin-top: 10px !important;
-  color: #64748B !important;
-  font-size: 14px !important;
-  font-weight: 700 !important;
+:global(html[data-theme='dark']) .referral-page .link-text {
+  color: #cbd5e1 !important;
 }
 
-.hero-value {
-  margin-top: 6px !important;
-  font-size: 40px !important;
-  line-height: 1 !important;
-  letter-spacing: 0 !important;
+:global(html[data-theme='dark']) .referral-page .copy-btn {
+  color: #f5b51b !important;
 }
 
-.hero-meta {
-  margin-top: 10px !important;
-  gap: 8px !important;
+/* 返佣设置 */
+:global(html[data-theme='dark']) .referral-page .share-label {
+  color: #94a3b8 !important;
 }
 
-.hero-meta span {
-  padding: 6px 10px !important;
-  border: 0 !important;
-  background: #EEF2F7 !important;
-  color: #64748B !important;
+:global(html[data-theme='dark']) .referral-page .share-value {
+  color: #f8fafc !important;
 }
 
-.withdraw-btn {
-  height: 50px !important;
-  margin-top: 18px !important;
-  border-radius: 12px !important;
-  background: #FFFFFF !important;
-  color: #111827 !important;
-  border: 1px solid #DDE5EF !important;
-  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06) !important;
+/* 数据四宫格 */
+:global(html[data-theme='dark']) .referral-page .stat-cell:nth-child(odd) {
+  border-right-color: rgba(255, 255, 255, 0.06) !important;
 }
 
-.action-section {
-  margin: 0 !important;
-  padding: 22px 20px !important;
-  gap: 18px !important;
+:global(html[data-theme='dark']) .referral-page .stat-cell:nth-child(-n + 2) {
+  border-bottom-color: rgba(255, 255, 255, 0.06) !important;
 }
 
-.action-header {
-  align-items: flex-start !important;
+:global(html[data-theme='dark']) .referral-page .stat-icon.gray,
+:global(html[data-theme='dark']) .referral-page .stat-icon.lvl {
+  background: rgba(255, 255, 255, 0.06) !important;
 }
 
-.header-title {
-  margin-top: 8px !important;
-  color: #111827 !important;
-  font-size: 22px !important;
-  line-height: 1.2 !important;
+:global(html[data-theme='dark']) .referral-page .stat-icon.gray {
+  color: #94a3b8 !important;
 }
 
-.header-total {
-  padding: 7px 12px !important;
-  background: #FFF4D6 !important;
-  color: #C88700 !important;
+:global(html[data-theme='dark']) .referral-page .stat-icon.lvl {
+  color: #f5b51b !important;
 }
 
-.slider-container {
-  padding: 18px 18px 20px !important;
-  border-radius: 16px !important;
-  background: #F8FAFC !important;
-  border: 1px solid #E8EEF5 !important;
+:global(html[data-theme='dark']) .referral-page .stat-icon.gold {
+  background: rgba(245, 181, 27, 0.12) !important;
+  color: #f5b51b !important;
 }
 
-.copy-section {
-  gap: 14px !important;
+:global(html[data-theme='dark']) .referral-page .stat-icon.green {
+  background: rgba(22, 199, 132, 0.12) !important;
+  color: #16c784 !important;
 }
 
-.copy-label {
-  color: #64748B !important;
-  font-size: 12px !important;
-  margin-bottom: 8px !important;
+:global(html[data-theme='dark']) .referral-page .stat-label,
+:global(html[data-theme='dark']) .referral-page .stat-unit,
+:global(html[data-theme='dark']) .referral-page .stat-progress-text {
+  color: #94a3b8 !important;
 }
 
-.copy-value-wrapper {
-  min-height: 54px !important;
-  border-radius: 14px !important;
-  background: #F8FAFC !important;
-  border: 1px solid #E8EEF5 !important;
-  box-shadow: none !important;
+:global(html[data-theme='dark']) .referral-page .stat-value {
+  color: #f8fafc !important;
 }
 
-.copy-value {
-  color: #C88700 !important;
-  font-weight: 900 !important;
+:global(html[data-theme='dark']) .referral-page .stat-value.green-text,
+:global(html[data-theme='dark']) .referral-page .stat-value.green-text .stat-unit {
+  color: #16c784 !important;
 }
 
-.copy-value.link-value {
-  color: #64748B !important;
-  font-size: 12px !important;
+:global(html[data-theme='dark']) .referral-page .stat-value.level {
+  color: #f8fafc !important;
 }
 
-.copy-pill {
-  min-width: 58px !important;
-  justify-content: center !important;
-  background: #FFF4D6 !important;
-  color: #C88700 !important;
+:global(html[data-theme='dark']) .referral-page .stat-value.level .lv {
+  color: #f5b51b !important;
 }
 
-.invite-btn {
-  height: 54px !important;
-  border-radius: 12px !important;
-  background: linear-gradient(180deg, #FCD535 0%, #F0B90B 100%) !important;
-  color: #111827 !important;
-  border: 0 !important;
-  box-shadow: 0 12px 24px rgba(240, 185, 11, 0.22) !important;
+:global(html[data-theme='dark']) .referral-page .stat-progress {
+  background: rgba(255, 255, 255, 0.10) !important;
 }
 
-.dashboard-section {
-  margin: 0 !important;
+/* 记录 */
+:global(html[data-theme='dark']) .referral-page :deep(.record-tabs .van-tabs__wrap) {
+  border-bottom-color: rgba(255, 255, 255, 0.06) !important;
 }
 
-.dashboard-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  gap: 14px !important;
+:global(html[data-theme='dark']) .referral-page .record-item + .record-item {
+  border-top-color: rgba(255, 255, 255, 0.06) !important;
 }
 
-.dashboard-card {
-  min-height: 132px !important;
-  padding: 18px !important;
-  border-radius: 16px !important;
+:global(html[data-theme='dark']) .referral-page .record-avatar {
+  background: rgba(245, 181, 27, 0.16) !important;
+  color: #f5b51b !important;
 }
 
-.dashboard-icon {
-  width: 46px !important;
-  height: 46px !important;
-  border-radius: 14px !important;
-  background: #FFF4D6 !important;
+:global(html[data-theme='dark']) .referral-page .record-user {
+  color: #f8fafc !important;
 }
 
-.dashboard-label {
-  color: #64748B !important;
-  font-size: 12px !important;
-  font-weight: 700 !important;
-}
-
-.dashboard-value {
-  margin-top: 8px !important;
-  font-size: 27px !important;
-  line-height: 1.1 !important;
-}
-
-.records-section {
-  margin: 0 !important;
-  padding: 10px 0 20px !important;
-  border-radius: 16px !important;
-  min-height: 360px !important;
-}
-
-.records-list {
-  padding: 18px 20px !important;
-}
-
-.record-item {
-  padding: 16px !important;
-  border-radius: 16px !important;
-  background: #F8FAFC !important;
-  border: 1px solid #E8EEF5 !important;
-  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.04) !important;
-}
-
-.record-avatar {
-  background: #FFF4D6 !important;
-  color: #C88700 !important;
-}
-
-@media (max-width: 380px) {
-  .referral-content {
-    padding-left: 14px !important;
-    padding-right: 14px !important;
-  }
-
-  .announcement-marquee {
-    margin-left: -14px !important;
-    margin-right: -14px !important;
-  }
-
-  .hero-section {
-    padding: 18px !important;
-  }
-
-  .coin-icon-3d {
-    width: 64px !important;
-    height: 64px !important;
-  }
-
-  .hero-value {
-    font-size: 32px !important;
-  }
-
-  .action-section {
-    padding: 20px 18px !important;
-  }
-}
-
-/* Screenshot-aligned referral page */
-.referral-page {
-  background: #f5f7fb !important;
-  color: #10182f !important;
-}
-
-.background-glow {
-  display: none !important;
-}
-
-.custom-nav-bar {
-  --van-nav-bar-height: 64px !important;
-  --van-nav-bar-background: #ffffff !important;
-  --van-nav-bar-title-text-color: #10182f !important;
-  --van-nav-bar-icon-color: #10182f !important;
-  border-bottom: 1px solid #dfe4ec !important;
-  box-shadow: none !important;
-}
-
-:deep(.custom-nav-bar .van-nav-bar__title) {
-  font-size: 21px !important;
-  font-weight: 950 !important;
-  letter-spacing: 0 !important;
-}
-
-:deep(.custom-nav-bar .van-icon) {
-  font-size: 24px !important;
-}
-
-.referral-content {
-  padding: 0 16px 26px !important;
-  max-width: 520px !important;
-  margin: 0 auto !important;
-  gap: 16px !important;
-}
-
-.announcement-marquee {
-  height: 48px !important;
-  margin: 0 -16px 8px !important;
-  padding: 0 16px !important;
-  background: #ffffff !important;
-  border-top: 0 !important;
-  border-bottom: 1px solid #dfe4ec !important;
-  box-shadow: none !important;
-}
-
-.marquee-wrapper {
-  width: 100% !important;
-  height: 48px !important;
-  animation: none !important;
-  transform: none !important;
-  display: flex !important;
-  align-items: center !important;
-}
-
-.marquee-item {
-  width: 100% !important;
-  flex: 1 1 auto !important;
-  padding: 0 !important;
-  gap: 10px !important;
-}
-
-.marquee-item:nth-child(n + 2) {
-  display: none !important;
-}
-
-.marquee-icon {
-  width: 24px !important;
-  height: 24px !important;
-  color: #10182f !important;
-  background: transparent !important;
-}
-
-.marquee-text {
-  color: #667085 !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  white-space: nowrap !important;
-}
-
-.announcement-marquee::after {
-  content: "2 分钟前  ›";
-  position: absolute;
-  right: 16px;
-  top: 0;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  padding-left: 16px;
-  background: #ffffff;
-  color: #667085;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.glass-card,
-.hero-section,
-.action-section,
-.invite-link-card,
-.records-section {
-  background: #ffffff !important;
-  border: 1px solid #e3e8f0 !important;
-  border-radius: 18px !important;
-  box-shadow: 0 14px 32px rgba(16, 24, 40, 0.06) !important;
-}
-
-.hero-section {
-  position: relative !important;
-  padding: 22px 20px 20px !important;
-  margin: 0 !important;
-  overflow: hidden !important;
-  background: linear-gradient(135deg, #ffffff 0%, #ffffff 70%, #fff7e5 100%) !important;
-}
-
-.hero-orb,
-.coin-icon-wrapper {
-  display: none !important;
-}
-
-.hero-content {
-  display: block !important;
-}
-
-.hero-stats {
-  width: 100% !important;
-}
-
-.hero-kicker {
-  display: inline-flex !important;
-  align-items: center !important;
-  min-height: 30px !important;
-  padding: 0 16px !important;
-  border-radius: 999px !important;
-  background: #f0f2f6 !important;
-  color: #10182f !important;
-  font-size: 14px !important;
-  font-weight: 900 !important;
-}
-
-.hero-label {
-  margin-top: 30px !important;
-  color: #667085 !important;
-  font-size: 18px !important;
-  font-weight: 800 !important;
-}
-
-.hero-value {
-  margin-top: 12px !important;
-  color: #10182f !important;
-  font-size: clamp(44px, 11vw, 60px) !important;
-  line-height: 0.95 !important;
-  font-weight: 950 !important;
-  letter-spacing: 0 !important;
-  text-shadow: none !important;
-}
-
-.hero-value::after {
-  content: " USDT";
-  margin-left: 8px;
-  color: #eda600;
-  font-size: 18px;
-  font-weight: 950;
-}
-
-.hero-meta {
-  margin-top: 24px !important;
-  gap: 12px !important;
-  flex-wrap: wrap !important;
-}
-
-.hero-meta span {
-  min-height: 42px !important;
-  padding: 0 14px !important;
-  border-radius: 10px !important;
-  background: #f4f6f9 !important;
-  color: #10182f !important;
-  font-size: 15px !important;
-  font-weight: 850 !important;
-}
-
-.hero-meta span:nth-child(2) {
-  position: absolute;
-  top: 22px;
-  right: 20px;
-  min-height: 34px !important;
-  border-radius: 999px !important;
-  background: #fff2da !important;
-}
-
-.hero-meta::after {
-  content: "可提现  500 USDT";
-  min-height: 42px;
-  padding: 0 14px;
-  border-radius: 10px;
-  background: #f4f6f9;
-  color: #10182f;
-  display: inline-flex;
-  align-items: center;
-  font-size: 15px;
-  font-weight: 850;
-}
-
-.rebate-action-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
-  gap: 16px;
-  margin-top: 24px;
-}
-
-.hero-invite-button,
-.withdraw-btn {
-  width: 100% !important;
-  height: 54px !important;
-  margin: 0 !important;
-  border-radius: 10px !important;
-  font-size: 16px !important;
-  font-weight: 950 !important;
-}
-
-.hero-invite-button {
-  border: 0;
-  color: #10182f;
-  background: linear-gradient(135deg, #ffd75a 0%, #f4b719 100%);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  box-shadow: 0 10px 22px rgba(240, 185, 11, 0.18);
-}
-
-.withdraw-btn {
-  background: #ffffff !important;
-  color: #10182f !important;
-  border: 1.5px solid #10182f !important;
-  box-shadow: none !important;
-}
-
-.invite-link-card {
-  padding: 18px 20px 14px !important;
-}
-
-.section-title-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #10182f;
-  font-size: 17px;
-  font-weight: 950;
-  padding-bottom: 16px;
-}
-
-.section-title-row .van-icon {
-  font-size: 22px;
-}
-
-.invite-link-row {
-  min-height: 48px;
-  display: grid;
-  grid-template-columns: 24px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 14px;
-  border-top: 1px solid #edf1f5;
-  color: #344054;
-  font-size: 16px;
-  font-weight: 650;
-}
-
-.invite-link-row > span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.invite-link-row button {
-  border: 0;
-  background: transparent;
-  color: #344054;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.action-section {
-  padding: 18px 20px 24px !important;
-  margin: 0 !important;
-}
-
-.section-eyebrow,
-.header-total,
-.action-section .copy-section,
-.action-section .invite-btn {
-  display: none !important;
-}
-
-.action-header {
-  margin-bottom: 20px !important;
-}
-
-.action-header::before {
-  content: "";
-  width: 0;
-  height: 0;
-}
-
-.header-title {
-  margin: 0 !important;
-  color: #10182f !important;
-  font-size: 18px !important;
-  font-weight: 950 !important;
-}
-
-.header-title::before {
-  content: "◷";
-  margin-right: 12px;
-  font-size: 24px;
-  font-weight: 500;
-  vertical-align: -2px;
-}
-
-.slider-container {
-  padding: 0 !important;
-  border: 0 !important;
-  background: transparent !important;
-}
-
-.slider-labels {
-  margin-bottom: 26px !important;
-}
-
-.slider-label-left,
-.slider-label-right {
-  align-items: center !important;
-  gap: 10px !important;
-}
-
-.label-text {
-  color: #667085 !important;
-  font-size: 15px !important;
-  font-weight: 600 !important;
-}
-
-.label-value {
-  color: #10182f !important;
-  font-size: 22px !important;
-  font-weight: 900 !important;
-}
-
-.dashboard-section {
-  margin: 0 !important;
-  overflow: hidden !important;
-  border: 1px solid #e3e8f0 !important;
-  border-radius: 18px !important;
-  background: #ffffff !important;
-  box-shadow: 0 14px 32px rgba(16, 24, 40, 0.06) !important;
-}
-
-.dashboard-grid {
-  gap: 0 !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-}
-
-.dashboard-card {
-  min-height: 108px !important;
-  padding: 20px 18px !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  display: grid !important;
-  grid-template-columns: 54px minmax(0, 1fr) !important;
-  align-items: center !important;
-  gap: 14px !important;
-}
-
-.dashboard-card:nth-child(odd) {
-  border-right: 1px solid #e8edf3 !important;
-}
-
-.dashboard-card:nth-child(-n + 2) {
-  border-bottom: 1px solid #e8edf3 !important;
-}
-
-.dashboard-icon {
-  width: 48px !important;
-  height: 48px !important;
-  border-radius: 50% !important;
-  background: #f4f6f9 !important;
-}
-
-.dashboard-card:nth-child(3) .dashboard-icon {
-  background: #e8f7ee !important;
-}
-
-.dashboard-label {
-  color: #667085 !important;
-  font-size: 14px !important;
-  font-weight: 650 !important;
-}
-
-.dashboard-value {
-  margin-top: 5px !important;
-  color: #10182f !important;
-  font-size: 21px !important;
-  font-weight: 950 !important;
-  line-height: 1.14 !important;
-}
-
-.dashboard-unit {
-  font-size: 13px !important;
-}
-
-.text-green {
-  color: #13964f !important;
-}
-
-.progress-bar {
-  height: 4px !important;
-  background: #e5e9ef !important;
-}
-
-.progress-fill {
-  background: #f0b90b !important;
-}
-
-.progress-text {
-  margin-top: 7px !important;
-  color: #667085 !important;
-  font-size: 12px !important;
-}
-
-.records-section {
-  padding: 8px 14px 14px !important;
-  margin: 0 !important;
-  min-height: 0 !important;
-}
-
-:deep(.record-tabs .van-tabs__nav) {
-  padding: 0 0 10px !important;
-}
-
-:deep(.record-tabs .van-tab) {
-  font-size: 17px !important;
-  font-weight: 900 !important;
-}
-
-.records-list {
-  padding: 0 8px !important;
-}
-
-.records-content {
-  gap: 0 !important;
-}
-
-.record-item {
-  min-height: 70px !important;
-  padding: 12px 0 !important;
-  border: 0 !important;
-  border-top: 1px solid #edf1f5 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-.record-avatar {
-  width: 44px !important;
-  height: 44px !important;
-  background: #fff4df !important;
-  color: #10182f !important;
-  font-weight: 900 !important;
-}
-
-.record-user {
-  color: #10182f !important;
-  font-size: 17px !important;
-  font-weight: 950 !important;
-}
-
-.record-time,
-.record-desc {
-  color: #667085 !important;
-  font-size: 14px !important;
-}
-
-.record-status {
-  padding: 6px 12px !important;
-  border-radius: 999px !important;
-  font-size: 14px !important;
-  font-weight: 800 !important;
-}
-
-.record-status.active {
-  background: #dff7e9 !important;
-  color: #13964f !important;
-}
-
-.record-status.inactive {
-  background: #f2f4f7 !important;
-  color: #667085 !important;
-}
-
-@media (max-width: 380px) {
-  .referral-content {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
-  }
-
-  .announcement-marquee {
-    margin-left: -12px !important;
-    margin-right: -12px !important;
-  }
-
-  .hero-section {
-    padding: 20px 16px 18px !important;
-  }
-
-  .hero-value {
-    font-size: 42px !important;
-  }
-
-  .rebate-action-row {
-    gap: 10px;
-  }
-
-  .hero-invite-button,
-  .withdraw-btn {
-    height: 50px !important;
-    font-size: 15px !important;
-  }
-}
-
-:global(html[data-theme='dark']) .referral-page,
-:global(html[data-theme='dark']) .referral-content {
-  background: var(--color-bg) !important;
-  color: var(--color-text-primary) !important;
-}
-
-:global(html[data-theme='dark']) .referral-page :deep(.van-nav-bar),
-:global(html[data-theme='dark']) .referral-page .invite-panel,
-:global(html[data-theme='dark']) .referral-page .dashboard-card,
-:global(html[data-theme='dark']) .referral-page .records-section,
-:global(html[data-theme='dark']) .referral-page .commission-card,
-:global(html[data-theme='dark']) .referral-page .rules-card,
-:global(html[data-theme='dark']) .referral-page .leaderboard-card {
-  background: var(--color-bg-card) !important;
-  border-color: var(--color-border) !important;
-  color: var(--color-text-primary) !important;
-  box-shadow: none !important;
-}
-
-:global(html[data-theme='dark']) .referral-page .dashboard-icon,
-:global(html[data-theme='dark']) .referral-page .record-avatar,
-:global(html[data-theme='dark']) .referral-page .record-status.inactive,
-:global(html[data-theme='dark']) .referral-page .progress-bar {
-  background: var(--color-bg-input) !important;
-  border-color: var(--color-border) !important;
-  color: var(--color-text-primary) !important;
-}
-
-:global(html[data-theme='dark']) .referral-page .dashboard-value,
-:global(html[data-theme='dark']) .referral-page .record-user,
-:global(html[data-theme='dark']) .referral-page .section-title {
-  color: var(--color-text-primary) !important;
-}
-
-:global(html[data-theme='dark']) .referral-page .dashboard-label,
-:global(html[data-theme='dark']) .referral-page .progress-text,
 :global(html[data-theme='dark']) .referral-page .record-time,
 :global(html[data-theme='dark']) .referral-page .record-desc {
-  color: var(--color-text-secondary) !important;
+  color: #94a3b8 !important;
 }
 
-:global(html[data-theme='dark']) .referral-page .record-item,
-:global(html[data-theme='dark']) .referral-page .dashboard-card:nth-child(odd),
-:global(html[data-theme='dark']) .referral-page .dashboard-card:nth-child(-n + 2) {
-  border-color: var(--color-border) !important;
+:global(html[data-theme='dark']) .referral-page .record-status.active {
+  background: rgba(22, 199, 132, 0.14) !important;
+  color: #16c784 !important;
+}
+
+:global(html[data-theme='dark']) .referral-page .record-status.inactive {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #94a3b8 !important;
+}
+
+:global(html[data-theme='dark']) .referral-page .record-amount {
+  color: #16c784 !important;
+}
+
+:global(html[data-theme='dark']) .referral-page .empty-text {
+  color: #94a3b8 !important;
 }
 </style>

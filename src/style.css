@@ -1307,8 +1307,8 @@ html[data-theme='dark'] .trade-page .orderbook-side .last-price,
 html[data-theme='dark'] .trade-page .futures-orderbook-side .last-price,
 html[data-theme='dark'] .orderbook-side .last-price,
 html[data-theme='dark'] .futures-orderbook-side .last-price {
-  background: var(--color-surface-2) !important;
-  border-color: var(--color-border) !important;
+  background: var(--color-bg-input) !important;
+  border-color: rgb(var(--color-brand-rgb) / 0.28) !important;
 }
 
 /* =====================================================================
@@ -1850,6 +1850,37 @@ html[data-theme='dark'] #app .detail-page .act-btn.primary {
   box-shadow: none !important;
 }
 
+/* 选中态胶囊：现货流水筛选（金）/ 股票区间切换（紫），深色克制底色 */
+html[data-theme='dark'] #app .detail-page .filter-chip.active {
+  background: rgba(245, 181, 27, 0.16) !important;
+  border-color: rgba(245, 181, 27, 0.34) !important;
+  color: var(--mine-brand) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='dark'] #app .detail-page .range-chip.active {
+  background: rgba(139, 92, 246, 0.20) !important;
+  border-color: rgba(139, 92, 246, 0.42) !important;
+  color: #C4B5FD !important;
+  box-shadow: none !important;
+}
+
+/* IEO 状态徽标：已中签（绿）/ 待中签（金）/ 未中签（中性），不再是浅白底 */
+html[data-theme='dark'] #app .detail-page .status-badge.won {
+  background: rgba(22, 199, 132, 0.16) !important;
+  color: var(--mine-green) !important;
+}
+
+html[data-theme='dark'] #app .detail-page .status-badge.pending {
+  background: rgba(245, 181, 27, 0.16) !important;
+  color: var(--mine-brand) !important;
+}
+
+html[data-theme='dark'] #app .detail-page .status-badge.failed {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: var(--mine-text-muted) !important;
+}
+
 html[data-theme='dark'] #app .me-page.me-page .history-btn {
   background: var(--mine-card-inner) !important;
   color: var(--mine-text-secondary) !important;
@@ -1932,6 +1963,83 @@ html[data-theme='dark'] #app .me-page.me-page .metric-value.down,
 html[data-theme='dark'] #app .detail-page .down {
   color: var(--mine-red) !important;
   -webkit-text-fill-color: var(--mine-red) !important;
+}
+
+/* =====================================================================
+   划转弹窗（TransferModal）—— 通过 Teleport 渲染到 <body>，位于 #app 之外，
+   因此需在此单独适配深色。仅改颜色/背景/边框，几何与浅色一致。
+   使用 `body` 前缀提升特异性，确保覆盖组件内浅色基样式。
+   ===================================================================== */
+html[data-theme='dark'] body .van-popup:has(> .transfer-modal),
+html[data-theme='dark'] body .transfer-modal {
+  background: var(--mine-card) !important;
+  color: var(--mine-text-primary) !important;
+}
+
+html[data-theme='dark'] body .transfer-modal .tm-title {
+  color: var(--mine-text-primary) !important;
+}
+
+html[data-theme='dark'] body .transfer-modal .tm-close {
+  color: var(--mine-text-muted) !important;
+}
+
+html[data-theme='dark'] body .transfer-modal .tm-label {
+  color: var(--mine-text-muted) !important;
+}
+
+html[data-theme='dark'] body .transfer-modal .tm-swap {
+  color: var(--mine-brand) !important;
+}
+
+html[data-theme='dark'] body .transfer-modal .tm-chip,
+html[data-theme='dark'] body .transfer-modal .tm-amount {
+  background: var(--mine-card-inner) !important;
+  border-color: var(--mine-border) !important;
+  color: var(--mine-text-secondary) !important;
+}
+
+html[data-theme='dark'] body .transfer-modal .tm-chip.active {
+  background: rgba(245, 181, 27, 0.16) !important;
+  border-color: rgba(245, 181, 27, 0.38) !important;
+  color: var(--mine-brand) !important;
+}
+
+html[data-theme='dark'] body .transfer-modal .tm-amount-input {
+  color: var(--mine-text-primary) !important;
+  -webkit-text-fill-color: var(--mine-text-primary) !important;
+}
+
+html[data-theme='dark'] body .transfer-modal .tm-amount-input::placeholder {
+  color: var(--mine-text-weak) !important;
+  -webkit-text-fill-color: var(--mine-text-weak) !important;
+}
+
+html[data-theme='dark'] body .transfer-modal .tm-amount-unit {
+  color: var(--mine-text-muted) !important;
+}
+
+/* 现货账单明细弹窗（同样 Teleport 到 body） */
+html[data-theme='dark'] body .van-popup:has(> .bill-detail) {
+  background: var(--mine-card) !important;
+}
+
+html[data-theme='dark'] body .bill-detail {
+  background: var(--mine-card) !important;
+  color: var(--mine-text-primary) !important;
+}
+
+html[data-theme='dark'] body .bill-detail .bill-title,
+html[data-theme='dark'] body .bill-detail strong {
+  color: var(--mine-text-primary) !important;
+}
+
+html[data-theme='dark'] body .bill-detail .bill-row {
+  border-bottom-color: var(--mine-divider) !important;
+}
+
+html[data-theme='dark'] body .bill-detail .bill-row span {
+  color: var(--mine-text-muted) !important;
 }
 
 html[data-theme='dark'] .van-tabbar {

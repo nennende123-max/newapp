@@ -8432,6 +8432,43 @@ onUnmounted(() => {
   background: var(--color-surface-elevated, #1f2a3d) !important;
 }
 
+/* =====================================================================
+   深色交易页视觉精修（重要：仅调整颜色/阴影，绝不改动 padding / margin /
+   border-width / height / font-size，浅色与深色布局像素级一致，无任何位移）
+   —— 三层表面层次：页面(bg) < 卡片(surface-2) < 内嵌控件(bg-input)
+   ===================================================================== */
+:global(html[data-theme='dark']) .trade-page .order-type-selector,
+:global(html[data-theme='dark']) .trade-page .leverage-inline-btn,
+:global(html[data-theme='dark']) .trade-page .input-row,
+:global(html[data-theme='dark']) .trade-page .futures-form-side .input-row,
+:global(html[data-theme='dark']) .trade-page .buy-sell-toggle,
+:global(html[data-theme='dark']) .trade-page .position-right {
+  background: var(--color-bg-input) !important;
+  border-color: var(--color-border) !important;
+}
+
+/* 主卡片：极轻顶部高光（inset 阴影为绘制层，不影响布局） */
+:global(html[data-theme='dark']) .trade-page .orderbook-side,
+:global(html[data-theme='dark']) .trade-page .form-side,
+:global(html[data-theme='dark']) .trade-page .futures-orderbook-side,
+:global(html[data-theme='dark']) .trade-page .futures-form-side,
+:global(html[data-theme='dark']) .trade-page .position-card {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04) !important;
+}
+
+/* 焦点价卡片：内嵌深色底 + 品牌色描边，突出当前价（高特异性确保覆盖全局规则） */
+:global(html[data-theme='dark']) .trade-page .futures-orderbook-side .last-price,
+:global(html[data-theme='dark']) .trade-page .orderbook-side .last-price {
+  background: var(--color-bg-input) !important;
+  border-color: rgb(var(--color-brand-rgb) / 0.28) !important;
+}
+
+/* 输入行聚焦：品牌色描边（边框宽度不变，仅换色，无位移） */
+:global(html[data-theme='dark']) .trade-page .input-row:focus-within,
+:global(html[data-theme='dark']) .trade-page .futures-form-side .input-row:focus-within {
+  border-color: rgb(var(--color-brand-rgb) / 0.55) !important;
+}
+
 .coin-select-meta {
   min-width: 0;
   display: flex;

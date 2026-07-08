@@ -31,7 +31,40 @@
           @touchend.prevent="themeStore.toggleTheme"
           @click="themeStore.toggleTheme"
         >
-          <span class="theme-toggle-symbol" aria-hidden="true"></span>
+          <svg
+            v-if="themeStore.isDark"
+            class="theme-toggle-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M20.5 13.2A8.5 8.5 0 1 1 10.8 3.5a6.6 6.6 0 0 0 9.7 9.7z" />
+          </svg>
+          <svg
+            v-else
+            class="theme-toggle-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2.5v2" />
+            <path d="M12 19.5v2" />
+            <path d="M2.5 12h2" />
+            <path d="M19.5 12h2" />
+            <path d="m5.1 5.1 1.4 1.4" />
+            <path d="m17.5 17.5 1.4 1.4" />
+            <path d="m5.1 18.9 1.4-1.4" />
+            <path d="m17.5 6.5 1.4-1.4" />
+          </svg>
         </button>
 
         <button
@@ -586,29 +619,17 @@ html[data-theme='dark'] .stock-market-btn {
   transform: scale(0.95);
 }
 
-.theme-toggle-symbol {
+/* 主题切换图标：线性太阳 / 月牙，风格与顶部其它线性图标统一 */
+.theme-toggle-icon {
   width: 20px;
   height: 20px;
-  border-radius: 50%;
   display: block;
-  position: relative;
-  background: var(--color-text-primary);
-  box-shadow: inset 7px -2px 0 0 var(--color-primary);
+  color: var(--color-text-primary);
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
-.theme-toggle-symbol::after {
-  content: '';
-  position: absolute;
-  width: 2px;
-  height: 2px;
-  border-radius: 50%;
-  right: -5px;
-  top: 3px;
-  background: var(--color-primary);
-  box-shadow:
-    -3px 12px 0 0 var(--color-primary),
-    2px 8px 0 -0.5px var(--color-primary);
-  opacity: 0.9;
+.theme-toggle-btn:active .theme-toggle-icon {
+  transform: rotate(-18deg) scale(0.94);
 }
 
 html[data-theme='dark'] .theme-toggle-btn {
@@ -616,21 +637,9 @@ html[data-theme='dark'] .theme-toggle-btn {
   border-color: var(--color-border);
 }
 
-html[data-theme='dark'] .theme-toggle-symbol {
-  background: var(--color-primary);
-  box-shadow:
-    0 -8px 0 -6px var(--color-primary),
-    0 8px 0 -6px var(--color-primary),
-    8px 0 0 -6px var(--color-primary),
-    -8px 0 0 -6px var(--color-primary),
-    6px 6px 0 -6px var(--color-primary),
-    -6px -6px 0 -6px var(--color-primary),
-    6px -6px 0 -6px var(--color-primary),
-    -6px 6px 0 -6px var(--color-primary);
-}
-
-html[data-theme='dark'] .theme-toggle-symbol::after {
-  display: none;
+/* 深色下月牙略带品牌暖色，呼应 App 金色标识但保持克制 */
+html[data-theme='dark'] .theme-toggle-icon {
+  color: #F5B51B;
 }
 
 /* Keep the theme switcher optically stable across light/dark modes. */
@@ -646,63 +655,13 @@ html[data-theme='dark'] .theme-toggle-symbol::after {
   overflow: hidden;
 }
 
-.app-header .theme-toggle-symbol {
+.app-header .theme-toggle-icon {
   width: 20px;
   height: 20px;
   min-width: 20px;
   min-height: 20px;
   margin: 0;
-  transform: translateZ(0);
-  transform-origin: 50% 50%;
   box-sizing: border-box;
-  overflow: visible;
-}
-
-.app-header .theme-toggle-symbol::before,
-.app-header .theme-toggle-symbol::after {
-  box-sizing: border-box;
-  pointer-events: none;
-}
-
-.app-header .theme-toggle-symbol {
-  background: #F5B51B;
-  box-shadow:
-    inset 7px -2px 0 0 var(--color-surface-2),
-    0 0 0 1px rgba(245,181,27,0.20);
-}
-
-.app-header .theme-toggle-symbol::after {
-  right: 2px;
-  top: 4px;
-  width: 3px;
-  height: 3px;
-  background: #F5B51B;
-  box-shadow:
-    -4px 10px 0 -0.5px #F5B51B,
-    4px 7px 0 -1px #F5B51B;
-}
-
-html[data-theme='dark'] .app-header .theme-toggle-symbol {
-  background: #F5B51B;
-  box-shadow:
-    0 0 0 1px rgba(245,181,27,0.18),
-    0 0 10px rgba(245,181,27,0.18);
-}
-
-html[data-theme='dark'] .app-header .theme-toggle-symbol::before {
-  content: '';
-  position: absolute;
-  inset: -3px;
-  border-radius: 50%;
-  background:
-    linear-gradient(#F5B51B, #F5B51B) 50% 0 / 2px 4px no-repeat,
-    linear-gradient(#F5B51B, #F5B51B) 50% 100% / 2px 4px no-repeat,
-    linear-gradient(#F5B51B, #F5B51B) 0 50% / 4px 2px no-repeat,
-    linear-gradient(#F5B51B, #F5B51B) 100% 50% / 4px 2px no-repeat;
-}
-
-html[data-theme='dark'] .app-header .theme-toggle-symbol::after {
-  display: none;
 }
 
 .connect-wallet-btn { 
